@@ -34,7 +34,7 @@ GPU 加速的正規化互相關（NCC）樣板比對後端。
 
 from __future__ import annotations
 
-from typing import Literal, Optional, Tuple, Union
+from typing import Literal, Optional
 
 import numpy as np
 

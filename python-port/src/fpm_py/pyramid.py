@@ -423,7 +423,6 @@ def pyramid_match(
             continue
 
         # 逐層精化 (top_layer-1 → 0)
-        alive = True
         for layer in range(top_layer - 1, -1, -1):
             cur_tmpl = tmpl_data.pyramid[layer]
             cur_src = src_pyr[layer]
@@ -502,7 +501,6 @@ def pyramid_match(
 
             # 分數門檻（對應 C++ vecLayerScore 檢查）
             if best_score < layer_scores[layer]:
-                alive = False
                 break
 
             best = angle_results[best_idx]
