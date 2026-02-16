@@ -372,6 +372,7 @@ code {
     <a href="#nms">NMS</a>
     <a href="#fft">FFT</a>
     <a href="#coord">座標轉換</a>
+    <a href="#complexity">複雜度</a>
   </div>
 </nav>
 
@@ -454,6 +455,20 @@ code {
   <div class="callout insight">
     <strong>Response Map 的尺寸</strong>
     影像 $H \times W$，模板 $h \times w$ → Response Map 大小 = $(H-h+1) \times (W-w+1)$。每個像素代表模板左上角放在該位置時的 NCC 分數。
+  </div>
+
+  <h3>模板預計算 (LearnPattern)</h3>
+  <p>在匹配之前，對模板金字塔每一層預先計算統計量，避免重複計算：</p>
+  <div class="formula">
+    $$\bar{T} = \frac{1}{N}\sum_{i,j} T(i,j), \qquad \sigma_T = \sqrt{\frac{1}{N}\sum_{i,j}\bigl(T(i,j) - \bar{T}\bigr)^2}, \qquad \text{invArea} = \frac{1}{N}$$
+  </div>
+  <p>NCC 分母中模板的部分：</p>
+  <div class="formula">
+    $$\sqrt{\sum_{i,j}\bigl(T - \bar{T}\bigr)^2} = \sqrt{N \cdot \sigma_T^2} = \sigma_T \cdot \sqrt{N} = \frac{\sqrt{\text{variance}}}{\sqrt{\text{invArea}}}$$
+  </div>
+  <div class="callout key">
+    <strong>為什麼預計算？</strong>
+    模板統計量在每次 matchTemplate 呼叫中都需要用到。旋轉搜尋可能有數十到數百個角度，但由於我們旋轉的是 Source 而非模板，<strong>模板統計量只需計算一次</strong>。這就是 LearnPattern 的核心價值。
   </div>
 </section>
 
@@ -587,6 +602,22 @@ while 模板面積 > min_reduced_area (預設 256):
     <strong>向量化 Top-K：比 C++ 更快的搜法</strong>
     C++ 用 <code>minMaxLoc</code> 反覆找最大值 → $O(K \times HW)$。Python 用 <code>np.argpartition</code> 一次找出前 $K \times 50$ 候選 → $O(HW) + O(\text{候選} \times K)$。當 $K$ 較大時，Python 做法更有效率。
   </div>
+
+  <h3>Block Max — 大圖小模板的加速器</h3>
+  <p>
+    當 Source 很大但模板很小（例如 3648×3648 + 54×54），response map 高達數百萬像素，但大部分區域分數極低。
+    <strong>Block Max</strong> 將 response map 切成固定大小的區塊，每塊只記錄最大值：
+  </p>
+  <div class="formula-code">blocks = response.reshape(nrows, bh, ncols, bw)  → (nrows, ncols, bh×bw)
+max_vals = blocks.max(axis=2)       # 每塊最大值
+max_idxs = blocks.argmax(axis=2)    # 塊內偏移
+
+# 只對 max_vals > threshold 的塊進一步處理
+top_blocks = argpartition(max_vals, -K)</div>
+  <div class="callout key">
+    <strong>為什麼有效？</strong>
+    假設 response map 為 3600×3600 ≈ 1300 萬像素，分塊為 54×54 → 約 4400 個塊。Top-K 搜尋從 1300 萬降到 4400 個塊候選 → <strong>約 3000 倍加速</strong>。C++ 原版的 <code>s_BlockMax</code> 實測加速 4.3 倍。
+  </div>
 </section>
 
 <!-- ══════════════════════════════════════════════════════════════ -->
@@ -716,8 +747,12 @@ while 模板面積 > min_reduced_area (預設 256):
 
   <div class="callout insight">
     <strong>重疊度計算：不是 IoU</strong>
-    與一般物件偵測不同，這裡用的是 $\text{overlap} = \frac{\text{intersection}}{\text{area}_1}$，分母是<strong>其中一個矩形</strong>的面積。如果小矩形完全在大矩形內，overlap = 1.0 → 會被抑制。與 C++ 原版邏輯一致。
+    與一般物件偵測不同，這裡用的不是 IoU，而是面積比：
   </div>
+  <div class="formula">
+    $$\text{overlap}(R_1, R_2) = \frac{|R_1 \cap R_2|}{|R_1|} \qquad \text{（分母是被測矩形的面積，不是聯集）}$$
+  </div>
+  <p>如果小矩形 $R_1$ 完全在大矩形 $R_2$ 內 → $|R_1 \cap R_2| = |R_1|$ → overlap = 1.0 → 會被抑制。與 C++ 原版 <code>FilterWithRotatedRect</code> 邏輯一致。</p>
 </section>
 
 <!-- ══════════════════════════════════════════════════════════════ -->
@@ -765,10 +800,27 @@ while 模板面積 > min_reduced_area (預設 256):
     FFT 輸出的 CC_full 尺寸 = $(H{+}h{-}1,\;W{+}w{-}1)$。Valid 區域在<strong>左上角</strong> <code>[0 : H−h+1, 0 : W−w+1]</code>，<em>不是</em> <code>[h−1 : H, w−1 : W]</code>。這是 FFT NCC 實作最常見的 bug。
   </div>
 
-  <h3>分母怎麼算？</h3>
+  <h3>分母怎麼算？——積分影像 (SAT)</h3>
   <p>
-    FFT 只加速了分子（互相關）。分母需要每個滑窗的 $\sum I$ 和 $\sum I^2$。用<strong>積分影像 (Summed Area Table)</strong> 一次建立 $O(HW)$，之後每個滑窗 $O(1)$ 查表。
+    FFT 只加速了分子（互相關）。分母需要每個滑窗的 $\sum I$ 和 $\sum I^2$。用<strong>積分影像 (Summed Area Table)</strong> 一次建立 $O(HW)$，之後每個滑窗 $O(1)$ 查表：
   </p>
+  <div class="formula">
+    $$\text{SAT}(x,y) = \sum_{i \le x,\, j \le y} I(i,j)$$
+  </div>
+  <p>任意矩形 $(x_1, y_1)$ 到 $(x_2, y_2)$ 的像素和：</p>
+  <div class="formula">
+    $$\sum_{\text{rect}} I = \text{SAT}(x_2,y_2) - \text{SAT}(x_1{-}1,y_2) - \text{SAT}(x_2,y_1{-}1) + \text{SAT}(x_1{-}1,y_1{-}1)$$
+  </div>
+  <div class="formula-code">integ  = cv2.integral(img)          # SAT for Σ I
+integ2 = cv2.integral(img × img)    # SAT for Σ I²
+
+# 對所有滑窗位置一次向量化算出 sum 和 sum²
+sums  = integ[h:,w:]  - integ[:-h,w:]  - integ[h:,:-w]  + integ[:-h,:-w]
+sums2 = integ2[h:,w:] - integ2[:-h,w:] - integ2[h:,:-w] + integ2[:-h,:-w]</div>
+  <div class="callout key">
+    <strong>一次建構，無限查表</strong>
+    積分影像建立 $O(HW)$，之後每個滑窗位置只需 4 次查表 $O(1)$。搭配 FFT 加速分子，整個 NCC 計算從 $O(WHwh)$ 降到 $O(WH \log WH)$。
+  </div>
 </section>
 
 <!-- ══════════════════════════════════════════════════════════════ -->
@@ -819,6 +871,160 @@ while 模板面積 > min_reduced_area (預設 256):
   <p>
     Python 中 <code>match_angle</code> 是「Source 旋轉的角度」。輸出的 $\text{angle} = -\text{match\_angle}$，意思是「模板需要旋轉此角度才能對上影像中的目標」。例：影像中的目標順時針轉了 30° → match_angle = −30° → output angle = 30°。
   </p>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- SECTION 10: Complexity & Numerical Stability -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<section id="complexity" class="reveal">
+  <div class="section-header">
+    <span class="section-num">10</span>
+    <div>
+      <h2>複雜度分析與數值穩定性</h2>
+      <p class="lead">理論時間複雜度、實測效能數據，以及保證計算正確的防護機制。</p>
+    </div>
+  </div>
+
+  <h3>時間複雜度</h3>
+  <p>設 source 尺寸 $W \times H$，模板 $w \times h$，金字塔層數 $N$，角度數 $A$，候選數 $K$。</p>
+
+  <div class="card" style="overflow-x:auto;">
+    <table style="width:100%; border-collapse:collapse; font-size:14px;">
+      <thead>
+        <tr style="border-bottom:2px solid var(--border);">
+          <th style="text-align:left; padding:8px;">階段</th>
+          <th style="text-align:left; padding:8px;">複雜度</th>
+          <th style="text-align:left; padding:8px;">說明</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:8px;"><strong>LearnPattern</strong></td>
+          <td style="padding:8px; font-family:var(--font-mono); color:var(--cyan);">$O(wh)$</td>
+          <td style="padding:8px; color:var(--fg-2);">金字塔建構 + 統計量（一次性）</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:8px;"><strong>Source 金字塔</strong></td>
+          <td style="padding:8px; font-family:var(--font-mono); color:var(--cyan);">$O(WH)$</td>
+          <td style="padding:8px; color:var(--fg-2);">pyrDown 每層 $O(WH/4^i)$，幾何級數</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:8px;"><strong>Top Layer 搜尋</strong></td>
+          <td style="padding:8px; font-family:var(--font-mono); color:var(--cyan);">$O\bigl(A \cdot \frac{WH}{4^N} \cdot \frac{wh}{4^N}\bigr)$</td>
+          <td style="padding:8px; color:var(--fg-2);">A 個角度 × matchTemplate</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:8px;"><strong>逐層精化</strong></td>
+          <td style="padding:8px; font-family:var(--font-mono); color:var(--cyan);">$O(K \cdot N \cdot wh)$</td>
+          <td style="padding:8px; color:var(--fg-2);">K 候選 × N 層 × 小 ROI matchTemplate</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:8px;"><strong>次像素</strong></td>
+          <td style="padding:8px; font-family:var(--font-mono); color:var(--cyan);">$O(K \times 270)$</td>
+          <td style="padding:8px; color:var(--fg-2);">27 點 × 10 參數 SVD</td>
+        </tr>
+        <tr>
+          <td style="padding:8px;"><strong>NMS</strong></td>
+          <td style="padding:8px; font-family:var(--font-mono); color:var(--cyan);">$O(K^2)$</td>
+          <td style="padding:8px; color:var(--fg-2);">Greedy + AABB 預篩加速</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout insight">
+    <strong>瓶頸在哪？</strong>
+    通常是 Top Layer 搜尋（角度數 × matchTemplate），但因為在金字塔最小層執行（影像可能只有 64×48），實際計算量極小。對於大圖小模板的情況，BlockMax 的分塊搜尋是關鍵加速。
+  </div>
+
+  <h3>實測效能 (Apple M1 Pro)</h3>
+  <div class="card" style="overflow-x:auto;">
+    <table style="width:100%; border-collapse:collapse; font-size:14px;">
+      <thead>
+        <tr style="border-bottom:2px solid var(--border);">
+          <th style="text-align:left; padding:8px;">案例</th>
+          <th style="text-align:left; padding:8px;">Source</th>
+          <th style="text-align:left; padding:8px;">Template</th>
+          <th style="text-align:left; padding:8px;">角度</th>
+          <th style="text-align:right; padding:8px;">OpenCV</th>
+          <th style="text-align:right; padding:8px;">FFT</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:8px;">無旋轉，大模板</td>
+          <td style="padding:8px; font-family:var(--font-mono);">4024×3036</td>
+          <td style="padding:8px; font-family:var(--font-mono);">762×521</td>
+          <td style="padding:8px;">0°</td>
+          <td style="padding:8px; text-align:right; color:var(--emerald); font-weight:600;">~32 ms</td>
+          <td style="padding:8px; text-align:right;">~80 ms</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:8px;">旋轉 180°，大模板</td>
+          <td style="padding:8px; font-family:var(--font-mono);">4024×3036</td>
+          <td style="padding:8px; font-family:var(--font-mono);">762×521</td>
+          <td style="padding:8px;">±180°</td>
+          <td style="padding:8px; text-align:right; color:var(--emerald); font-weight:600;">~200 ms</td>
+          <td style="padding:8px; text-align:right;">~3000 ms</td>
+        </tr>
+        <tr>
+          <td style="padding:8px;">多目標，小模板</td>
+          <td style="padding:8px; font-family:var(--font-mono);">3648×3648</td>
+          <td style="padding:8px; font-family:var(--font-mono);">54×54</td>
+          <td style="padding:8px;">0°</td>
+          <td style="padding:8px; text-align:right;">~45 ms</td>
+          <td style="padding:8px; text-align:right; color:var(--emerald); font-weight:600;">~30 ms</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout warning">
+    <strong>後端選擇建議</strong>
+    大模板（>100px）→ OpenCV 較快（內部 DFT 已高度優化）。小模板 + 大圖 → FFT 較快（避免 matchTemplate 的 $O(wh)$ per-pixel overhead）。旋轉搜尋的計算量正比於角度數。
+  </div>
+
+  <h3>數值穩定性防護</h3>
+  <p>NCC 的數學公式看似簡單，但實務中有多處需要防護：</p>
+
+  <div class="card-row">
+    <div class="card">
+      <h3>分母保護</h3>
+      <p>均勻區域的 NCC 分母趨近 0：</p>
+      <div class="formula-code">np.divide(CC, max(denom, 1e-12),
+          where=denom > 0)</div>
+      <p style="font-size:13px; color:var(--fg-3);">均勻模板直接回傳 1.0</p>
+    </div>
+    <div class="card">
+      <h3>次像素偏移裁切</h3>
+      <p>擬合偏移超過 $\pm 1$ 表示不穩定：</p>
+      <div class="formula-code">dx = clip(dx, -1.0, 1.0)
+dy = clip(dy, -1.0, 1.0)</div>
+      <p style="font-size:13px; color:var(--fg-3);">寧可保留整數位置</p>
+    </div>
+  </div>
+  <div class="card-row">
+    <div class="card">
+      <h3>Hessian 奇異性</h3>
+      <p>3D 次像素 $\mathbf{H}\boldsymbol{\delta} = \mathbf{g}$ 可能無解：</p>
+      <div class="formula-code">try:
+    delta = linalg.solve(H, g)
+except LinAlgError:
+    return (0, 0, 0)  # 放棄精化</div>
+    </div>
+    <div class="card">
+      <h3>邊界檢查</h3>
+      <p>ROI 精化中峰值在邊界 → 真正峰值可能在 ROI 外：</p>
+      <div class="formula-code">on_border = (maxLoc[0] == 0 or
+  maxLoc[0] == resp.W-1 or ...)
+if on_border: skip_subpixel()</div>
+    </div>
+  </div>
+
+  <div class="callout insight">
+    <strong>OpenCV 版本差異</strong>
+    <code>cv2.pyrDown</code> / <code>cv2.warpAffine</code> 在不同 OpenCV 版本（如 4.5 vs 4.13）有微小數值差異（~0.001），可能導致邊界 case 分數些許不同。這是已知限制，不影響實際匹配結果。
+  </div>
 </section>
 
 <!-- ══════════════════════════════════════════════════════════════ -->
