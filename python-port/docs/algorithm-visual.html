@@ -3,261 +3,354 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NCC 金字塔樣板匹配 — 互動式演算法解說</title>
+<title>NCC 金字塔樣板匹配 — 互動式演算法視覺化</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <style>
 :root {
-  --bg: #0f1117;
-  --bg2: #1a1d27;
-  --bg3: #242836;
-  --fg: #e4e6ed;
-  --fg2: #9ca0ad;
-  --accent: #5b9cf6;
-  --accent2: #38c98d;
-  --warn: #f5a623;
-  --red: #f25757;
-  --border: #2d3140;
-  --radius: 10px;
-  --font: 'SF Pro Display', -apple-system, 'Noto Sans TC', sans-serif;
-  --mono: 'SF Mono', 'Menlo', 'Fira Code', monospace;
+  --bg-0: #06090f;
+  --bg-1: #0c1018;
+  --bg-2: #131a28;
+  --bg-3: #1a2236;
+  --fg-1: #e8ecf4;
+  --fg-2: #8b95a8;
+  --fg-3: #5a6478;
+  --cyan: #22d3ee;
+  --cyan-dim: rgba(34,211,238,0.10);
+  --emerald: #34d399;
+  --emerald-dim: rgba(52,211,153,0.10);
+  --amber: #fbbf24;
+  --amber-dim: rgba(251,191,36,0.08);
+  --rose: #fb7185;
+  --rose-dim: rgba(251,113,133,0.08);
+  --border: #1e293b;
+  --border-light: #2d3a4f;
+  --radius: 12px;
+  --font-display: 'Syne', 'Noto Sans TC', sans-serif;
+  --font-body: 'Outfit', 'Noto Sans TC', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Noto Sans Mono', monospace;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
-
 html { scroll-behavior: smooth; }
 
 body {
-  background: var(--bg);
-  color: var(--fg);
-  font-family: var(--font);
-  line-height: 1.7;
+  background: var(--bg-1);
+  color: var(--fg-1);
+  font-family: var(--font-body);
+  line-height: 1.75;
   font-size: 16px;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Navigation */
+/* ── Navigation ── */
 nav {
   position: fixed; top: 0; left: 0; right: 0;
-  background: rgba(15,17,23,0.92);
-  backdrop-filter: blur(12px);
+  background: rgba(12,16,24,0.85);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
   border-bottom: 1px solid var(--border);
   z-index: 100;
   padding: 0 24px;
 }
 nav .inner {
-  max-width: 1200px; margin: 0 auto;
-  display: flex; align-items: center; gap: 8px;
-  height: 56px; overflow-x: auto;
+  max-width: 1100px; margin: 0 auto;
+  display: flex; align-items: center; gap: 4px;
+  height: 52px; overflow-x: auto;
+  scrollbar-width: none;
+}
+nav .inner::-webkit-scrollbar { display: none; }
+nav .logo {
+  font-family: var(--font-display);
+  font-weight: 800; font-size: 15px;
+  color: var(--cyan); margin-right: 16px;
+  flex-shrink: 0; letter-spacing: 1px;
 }
 nav a {
-  color: var(--fg2); text-decoration: none;
-  padding: 6px 14px; border-radius: 6px;
-  font-size: 13px; white-space: nowrap;
-  transition: all 0.2s;
+  color: var(--fg-3); text-decoration: none;
+  padding: 5px 12px; border-radius: 6px;
+  font-size: 12.5px; white-space: nowrap;
+  font-weight: 500; transition: all 0.25s;
+  font-family: var(--font-body);
 }
-nav a:hover, nav a.active { color: var(--accent); background: rgba(91,156,246,0.1); }
-nav .logo {
-  font-weight: 700; font-size: 15px;
-  color: var(--accent); margin-right: 16px;
-  flex-shrink: 0;
-}
+nav a:hover { color: var(--fg-2); background: rgba(34,211,238,0.06); }
+nav a.active { color: var(--cyan); background: rgba(34,211,238,0.10); }
 
-/* Main */
+/* ── Main ── */
 main {
   max-width: 960px;
   margin: 0 auto;
-  padding: 80px 24px 80px;
+  padding: 76px 24px 60px;
 }
 
+/* ── Sections ── */
 section {
-  margin-bottom: 80px;
-  scroll-margin-top: 72px;
+  margin-bottom: 96px;
+  scroll-margin-top: 68px;
+  position: relative;
+}
+
+.section-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+.section-num {
+  font-family: var(--font-display);
+  font-size: 72px;
+  font-weight: 800;
+  line-height: 1;
+  color: rgba(34,211,238,0.08);
+  flex-shrink: 0;
+  user-select: none;
+  margin-top: -8px;
+}
+.section-header h2 {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--fg-1);
+  margin-bottom: 4px;
+  letter-spacing: -0.02em;
+}
+.section-header .lead {
+  font-size: 16px;
+  color: var(--fg-2);
+  font-weight: 400;
+  line-height: 1.6;
 }
 
 h1 {
-  font-size: 42px; font-weight: 800;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  margin-bottom: 12px;
+  font-family: var(--font-display);
+  font-size: 44px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, var(--cyan), var(--emerald));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 14px;
 }
-h2 {
-  font-size: 28px; font-weight: 700;
-  color: var(--fg); margin-bottom: 8px;
-  padding-bottom: 8px;
-  border-bottom: 2px solid var(--accent);
-  display: inline-block;
+h3 {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--cyan);
+  margin: 28px 0 10px;
+  letter-spacing: -0.01em;
 }
-h3 { font-size: 18px; color: var(--accent); margin: 20px 0 8px; }
 
-p, li { color: var(--fg2); margin-bottom: 10px; }
-strong { color: var(--fg); }
-.lead { font-size: 18px; color: var(--fg2); margin-bottom: 24px; }
+p, li { color: var(--fg-2); margin-bottom: 10px; }
+strong { color: var(--fg-1); font-weight: 600; }
+.lead { font-size: 17px; color: var(--fg-2); margin-bottom: 20px; line-height: 1.6; }
+ol, ul { padding-left: 24px; }
 
-/* Cards */
+/* ── Cards ── */
 .card {
-  background: var(--bg2);
+  background: var(--bg-2);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 24px;
   margin: 16px 0;
+  transition: border-color 0.3s;
 }
+.card:hover { border-color: var(--border-light); }
 .card-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 16px;
-  margin: 16px 0;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  margin: 20px 0;
 }
 
-/* Canvas container */
+/* ── Canvas viz ── */
 .viz {
-  background: var(--bg3);
+  background:
+    linear-gradient(rgba(34,211,238,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(34,211,238,0.02) 1px, transparent 1px),
+    var(--bg-3);
+  background-size: 24px 24px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 20px;
   margin: 20px 0;
   text-align: center;
   position: relative;
+  overflow-x: auto;
 }
-.viz canvas, .viz svg {
-  display: block;
-  margin: 0 auto;
-}
-.viz-label {
-  position: absolute;
-  font-size: 12px;
-  color: var(--fg2);
-  font-family: var(--mono);
-}
+.viz canvas { display: block; margin: 0 auto; }
 
-/* Controls */
+/* ── Controls ── */
 .controls {
   display: flex; align-items: center; gap: 12px;
-  margin: 12px 0; flex-wrap: wrap;
+  margin: 14px 0 0; flex-wrap: wrap;
 }
 .btn {
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  padding: 8px 20px;
-  border-radius: 6px;
-  font-size: 14px;
+  background: linear-gradient(135deg, rgba(34,211,238,0.15), rgba(34,211,238,0.08));
+  color: var(--cyan);
+  border: 1px solid rgba(34,211,238,0.25);
+  padding: 7px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
-  font-family: var(--font);
+  transition: all 0.25s;
+  font-family: var(--font-body);
 }
-.btn:hover { filter: brightness(1.15); }
+.btn:hover {
+  background: rgba(34,211,238,0.20);
+  border-color: var(--cyan);
+  box-shadow: 0 0 16px rgba(34,211,238,0.15);
+}
 .btn:active { transform: scale(0.97); }
-.btn.secondary { background: var(--bg3); color: var(--fg2); border: 1px solid var(--border); }
-.btn.secondary:hover { border-color: var(--accent); color: var(--accent); }
+.btn.secondary {
+  background: rgba(255,255,255,0.03);
+  color: var(--fg-2);
+  border: 1px solid var(--border);
+}
+.btn.secondary:hover { border-color: var(--cyan); color: var(--cyan); }
 
 input[type="range"] {
   -webkit-appearance: none; appearance: none;
-  height: 6px; background: var(--bg3); border-radius: 3px;
-  outline: none;
+  height: 5px; background: var(--bg-3); border-radius: 3px;
+  outline: none; border: 1px solid var(--border);
 }
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none; appearance: none;
-  width: 18px; height: 18px; border-radius: 50%;
-  background: var(--accent); cursor: pointer;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--cyan); cursor: pointer;
+  box-shadow: 0 0 8px rgba(34,211,238,0.3);
 }
-
-label { font-size: 13px; color: var(--fg2); }
+label { font-size: 13px; color: var(--fg-3); font-weight: 500; }
 .value-display {
-  font-family: var(--mono);
-  font-size: 14px;
-  color: var(--accent);
-  min-width: 40px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--cyan);
+  min-width: 36px;
 }
 
-/* Code */
-code {
-  background: var(--bg3);
-  padding: 2px 6px; border-radius: 4px;
-  font-family: var(--mono);
-  font-size: 14px;
-  color: var(--accent2);
-}
-
+/* ── Math formula blocks ── */
 .formula {
-  background: var(--bg3);
-  border-left: 3px solid var(--accent);
+  background: var(--bg-2);
+  border-left: 3px solid var(--cyan);
+  padding: 20px 24px;
+  margin: 20px 0;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  overflow-x: auto;
+  line-height: 2;
+}
+.formula .katex-display { margin: 0; }
+.formula-code {
+  background: var(--bg-2);
+  border-left: 3px solid var(--fg-3);
   padding: 16px 20px;
   margin: 16px 0;
   border-radius: 0 var(--radius) var(--radius) 0;
-  font-family: var(--mono);
-  font-size: 15px;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--fg-2);
   overflow-x: auto;
-  line-height: 2;
-  color: var(--fg);
+  white-space: pre;
 }
 
-/* Callout */
+/* ── Code ── */
+code {
+  background: var(--bg-3);
+  padding: 2px 7px; border-radius: 5px;
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+  color: var(--emerald);
+}
+
+/* ── Callouts ── */
 .callout {
   border-radius: var(--radius);
-  padding: 16px 20px;
-  margin: 16px 0;
-  font-size: 14px;
+  padding: 18px 22px;
+  margin: 20px 0;
+  font-size: 14.5px;
+  line-height: 1.7;
 }
-.callout.insight { background: rgba(91,156,246,0.1); border-left: 3px solid var(--accent); }
-.callout.warning { background: rgba(245,166,35,0.1); border-left: 3px solid var(--warn); }
-.callout.key { background: rgba(56,201,141,0.1); border-left: 3px solid var(--accent2); }
-.callout strong { display: block; margin-bottom: 4px; }
+.callout strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 14px;
+  letter-spacing: 0.01em;
+}
+.callout.insight {
+  background: var(--cyan-dim);
+  border-left: 3px solid var(--cyan);
+}
+.callout.insight strong { color: var(--cyan); }
+.callout.warning {
+  background: var(--amber-dim);
+  border-left: 3px solid var(--amber);
+}
+.callout.warning strong { color: var(--amber); }
+.callout.key {
+  background: var(--emerald-dim);
+  border-left: 3px solid var(--emerald);
+}
+.callout.key strong { color: var(--emerald); }
 
-/* Pipeline flow */
+/* ── Pipeline flow ── */
 .pipeline {
-  display: flex; align-items: center; gap: 4px;
-  flex-wrap: wrap; margin: 20px 0;
+  display: flex; align-items: center; gap: 6px;
+  flex-wrap: wrap; margin: 24px 0;
 }
 .pipeline .step {
-  background: var(--bg3);
+  background: var(--bg-2);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 10px 16px;
-  font-size: 13px;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 12.5px;
   text-align: center;
   transition: all 0.3s;
-  cursor: default;
-  min-width: 100px;
+  cursor: pointer;
+  min-width: 96px;
 }
 .pipeline .step:hover, .pipeline .step.active {
-  border-color: var(--accent);
-  background: rgba(91,156,246,0.1);
+  border-color: var(--cyan);
+  background: var(--cyan-dim);
   transform: translateY(-2px);
 }
-.pipeline .step.active { box-shadow: 0 0 20px rgba(91,156,246,0.2); }
-.pipeline .arrow {
-  color: var(--fg2); font-size: 18px;
-}
+.pipeline .step.active { box-shadow: 0 4px 20px rgba(34,211,238,0.12); }
+.pipeline .arrow { color: var(--fg-3); font-size: 16px; }
 .pipeline .step .num {
-  font-size: 11px; color: var(--accent);
+  font-size: 10px; color: var(--cyan);
   font-weight: 700; display: block;
+  font-family: var(--font-mono);
 }
 .pipeline .step .name {
-  color: var(--fg); font-weight: 600;
-  font-size: 13px;
+  color: var(--fg-1); font-weight: 600; font-size: 13px;
 }
 
-/* Stat number */
-.stat {
-  text-align: center;
-}
+/* ── Stats ── */
+.stat { text-align: center; }
 .stat .num {
-  font-size: 36px; font-weight: 800;
-  color: var(--accent);
-  font-family: var(--mono);
+  font-size: 32px; font-weight: 800;
+  color: var(--cyan);
+  font-family: var(--font-display);
 }
-.stat .unit {
-  font-size: 14px; color: var(--fg2);
-}
+.stat .unit { font-size: 13px; color: var(--fg-2); margin-top: 2px; }
 
-/* Scroll reveal */
-.reveal { opacity: 0; transform: translateY(30px); transition: all 0.6s ease-out; }
+/* ── Scroll reveal ── */
+.reveal {
+  opacity: 0; transform: translateY(24px);
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
 .reveal.visible { opacity: 1; transform: none; }
 
-/* Responsive */
+/* ── Responsive ── */
 @media (max-width: 640px) {
-  h1 { font-size: 28px; }
-  h2 { font-size: 22px; }
-  main { padding: 70px 16px 40px; }
+  h1 { font-size: 30px; }
+  .section-header h2 { font-size: 22px; }
+  .section-num { font-size: 48px; }
+  main { padding: 64px 16px 40px; }
   .card-row { grid-template-columns: 1fr; }
+  .section-header { gap: 12px; }
 }
 </style>
 </head>
@@ -269,9 +362,9 @@ code {
     <a href="#overview">總覽</a>
     <a href="#ncc">NCC</a>
     <a href="#pyramid">金字塔</a>
-    <a href="#rotation">旋轉搜尋</a>
+    <a href="#rotation">旋轉</a>
     <a href="#toplayer">Top Layer</a>
-    <a href="#refinement">逐層精化</a>
+    <a href="#refinement">精化</a>
     <a href="#subpixel">次像素</a>
     <a href="#nms">NMS</a>
     <a href="#fft">FFT</a>
@@ -281,63 +374,54 @@ code {
 
 <main>
 
-<!-- ================================================================== -->
+<!-- ══════════════════════════════════════════════════════════════ -->
 <!-- SECTION 0: Overview -->
-<!-- ================================================================== -->
+<!-- ══════════════════════════════════════════════════════════════ -->
 <section id="overview">
   <h1>NCC 金字塔樣板匹配</h1>
   <p class="lead">
     在大影像中找到所有與模板相似的位置，即使目標旋轉了任意角度。<br>
-    本頁以互動動畫解說每個階段的原理。
+    本頁以互動動畫解說每個階段的原理與數學推導。
   </p>
 
   <div class="pipeline" id="pipeline-flow">
-    <div class="step" data-section="ncc"><span class="num">①</span><span class="name">LearnPattern</span>預計算模板</div>
+    <div class="step" data-section="ncc"><span class="num">01</span><span class="name">LearnPattern</span>預計算模板</div>
     <span class="arrow">→</span>
-    <div class="step" data-section="pyramid"><span class="num">②</span><span class="name">金字塔</span>建立多解析度</div>
+    <div class="step" data-section="pyramid"><span class="num">02</span><span class="name">金字塔</span>多解析度</div>
     <span class="arrow">→</span>
-    <div class="step" data-section="toplayer"><span class="num">③</span><span class="name">Top Layer</span>全域搜尋</div>
+    <div class="step" data-section="toplayer"><span class="num">03</span><span class="name">Top Layer</span>全域搜尋</div>
     <span class="arrow">→</span>
-    <div class="step" data-section="refinement"><span class="num">④</span><span class="name">逐層精化</span>ROI + 角度</div>
+    <div class="step" data-section="refinement"><span class="num">04</span><span class="name">逐層精化</span>ROI + 角度</div>
     <span class="arrow">→</span>
-    <div class="step" data-section="subpixel"><span class="num">⑤</span><span class="name">次像素</span>亞像素精化</div>
+    <div class="step" data-section="subpixel"><span class="num">05</span><span class="name">次像素</span>亞像素精化</div>
     <span class="arrow">→</span>
-    <div class="step" data-section="nms"><span class="num">⑥</span><span class="name">NMS</span>去重疊</div>
+    <div class="step" data-section="nms"><span class="num">06</span><span class="name">NMS</span>去重疊</div>
   </div>
 
   <div class="callout insight">
-    <strong>核心思想：由粗到細</strong>
-    先在縮小版的影像上快速找到「大概在哪裡、大概什麼角度」，<br>
-    再逐層放大、精修位置和角度，最後用次像素估計達到亞像素精度。<br>
-    就像在 Google Maps 上先看世界地圖找到城市，再放大找到街道。
+    <strong>核心思想：由粗到細 (Coarse-to-Fine)</strong>
+    先在縮小版的影像上快速找到「大概在哪裡、大概什麼角度」，再逐層放大、精修位置和角度，最後用次像素估計達到亞像素精度。就像在 Google Maps 上先看世界地圖找到城市，再放大找到街道。
   </div>
 
   <div class="card-row">
-    <div class="card stat">
-      <div class="num">9</div>
-      <div class="unit">階段管線</div>
-    </div>
-    <div class="card stat">
-      <div class="num">2</div>
-      <div class="unit">NCC 後端<br>(OpenCV / FFT)</div>
-    </div>
-    <div class="card stat">
-      <div class="num">±360°</div>
-      <div class="unit">旋轉搜尋範圍</div>
-    </div>
-    <div class="card stat">
-      <div class="num">~0.1px</div>
-      <div class="unit">次像素定位精度</div>
-    </div>
+    <div class="card stat"><div class="num">6</div><div class="unit">階段管線</div></div>
+    <div class="card stat"><div class="num">2</div><div class="unit">NCC 後端<br><small style="color:var(--fg-3)">OpenCV / FFT</small></div></div>
+    <div class="card stat"><div class="num">±360°</div><div class="unit">旋轉搜尋</div></div>
+    <div class="card stat"><div class="num">~0.1px</div><div class="unit">定位精度</div></div>
   </div>
 </section>
 
-<!-- ================================================================== -->
+<!-- ══════════════════════════════════════════════════════════════ -->
 <!-- SECTION 1: NCC -->
-<!-- ================================================================== -->
+<!-- ══════════════════════════════════════════════════════════════ -->
 <section id="ncc" class="reveal">
-  <h2>正規化互相關 (NCC)</h2>
-  <p class="lead">把模板像滑窗一樣在影像上移動，每個位置算一個「相似度分數」。</p>
+  <div class="section-header">
+    <span class="section-num">01</span>
+    <div>
+      <h2>正規化互相關 (NCC)</h2>
+      <p class="lead">把模板像滑窗一樣在影像上移動，每個位置算一個「相似度分數」。</p>
+    </div>
+  </div>
 
   <div class="viz" style="height:420px;">
     <canvas id="ncc-canvas" width="880" height="380"></canvas>
@@ -351,39 +435,36 @@ code {
 
   <h3>直觀理解</h3>
   <p>
-    想像你拿著一張小照片（模板），在一面大牆壁（影像）上滑動比對。
-    每移到一個位置，你把模板和牆壁上對應的區域做比較——
-    如果形狀完全一致，分數就是 <strong>1.0</strong>；
-    完全不相關就是 <strong>0.0</strong>；
-    反相（黑白顛倒）就是 <strong>-1.0</strong>。
+    想像你拿著一張小照片（模板），在一面大牆壁（影像）上滑動比對。每移到一個位置，把模板和牆壁上對應的區域做比較——
+    如果形狀完全一致，分數就是 <strong>1.0</strong>；完全不相關就是 <strong>0.0</strong>；反相（黑白顛倒）就是 <strong>−1.0</strong>。
   </p>
 
   <div class="formula">
-NCC(x,y) = Σ [I(x+i,y+j) − μ<sub>I</sub>] × [T(i,j) − μ<sub>T</sub>]
-           ────────────────────────────────────────────────
-           √{Σ (I − μ<sub>I</sub>)²} × √{Σ (T − μ<sub>T</sub>)²}
+    $$\text{NCC}(x,y) = \frac{\displaystyle\sum_{i,j} \bigl[I(x{+}i,\;y{+}j) - \bar{I}_{xy}\bigr] \cdot \bigl[T(i,j) - \bar{T}\,\bigr]}{\sqrt{\displaystyle\sum_{i,j}\bigl(I(x{+}i,\;y{+}j) - \bar{I}_{xy}\bigr)^{2}} \;\cdot\; \sqrt{\displaystyle\sum_{i,j}\bigl(T(i,j) - \bar{T}\,\bigr)^{2}}}$$
   </div>
 
   <div class="callout key">
-    <strong>為什麼要「去均值」(零均值)?</strong>
-    去均值讓 NCC 對光照變化免疫。如果整體亮度提高（I → I + 50），
-    去均值後 (I + 50) − μ' = I − μ，數值不變。
-    這對工業檢測很重要——光源不可能永遠一致。
+    <strong>為什麼要「去均值」？</strong>
+    去均值讓 NCC 對光照變化免疫。整體亮度提高 $I \to I + c$ 時，去均值後 $(I+c) - \bar{I}' = I - \bar{I}$，數值不變。這對工業檢測很重要——光源不可能永遠一致。
   </div>
 
   <div class="callout insight">
     <strong>Response Map 的尺寸</strong>
-    影像 H×W，模板 h×w → Response Map 大小 = <code>(H−h+1) × (W−w+1)</code><br>
-    每個像素代表模板左上角放在該位置時的分數。
+    影像 $H \times W$，模板 $h \times w$ → Response Map 大小 = $(H-h+1) \times (W-w+1)$。每個像素代表模板左上角放在該位置時的 NCC 分數。
   </div>
 </section>
 
-<!-- ================================================================== -->
+<!-- ══════════════════════════════════════════════════════════════ -->
 <!-- SECTION 2: Pyramid -->
-<!-- ================================================================== -->
+<!-- ══════════════════════════════════════════════════════════════ -->
 <section id="pyramid" class="reveal">
-  <h2>影像金字塔</h2>
-  <p class="lead">把影像逐層縮小一半，在小圖上搜尋比在大圖上快 4 倍。</p>
+  <div class="section-header">
+    <span class="section-num">02</span>
+    <div>
+      <h2>影像金字塔</h2>
+      <p class="lead">把影像逐層縮小一半，在小圖上搜尋比在大圖上快 4 倍。</p>
+    </div>
+  </div>
 
   <div class="viz" style="height:450px;">
     <canvas id="pyramid-canvas" width="880" height="410"></canvas>
@@ -399,49 +480,40 @@ NCC(x,y) = Σ [I(x+i,y+j) − μ<sub>I</sub>] × [T(i,j) − μ<sub>T</sub>]
 
   <h3>直觀理解</h3>
   <p>
-    在 4000×3000 的照片中找一個 100×100 的螺絲釘，直接搜尋需要檢查 ~1200 萬個位置。<br>
-    但如果先把照片縮小 8 倍到 500×375，模板也縮小到 ~13×13，只需檢查 ~18 萬個位置——
-    <strong>快了 67 倍</strong>。找到大致位置後，再回到大圖精修。
+    在 $4000 \times 3000$ 的照片中找一個 $100 \times 100$ 的螺絲釘，直接搜尋需要檢查約 1200 萬個位置。
+    但如果先縮小 8 倍到 $500 \times 375$，模板也縮小到 $\sim\!13 \times 13$，只需約 18 萬個位置——<strong>快了 67 倍</strong>。
   </p>
 
   <div class="callout key">
     <strong>pyrDown vs resize</strong>
-    使用 <code>cv2.pyrDown</code>（先高斯模糊再 ÷2 下採樣），
-    而非 <code>cv2.resize</code>。<br>
-    高斯模糊能避免<strong>混疊（aliasing）</strong>——
-    想像把棋盤格直接縮小，會出現摩爾紋；先模糊再縮小就不會。
+    使用 <code>cv2.pyrDown</code>（先高斯模糊再 ÷2 下採樣），而非 <code>cv2.resize</code>。高斯模糊能避免<strong>混疊 (aliasing)</strong>——想像把棋盤格直接縮小會出現摩爾紋；先模糊再縮小就不會。
   </div>
 
   <h3>層數怎麼決定？</h3>
-  <div class="formula">
-top_layer = 0
+  <div class="formula-code">top_layer = 0
 while 模板面積 > min_reduced_area (預設 256):
     面積 ÷= 4
-    top_layer += 1
-  </div>
-  <p>
-    每層面積 ÷4（寬高各 ÷2），直到模板面積 ≤ 256 (≈ 16×16)。
-    模板太小會失去特徵，無法準確匹配。
-  </p>
+    top_layer += 1</div>
+  <p>每層面積 $\div 4$（寬高各 $\div 2$），直到模板面積 $\leq 256 \approx 16 \times 16$。模板太小會失去特徵，無法準確匹配。</p>
 
   <h3>分數門檻衰減</h3>
-  <p>
-    低解析度影像較模糊，NCC 分數自然偏低。因此每往上一層，門檻 ×0.9：
-  </p>
+  <p>低解析度影像較模糊，NCC 分數自然偏低。因此每往上一層，門檻乘以 0.9：</p>
   <div class="formula">
-Layer 0: score = 0.80 (使用者設定)
-Layer 1: score = 0.72
-Layer 2: score = 0.648
-Layer 3: score = 0.583
+    $$\text{threshold}_\ell = \text{score}_0 \times 0.9^{\,\ell}$$
   </div>
 </section>
 
-<!-- ================================================================== -->
+<!-- ══════════════════════════════════════════════════════════════ -->
 <!-- SECTION 3: Rotation -->
-<!-- ================================================================== -->
+<!-- ══════════════════════════════════════════════════════════════ -->
 <section id="rotation" class="reveal">
-  <h2>旋轉搜尋策略</h2>
-  <p class="lead">旋轉的是 Source 圖，不是模板——這是一個違反直覺但巧妙的設計。</p>
+  <div class="section-header">
+    <span class="section-num">03</span>
+    <div>
+      <h2>旋轉搜尋策略</h2>
+      <p class="lead">旋轉的是 Source 圖，不是模板——這是一個違反直覺但巧妙的設計。</p>
+    </div>
+  </div>
 
   <div class="viz" style="height: 480px;">
     <canvas id="rotation-canvas" width="880" height="440"></canvas>
@@ -456,53 +528,40 @@ Layer 3: score = 0.583
   <h3>為什麼旋轉 Source 而非 Template？</h3>
   <div class="callout insight">
     <strong>效能考量</strong>
-    模板已經在 LearnPattern 中預計算了統計量（mean, norm）。
-    如果旋轉模板，每個角度都要重新計算。<br>
-    旋轉 Source 後，直接用<strong>原始未旋轉的模板</strong>做 matchTemplate，統計量可以重用。
+    模板已經在 LearnPattern 中預計算了統計量（mean, norm）。如果旋轉模板，每個角度都要重新計算。旋轉 Source 後，直接用<strong>原始未旋轉的模板</strong>做 matchTemplate，統計量可以重用。
   </div>
 
   <h3>自適應角度步進</h3>
   <div class="formula">
-angle_step = atan(2 / max(模板寬, 模板高)) × 180/π
+    $$\Delta\theta = \arctan\!\left(\frac{2}{\max(w,\,h)}\right) \times \frac{180°}{\pi}$$
   </div>
   <p>
-    <strong>幾何意義</strong>：模板邊緣距中心 r = max(w,h)/2。
-    旋轉 angle_step 度後，邊緣點位移 ≈ r × sin(step) ≈ <strong>1 pixel</strong>。
-    剛好不遺漏、不冗餘。
+    <strong>幾何意義</strong>：模板邊緣距中心 $r = \max(w,h)/2$。旋轉 $\Delta\theta$ 後，邊緣點位移 $\approx r \times \sin(\Delta\theta) \approx 1$ pixel。剛好不遺漏、不冗餘。
   </p>
 
   <div class="card-row">
-    <div class="card">
-      <h3>模板 10px</h3>
-      <div class="stat"><div class="num">11.3°</div><div class="unit">步進</div></div>
-      <p style="text-align:center;font-size:13px;">~32 個角度 / 360°</p>
-    </div>
-    <div class="card">
-      <h3>模板 50px</h3>
-      <div class="stat"><div class="num">2.3°</div><div class="unit">步進</div></div>
-      <p style="text-align:center;font-size:13px;">~157 個角度 / 360°</p>
-    </div>
-    <div class="card">
-      <h3>模板 200px</h3>
-      <div class="stat"><div class="num">0.57°</div><div class="unit">步進</div></div>
-      <p style="text-align:center;font-size:13px;">~632 個角度 / 360°</p>
-    </div>
+    <div class="card"><h3>模板 10px</h3><div class="stat"><div class="num">11.3°</div><div class="unit">步進 (~32 角度/360°)</div></div></div>
+    <div class="card"><h3>模板 50px</h3><div class="stat"><div class="num">2.3°</div><div class="unit">步進 (~157 角度/360°)</div></div></div>
+    <div class="card"><h3>模板 200px</h3><div class="stat"><div class="num">0.57°</div><div class="unit">步進 (~632 角度/360°)</div></div></div>
   </div>
 
   <div class="callout warning">
-    <strong>Top Layer 的關鍵：角度搜尋在最小層</strong>
-    模板 200px 的步進是 0.57° → 632 個角度，聽起來很多。
-    但在金字塔頂層模板可能只剩 12px → 步進變成 9.5° → 只需 ~38 個角度。
-    這就是金字塔的威力——角度搜尋量大幅減少。
+    <strong>Top Layer 的威力：角度搜尋在最小層</strong>
+    模板 200px 的步進是 0.57° → 632 個角度，聽起來很多。但在金字塔頂層模板可能只剩 12px → 步進變成 9.5° → 只需約 38 個角度。
   </div>
 </section>
 
-<!-- ================================================================== -->
+<!-- ══════════════════════════════════════════════════════════════ -->
 <!-- SECTION 4: Top Layer -->
-<!-- ================================================================== -->
+<!-- ══════════════════════════════════════════════════════════════ -->
 <section id="toplayer" class="reveal">
-  <h2>Top Layer 全域搜尋</h2>
-  <p class="lead">在最小層窮舉所有角度，找到所有可能的候選位置。</p>
+  <div class="section-header">
+    <span class="section-num">04</span>
+    <div>
+      <h2>Top Layer 全域搜尋</h2>
+      <p class="lead">在最小層窮舉所有角度，找到所有可能的候選位置。</p>
+    </div>
+  </div>
 
   <div class="viz" style="height: 400px;">
     <canvas id="toplayer-canvas" width="880" height="360"></canvas>
@@ -513,30 +572,31 @@ angle_step = atan(2 / max(模板寬, 模板高)) × 180/π
   </div>
 
   <h3>搜尋流程</h3>
-  <p>
-    對每個角度 θ：
-  </p>
+  <p>對每個角度 $\theta$：</p>
   <ol>
     <li><strong>旋轉 Source</strong>：<code>rotate_source(top_src, θ)</code>，畫布自動擴張避免裁切</li>
     <li><strong>模板匹配</strong>：<code>matchTemplate(rotated_src, top_tmpl)</code> → response map</li>
     <li><strong>Top-K 峰值</strong>：從 response map 中取前 K 個最高分，帶距離抑制</li>
-    <li><strong>座標轉回</strong>：扣除旋轉造成的平移量 <code>(trans_x, trans_y)</code></li>
+    <li><strong>座標轉回</strong>：扣除旋轉造成的平移量 $(t_x, t_y)$</li>
   </ol>
 
   <div class="callout insight">
-    <strong>向量化 Top-K：比 C++ 更聰明的搜法</strong>
-    C++ 用 <code>minMaxLoc</code> 反覆找最大值（每次掃描整張圖）→ O(K × HW)。<br>
-    Python 用 <code>np.argpartition</code> 一次找出前 K×50 候選 → O(HW) + O(候選數 × K)。<br>
-    當 K 較大或圖較大時，Python 做法反而更快。
+    <strong>向量化 Top-K：比 C++ 更快的搜法</strong>
+    C++ 用 <code>minMaxLoc</code> 反覆找最大值 → $O(K \times HW)$。Python 用 <code>np.argpartition</code> 一次找出前 $K \times 50$ 候選 → $O(HW) + O(\text{候選} \times K)$。當 $K$ 較大時，Python 做法更有效率。
   </div>
 </section>
 
-<!-- ================================================================== -->
+<!-- ══════════════════════════════════════════════════════════════ -->
 <!-- SECTION 5: Refinement -->
-<!-- ================================================================== -->
+<!-- ══════════════════════════════════════════════════════════════ -->
 <section id="refinement" class="reveal">
-  <h2>Coarse-to-Fine 逐層精化</h2>
-  <p class="lead">從 Top Layer 的候選開始，逐層放大、精修位置與角度。</p>
+  <div class="section-header">
+    <span class="section-num">05</span>
+    <div>
+      <h2>Coarse-to-Fine 逐層精化</h2>
+      <p class="lead">從 Top Layer 的候選開始，逐層放大、精修位置與角度。</p>
+    </div>
+  </div>
 
   <div class="viz" style="height: 500px;">
     <canvas id="refine-canvas" width="880" height="460"></canvas>
@@ -547,9 +607,7 @@ angle_step = atan(2 / max(模板寬, 模板高)) × 180/π
   </div>
 
   <h3>直觀理解</h3>
-  <p>
-    想像你用望遠鏡找鳥：
-  </p>
+  <p>想像你用望遠鏡找鳥：</p>
   <ul>
     <li><strong>Top Layer</strong>：肉眼掃描天空，看到「那邊好像有東西」→ 粗略位置 + 方向</li>
     <li><strong>中間層</strong>：望遠鏡低倍率，確認是鳥、調整指向</li>
@@ -557,94 +615,85 @@ angle_step = atan(2 / max(模板寬, 模板高)) × 180/π
   </ul>
 
   <h3>ROI 提取</h3>
-  <p>
-    不是在整張大圖重新搜尋，而是只裁切候選點附近的小區域（ROI = Region of Interest）。
-    ROI 大小 = 模板尺寸 + <strong>±3 pixel padding</strong>：
-  </p>
+  <p>不是在整張大圖重新搜尋，而是只裁切候選點附近的小區域 (ROI)。</p>
   <div class="formula">
-ROI 尺寸 = (模板高 + 6) × (模板寬 + 6)
-matchTemplate → 響應圖 7×7
-最大值位置 (3,3) = 候選恰在預期位置
-偏移 ±3 = 有微調空間
+    $$\text{ROI} = (\text{tmpl}_h + 6) \times (\text{tmpl}_w + 6) \quad\Rightarrow\quad \text{response}\;7 \times 7$$
   </div>
+  <p>最大值位置 $(3,3)$ 表示候選恰在預期位置，偏移 $\pm 3$ 提供微調空間。</p>
 
   <div class="callout key">
-    <strong>旋轉 ROI 提取（GetRotatedROI）</strong>
-    ROI 不是直接裁切矩形，而是用 <code>warpAffine</code> 做旋轉裁切。
-    這讓 ROI 中的影像「轉正」，可以與未旋轉的模板匹配。
+    <strong>旋轉 ROI 提取 (GetRotatedROI)</strong>
+    ROI 不是直接裁切矩形，而是用 <code>warpAffine</code> 做旋轉裁切。這讓 ROI 中的影像「轉正」，可以與未旋轉的模板匹配。
   </div>
 
   <h3>三角度測試</h3>
   <p>
-    每層精化同時測試 3 個角度：<code>θ − Δ, θ, θ + Δ</code>。
-    Δ 用該層模板尺寸重新計算（層越大、模板越大、步進越精細）。
-    取三者中最佳者傳給下一層。
+    每層精化同時測試 3 個角度：$\theta - \Delta,\;\theta,\;\theta + \Delta$。$\Delta$ 用該層模板尺寸重新計算（層越大、模板越大、步進越精細）。取三者中最佳者傳給下一層。
   </p>
 </section>
 
-<!-- ================================================================== -->
+<!-- ══════════════════════════════════════════════════════════════ -->
 <!-- SECTION 6: Subpixel -->
-<!-- ================================================================== -->
+<!-- ══════════════════════════════════════════════════════════════ -->
 <section id="subpixel" class="reveal">
-  <h2>次像素估計</h2>
-  <p class="lead">整數像素已經不夠精確？在 3×3×3 鄰域擬合二次曲面，把精度推到 0.1 pixel。</p>
+  <div class="section-header">
+    <span class="section-num">06</span>
+    <div>
+      <h2>次像素估計</h2>
+      <p class="lead">整數像素已經不夠精確？在 3×3×3 鄰域擬合二次曲面，把精度推到 0.1 pixel。</p>
+    </div>
+  </div>
 
   <div class="viz" style="height: 440px;">
     <canvas id="subpixel-canvas" width="880" height="400"></canvas>
     <div class="controls">
-      <label>檢視角度 (θ)</label>
+      <label>檢視角度</label>
       <input type="range" id="sp-theta" min="0" max="360" value="30" style="width:200px;">
     </div>
   </div>
 
   <h3>直觀理解</h3>
   <p>
-    matchTemplate 的峰值落在整數格點上（像素）。但真正的最佳位置可能在兩個像素之間。
-    就像量身高——用公分尺量是 170cm，但用更精密的尺可能是 170.3cm。
-  </p>
-  <p>
-    我們在峰值周圍取 3×3（或 3×3×3）個觀測值，
-    擬合一個二次曲面 z = ax² + by² + ...，
-    曲面的頂點就是真正的次像素位置。
+    matchTemplate 的峰值落在整數格點上。但真正的最佳位置可能在兩個像素之間。就像量身高——用公分尺量是 170cm，但用更精密的尺可能是 170.3cm。
   </p>
 
   <h3>27 點 3D 擬合（含角度）</h3>
   <div class="formula">
-z(x, y, θ) = ax² + by² + cθ² + dxy + exθ + fyθ + gx + hy + iθ + j
+    $$z(x, y, \theta) = ax^2 + by^2 + c\theta^2 + dxy + ex\theta + fy\theta + gx + hy + i\theta + j$$
+  </div>
+  <p>27 個觀測點：3 角度 × 3 行 × 3 列 → 10 個未知參數 → 過定系統 → SVD 最小平方求解。</p>
 
-27 觀測點：3 角度 × 3 行 × 3 列
-10 個未知參數 → 過定系統 → SVD 最小平方
-
-Hessian：K1 = [[2a, d, e], [d, 2b, f], [e, f, 2c]]
-梯度  ：K2 = [-g, -h, -i]
-最佳點：δ = K1⁻¹ × K2
+  <div class="formula">
+    $$\mathbf{H} = \begin{bmatrix} 2a & d & e \\ d & 2b & f \\ e & f & 2c \end{bmatrix}, \quad \mathbf{g} = \begin{bmatrix} g \\ h \\ i \end{bmatrix}, \quad \boldsymbol{\delta}^* = -\mathbf{H}^{-1}\,\mathbf{g}$$
   </div>
 
   <div class="callout key">
     <strong>同時精修 x, y, θ</strong>
-    這不只是 2D 空間的次像素估計，還包含角度維度。
-    3 個角度層提供 θ 方向的梯度資訊，讓角度也能精確到 ~0.1°。
+    這不只是 2D 空間的次像素估計，還包含角度維度。3 個角度層提供 $\theta$ 方向的梯度資訊，讓角度也能精確到 $\sim\!0.1°$。
   </div>
 
   <div class="callout warning">
     <strong>觸發條件很嚴格</strong>
-    只在以下條件全部滿足時才做 27 點擬合：<br>
-    ① Layer 0（最精細層）② 中間角度最佳 ③ 非邊界點 ④ 3 個角度層都有效<br>
-    否則回傳整數位置——寧可不做，也不做壞。
+    只在以下條件全部滿足時才做 27 點擬合：① Layer 0（最精細層）② 中間角度最佳 ③ 非邊界點 ④ 3 個角度層都有效。否則回傳整數位置——寧可不做，也不做壞。
   </div>
 </section>
 
-<!-- ================================================================== -->
+<!-- ══════════════════════════════════════════════════════════════ -->
 <!-- SECTION 7: NMS -->
-<!-- ================================================================== -->
+<!-- ══════════════════════════════════════════════════════════════ -->
 <section id="nms" class="reveal">
-  <h2>非極大值抑制 (NMS)</h2>
-  <p class="lead">同一個目標可能被多次偵測到——NMS 只保留最好的那個。</p>
+  <div class="section-header">
+    <span class="section-num">07</span>
+    <div>
+      <h2>非極大值抑制 (NMS)</h2>
+      <p class="lead">同一個目標可能被多次偵測到——NMS 只保留最好的那個。</p>
+    </div>
+  </div>
 
   <div class="viz" style="height: 420px;">
     <canvas id="nms-canvas" width="880" height="380"></canvas>
     <div class="controls">
-      <button class="btn" onclick="nmsAnim.play()">▶ 播放 NMS 過程</button>
+      <button class="btn" onclick="nmsAnim.play()">▶ 播放 NMS</button>
       <button class="btn secondary" onclick="nmsAnim.reset()">重置</button>
       <label>最大重疊比</label>
       <input type="range" id="nms-overlap" min="0.1" max="0.9" value="0.5" step="0.1" style="width:120px;">
@@ -653,34 +702,32 @@ Hessian：K1 = [[2a, d, e], [d, 2b, f], [e, f, 2c]]
   </div>
 
   <h3>直觀理解</h3>
-  <p>
-    假設影像中有一顆螺絲。角度 30° 找到一個匹配（分數 0.95），
-    角度 31° 也找到一個（分數 0.92），位置幾乎重疊。
-    NMS 保留 0.95 那個，淘汰 0.92。
-  </p>
+  <p>假設影像中有一顆螺絲。角度 30° 找到一個匹配（分數 0.95），角度 31° 也找到一個（分數 0.92），位置幾乎重疊。NMS 保留 0.95，淘汰 0.92。</p>
 
   <h3>三層加速</h3>
   <ol>
     <li><strong>分數排序</strong>：高分優先處理，低分只需檢查是否與已保留的重疊</li>
-    <li><strong>AABB 預篩</strong>：先算軸對齊包圍框。如果 AABB 不重疊 → 旋轉矩形<em>必然</em>不重疊 → 跳過</li>
-    <li><strong>精確交集</strong>：才計算旋轉矩形交集（昂貴操作，用 OpenCV 函式）</li>
+    <li><strong>AABB 預篩</strong>：先算軸對齊包圍框，若 AABB 不重疊 → 旋轉矩形<em>必然</em>不重疊 → 跳過</li>
+    <li><strong>精確交集</strong>：才計算旋轉矩形交集（用 OpenCV <code>rotatedRectangleIntersection</code>）</li>
   </ol>
 
   <div class="callout insight">
     <strong>重疊度計算：不是 IoU</strong>
-    與一般物件偵測不同，這裡用的是 <code>intersection_area / rect1_area</code>，
-    分母是<strong>其中一個矩形</strong>的面積。
-    這代表如果小矩形完全在大矩形內，overlap = 1.0 → 會被抑制。
-    這與 C++ 原版邏輯一致。
+    與一般物件偵測不同，這裡用的是 $\text{overlap} = \frac{\text{intersection}}{\text{area}_1}$，分母是<strong>其中一個矩形</strong>的面積。如果小矩形完全在大矩形內，overlap = 1.0 → 會被抑制。與 C++ 原版邏輯一致。
   </div>
 </section>
 
-<!-- ================================================================== -->
+<!-- ══════════════════════════════════════════════════════════════ -->
 <!-- SECTION 8: FFT -->
-<!-- ================================================================== -->
+<!-- ══════════════════════════════════════════════════════════════ -->
 <section id="fft" class="reveal">
-  <h2>FFT 加速 NCC</h2>
-  <p class="lead">頻域乘法 = 時域卷積。模板越大，FFT 的優勢越明顯。</p>
+  <div class="section-header">
+    <span class="section-num">08</span>
+    <div>
+      <h2>FFT 加速 NCC</h2>
+      <p class="lead">頻域乘法 = 時域卷積。模板越大，FFT 的優勢越明顯。</p>
+    </div>
+  </div>
 
   <div class="viz" style="height: 380px;">
     <canvas id="fft-canvas" width="880" height="340"></canvas>
@@ -693,45 +740,45 @@ Hessian：K1 = [[2a, d, e], [d, 2b, f], [e, f, 2c]]
 
   <h3>核心公式</h3>
   <div class="formula">
-CC = IFFT( FFT(Source) × conj(FFT(Template)) )
+    $$\mathbf{CC} = \mathcal{F}^{-1}\!\bigl[\,\mathcal{F}(S) \cdot \overline{\mathcal{F}(T)}\,\bigr]$$
   </div>
 
   <h3>複雜度比較</h3>
   <div class="card-row">
     <div class="card">
       <h3>空間域 (OpenCV)</h3>
-      <div class="formula" style="font-size:18px;text-align:center;">O(W × H × w × h)</div>
-      <p>模板每移動一格，重新計算 w×h 的乘積和</p>
+      <div class="formula">$$O(W \!\cdot\! H \!\cdot\! w \!\cdot\! h)$$</div>
+      <p>模板每移動一格，重新計算 $w \times h$ 的乘積和</p>
     </div>
     <div class="card">
       <h3>頻域 (FFT)</h3>
-      <div class="formula" style="font-size:18px;text-align:center;">O(WH × log(WH))</div>
-      <p>一次 FFT → 頻域相乘 → 一次 IFFT。與模板大小無關！</p>
+      <div class="formula">$$O(WH \cdot \log(WH))$$</div>
+      <p>一次 FFT → 頻域相乘 → 一次 IFFT，與模板大小無關</p>
     </div>
   </div>
 
   <div class="callout warning">
     <strong>Valid Region 的正確提取</strong>
-    FFT 輸出的 CC_full 尺寸 = (H+h−1, W+w−1)。
-    Valid 區域在<strong>左上角</strong> <code>[0 : H−h+1, 0 : W−w+1]</code>，
-    <em>不是</em> <code>[h−1 : H, w−1 : W]</code>。<br>
-    這是 FFT NCC 實作最常見的 bug。
+    FFT 輸出的 CC_full 尺寸 = $(H{+}h{-}1,\;W{+}w{-}1)$。Valid 區域在<strong>左上角</strong> <code>[0 : H−h+1, 0 : W−w+1]</code>，<em>不是</em> <code>[h−1 : H, w−1 : W]</code>。這是 FFT NCC 實作最常見的 bug。
   </div>
 
   <h3>分母怎麼算？</h3>
   <p>
-    FFT 只加速了分子（互相關）。分母需要每個滑窗的 sum(I) 和 sum(I²)。<br>
-    用<strong>積分影像（Summed Area Table）</strong>一次建立 O(HW)，
-    之後每個滑窗 O(1) 查表——不管模板多大都是常數時間。
+    FFT 只加速了分子（互相關）。分母需要每個滑窗的 $\sum I$ 和 $\sum I^2$。用<strong>積分影像 (Summed Area Table)</strong> 一次建立 $O(HW)$，之後每個滑窗 $O(1)$ 查表。
   </p>
 </section>
 
-<!-- ================================================================== -->
+<!-- ══════════════════════════════════════════════════════════════ -->
 <!-- SECTION 9: Coordinate Transform -->
-<!-- ================================================================== -->
+<!-- ══════════════════════════════════════════════════════════════ -->
 <section id="coord" class="reveal">
-  <h2>座標轉換全貌</h2>
-  <p class="lead">從 Top Layer 旋轉座標到 Layer 0 原始座標——最容易搞混的部分。</p>
+  <div class="section-header">
+    <span class="section-num">09</span>
+    <div>
+      <h2>座標轉換全貌</h2>
+      <p class="lead">從 Top Layer 旋轉座標到 Layer 0 原始座標——最容易搞混的部分。</p>
+    </div>
+  </div>
 
   <div class="viz" style="height: 500px;">
     <canvas id="coord-canvas" width="880" height="460"></canvas>
@@ -746,70 +793,87 @@ CC = IFFT( FFT(Source) × conj(FFT(Template)) )
     </div>
   </div>
 
-  <h3>轉換流程</h3>
-  <div class="formula" style="font-size: 14px; line-height: 2.2;">
-① 旋轉後 Source 座標 (Top Layer) ─── matchTemplate 的輸出
-                ↓ ptRotatePt2f(pt, center, −angle)
-② 原始 Source 座標 (Top Layer) ─── 候選的「真實」位置
-                ↓ × 2 放大
-③ 原始 Source 座標 (Layer i) ─── 放大到目前精化層
-                ↓ ptRotatePt2f(ptLT, center, +angle)
-④ 旋轉後座標 → 減 (3,3) = ptPaddingLT ─── ROI 左上角
-                ↓ + maxLoc (ROI 內最大值位置)
-⑤ 旋轉後 Source 座標 (Layer i)
-                ↓ ptRotatePt2f(pt, center, −angle)
-⑥ 原始 Source 座標 (Layer i) ─── 精化後的位置
+  <h3>旋轉公式 (ptRotatePt2f)</h3>
+  <div class="formula">
+    $$\begin{aligned} x' &= (x - c_x)\cos\theta + (y - c_y)\sin\theta + c_x \\ y' &= -(x - c_x)\sin\theta + (y - c_y)\cos\theta + c_y \end{aligned}$$
   </div>
+  <p>這是「逆時針為正」的數學定義，與 OpenCV <code>getRotationMatrix2D</code> 一致。</p>
 
-  <div class="callout key">
-    <strong>旋轉公式 (ptRotatePt2f)</strong>
-    這是整個座標轉換的基礎函式：<br>
-    <code>x' = (x−cx)×cos + (y−cy)×sin + cx</code><br>
-    <code>y' = −(x−cx)×sin + (y−cy)×cos + cy</code><br>
-    注意：這是「逆時針為正」的數學定義，與 OpenCV <code>getRotationMatrix2D</code> 一致。
-  </div>
+  <h3>轉換流程</h3>
+  <div class="formula-code">① 旋轉後 Source 座標 (Top Layer) ─ matchTemplate 的輸出
+        ↓ ptRotatePt2f(pt, center, −angle)
+② 原始 Source 座標 (Top Layer) ─ 候選的「真實」位置
+        ↓ × 2 放大
+③ 原始 Source 座標 (Layer i)
+        ↓ ptRotatePt2f(ptLT, center, +angle)
+④ 旋轉後座標 → 減 (3,3) = ptPaddingLT ─ ROI 左上角
+        ↓ + maxLoc (ROI 內最大值位置)
+⑤ 旋轉後 Source 座標 (Layer i)
+        ↓ ptRotatePt2f(pt, center, −angle)
+⑥ 原始 Source 座標 (Layer i) ─ 精化後的位置</div>
 
   <h3>最終輸出的角度</h3>
   <p>
-    Python 中 <code>match_angle</code> 是「Source 旋轉的角度」。<br>
-    輸出的 <code>angle = −match_angle</code>，意思是「模板需要旋轉此角度才能對上影像中的目標」。<br>
-    例：影像中的目標順時針轉了 30° → match_angle = −30° → output angle = 30°。
+    Python 中 <code>match_angle</code> 是「Source 旋轉的角度」。輸出的 $\text{angle} = -\text{match\_angle}$，意思是「模板需要旋轉此角度才能對上影像中的目標」。例：影像中的目標順時針轉了 30° → match_angle = −30° → output angle = 30°。
   </p>
 </section>
 
-<!-- ================================================================== -->
+<!-- ══════════════════════════════════════════════════════════════ -->
 <!-- Footer -->
-<!-- ================================================================== -->
-<section style="text-align:center; margin-top: 80px; padding: 40px 0; border-top: 1px solid var(--border);">
-  <p style="color: var(--fg2); font-size: 14px;">
+<!-- ══════════════════════════════════════════════════════════════ -->
+<section style="text-align:center; margin-top:48px; padding:40px 0; border-top:1px solid var(--border);">
+  <p style="color:var(--fg-3); font-size:13px; font-family:var(--font-body);">
     Fastest Image Pattern Matching — Python Port<br>
-    互動式演算法視覺化 | 搭配
-    <a href="ARCHITECTURE_zh-TW.md" style="color:var(--accent)">架構文件</a> 和
-    <a href="ALGORITHM_zh-TW.md" style="color:var(--accent)">演算法文件</a> 閱讀
+    互動式演算法視覺化 |
+    <a href="ARCHITECTURE_zh-TW.md" style="color:var(--cyan)">架構文件</a> ·
+    <a href="ALGORITHM_zh-TW.md" style="color:var(--cyan)">演算法文件</a>
   </p>
 </section>
 
 </main>
 
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
 <script>
 // =====================================================================
 // Utility helpers
 // =====================================================================
 const $ = sel => document.querySelector(sel);
 const $$ = sel => document.querySelectorAll(sel);
-
 function lerp(a, b, t) { return a + (b - a) * t; }
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+// Colors matching CSS theme
+const C = {
+  cyan: '#22d3ee', emerald: '#34d399', amber: '#fbbf24', rose: '#fb7185',
+  fg1: '#e8ecf4', fg2: '#8b95a8', fg3: '#5a6478',
+  bg2: '#131a28', bg3: '#1a2236', border: '#1e293b'
+};
+
+// =====================================================================
+// KaTeX auto-render
+// =====================================================================
+window.addEventListener('load', () => {
+  if (typeof renderMathInElement === 'function') {
+    renderMathInElement(document.querySelector('main'), {
+      delimiters: [
+        {left: '$$', right: '$$', display: true},
+        {left: '$', right: '$', display: false}
+      ],
+      throwOnError: false
+    });
+  }
+});
 
 // =====================================================================
 // Scroll reveal
 // =====================================================================
 const observer = new IntersectionObserver(entries => {
   entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
-}, { threshold: 0.1 });
+}, { threshold: 0.08 });
 $$('.reveal').forEach(el => observer.observe(el));
 
-// Nav active
+// Nav active highlight
 const sections = $$('section[id]');
 window.addEventListener('scroll', () => {
   let cur = '';
@@ -839,32 +903,23 @@ const nccAnim = (() => {
   const respOx = 470, respOy = 40;
   const respW = 300, respH = 200;
 
-  // Generate fake image data (grid pattern with a target)
   const imgData = [];
   for (let y = 0; y < imgH; y++) {
     imgData[y] = [];
     for (let x = 0; x < imgW; x++) {
       let v = 80 + 30 * Math.sin(x * 0.05) * Math.cos(y * 0.07);
-      // Target region at (200, 120)
       const dx = x - 200, dy = y - 120;
-      if (Math.abs(dx) < 30 && Math.abs(dy) < 30) {
-        v = 180 + 40 * Math.sin(dx * 0.15) * Math.cos(dy * 0.15);
-      }
-      // Second target at (100, 60)
+      if (Math.abs(dx) < 30 && Math.abs(dy) < 30) v = 180 + 40 * Math.sin(dx * 0.15) * Math.cos(dy * 0.15);
       const dx2 = x - 100, dy2 = y - 60;
-      if (Math.abs(dx2) < 30 && Math.abs(dy2) < 30) {
-        v = 180 + 40 * Math.sin(dx2 * 0.15) * Math.cos(dy2 * 0.15);
-      }
+      if (Math.abs(dx2) < 30 && Math.abs(dy2) < 30) v = 180 + 40 * Math.sin(dx2 * 0.15) * Math.cos(dy2 * 0.15);
       imgData[y][x] = clamp(v, 0, 255);
     }
   }
 
-  // Generate response map (pre-computed)
   const respData = [];
   for (let y = 0; y <= imgH - tmplH; y++) {
     respData[y] = [];
     for (let x = 0; x <= imgW - tmplW; x++) {
-      // Fake NCC score — high near targets
       let score = 0.1 + 0.1 * Math.random();
       const d1 = Math.sqrt((x + 30 - 200) ** 2 + (y + 30 - 120) ** 2);
       const d2 = Math.sqrt((x + 30 - 100) ** 2 + (y + 30 - 60) ** 2);
@@ -874,25 +929,11 @@ const nccAnim = (() => {
     }
   }
 
-  function drawImage(data, x0, y0, w, h, scale) {
-    for (let y = 0; y < h; y += scale) {
-      for (let x = 0; x < w; x += scale) {
-        const v = data[Math.min(y, data.length - 1)][Math.min(x, data[0].length - 1)];
-        ctx.fillStyle = `rgb(${v},${v},${v})`;
-        ctx.fillRect(x0 + x / scale * (w > 300 ? 1 : 1), y0 + y / scale * 1, scale > 1 ? 1 : 1, scale > 1 ? 1 : 1);
-      }
-    }
-  }
-
   function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Source image
-    ctx.save();
-    ctx.fillStyle = '#1e2030';
+    ctx.fillStyle = '#0f1420';
     ctx.fillRect(ox, oy, imgW, imgH);
 
-    // Draw pixel blocks
     for (let y = 0; y < imgH; y += 2) {
       for (let x = 0; x < imgW; x += 2) {
         const v = imgData[y][x];
@@ -901,64 +942,48 @@ const nccAnim = (() => {
       }
     }
 
-    // Sliding window
-    ctx.strokeStyle = '#5b9cf6';
+    ctx.strokeStyle = C.cyan;
     ctx.lineWidth = 2;
     ctx.setLineDash([4, 3]);
     ctx.strokeRect(ox + wx, oy + wy, tmplW, tmplH);
     ctx.setLineDash([]);
-
-    // Highlight
-    ctx.fillStyle = 'rgba(91, 156, 246, 0.15)';
+    ctx.fillStyle = 'rgba(34, 211, 238, 0.12)';
     ctx.fillRect(ox + wx, oy + wy, tmplW, tmplH);
-    ctx.restore();
 
-    // Labels
-    ctx.fillStyle = '#9ca0ad';
-    ctx.font = '12px SF Mono, monospace';
+    ctx.fillStyle = C.fg2;
+    ctx.font = '12px JetBrains Mono, monospace';
     ctx.fillText('Source Image (' + imgW + '×' + imgH + ')', ox, oy - 8);
     ctx.fillText('Response Map (' + (imgW - tmplW + 1) + '×' + (imgH - tmplH + 1) + ')', respOx, respOy - 8);
 
-    // Response map
-    const rw = imgW - tmplW + 1;
-    const rh = imgH - tmplH + 1;
-    const scaleX = respW / rw;
-    const scaleY = respH / rh;
-
-    ctx.fillStyle = '#1e2030';
+    const rw = imgW - tmplW + 1, rh = imgH - tmplH + 1;
+    const scaleX = respW / rw, scaleY = respH / rh;
+    ctx.fillStyle = '#0f1420';
     ctx.fillRect(respOx, respOy, respW, respH);
 
-    for (let y = 0; y < rh; y += 1) {
-      for (let x = 0; x < rw; x += 1) {
+    for (let y = 0; y < rh; y++) {
+      for (let x = 0; x < rw; x++) {
         const s = respData[y] ? (respData[y][x] || 0) : 0;
-        const r = Math.round(s * 255);
-        const g = Math.round(s * 80);
-        const b = Math.round((1 - s) * 100);
-        ctx.fillStyle = `rgb(${r},${g},${b})`;
+        ctx.fillStyle = `rgb(${Math.round(s * 255)},${Math.round(s * 80)},${Math.round((1 - s) * 100)})`;
         ctx.fillRect(respOx + x * scaleX, respOy + y * scaleY, Math.ceil(scaleX), Math.ceil(scaleY));
       }
     }
 
-    // Current position indicator on response map
-    ctx.fillStyle = 'rgba(91, 156, 246, 0.8)';
+    ctx.fillStyle = 'rgba(34,211,238,0.8)';
     ctx.beginPath();
     ctx.arc(respOx + wx * scaleX, respOy + wy * scaleY, 4, 0, Math.PI * 2);
     ctx.fill();
 
-    // Score display
     const score = respData[wy] ? (respData[wy][wx] || 0) : 0;
-    ctx.fillStyle = score > 0.7 ? '#38c98d' : score > 0.4 ? '#f5a623' : '#f25757';
-    ctx.font = 'bold 24px SF Mono, monospace';
+    ctx.fillStyle = score > 0.7 ? C.emerald : score > 0.4 ? C.amber : C.rose;
+    ctx.font = 'bold 24px JetBrains Mono, monospace';
     ctx.fillText('Score: ' + score.toFixed(3), respOx, respOy + respH + 36);
 
-    // Window position
-    ctx.fillStyle = '#9ca0ad';
-    ctx.font = '13px SF Mono, monospace';
+    ctx.fillStyle = C.fg3;
+    ctx.font = '13px JetBrains Mono, monospace';
     ctx.fillText(`Window: (${wx}, ${wy})`, ox, oy + imgH + 24);
     ctx.fillText(`Template: ${tmplW}×${tmplH}`, ox, oy + imgH + 42);
 
-    // Arrow between image and response
-    ctx.strokeStyle = '#5b9cf6';
+    ctx.strokeStyle = C.cyan;
     ctx.lineWidth = 1.5;
     ctx.setLineDash([6, 4]);
     ctx.beginPath();
@@ -967,16 +992,13 @@ const nccAnim = (() => {
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Arrow head
-    ctx.fillStyle = '#5b9cf6';
+    ctx.fillStyle = C.cyan;
     ctx.beginPath();
     ctx.moveTo(respOx - 10, respOy + respH / 2);
     ctx.lineTo(respOx - 18, respOy + respH / 2 - 5);
     ctx.lineTo(respOx - 18, respOy + respH / 2 + 5);
     ctx.fill();
-
-    ctx.fillStyle = '#5b9cf6';
-    ctx.font = '12px sans-serif';
+    ctx.font = '12px Outfit, sans-serif';
     ctx.fillText('matchTemplate', ox + imgW + 20, oy + imgH / 2 - 8);
   }
 
@@ -994,7 +1016,6 @@ const nccAnim = (() => {
   }
 
   draw();
-
   return {
     toggle() { playing = !playing; if (playing) animate(); },
     reset() { wx = 0; wy = 0; playing = false; draw(); }
@@ -1013,13 +1034,11 @@ const nccAnim = (() => {
     const imgSize = parseInt($('#pyr-size').value);
     $('#pyr-levels-val').textContent = levels;
     $('#pyr-size-val').textContent = imgSize;
-
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     const maxDrawW = 200;
     let totalW = 0;
     const layerData = [];
-
     for (let i = 0; i <= levels; i++) {
       const s = imgSize / Math.pow(2, i);
       const drawW = maxDrawW / Math.pow(1.6, i);
@@ -1035,32 +1054,21 @@ const nccAnim = (() => {
       const d = layerData[i];
       const y = baseY - d.drawH;
 
-      // Shadow
       ctx.fillStyle = 'rgba(0,0,0,0.3)';
       ctx.fillRect(x + 4, y + 4, d.drawW, d.drawH);
 
-      // Image block
       const gradient = ctx.createLinearGradient(x, y, x + d.drawW, y + d.drawH);
-      if (i === levels) {
-        gradient.addColorStop(0, '#2a5d3a');
-        gradient.addColorStop(1, '#1a3d2a');
-      } else if (i === 0) {
-        gradient.addColorStop(0, '#3a4d6e');
-        gradient.addColorStop(1, '#2a3d5e');
-      } else {
-        gradient.addColorStop(0, '#3a3d4e');
-        gradient.addColorStop(1, '#2a2d3e');
-      }
+      if (i === levels) { gradient.addColorStop(0, '#1a3d2a'); gradient.addColorStop(1, '#0f2a1a'); }
+      else if (i === 0) { gradient.addColorStop(0, '#1a2a4e'); gradient.addColorStop(1, '#0f1a3e'); }
+      else { gradient.addColorStop(0, '#1a1d2e'); gradient.addColorStop(1, '#131620'); }
       ctx.fillStyle = gradient;
       ctx.fillRect(x, y, d.drawW, d.drawH);
 
-      // Border
-      ctx.strokeStyle = i === levels ? '#38c98d' : i === 0 ? '#5b9cf6' : '#4a4d5e';
+      ctx.strokeStyle = i === levels ? C.emerald : i === 0 ? C.cyan : '#2d3a4f';
       ctx.lineWidth = i === levels ? 2 : 1;
       ctx.strokeRect(x, y, d.drawW, d.drawH);
 
-      // Grid lines
-      ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+      ctx.strokeStyle = 'rgba(255,255,255,0.04)';
       ctx.lineWidth = 0.5;
       const gridStep = d.drawW / 6;
       for (let gx = gridStep; gx < d.drawW; gx += gridStep) {
@@ -1070,28 +1078,25 @@ const nccAnim = (() => {
         ctx.beginPath(); ctx.moveTo(x, y + gy); ctx.lineTo(x + d.drawW, y + gy); ctx.stroke();
       }
 
-      // Labels
-      ctx.fillStyle = i === levels ? '#38c98d' : '#9ca0ad';
-      ctx.font = 'bold 12px SF Mono, monospace';
+      ctx.fillStyle = i === levels ? C.emerald : C.fg2;
+      ctx.font = 'bold 12px JetBrains Mono, monospace';
       ctx.textAlign = 'center';
       ctx.fillText('Layer ' + i, x + d.drawW / 2, baseY + 20);
 
-      ctx.font = '11px SF Mono, monospace';
-      ctx.fillStyle = '#7a7d8d';
+      ctx.font = '11px JetBrains Mono, monospace';
+      ctx.fillStyle = C.fg3;
       ctx.fillText(d.size + '×' + Math.round(d.size * 0.75), x + d.drawW / 2, baseY + 36);
 
-      // Search space
-      const searchSpace = (d.size * d.size * 0.75);
-      const formatted = searchSpace > 1000000 ? (searchSpace / 1000000).toFixed(1) + 'M' :
-                         searchSpace > 1000 ? (searchSpace / 1000).toFixed(0) + 'K' :
+      const searchSpace = d.size * d.size * 0.75;
+      const formatted = searchSpace > 1e6 ? (searchSpace / 1e6).toFixed(1) + 'M' :
+                         searchSpace > 1e3 ? (searchSpace / 1e3).toFixed(0) + 'K' :
                          Math.round(searchSpace).toString();
-      ctx.fillStyle = i === levels ? '#38c98d' : '#5a5d6d';
+      ctx.fillStyle = i === levels ? C.emerald : '#4a4d5e';
       ctx.fillText(formatted + ' px', x + d.drawW / 2, baseY + 52);
 
-      // Arrow to next
       if (i < levels) {
         const nextX = x + d.drawW + 30;
-        ctx.strokeStyle = '#4a4d5e';
+        ctx.strokeStyle = '#2d3a4f';
         ctx.lineWidth = 1.5;
         ctx.setLineDash([4, 3]);
         ctx.beginPath();
@@ -1099,26 +1104,21 @@ const nccAnim = (() => {
         ctx.lineTo(nextX - 4, baseY - layerData[i + 1].drawH / 2);
         ctx.stroke();
         ctx.setLineDash([]);
-
-        // ÷2 label
-        ctx.fillStyle = '#f5a623';
-        ctx.font = 'bold 11px SF Mono, monospace';
+        ctx.fillStyle = C.amber;
+        ctx.font = 'bold 11px JetBrains Mono, monospace';
         ctx.fillText('÷2', x + d.drawW + 17, baseY - d.drawH / 2 - 5);
       }
-
       x += d.drawW + 30;
     }
 
-    // Title
     ctx.textAlign = 'left';
-    ctx.fillStyle = '#5b9cf6';
-    ctx.font = 'bold 13px sans-serif';
+    ctx.fillStyle = C.cyan;
+    ctx.font = 'bold 13px Outfit, sans-serif';
     ctx.fillText('搜尋在 Top Layer (綠框) 進行 → 速度快', 30, 28);
 
-    // Speedup ratio
     const ratio = Math.pow(4, levels);
-    ctx.fillStyle = '#38c98d';
-    ctx.font = 'bold 16px SF Mono, monospace';
+    ctx.fillStyle = C.emerald;
+    ctx.font = 'bold 16px JetBrains Mono, monospace';
     ctx.textAlign = 'right';
     ctx.fillText('搜尋空間縮小 ' + ratio + '×', canvas.width - 30, 28);
     ctx.textAlign = 'left';
@@ -1140,83 +1140,65 @@ const rotAnim = (() => {
   function draw() {
     const angle = parseFloat($('#rot-angle').value);
     $('#rot-angle-val').textContent = angle + '°';
-
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    const srcW = 200, srcH = 150;
-    const tmplW = 50, tmplH = 40;
-
-    // ── Left: Source Image ──
+    const srcW = 200, srcH = 150, tmplW = 50, tmplH = 40;
     const srcX = 60, srcY = 80;
+
     ctx.save();
     ctx.translate(srcX + srcW / 2, srcY + srcH / 2);
     ctx.rotate(-angle * Math.PI / 180);
 
-    // Rotated bounding box
     const rad = Math.abs(angle * Math.PI / 180);
-    const cosA = Math.abs(Math.cos(rad));
-    const sinA = Math.abs(Math.sin(rad));
-    const newW = srcW * cosA + srcH * sinA;
-    const newH = srcH * cosA + srcW * sinA;
+    const cosA = Math.abs(Math.cos(rad)), sinA = Math.abs(Math.sin(rad));
+    const newW = srcW * cosA + srcH * sinA, newH = srcH * cosA + srcW * sinA;
 
-    // Draw expanded canvas (faint)
-    ctx.fillStyle = 'rgba(91, 156, 246, 0.05)';
+    ctx.fillStyle = 'rgba(34,211,238,0.04)';
     ctx.fillRect(-newW / 2, -newH / 2, newW, newH);
-    ctx.strokeStyle = 'rgba(91, 156, 246, 0.3)';
+    ctx.strokeStyle = 'rgba(34,211,238,0.2)';
     ctx.lineWidth = 1;
     ctx.setLineDash([4, 4]);
     ctx.strokeRect(-newW / 2, -newH / 2, newW, newH);
     ctx.setLineDash([]);
 
-    // Draw source image
     const gradient = ctx.createLinearGradient(-srcW / 2, -srcH / 2, srcW / 2, srcH / 2);
-    gradient.addColorStop(0, '#2a3d5e');
-    gradient.addColorStop(1, '#3a4d6e');
+    gradient.addColorStop(0, '#1a2a4e'); gradient.addColorStop(1, '#0f1a3e');
     ctx.fillStyle = gradient;
     ctx.fillRect(-srcW / 2, -srcH / 2, srcW, srcH);
-    ctx.strokeStyle = '#5b9cf6';
+    ctx.strokeStyle = C.cyan;
     ctx.lineWidth = 2;
     ctx.strokeRect(-srcW / 2, -srcH / 2, srcW, srcH);
 
-    // Draw target inside source (at known position, rotated with source)
-    ctx.fillStyle = 'rgba(56, 201, 141, 0.4)';
+    ctx.fillStyle = 'rgba(52,211,153,0.35)';
     ctx.fillRect(30, -10, tmplW, tmplH);
-    ctx.strokeStyle = '#38c98d';
+    ctx.strokeStyle = C.emerald;
     ctx.lineWidth = 1.5;
     ctx.strokeRect(30, -10, tmplW, tmplH);
-
-    // Star mark for target center
-    ctx.fillStyle = '#38c98d';
-    ctx.font = '16px sans-serif';
+    ctx.fillStyle = C.emerald;
+    ctx.font = '16px Outfit, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText('★', 30 + tmplW / 2, -10 + tmplH / 2 + 6);
-
     ctx.restore();
 
-    // Labels
-    ctx.fillStyle = '#9ca0ad';
-    ctx.font = '12px SF Mono, monospace';
+    ctx.fillStyle = C.fg2;
+    ctx.font = '12px JetBrains Mono, monospace';
     ctx.textAlign = 'center';
     ctx.fillText('Rotated Source (angle=' + angle + '°)', srcX + srcW / 2, srcY + srcH + 40);
     ctx.fillText('畫布自動擴張', srcX + srcW / 2, srcY + srcH + 58);
 
-    // ── Right: Template (stays fixed) ──
     const tmplX = 520, tmplY = 140;
-
-    ctx.fillStyle = 'rgba(245, 166, 35, 0.3)';
+    ctx.fillStyle = 'rgba(251,191,36,0.25)';
     ctx.fillRect(tmplX, tmplY, tmplW * 1.5, tmplH * 1.5);
-    ctx.strokeStyle = '#f5a623';
+    ctx.strokeStyle = C.amber;
     ctx.lineWidth = 2;
     ctx.strokeRect(tmplX, tmplY, tmplW * 1.5, tmplH * 1.5);
-
-    ctx.fillStyle = '#f5a623';
-    ctx.font = '13px sans-serif';
+    ctx.fillStyle = C.amber;
+    ctx.font = '13px Outfit, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText('Template (不旋轉)', tmplX + tmplW * 0.75, tmplY - 12);
     ctx.fillText('已預計算 mean/norm', tmplX + tmplW * 0.75, tmplY + tmplH * 1.5 + 22);
 
-    // Arrow
-    ctx.strokeStyle = '#5b9cf6';
+    ctx.strokeStyle = C.cyan;
     ctx.lineWidth = 1.5;
     ctx.setLineDash([6, 4]);
     ctx.beginPath();
@@ -1224,75 +1206,54 @@ const rotAnim = (() => {
     ctx.lineTo(tmplX - 30, tmplY + tmplH);
     ctx.stroke();
     ctx.setLineDash([]);
-
-    ctx.fillStyle = '#5b9cf6';
-    ctx.font = '11px sans-serif';
+    ctx.fillStyle = C.cyan;
+    ctx.font = '11px Outfit, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText('matchTemplate', (srcX + srcW + tmplX) / 2 + 20, srcY + srcH / 2 - 20);
 
-    // ── Bottom: Response Map ──
     const respX = 460, respY = 280, respW = 180, respH = 100;
-
-    ctx.fillStyle = '#1e2030';
+    ctx.fillStyle = '#0f1420';
     ctx.fillRect(respX, respY, respW, respH);
-    ctx.strokeStyle = '#3a3d4e';
+    ctx.strokeStyle = C.border;
     ctx.lineWidth = 1;
     ctx.strokeRect(respX, respY, respW, respH);
 
-    // Draw fake heatmap
     for (let y = 0; y < respH; y += 3) {
       for (let x = 0; x < respW; x += 3) {
         const cx = respW * 0.6, cy = respH * 0.35;
         const d = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2);
         const angleEffect = Math.abs(angle) < 10 ? 1.0 : Math.max(0.15, 1.0 - Math.abs(angle) / 300);
         const v = angleEffect * Math.exp(-d * d / 1200);
-        ctx.fillStyle = `rgba(${Math.round(v * 255)}, ${Math.round(v * 60)}, ${Math.round((1 - v) * 80)}, ${0.3 + v * 0.7})`;
+        ctx.fillStyle = `rgba(${Math.round(v * 255)},${Math.round(v * 60)},${Math.round((1 - v) * 80)},${0.3 + v * 0.7})`;
         ctx.fillRect(respX + x, respY + y, 3, 3);
       }
     }
-
-    ctx.fillStyle = '#9ca0ad';
-    ctx.font = '11px SF Mono, monospace';
+    ctx.fillStyle = C.fg2;
+    ctx.font = '11px JetBrains Mono, monospace';
     ctx.fillText('Response Map', respX + respW / 2, respY - 8);
 
-    // Angle indicator (circular)
     const indX = 720, indY = 100, indR = 50;
-    ctx.strokeStyle = '#3a3d4e';
+    ctx.strokeStyle = C.border;
     ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(indX, indY, indR, 0, Math.PI * 2);
-    ctx.stroke();
-
-    // Angle line
-    ctx.strokeStyle = '#5b9cf6';
+    ctx.beginPath(); ctx.arc(indX, indY, indR, 0, Math.PI * 2); ctx.stroke();
+    ctx.strokeStyle = C.cyan;
     ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(indX, indY);
     const aRad = -angle * Math.PI / 180;
+    ctx.beginPath(); ctx.moveTo(indX, indY);
     ctx.lineTo(indX + indR * 0.85 * Math.cos(aRad), indY - indR * 0.85 * Math.sin(aRad));
     ctx.stroke();
-
-    // Dot at tip
-    ctx.fillStyle = '#5b9cf6';
+    ctx.fillStyle = C.cyan;
     ctx.beginPath();
     ctx.arc(indX + indR * 0.85 * Math.cos(aRad), indY - indR * 0.85 * Math.sin(aRad), 4, 0, Math.PI * 2);
     ctx.fill();
-
-    // Zero line
-    ctx.strokeStyle = '#3a3d4e';
-    ctx.lineWidth = 1;
-    ctx.setLineDash([2, 2]);
-    ctx.beginPath();
-    ctx.moveTo(indX, indY);
-    ctx.lineTo(indX + indR, indY);
-    ctx.stroke();
+    ctx.strokeStyle = '#2d3a4f';
+    ctx.lineWidth = 1; ctx.setLineDash([2, 2]);
+    ctx.beginPath(); ctx.moveTo(indX, indY); ctx.lineTo(indX + indR, indY); ctx.stroke();
     ctx.setLineDash([]);
-
-    ctx.fillStyle = '#5b9cf6';
-    ctx.font = 'bold 14px SF Mono, monospace';
+    ctx.fillStyle = C.cyan;
+    ctx.font = 'bold 14px JetBrains Mono, monospace';
     ctx.textAlign = 'center';
     ctx.fillText(angle + '°', indX, indY + indR + 22);
-
     ctx.textAlign = 'left';
   }
 
@@ -1302,8 +1263,7 @@ const rotAnim = (() => {
   return {
     autoPlay() {
       if (autoPlaying) { cancelAnimationFrame(autoFrame); autoPlaying = false; return; }
-      autoPlaying = true;
-      autoAngle = -180;
+      autoPlaying = true; autoAngle = -180;
       function step() {
         autoAngle += 2;
         if (autoAngle > 180) { autoPlaying = false; return; }
@@ -1326,82 +1286,62 @@ const topLayerAnim = (() => {
 
   function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
     const mapX = 40, mapY = 40, mapW = 300, mapH = 240;
 
-    // Source mini image
-    ctx.fillStyle = '#1e2030';
+    ctx.fillStyle = '#0f1420';
     ctx.fillRect(mapX, mapY, mapW, mapH);
+    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+    for (let x = 0; x < mapW; x += 20) { ctx.beginPath(); ctx.moveTo(mapX + x, mapY); ctx.lineTo(mapX + x, mapY + mapH); ctx.stroke(); }
+    for (let y = 0; y < mapH; y += 20) { ctx.beginPath(); ctx.moveTo(mapX, mapY + y); ctx.lineTo(mapX + mapW, mapY + y); ctx.stroke(); }
 
-    // Grid
-    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-    for (let x = 0; x < mapW; x += 20) {
-      ctx.beginPath(); ctx.moveTo(mapX + x, mapY); ctx.lineTo(mapX + x, mapY + mapH); ctx.stroke();
-    }
-    for (let y = 0; y < mapH; y += 20) {
-      ctx.beginPath(); ctx.moveTo(mapX, mapY + y); ctx.lineTo(mapX + mapW, mapY + y); ctx.stroke();
-    }
-
-    // Fake features
     const features = [[80, 60], [200, 140], [140, 190], [250, 80]];
     features.forEach(([fx, fy]) => {
-      ctx.fillStyle = 'rgba(255,255,255,0.12)';
+      ctx.fillStyle = 'rgba(255,255,255,0.08)';
       ctx.beginPath(); ctx.arc(mapX + fx, mapY + fy, 15, 0, Math.PI * 2); ctx.fill();
     });
 
-    ctx.fillStyle = '#9ca0ad';
-    ctx.font = '12px SF Mono, monospace';
+    ctx.fillStyle = C.fg2;
+    ctx.font = '12px JetBrains Mono, monospace';
     ctx.textAlign = 'left';
     ctx.fillText('Top Layer (最小層)', mapX, mapY - 8);
 
-    // Candidates found
-    candidates.forEach((c, i) => {
-      ctx.strokeStyle = c.score > 0.8 ? '#38c98d' : '#f5a623';
+    candidates.forEach((c) => {
+      ctx.strokeStyle = c.score > 0.8 ? C.emerald : C.amber;
       ctx.lineWidth = 2;
       ctx.strokeRect(mapX + c.x - 10, mapY + c.y - 8, 20, 16);
-
-      ctx.fillStyle = c.score > 0.8 ? '#38c98d' : '#f5a623';
-      ctx.font = '10px SF Mono, monospace';
+      ctx.fillStyle = c.score > 0.8 ? C.emerald : C.amber;
+      ctx.font = '10px JetBrains Mono, monospace';
       ctx.fillText(c.score.toFixed(2), mapX + c.x - 10, mapY + c.y - 12);
     });
 
-    // Right side: angle scan progress
     const barX = 420, barY = 50, barW = 400, barH = 20;
-    ctx.fillStyle = '#1e2030';
+    ctx.fillStyle = '#0f1420';
     ctx.fillRect(barX, barY, barW, barH);
-
     const progress = (currentAngle + 180) / 360;
-    ctx.fillStyle = '#5b9cf6';
+    ctx.fillStyle = C.cyan;
     ctx.fillRect(barX, barY, barW * progress, barH);
-
-    ctx.fillStyle = '#9ca0ad';
-    ctx.font = '11px SF Mono, monospace';
+    ctx.fillStyle = C.fg2;
+    ctx.font = '11px JetBrains Mono, monospace';
     ctx.fillText('角度掃描: ' + (playing ? currentAngle.toFixed(0) + '°' : '等待開始'), barX, barY - 8);
     ctx.fillText('-180°', barX, barY + barH + 14);
     ctx.textAlign = 'right';
     ctx.fillText('+180°', barX + barW, barY + barH + 14);
     ctx.textAlign = 'left';
 
-    // Candidate list
-    ctx.fillStyle = '#e4e6ed';
-    ctx.font = 'bold 13px sans-serif';
+    ctx.fillStyle = C.fg1;
+    ctx.font = 'bold 13px Outfit, sans-serif';
     ctx.fillText('候選結果 (' + candidates.length + ')', barX, barY + 60);
-
     candidates.slice(0, 8).forEach((c, i) => {
-      ctx.fillStyle = c.score > 0.8 ? '#38c98d' : '#f5a623';
-      ctx.font = '12px SF Mono, monospace';
-      ctx.fillText(
-        `#${i} score=${c.score.toFixed(3)} angle=${c.angle.toFixed(1)}° pos=(${c.x},${c.y})`,
-        barX, barY + 84 + i * 22
-      );
+      ctx.fillStyle = c.score > 0.8 ? C.emerald : C.amber;
+      ctx.font = '12px JetBrains Mono, monospace';
+      ctx.fillText(`#${i} score=${c.score.toFixed(3)} angle=${c.angle.toFixed(1)}° pos=(${c.x},${c.y})`, barX, barY + 84 + i * 22);
     });
 
-    // Status
     if (!playing && candidates.length === 0) {
-      ctx.fillStyle = '#5b9cf6';
-      ctx.font = '14px sans-serif';
+      ctx.fillStyle = C.cyan;
+      ctx.font = '14px Outfit, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText('按「播放」開始模擬搜尋', canvas.width / 2, canvas.height - 30);
+      ctx.fillText('按「模擬搜尋」開始', canvas.width / 2, canvas.height - 30);
       ctx.textAlign = 'left';
     }
   }
@@ -1410,8 +1350,6 @@ const topLayerAnim = (() => {
     if (!playing) return;
     currentAngle += 5;
     if (currentAngle > 180) { playing = false; draw(); return; }
-
-    // Randomly add candidates at certain angles
     if (Math.random() < 0.15) {
       const feat = [[80, 60], [200, 140], [140, 190]][Math.floor(Math.random() * 3)];
       candidates.push({
@@ -1422,13 +1360,11 @@ const topLayerAnim = (() => {
       });
       candidates.sort((a, b) => b.score - a.score);
     }
-
     draw();
     setTimeout(() => requestAnimationFrame(animate), 30);
   }
 
   draw();
-
   return {
     play() { if (playing) return; playing = true; candidates = []; currentAngle = -180; animate(); },
     reset() { playing = false; candidates = []; currentAngle = -180; draw(); }
@@ -1447,150 +1383,119 @@ const refineAnim = (() => {
 
   function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
     const sizes = [100, 160, 260, 420];
-    const roiSizes = [0, 40, 60, 80];
-    const positions = [[60, 50], [40, 30], [20, 10], [0, 0]];
 
     for (let i = 0; i <= Math.min(step, totalSteps - 1); i++) {
       const s = sizes[i];
-      const layerX = 30 + i * 215;
-      const layerY = 80;
-      const drawW = Math.min(180, s * 0.45);
-      const drawH = drawW * 0.75;
-
-      // Background
+      const layerX = 30 + i * 215, layerY = 80;
+      const drawW = Math.min(180, s * 0.45), drawH = drawW * 0.75;
       const alpha = i === step ? 1.0 : 0.5;
       ctx.globalAlpha = alpha;
 
-      ctx.fillStyle = '#1e2030';
+      ctx.fillStyle = '#0f1420';
       ctx.fillRect(layerX, layerY, drawW, drawH);
-      ctx.strokeStyle = i === step ? '#5b9cf6' : '#3a3d4e';
+      ctx.strokeStyle = i === step ? C.cyan : '#2d3a4f';
       ctx.lineWidth = i === step ? 2 : 1;
       ctx.strokeRect(layerX, layerY, drawW, drawH);
 
-      // Features
-      ctx.fillStyle = 'rgba(255,255,255,0.1)';
+      ctx.fillStyle = 'rgba(255,255,255,0.08)';
       ctx.beginPath();
       ctx.arc(layerX + drawW * 0.6, layerY + drawH * 0.4, drawW * 0.1, 0, Math.PI * 2);
       ctx.fill();
 
-      // ROI highlight (for non-top layers)
       if (i > 0 && i <= step) {
-        const roiW = drawW * 0.3;
-        const roiH = drawH * 0.35;
-        const roiX = layerX + drawW * 0.45;
-        const roiY = layerY + drawH * 0.25;
-
-        ctx.fillStyle = 'rgba(56, 201, 141, 0.2)';
+        const roiW = drawW * 0.3, roiH = drawH * 0.35;
+        const roiX = layerX + drawW * 0.45, roiY = layerY + drawH * 0.25;
+        ctx.fillStyle = 'rgba(52,211,153,0.15)';
         ctx.fillRect(roiX, roiY, roiW, roiH);
-        ctx.strokeStyle = '#38c98d';
+        ctx.strokeStyle = C.emerald;
         ctx.lineWidth = 2;
         ctx.setLineDash([3, 2]);
         ctx.strokeRect(roiX, roiY, roiW, roiH);
         ctx.setLineDash([]);
-
-        ctx.fillStyle = '#38c98d';
-        ctx.font = '10px SF Mono, monospace';
+        ctx.fillStyle = C.emerald;
+        ctx.font = '10px JetBrains Mono, monospace';
         ctx.textAlign = 'center';
         ctx.fillText('ROI', roiX + roiW / 2, roiY - 5);
       }
 
-      // Candidate point
       if (i <= step) {
-        ctx.fillStyle = '#f25757';
+        ctx.fillStyle = C.rose;
         ctx.beginPath();
         ctx.arc(layerX + drawW * 0.6, layerY + drawH * 0.4, 4, 0, Math.PI * 2);
         ctx.fill();
       }
 
-      // Label
-      ctx.fillStyle = '#9ca0ad';
-      ctx.font = '11px SF Mono, monospace';
+      ctx.fillStyle = C.fg2;
+      ctx.font = '11px JetBrains Mono, monospace';
       ctx.textAlign = 'center';
       ctx.fillText(layerNames[i], layerX + drawW / 2, layerY + drawH + 20);
       ctx.fillText(sizes[i] + '×' + Math.round(sizes[i] * 0.75), layerX + drawW / 2, layerY + drawH + 36);
 
-      // Arrow to next
       if (i < totalSteps - 1 && i < step) {
         ctx.globalAlpha = 1;
-        ctx.strokeStyle = '#5b9cf6';
+        ctx.strokeStyle = C.cyan;
         ctx.lineWidth = 1.5;
         ctx.beginPath();
         ctx.moveTo(layerX + drawW + 4, layerY + drawH / 2);
         ctx.lineTo(layerX + drawW + 28, layerY + drawH / 2);
         ctx.stroke();
-
-        ctx.fillStyle = '#5b9cf6';
+        ctx.fillStyle = C.cyan;
         ctx.beginPath();
         ctx.moveTo(layerX + drawW + 28, layerY + drawH / 2);
         ctx.lineTo(layerX + drawW + 22, layerY + drawH / 2 - 4);
         ctx.lineTo(layerX + drawW + 22, layerY + drawH / 2 + 4);
         ctx.fill();
-
-        ctx.fillStyle = '#5b9cf6';
-        ctx.font = '10px SF Mono, monospace';
+        ctx.font = '10px JetBrains Mono, monospace';
         ctx.fillText('×2', layerX + drawW + 16, layerY + drawH / 2 - 8);
       }
-
       ctx.globalAlpha = 1;
     }
 
-    // Angle refinement visualization
     if (step > 0) {
       const angles = ['θ−Δ', 'θ', 'θ+Δ'];
       const angY = 300;
-      ctx.fillStyle = '#e4e6ed';
-      ctx.font = 'bold 12px sans-serif';
+      ctx.fillStyle = C.fg1;
+      ctx.font = 'bold 12px Outfit, sans-serif';
       ctx.textAlign = 'left';
       ctx.fillText('每層測試 3 個角度:', 30, angY);
-
       angles.forEach((a, i) => {
         const ax = 200 + i * 120;
-        ctx.fillStyle = i === 1 ? 'rgba(56, 201, 141, 0.2)' : 'rgba(91, 156, 246, 0.1)';
+        ctx.fillStyle = i === 1 ? 'rgba(52,211,153,0.15)' : 'rgba(34,211,238,0.06)';
         ctx.fillRect(ax, angY + 10, 90, 50);
-        ctx.strokeStyle = i === 1 ? '#38c98d' : '#3a3d4e';
+        ctx.strokeStyle = i === 1 ? C.emerald : '#2d3a4f';
         ctx.lineWidth = i === 1 ? 2 : 1;
         ctx.strokeRect(ax, angY + 10, 90, 50);
-
-        ctx.fillStyle = i === 1 ? '#38c98d' : '#9ca0ad';
-        ctx.font = '13px SF Mono, monospace';
+        ctx.fillStyle = i === 1 ? C.emerald : C.fg2;
+        ctx.font = '13px JetBrains Mono, monospace';
         ctx.textAlign = 'center';
         ctx.fillText(a, ax + 45, angY + 40);
-
         if (i === 1) {
-          ctx.fillStyle = '#38c98d';
-          ctx.font = '10px sans-serif';
+          ctx.fillStyle = C.emerald;
+          ctx.font = '10px Outfit, sans-serif';
           ctx.fillText('最佳', ax + 45, angY + 74);
         }
       });
     }
 
-    // Final result at layer 0
     if (step >= totalSteps - 1) {
-      ctx.fillStyle = '#38c98d';
-      ctx.font = 'bold 13px sans-serif';
+      ctx.fillStyle = C.emerald;
+      ctx.font = 'bold 13px Outfit, sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText('→ 27 點亞像素精化 → 最終結果', canvas.width / 2, 430);
     }
-
     ctx.textAlign = 'left';
   }
 
   draw();
-
   return {
     play() {
       if (playing) return;
       playing = true; step = 0;
       function next() {
         draw();
-        if (step < totalSteps - 1) {
-          step++;
-          setTimeout(next, 800);
-        } else {
-          playing = false;
-        }
+        if (step < totalSteps - 1) { step++; setTimeout(next, 800); }
+        else { playing = false; }
       }
       next();
     },
@@ -1612,7 +1517,6 @@ const refineAnim = (() => {
     const cx = 250, cy = 220;
     const scaleX = 60, scaleY = 30, scaleZ = 120;
 
-    // 3D projection
     function project(x, y, z) {
       const cosT = Math.cos(theta), sinT = Math.sin(theta);
       const px = cx + (x * cosT - y * sinT) * scaleX;
@@ -1620,57 +1524,42 @@ const refineAnim = (() => {
       return [px, py];
     }
 
-    // Quadratic surface: z = -0.3*x^2 - 0.4*y^2 + 0.02*x*y + 0.15*x - 0.1*y + 0.95
     function surface(x, y) {
       return -0.3 * x * x - 0.4 * y * y + 0.02 * x * y + 0.15 * x - 0.1 * y + 0.95;
     }
 
-    // Draw surface wireframe
-    const gridN = 20;
-    const range = 1.5;
+    const gridN = 20, range = 1.5;
 
-    // Surface fill
     for (let yi = 0; yi < gridN; yi++) {
       for (let xi = 0; xi < gridN; xi++) {
         const x0 = -range + (2 * range * xi) / gridN;
         const y0 = -range + (2 * range * yi) / gridN;
         const x1 = x0 + 2 * range / gridN;
         const y1 = y0 + 2 * range / gridN;
-
-        const z00 = surface(x0, y0);
-        const z10 = surface(x1, y0);
-        const z01 = surface(x0, y1);
-        const z11 = surface(x1, y1);
-
+        const z00 = surface(x0, y0), z10 = surface(x1, y0);
+        const z01 = surface(x0, y1), z11 = surface(x1, y1);
         const [px00, py00] = project(x0, y0, z00);
         const [px10, py10] = project(x1, y0, z10);
         const [px01, py01] = project(x0, y1, z01);
         const [px11, py11] = project(x1, y1, z11);
-
         const avgZ = (z00 + z10 + z01 + z11) / 4;
         const brightness = Math.max(0, Math.min(1, (avgZ + 0.5) / 1.5));
-
-        ctx.fillStyle = `rgba(${Math.round(brightness * 91)}, ${Math.round(brightness * 156)}, ${Math.round(brightness * 246)}, 0.6)`;
+        ctx.fillStyle = `rgba(${Math.round(brightness * 34)}, ${Math.round(brightness * 180)}, ${Math.round(brightness * 238)}, 0.6)`;
         ctx.beginPath();
-        ctx.moveTo(px00, py00);
-        ctx.lineTo(px10, py10);
-        ctx.lineTo(px11, py11);
-        ctx.lineTo(px01, py01);
-        ctx.closePath();
-        ctx.fill();
+        ctx.moveTo(px00, py00); ctx.lineTo(px10, py10);
+        ctx.lineTo(px11, py11); ctx.lineTo(px01, py01);
+        ctx.closePath(); ctx.fill();
       }
     }
 
-    // Grid lines
-    ctx.strokeStyle = 'rgba(91, 156, 246, 0.3)';
+    ctx.strokeStyle = 'rgba(34,211,238,0.25)';
     ctx.lineWidth = 0.5;
     for (let i = 0; i <= gridN; i += 2) {
       ctx.beginPath();
       for (let j = 0; j <= gridN; j++) {
         const x = -range + (2 * range * i) / gridN;
         const y = -range + (2 * range * j) / gridN;
-        const z = surface(x, y);
-        const [px, py] = project(x, y, z);
+        const [px, py] = project(x, y, surface(x, y));
         j === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
       }
       ctx.stroke();
@@ -1680,86 +1569,54 @@ const refineAnim = (() => {
       for (let i = 0; i <= gridN; i++) {
         const x = -range + (2 * range * i) / gridN;
         const y = -range + (2 * range * j) / gridN;
-        const z = surface(x, y);
-        const [px, py] = project(x, y, z);
+        const [px, py] = project(x, y, surface(x, y));
         i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
       }
       ctx.stroke();
     }
 
-    // 9 sample points (3x3)
     for (let iy = -1; iy <= 1; iy++) {
       for (let ix = -1; ix <= 1; ix++) {
         const z = surface(ix, iy);
         const [px, py] = project(ix, iy, z);
-
-        // Vertical line from base
         const [bx, by] = project(ix, iy, 0);
-        ctx.strokeStyle = 'rgba(245, 166, 35, 0.3)';
-        ctx.lineWidth = 1;
-        ctx.setLineDash([2, 2]);
-        ctx.beginPath();
-        ctx.moveTo(bx, by);
-        ctx.lineTo(px, py);
-        ctx.stroke();
+        ctx.strokeStyle = 'rgba(251,191,36,0.25)';
+        ctx.lineWidth = 1; ctx.setLineDash([2, 2]);
+        ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(px, py); ctx.stroke();
         ctx.setLineDash([]);
-
-        // Point
-        ctx.fillStyle = ix === 0 && iy === 0 ? '#f25757' : '#f5a623';
+        ctx.fillStyle = ix === 0 && iy === 0 ? C.rose : C.amber;
         ctx.beginPath();
         ctx.arc(px, py, ix === 0 && iy === 0 ? 5 : 4, 0, Math.PI * 2);
         ctx.fill();
       }
     }
 
-    // Peak position (subpixel)
-    const peakX = 0.15 / 0.6;  // From the surface coefficients
-    const peakY = -0.1 / 0.8;
+    const peakX = 0.15 / 0.6, peakY = -0.1 / 0.8;
     const peakZ = surface(peakX, peakY);
     const [ppx, ppy] = project(peakX, peakY, peakZ);
-
-    ctx.fillStyle = '#38c98d';
-    ctx.beginPath();
-    ctx.arc(ppx, ppy, 6, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Label for peak
-    ctx.fillStyle = '#38c98d';
-    ctx.font = 'bold 12px SF Mono, monospace';
+    ctx.fillStyle = C.emerald;
+    ctx.beginPath(); ctx.arc(ppx, ppy, 6, 0, Math.PI * 2); ctx.fill();
+    ctx.font = 'bold 12px JetBrains Mono, monospace';
     ctx.textAlign = 'left';
     ctx.fillText(`次像素峰值: (${peakX.toFixed(2)}, ${peakY.toFixed(2)})`, ppx + 12, ppy - 5);
 
-    // Right side: explanation
     const exX = 550;
-    ctx.fillStyle = '#e4e6ed';
-    ctx.font = 'bold 16px sans-serif';
-    ctx.textAlign = 'left';
+    ctx.fillStyle = C.fg1;
+    ctx.font = 'bold 16px Syne, sans-serif';
     ctx.fillText('二次曲面擬合', exX, 50);
-
-    ctx.font = '13px sans-serif';
-    ctx.fillStyle = '#9ca0ad';
+    ctx.font = '13px Outfit, sans-serif';
+    ctx.fillStyle = C.fg2;
     const lines = [
-      '',
-      '● 橙色點 = 9 個整數像素觀測值',
-      '● 紅色點 = 整數峰值 (0, 0)',
-      '● 綠色點 = 次像素峰值',
-      '',
-      '擬合模型:',
-      'z = ax² + by² + cxy + dx + ey + f',
-      '',
-      '由曲面頂點求得偏移量:',
-      'dx = (ce−2bd) / (4ab−c²)',
-      'dy = (cd−2ae) / (4ab−c²)',
-      '',
-      '拖動滑桿旋轉 3D 檢視 →',
+      '', '● 橙色點 = 9 個整數像素觀測值', '● 紅色點 = 整數峰值 (0, 0)',
+      '● 綠色點 = 次像素峰值', '', '擬合模型:',
+      'z = ax² + by² + cxy + dx + ey + f', '', '由曲面頂點求得偏移量:',
+      'δx = (ce−2bd) / (4ab−c²)', 'δy = (cd−2ae) / (4ab−c²)', '',
+      '拖動滑桿旋轉 3D 檢視 →'
     ];
     lines.forEach((l, i) => {
       if (l.startsWith('●')) {
-        const color = l.includes('橙') ? '#f5a623' : l.includes('紅') ? '#f25757' : '#38c98d';
-        ctx.fillStyle = color;
-      } else {
-        ctx.fillStyle = '#9ca0ad';
-      }
+        ctx.fillStyle = l.includes('橙') ? C.amber : l.includes('紅') ? C.rose : C.emerald;
+      } else { ctx.fillStyle = C.fg2; }
       ctx.fillText(l, exX, 70 + i * 24);
     });
   }
@@ -1784,92 +1641,68 @@ const nmsAnim = (() => {
     { x: 508, y: 185, w: 78, h: 58, angle: -28, score: 0.79 },
     { x: 350, y: 80, w: 70, h: 55, angle: 0, score: 0.85 },
   ];
-
-  let kept = [];
-  let suppressed = [];
+  let kept = [], suppressed = [];
 
   function drawRotatedRect(d, color, alpha, dashed) {
     const rad = d.angle * Math.PI / 180;
-    ctx.save();
-    ctx.globalAlpha = alpha;
-    ctx.translate(d.x, d.y);
-    ctx.rotate(rad);
-
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
+    ctx.save(); ctx.globalAlpha = alpha;
+    ctx.translate(d.x, d.y); ctx.rotate(rad);
+    ctx.strokeStyle = color; ctx.lineWidth = 2;
     if (dashed) ctx.setLineDash([4, 3]);
     ctx.strokeRect(-d.w / 2, -d.h / 2, d.w, d.h);
     ctx.setLineDash([]);
-
-    ctx.restore();
-    ctx.globalAlpha = 1;
+    ctx.restore(); ctx.globalAlpha = 1;
   }
 
   function draw() {
     const maxOverlap = parseFloat($('#nms-overlap').value);
     $('#nms-overlap-val').textContent = maxOverlap.toFixed(1);
-
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Background scene
-    ctx.fillStyle = '#1e2030';
+    ctx.fillStyle = '#0f1420';
     ctx.fillRect(30, 30, 700, 280);
-    ctx.strokeStyle = '#2d3140';
+    ctx.strokeStyle = C.border;
     ctx.lineWidth = 1;
     ctx.strokeRect(30, 30, 700, 280);
 
-    // Fake features
     [[200, 120], [500, 180], [350, 80]].forEach(([fx, fy]) => {
-      ctx.fillStyle = 'rgba(255,255,255,0.08)';
-      ctx.beginPath();
-      ctx.arc(fx, fy, 30, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.06)';
+      ctx.beginPath(); ctx.arc(fx, fy, 30, 0, Math.PI * 2); ctx.fill();
     });
 
-    // Draw detections
     detections.forEach((d, i) => {
       if (suppressed.includes(i)) {
-        drawRotatedRect(d, '#f25757', 0.3, true);
-        // X mark
-        ctx.fillStyle = 'rgba(242, 87, 87, 0.5)';
-        ctx.font = 'bold 20px sans-serif';
+        drawRotatedRect(d, C.rose, 0.3, true);
+        ctx.fillStyle = 'rgba(251,113,133,0.5)';
+        ctx.font = 'bold 20px Outfit, sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText('✕', d.x, d.y + 7);
       } else if (kept.includes(i)) {
-        drawRotatedRect(d, '#38c98d', 1.0, false);
-        // Score label
-        ctx.fillStyle = '#38c98d';
-        ctx.font = 'bold 11px SF Mono, monospace';
+        drawRotatedRect(d, C.emerald, 1.0, false);
+        ctx.fillStyle = C.emerald;
+        ctx.font = 'bold 11px JetBrains Mono, monospace';
         ctx.textAlign = 'center';
         ctx.fillText(d.score.toFixed(2), d.x, d.y - d.h / 2 - 8);
       } else {
-        drawRotatedRect(d, '#5b9cf6', 0.7, false);
-        ctx.fillStyle = '#5b9cf6';
-        ctx.font = '11px SF Mono, monospace';
+        drawRotatedRect(d, C.cyan, 0.7, false);
+        ctx.fillStyle = C.cyan;
+        ctx.font = '11px JetBrains Mono, monospace';
         ctx.textAlign = 'center';
         ctx.fillText(d.score.toFixed(2), d.x, d.y - d.h / 2 - 8);
       }
     });
 
-    // Legend
     ctx.textAlign = 'left';
-    ctx.font = '12px sans-serif';
+    ctx.font = '12px Outfit, sans-serif';
+    ctx.fillStyle = C.cyan;  ctx.fillText('● 待處理', 760, 50);
+    ctx.fillStyle = C.emerald; ctx.fillText('● 保留', 760, 72);
+    ctx.fillStyle = C.rose;  ctx.fillText('● 抑制', 760, 94);
 
-    ctx.fillStyle = '#5b9cf6';
-    ctx.fillText('● 待處理', 760, 50);
-    ctx.fillStyle = '#38c98d';
-    ctx.fillText('● 保留', 760, 72);
-    ctx.fillStyle = '#f25757';
-    ctx.fillText('● 抑制', 760, 94);
-
-    // Status
-    ctx.fillStyle = '#9ca0ad';
-    ctx.font = '13px sans-serif';
-    ctx.fillText(`處理進度: ${kept.length + suppressed.length}/${detections.length}`, 760, 140);
+    ctx.fillStyle = C.fg2;
+    ctx.font = '13px JetBrains Mono, monospace';
+    ctx.fillText(`進度: ${kept.length + suppressed.length}/${detections.length}`, 760, 140);
     ctx.fillText(`保留: ${kept.length}`, 760, 162);
     ctx.fillText(`抑制: ${suppressed.length}`, 760, 184);
-
-    ctx.textAlign = 'left';
   }
 
   draw();
@@ -1878,37 +1711,21 @@ const nmsAnim = (() => {
   return {
     play() {
       if (playing) return;
-      playing = true;
-      kept = [];
-      suppressed = [];
-
-      const sorted = detections.map((d, i) => ({ ...d, idx: i }))
-        .sort((a, b) => b.score - a.score);
-
+      playing = true; kept = []; suppressed = [];
+      const sorted = detections.map((d, i) => ({ ...d, idx: i })).sort((a, b) => b.score - a.score);
       let si = 0;
       function next() {
         if (si >= sorted.length) { playing = false; return; }
         const d = sorted[si];
-
         let shouldSuppress = false;
         for (const ki of kept) {
           const kd = detections[ki];
-          const dx = d.x - kd.x, dy = d.y - kd.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < (d.w + kd.w) * 0.4) {
-            shouldSuppress = true;
-            break;
-          }
+          const dist = Math.sqrt((d.x - kd.x) ** 2 + (d.y - kd.y) ** 2);
+          if (dist < (d.w + kd.w) * 0.4) { shouldSuppress = true; break; }
         }
-
-        if (shouldSuppress) {
-          suppressed.push(d.idx);
-        } else {
-          kept.push(d.idx);
-        }
-
-        si++;
-        draw();
+        if (shouldSuppress) suppressed.push(d.idx);
+        else kept.push(d.idx);
+        si++; draw();
         setTimeout(next, 600);
       }
       next();
@@ -1927,31 +1744,23 @@ const nmsAnim = (() => {
   function draw() {
     const tmplSize = parseInt($('#fft-tmpl').value);
     $('#fft-tmpl-val').textContent = tmplSize + 'px';
-
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     const chartX = 80, chartY = 30, chartW = 500, chartH = 250;
     const barX = 660, barY = 50;
 
-    // Axes
-    ctx.strokeStyle = '#3a3d4e';
+    ctx.strokeStyle = '#2d3a4f';
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(chartX, chartY);
-    ctx.lineTo(chartX, chartY + chartH);
-    ctx.lineTo(chartX + chartW, chartY + chartH);
-    ctx.stroke();
+    ctx.moveTo(chartX, chartY); ctx.lineTo(chartX, chartY + chartH);
+    ctx.lineTo(chartX + chartW, chartY + chartH); ctx.stroke();
 
-    // Data: image sizes
     const imgSizes = [256, 512, 768, 1024, 1536, 2048];
     const maxOps = imgSizes[imgSizes.length - 1] ** 2 * tmplSize * tmplSize;
     const maxFftOps = imgSizes[imgSizes.length - 1] ** 2 * Math.log2(imgSizes[imgSizes.length - 1] ** 2);
-
     const normMax = Math.max(maxOps, maxFftOps);
 
-    // Draw curves
-    // Spatial domain: O(WH * wh)
-    ctx.strokeStyle = '#f25757';
+    ctx.strokeStyle = C.rose;
     ctx.lineWidth = 2;
     ctx.beginPath();
     imgSizes.forEach((s, i) => {
@@ -1962,8 +1771,7 @@ const nmsAnim = (() => {
     });
     ctx.stroke();
 
-    // FFT domain: O(WH * log(WH))
-    ctx.strokeStyle = '#38c98d';
+    ctx.strokeStyle = C.emerald;
     ctx.lineWidth = 2;
     ctx.beginPath();
     imgSizes.forEach((s, i) => {
@@ -1974,9 +1782,8 @@ const nmsAnim = (() => {
     });
     ctx.stroke();
 
-    // X axis labels
-    ctx.fillStyle = '#7a7d8d';
-    ctx.font = '11px SF Mono, monospace';
+    ctx.fillStyle = C.fg3;
+    ctx.font = '11px JetBrains Mono, monospace';
     ctx.textAlign = 'center';
     imgSizes.forEach((s, i) => {
       const x = chartX + (i / (imgSizes.length - 1)) * chartW;
@@ -1984,39 +1791,32 @@ const nmsAnim = (() => {
     });
     ctx.fillText('影像寬度 (px)', chartX + chartW / 2, chartY + chartH + 38);
 
-    // Y axis label
     ctx.save();
     ctx.translate(20, chartY + chartH / 2);
     ctx.rotate(-Math.PI / 2);
     ctx.fillText('計算量', 0, 0);
     ctx.restore();
 
-    // Legend
     ctx.textAlign = 'left';
-    ctx.fillStyle = '#f25757';
-    ctx.font = '12px sans-serif';
+    ctx.fillStyle = C.rose;
+    ctx.font = '12px Outfit, sans-serif';
     ctx.fillText('● 空間域 O(WH×wh)', chartX + 10, chartY + 20);
-    ctx.fillStyle = '#38c98d';
+    ctx.fillStyle = C.emerald;
     ctx.fillText('● FFT O(WH×log WH)', chartX + 10, chartY + 38);
 
-    // Right side: speedup ratio
     const ratio = (tmplSize * tmplSize) / (Math.log2(1024 * 1024));
-    ctx.fillStyle = '#e4e6ed';
-    ctx.font = 'bold 14px sans-serif';
+    ctx.fillStyle = C.fg1;
+    ctx.font = 'bold 14px Outfit, sans-serif';
     ctx.fillText('模板 ' + tmplSize + '×' + tmplSize + ' 時:', barX, barY);
-
-    ctx.fillStyle = '#38c98d';
-    ctx.font = 'bold 28px SF Mono, monospace';
+    ctx.fillStyle = C.emerald;
+    ctx.font = 'bold 28px Syne, sans-serif';
     ctx.fillText(ratio.toFixed(1) + '×', barX, barY + 40);
-
-    ctx.fillStyle = '#9ca0ad';
-    ctx.font = '13px sans-serif';
+    ctx.fillStyle = C.fg2;
+    ctx.font = '13px Outfit, sans-serif';
     ctx.fillText('FFT 加速比', barX, barY + 60);
     ctx.fillText('(1024×1024 影像)', barX, barY + 80);
-
-    // Note
-    ctx.fillStyle = '#f5a623';
-    ctx.font = '12px sans-serif';
+    ctx.fillStyle = C.amber;
+    ctx.font = '12px Outfit, sans-serif';
     ctx.fillText('注意：小模板時 FFT', barX, barY + 120);
     ctx.fillText('overhead 可能較大，', barX, barY + 140);
     ctx.fillText('OpenCV 內建 DFT 已', barX, barY + 160);
@@ -2046,266 +1846,161 @@ const coordAnim = (() => {
 
   function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
     const s = steps[currentStep];
 
-    // Title
-    ctx.fillStyle = '#5b9cf6';
-    ctx.font = 'bold 18px sans-serif';
+    ctx.fillStyle = C.cyan;
+    ctx.font = 'bold 18px Syne, sans-serif';
     ctx.textAlign = 'left';
     ctx.fillText(s.title, 30, 35);
-
-    ctx.fillStyle = '#9ca0ad';
-    ctx.font = '14px sans-serif';
+    ctx.fillStyle = C.fg2;
+    ctx.font = '14px Outfit, sans-serif';
     ctx.fillText(s.desc, 30, 58);
 
-    // Draw coordinate frames based on step
     const frameX = 80, frameY = 100, frameW = 300, frameH = 220;
-
-    // Draw coordinate system
-    ctx.strokeStyle = '#3a3d4e';
+    ctx.strokeStyle = '#2d3a4f';
     ctx.lineWidth = 1;
     ctx.strokeRect(frameX, frameY, frameW, frameH);
-
-    const cxp = frameX + frameW / 2;
-    const cyp = frameY + frameH / 2;
+    const cxp = frameX + frameW / 2, cyp = frameY + frameH / 2;
 
     if (currentStep === 0) {
-      // Rotated source with match position
       ctx.save();
       ctx.translate(cxp, cyp);
       ctx.rotate(30 * Math.PI / 180);
-
-      ctx.fillStyle = 'rgba(91, 156, 246, 0.15)';
+      ctx.fillStyle = 'rgba(34,211,238,0.10)';
       ctx.fillRect(-120, -80, 240, 160);
-      ctx.strokeStyle = '#5b9cf6';
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = C.cyan; ctx.lineWidth = 1;
       ctx.strokeRect(-120, -80, 240, 160);
-
-      ctx.fillStyle = '#f5a623';
-      ctx.font = '11px sans-serif';
+      ctx.fillStyle = C.amber;
+      ctx.font = '11px Outfit, sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText('Rotated Source', 0, -90);
-
-      // Match position
-      ctx.fillStyle = '#f25757';
-      ctx.beginPath();
-      ctx.arc(40, -20, 6, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.fillStyle = C.rose;
+      ctx.beginPath(); ctx.arc(40, -20, 6, 0, Math.PI * 2); ctx.fill();
       ctx.fillText('matchLoc', 40, -30);
-
       ctx.restore();
     } else if (currentStep === 1) {
-      // Show rotation back
-      ctx.fillStyle = 'rgba(91, 156, 246, 0.15)';
+      ctx.fillStyle = 'rgba(34,211,238,0.08)';
       ctx.fillRect(frameX + 20, frameY + 20, 260, 180);
-      ctx.strokeStyle = '#5b9cf6';
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = C.cyan; ctx.lineWidth = 1;
       ctx.strokeRect(frameX + 20, frameY + 20, 260, 180);
-
-      ctx.fillStyle = '#5b9cf6';
-      ctx.font = '11px sans-serif';
-      ctx.textAlign = 'center';
+      ctx.fillStyle = C.cyan;
+      ctx.font = '11px Outfit, sans-serif'; ctx.textAlign = 'center';
       ctx.fillText('Original Source', cxp, frameY + 12);
-
-      // Original position after inverse rotation
-      ctx.fillStyle = '#38c98d';
-      ctx.beginPath();
-      ctx.arc(cxp + 50, cyp - 10, 6, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = '#38c98d';
+      ctx.fillStyle = C.emerald;
+      ctx.beginPath(); ctx.arc(cxp + 50, cyp - 10, 6, 0, Math.PI * 2); ctx.fill();
       ctx.fillText('ptLT (原始座標)', cxp + 50, cyp - 22);
-
-      // Arrow showing rotation
-      ctx.strokeStyle = '#f5a623';
-      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = C.amber; ctx.lineWidth = 1.5;
       ctx.setLineDash([4, 3]);
-      ctx.beginPath();
-      ctx.arc(cxp, cyp, 40, -0.5, 0.3);
-      ctx.stroke();
+      ctx.beginPath(); ctx.arc(cxp, cyp, 40, -0.5, 0.3); ctx.stroke();
       ctx.setLineDash([]);
-
-      ctx.fillStyle = '#f5a623';
-      ctx.font = '11px SF Mono, monospace';
+      ctx.fillStyle = C.amber;
+      ctx.font = '11px JetBrains Mono, monospace';
       ctx.fillText('−angle', cxp + 50, cyp + 40);
     } else if (currentStep === 2) {
-      // ×2 scaling
-      // Small version
-      ctx.fillStyle = 'rgba(91, 156, 246, 0.1)';
+      ctx.fillStyle = 'rgba(34,211,238,0.06)';
       ctx.fillRect(frameX + 80, frameY + 60, 130, 90);
-      ctx.strokeStyle = '#5b9cf6';
-      ctx.setLineDash([3, 2]);
+      ctx.strokeStyle = C.cyan; ctx.setLineDash([3, 2]);
       ctx.strokeRect(frameX + 80, frameY + 60, 130, 90);
       ctx.setLineDash([]);
-
-      ctx.fillStyle = '#5b9cf6';
-      ctx.font = '10px SF Mono, monospace';
-      ctx.textAlign = 'center';
+      ctx.fillStyle = C.cyan;
+      ctx.font = '10px JetBrains Mono, monospace'; ctx.textAlign = 'center';
       ctx.fillText('Layer N', frameX + 145, frameY + 50);
-
-      // Large version
-      ctx.fillStyle = 'rgba(56, 201, 141, 0.1)';
+      ctx.fillStyle = 'rgba(52,211,153,0.08)';
       ctx.fillRect(frameX + 20, frameY + 15, 260, 180);
-      ctx.strokeStyle = '#38c98d';
-      ctx.lineWidth = 2;
+      ctx.strokeStyle = C.emerald; ctx.lineWidth = 2;
       ctx.strokeRect(frameX + 20, frameY + 15, 260, 180);
-
-      ctx.fillStyle = '#38c98d';
-      ctx.font = '12px sans-serif';
+      ctx.fillStyle = C.emerald;
+      ctx.font = '12px Outfit, sans-serif';
       ctx.fillText('Layer N−1 (×2)', frameX + 150, frameY + 208);
-
-      // Point scaling
-      ctx.fillStyle = '#f5a623';
-      ctx.beginPath();
-      ctx.arc(frameX + 160, frameY + 100, 4, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = '#38c98d';
-      ctx.beginPath();
-      ctx.arc(frameX + 200, frameY + 90, 6, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Arrow
-      ctx.strokeStyle = '#f5a623';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(frameX + 164, frameY + 98);
-      ctx.lineTo(frameX + 194, frameY + 92);
-      ctx.stroke();
-
-      ctx.fillStyle = '#f5a623';
-      ctx.font = 'bold 14px SF Mono, monospace';
+      ctx.fillStyle = C.amber;
+      ctx.beginPath(); ctx.arc(frameX + 160, frameY + 100, 4, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = C.emerald;
+      ctx.beginPath(); ctx.arc(frameX + 200, frameY + 90, 6, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = C.amber; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(frameX + 164, frameY + 98); ctx.lineTo(frameX + 194, frameY + 92); ctx.stroke();
+      ctx.fillStyle = C.amber;
+      ctx.font = 'bold 14px JetBrains Mono, monospace';
       ctx.fillText('×2', frameX + 175, frameY + 86);
     } else if (currentStep === 3) {
-      // ROI extraction
-      ctx.fillStyle = 'rgba(91, 156, 246, 0.1)';
+      ctx.fillStyle = 'rgba(34,211,238,0.06)';
       ctx.fillRect(frameX + 20, frameY + 15, 260, 180);
-      ctx.strokeStyle = '#5b9cf6';
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = C.cyan; ctx.lineWidth = 1;
       ctx.strokeRect(frameX + 20, frameY + 15, 260, 180);
-
-      // ROI box
-      ctx.fillStyle = 'rgba(56, 201, 141, 0.2)';
+      ctx.fillStyle = 'rgba(52,211,153,0.15)';
       ctx.fillRect(cxp - 30, cyp - 25, 66, 56);
-      ctx.strokeStyle = '#38c98d';
-      ctx.lineWidth = 2;
+      ctx.strokeStyle = C.emerald; ctx.lineWidth = 2;
       ctx.strokeRect(cxp - 30, cyp - 25, 66, 56);
-
-      // Template size + padding
-      ctx.fillStyle = '#38c98d';
-      ctx.font = '10px SF Mono, monospace';
-      ctx.textAlign = 'center';
+      ctx.fillStyle = C.emerald;
+      ctx.font = '10px JetBrains Mono, monospace'; ctx.textAlign = 'center';
       ctx.fillText('tmpl + ±3px', cxp + 3, cyp - 30);
-
-      // Candidate point
-      ctx.fillStyle = '#f25757';
-      ctx.beginPath();
-      ctx.arc(cxp + 3, cyp, 4, 0, Math.PI * 2);
-      ctx.fill();
-
-      // warpAffine arrow
-      ctx.fillStyle = '#f5a623';
-      ctx.font = '12px sans-serif';
+      ctx.fillStyle = C.rose;
+      ctx.beginPath(); ctx.arc(cxp + 3, cyp, 4, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = C.amber;
+      ctx.font = '12px Outfit, sans-serif';
       ctx.fillText('warpAffine (旋轉裁切)', cxp, frameY + frameH + 20);
     } else if (currentStep === 4) {
-      // ROI result
-      ctx.fillStyle = 'rgba(56, 201, 141, 0.15)';
+      ctx.fillStyle = 'rgba(52,211,153,0.10)';
       ctx.fillRect(frameX + 80, frameY + 50, 130, 110);
-      ctx.strokeStyle = '#38c98d';
-      ctx.lineWidth = 2;
+      ctx.strokeStyle = C.emerald; ctx.lineWidth = 2;
       ctx.strokeRect(frameX + 80, frameY + 50, 130, 110);
-
-      ctx.fillStyle = '#38c98d';
-      ctx.font = '11px sans-serif';
-      ctx.textAlign = 'center';
+      ctx.fillStyle = C.emerald;
+      ctx.font = '11px Outfit, sans-serif'; ctx.textAlign = 'center';
       ctx.fillText('ROI (已轉正)', frameX + 145, frameY + 40);
-
-      // 7x7 response
-      ctx.fillStyle = '#f5a623';
-      ctx.font = '10px SF Mono, monospace';
+      ctx.fillStyle = C.amber;
+      ctx.font = '10px JetBrains Mono, monospace';
       ctx.fillText('resp 7×7', frameX + 145, frameY + 175);
-
-      // maxLoc
-      ctx.fillStyle = '#f25757';
-      ctx.beginPath();
-      ctx.arc(frameX + 148, frameY + 108, 5, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#f25757';
+      ctx.fillStyle = C.rose;
+      ctx.beginPath(); ctx.arc(frameX + 148, frameY + 108, 5, 0, Math.PI * 2); ctx.fill();
       ctx.fillText('maxLoc', frameX + 148, frameY + 98);
-
-      // Arrow to original
-      ctx.strokeStyle = '#5b9cf6';
-      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = C.cyan; ctx.lineWidth = 1.5;
       ctx.setLineDash([4, 3]);
-      ctx.beginPath();
-      ctx.moveTo(frameX + 215, frameY + 108);
-      ctx.lineTo(frameX + 280, frameY + 108);
-      ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(frameX + 215, frameY + 108); ctx.lineTo(frameX + 280, frameY + 108); ctx.stroke();
       ctx.setLineDash([]);
-
-      ctx.fillStyle = '#5b9cf6';
+      ctx.fillStyle = C.cyan;
       ctx.fillText('+ padding → 逆旋轉', frameX + 280, frameY + 100);
       ctx.fillText('→ 原始座標', frameX + 280, frameY + 118);
     } else if (currentStep === 5) {
-      // Final result with rotated rect
-      ctx.fillStyle = 'rgba(91, 156, 246, 0.1)';
+      ctx.fillStyle = 'rgba(34,211,238,0.06)';
       ctx.fillRect(frameX + 20, frameY + 15, 260, 180);
-      ctx.strokeStyle = '#3a3d4e';
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = '#2d3a4f'; ctx.lineWidth = 1;
       ctx.strokeRect(frameX + 20, frameY + 15, 260, 180);
-
-      // Rotated rectangle
       ctx.save();
       ctx.translate(cxp + 20, cyp);
       ctx.rotate(-25 * Math.PI / 180);
-      ctx.strokeStyle = '#38c98d';
-      ctx.lineWidth = 2;
+      ctx.strokeStyle = C.emerald; ctx.lineWidth = 2;
       ctx.strokeRect(-30, -22, 60, 44);
-
-      // Center cross
-      ctx.strokeStyle = '#f25757';
-      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = C.rose; ctx.lineWidth = 1.5;
       ctx.beginPath();
       ctx.moveTo(-6, 0); ctx.lineTo(6, 0);
       ctx.moveTo(0, -6); ctx.lineTo(0, 6);
       ctx.stroke();
-
       ctx.restore();
-
-      // Labels
-      ctx.fillStyle = '#38c98d';
-      ctx.font = 'bold 12px SF Mono, monospace';
+      ctx.fillStyle = C.emerald;
+      ctx.font = 'bold 12px JetBrains Mono, monospace';
       ctx.textAlign = 'left';
       ctx.fillText('center = (cx, cy)', frameX + 20, frameY + frameH + 15);
       ctx.fillText('angle = −match_angle', frameX + 20, frameY + frameH + 35);
     }
 
-    // Right side: step list
     const listX = 480;
     steps.forEach((st, i) => {
-      ctx.fillStyle = i === currentStep ? '#5b9cf6' : '#4a4d5e';
-      ctx.font = (i === currentStep ? 'bold ' : '') + '12px sans-serif';
+      ctx.fillStyle = i === currentStep ? C.cyan : '#3a4050';
+      ctx.font = (i === currentStep ? 'bold ' : '') + '12px Outfit, sans-serif';
       ctx.textAlign = 'left';
-      ctx.fillText(
-        (i === currentStep ? '▸ ' : '  ') + st.title,
-        listX, 100 + i * 55
-      );
+      ctx.fillText((i === currentStep ? '▸ ' : '  ') + st.title, listX, 100 + i * 55);
       if (i === currentStep) {
-        ctx.fillStyle = '#9ca0ad';
-        ctx.font = '11px sans-serif';
+        ctx.fillStyle = C.fg2;
+        ctx.font = '11px Outfit, sans-serif';
         ctx.fillText(st.desc, listX + 18, 118 + i * 55);
       }
     });
   }
 
   draw();
-
   return {
     step(i) { currentStep = clamp(i, 0, steps.length - 1); draw(); }
   };
 })();
-
 </script>
 </body>
 </html>
