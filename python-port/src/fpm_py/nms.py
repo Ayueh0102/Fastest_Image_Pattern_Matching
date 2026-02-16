@@ -119,6 +119,22 @@ def rotated_rect_overlap(
     return float(inter_area / area1)
 
 
+def _aabb_from_rotated_rect(rect: RotatedRectTuple) -> Tuple[float, float, float, float]:
+    """從旋轉矩形計算軸對齊包圍框 (x_min, y_min, x_max, y_max)。"""
+    pts = cv2.boxPoints(rect)  # 4x2
+    x_min = float(pts[:, 0].min())
+    y_min = float(pts[:, 1].min())
+    x_max = float(pts[:, 0].max())
+    y_max = float(pts[:, 1].max())
+    return x_min, y_min, x_max, y_max
+
+
+def _aabb_overlap(a: Tuple[float, float, float, float],
+                  b: Tuple[float, float, float, float]) -> bool:
+    """檢查兩個 AABB 是否重疊。"""
+    return not (a[2] <= b[0] or b[2] <= a[0] or a[3] <= b[1] or b[3] <= a[1])
+
+
 def nms_rotated(
     rects: List[RotatedRectTuple],
     scores: List[float],
@@ -129,6 +145,8 @@ def nms_rotated(
     與 C++ ``FilterWithRotatedRect`` 邏輯一致：
       1. 依分數由高至低排序。
       2. 逐一檢查：若該矩形與所有已保留矩形的重疊度均 <= max_overlap，則保留。
+
+    優化：先做 AABB（軸對齊包圍框）預篩，不重疊的直接跳過昂貴的旋轉矩形交集計算。
 
     Parameters
     ----------
@@ -147,6 +165,9 @@ def nms_rotated(
     if len(rects) == 0:
         return []
 
+    # 預計算所有 AABB（一次性）
+    aabbs = [_aabb_from_rotated_rect(r) for r in rects]
+
     order = np.argsort(scores)[::-1]
     keep: List[int] = []
 
@@ -154,6 +175,9 @@ def nms_rotated(
         idx = int(idx)
         ok = True
         for kept_idx in keep:
+            # AABB 預篩：不重疊則直接跳過
+            if not _aabb_overlap(aabbs[idx], aabbs[kept_idx]):
+                continue
             overlap = rotated_rect_overlap(rects[idx], rects[kept_idx])
             if overlap > max_overlap:
                 ok = False

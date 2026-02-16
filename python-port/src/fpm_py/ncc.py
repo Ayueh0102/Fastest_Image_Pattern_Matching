@@ -12,6 +12,21 @@ from typing import List, Tuple
 import cv2
 import numpy as np
 
+# ── 可選加速套件 ─────────────────────────────────────────────────────────
+try:
+    from scipy.fft import fft2 as _fft2, ifft2 as _ifft2
+
+    _HAS_SCIPY_FFT = True
+except ImportError:
+    _HAS_SCIPY_FFT = False
+
+try:
+    from numba import njit
+
+    _HAS_NUMBA = True
+except ImportError:
+    _HAS_NUMBA = False
+
 
 def _to_gray(img: np.ndarray) -> np.ndarray:
     """將輸入影像轉為單通道灰階。
@@ -71,6 +86,8 @@ def ncc_match(
     return resp
 
 
+# ── 向量化 Top-K 峰值提取 ────────────────────────────────────────────────
+
 def topk_from_response(
     response: np.ndarray,
     k: int = 10,
@@ -79,24 +96,45 @@ def topk_from_response(
 ) -> List[Tuple[int, int, float]]:
     """由相似度地圖擷取前 k 大峰值，並以最小距離抑制相近峰。
 
+    使用 np.argpartition 向量化提取，避免反覆呼叫 cv2.minMaxLoc。
+    複雜度從 O(k × H×W) 降低到 O(H×W + n_cand × k)。
+
     回傳為 (x, y, score) 列表，座標為左上角位置。
     """
-    resp = response.copy()
-    h, w = resp.shape[:2]
-    picks: List[Tuple[int, int, float]] = []
+    h, w = response.shape[:2]
+    flat = response.ravel()
 
-    for _ in range(k):
-        _, max_val, _, max_loc = cv2.minMaxLoc(resp)
-        if max_val < score_thresh:
+    # 過濾低分像素，取足夠多的候選
+    n_cand = min(k * 50, len(flat))
+    if n_cand <= 0:
+        return []
+
+    # argpartition: O(n) 找出前 n_cand 大的索引
+    part_idx = np.argpartition(flat, -n_cand)[-n_cand:]
+    # 對這些候選依分數排序
+    cand_scores = flat[part_idx]
+    sort_order = np.argsort(cand_scores)[::-1]
+    sorted_idx = part_idx[sort_order]
+    sorted_scores = cand_scores[sort_order]
+
+    picks: List[Tuple[int, int, float]] = []
+    for i in range(len(sorted_idx)):
+        sc = float(sorted_scores[i])
+        if sc < score_thresh:
             break
-        x, y = max_loc
-        picks.append((x, y, float(max_val)))
-        # 抑制鄰域
-        x0 = max(0, x - min_distance)
-        y0 = max(0, y - min_distance)
-        x1 = min(w, x + min_distance + 1)
-        y1 = min(h, y + min_distance + 1)
-        resp[y0:y1, x0:x1] = -1  # 設為低分避免再次挑中
+        idx = int(sorted_idx[i])
+        y_i, x_i = divmod(idx, w)
+
+        # 檢查與已選峰值的最小距離
+        too_close = False
+        for px, py, _ in picks:
+            if abs(x_i - px) <= min_distance and abs(y_i - py) <= min_distance:
+                too_close = True
+                break
+        if not too_close:
+            picks.append((x_i, y_i, sc))
+            if len(picks) >= k:
+                break
 
     return picks
 
@@ -147,6 +185,20 @@ def topk_blocked(
 # 擴充四：FFT 版 NCC（獨立函式）
 # ---------------------------
 
+def _fft2_auto(x: np.ndarray, s: tuple) -> np.ndarray:
+    """自動選擇最快的 FFT 後端。"""
+    if _HAS_SCIPY_FFT:
+        return _fft2(x, s=s, workers=-1)
+    return np.fft.fft2(x, s=s)
+
+
+def _ifft2_auto(x: np.ndarray) -> np.ndarray:
+    """自動選擇最快的 IFFT 後端。"""
+    if _HAS_SCIPY_FFT:
+        return _ifft2(x, workers=-1)
+    return np.fft.ifft2(x)
+
+
 def _integral_sums(img: np.ndarray, ksize: tuple[int, int]) -> tuple[np.ndarray, np.ndarray]:
     """以積分影像同時計算所有滑窗的像素和與平方和。
 
@@ -161,11 +213,11 @@ def _integral_sums(img: np.ndarray, ksize: tuple[int, int]) -> tuple[np.ndarray,
     kh, kw = ksize
     img32 = img.astype(np.float32, copy=False)
     sqr = (img32 * img32).astype(np.float32)
-    I = cv2.integral(img32)  # (H+1, W+1)
-    I2 = cv2.integral(sqr)
+    integ = cv2.integral(img32)  # (H+1, W+1)
+    integ2 = cv2.integral(sqr)
     # 利用積分影像的矩形求和
-    sums = I[kh:, kw:] - I[:-kh, kw:] - I[kh:, :-kw] + I[:-kh, :-kw]
-    sums2 = I2[kh:, kw:] - I2[:-kh, kw:] - I2[kh:, :-kw] + I2[:-kh, :-kw]
+    sums = integ[kh:, kw:] - integ[:-kh, kw:] - integ[kh:, :-kw] + integ[:-kh, :-kw]
+    sums2 = integ2[kh:, kw:] - integ2[:-kh, kw:] - integ2[kh:, :-kw] + integ2[:-kh, :-kw]
     return sums.astype(np.float32), sums2.astype(np.float32)
 
 
@@ -179,6 +231,8 @@ def ncc_match_fft(
     支援：
     - `ccoeff_normed`：零均值正規化互相關（區間約 [-1, 1]）
     - `ccorr_normed`：相關係數正規化（區間 [0, 1]）
+
+    當 scipy 可用時自動使用多執行緒 FFT（workers=-1）以加速計算。
 
     設計說明：
     - 以 `ifft2(fft(src)*conj(fft(tmpl)))` 求交互相關之「全域」地圖，再切出 valid 區域。
@@ -205,9 +259,9 @@ def ncc_match_fft(
 
     P = H + h - 1
     Q = W + w - 1
-    FI = np.fft.fft2(src_g, s=(P, Q))
-    FT = np.fft.fft2(T, s=(P, Q))
-    CC_full = np.fft.ifft2(FI * np.conj(FT)).real  # 交互相關
+    FI = _fft2_auto(src_g, s=(P, Q))
+    FT = _fft2_auto(T, s=(P, Q))
+    CC_full = _ifft2_auto(FI * np.conj(FT)).real  # 交互相關
     # 擷取 valid 區域：位置 (0,0) = 模板在左上角
     CC = CC_full[0 : H - h + 1, 0 : W - w + 1]
 
@@ -233,3 +287,40 @@ def ncc_match_fft(
         np.divide(CC, np.maximum(denom, 1e-12), out=resp, where=denom > 0)
         # 範圍約 [-1, 1]；交叉相關可為負
         return resp
+
+
+# ── Numba 加速輔助函式 ──────────────────────────────────────────────────
+# 用於 pyramid.py 的 suppress + argmax 迴圈
+
+if _HAS_NUMBA:
+
+    @njit(cache=True)
+    def _numba_suppress_and_argmax(
+        resp: np.ndarray, cx: int, cy: int, sw: int, sh: int
+    ) -> tuple:
+        """Numba 加速的抑制 + 全圖最大值搜尋。
+
+        直接在 resp 上操作（會修改原陣列），回傳 (max_val, max_x, max_y)。
+        """
+        h, w = resp.shape[0], resp.shape[1]
+        # 抑制
+        y0 = max(0, cy - sh)
+        y1 = min(h, cy + sh)
+        x0 = max(0, cx - sw)
+        x1 = min(w, cx + sw)
+        for y in range(y0, y1):
+            for x in range(x0, x1):
+                resp[y, x] = -1.0
+        # 找最大值
+        max_val = -1.0
+        max_x, max_y = 0, 0
+        for y in range(h):
+            for x in range(w):
+                if resp[y, x] > max_val:
+                    max_val = resp[y, x]
+                    max_x = x
+                    max_y = y
+        return max_val, max_x, max_y
+
+else:
+    _numba_suppress_and_argmax = None

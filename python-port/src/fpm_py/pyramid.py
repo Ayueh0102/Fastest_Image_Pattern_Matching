@@ -20,7 +20,7 @@ from typing import Dict, List, Tuple
 import cv2
 import numpy as np
 
-from .ncc import ncc_match, ncc_match_fft
+from .ncc import ncc_match, ncc_match_fft, _numba_suppress_and_argmax
 from .nms import filter_with_score, nms, nms_rotated
 from .rotation import rotate_source
 from .subpixel import refine_peak_3d
@@ -239,9 +239,18 @@ def _suppress_and_find(
 ) -> Tuple[float, Tuple[int, int]]:
     """抑制峰值附近區域，找下一個最大值。
     對應 C++ GetNextMaxLoc (match_core.cpp:650-677)。
+
+    當 Numba 可用時使用 JIT 加速版本，避免 Python→C→Python 往返開銷。
     """
     suppress_w = int(tmpl_w * (1 - max_overlap))
     suppress_h = int(tmpl_h * (1 - max_overlap))
+
+    if _numba_suppress_and_argmax is not None:
+        max_val, mx, my = _numba_suppress_and_argmax(
+            resp, prev_loc[0], prev_loc[1], suppress_w, suppress_h
+        )
+        return float(max_val), (mx, my)
+
     x0 = max(0, prev_loc[0] - suppress_w)
     y0 = max(0, prev_loc[1] - suppress_h)
     x1 = min(resp.shape[1], prev_loc[0] + suppress_w)
@@ -250,6 +259,51 @@ def _suppress_and_find(
 
     _, max_val, _, max_loc = cv2.minMaxLoc(resp)
     return float(max_val), max_loc
+
+
+def _find_topk_suppressed(
+    resp: np.ndarray,
+    k: int,
+    suppress_w: int,
+    suppress_h: int,
+    score_thresh: float,
+) -> List[Tuple[int, int, float]]:
+    """向量化 top-k 峰值搜尋（帶抑制）。
+
+    使用 np.argpartition 一次性提取候選，再以距離過濾。
+    複雜度：O(H×W + n_cand × k)，取代原先 O(k × H×W)。
+    """
+    flat = resp.ravel()
+    h, w = resp.shape[:2]
+    n_cand = min(k * 50, len(flat))
+    if n_cand <= 0:
+        return []
+
+    part_idx = np.argpartition(flat, -n_cand)[-n_cand:]
+    cand_scores = flat[part_idx]
+    sort_order = np.argsort(cand_scores)[::-1]
+    sorted_idx = part_idx[sort_order]
+    sorted_scores = cand_scores[sort_order]
+
+    picks: List[Tuple[int, int, float]] = []
+    for i in range(len(sorted_idx)):
+        sc = float(sorted_scores[i])
+        if sc < score_thresh:
+            break
+        idx = int(sorted_idx[i])
+        y_i, x_i = divmod(idx, w)
+
+        too_close = False
+        for px, py, _ in picks:
+            if abs(x_i - px) <= suppress_w and abs(y_i - py) <= suppress_h:
+                too_close = True
+                break
+        if not too_close:
+            picks.append((x_i, y_i, sc))
+            if len(picks) >= k:
+                break
+
+    return picks
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -370,34 +424,21 @@ def pyramid_match(
         # 模板匹配
         resp = _do_match(rotated_src, top_tmpl, method, backend)
 
-        # 找第一個峰值
-        _, max_val, _, max_loc = cv2.minMaxLoc(resp)
-        if max_val < layer_scores[top_layer]:
-            continue
+        # 向量化 top-k 峰值搜尋（取代反覆 minMaxLoc 迴圈）
+        suppress_w = int(top_tmpl_w * (1 - max_overlap))
+        suppress_h = int(top_tmpl_h * (1 - max_overlap))
+        topk_count = target_num + MATCH_CANDIDATE_NUM
 
-        candidates.append((
-            max_loc[0] - trans_x,
-            max_loc[1] - trans_y,
-            float(max_val),
-            angle,
-        ))
-
-        # 搜索更多候選（對應 C++ GetNextMaxLoc 迴圈）
-        resp_work = resp.copy()
-        prev_loc = max_loc
-        for _ in range(target_num + MATCH_CANDIDATE_NUM - 1):
-            next_val, next_loc = _suppress_and_find(
-                resp_work, prev_loc, top_tmpl_w, top_tmpl_h, max_overlap
-            )
-            if next_val < layer_scores[top_layer]:
-                break
+        peaks = _find_topk_suppressed(
+            resp, topk_count, suppress_w, suppress_h, layer_scores[top_layer]
+        )
+        for px, py, sc in peaks:
             candidates.append((
-                next_loc[0] - trans_x,
-                next_loc[1] - trans_y,
-                next_val,
+                px - trans_x,
+                py - trans_y,
+                sc,
                 angle,
             ))
-            prev_loc = next_loc
 
     # 依分數排序
     candidates.sort(key=lambda c: c[2], reverse=True)
@@ -405,7 +446,14 @@ def pyramid_match(
     # ── ⑥ Coarse-to-Fine 逐層精化 ─────────────────────────────────────
     all_results: List[Dict] = []
 
+    # 提前終止上限：已收集足夠精化結果時停止遍歷候選
+    # （候選已按分數排序，後面的分數只會更低）
+    early_stop_count = target_num + MATCH_CANDIDATE_NUM
+
     for cand_x, cand_y, cand_score, cand_angle in candidates:
+        if len(all_results) >= early_stop_count:
+            break
+
         # 候選點從「旋轉後」座標系轉回原始座標系
         # 對應 C++: ptLT = ptRotatePt2f(pt, ptCenter, -matchAngle*D2R)
         pt_lt = _pt_rotate(
