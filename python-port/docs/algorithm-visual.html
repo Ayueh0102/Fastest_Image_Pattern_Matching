@@ -6,31 +6,31 @@
 <title>NCC 金字塔樣板匹配 — 互動式演算法視覺化</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <style>
 :root {
-  --bg-0: #06090f;
-  --bg-1: #0c1018;
-  --bg-2: #131a28;
-  --bg-3: #1a2236;
-  --fg-1: #e8ecf4;
-  --fg-2: #8b95a8;
-  --fg-3: #5a6478;
-  --cyan: #22d3ee;
-  --cyan-dim: rgba(34,211,238,0.10);
-  --emerald: #34d399;
-  --emerald-dim: rgba(52,211,153,0.10);
-  --amber: #fbbf24;
-  --amber-dim: rgba(251,191,36,0.08);
-  --rose: #fb7185;
-  --rose-dim: rgba(251,113,133,0.08);
-  --border: #1e293b;
-  --border-light: #2d3a4f;
+  --bg-0: #f0f4f8;
+  --bg-1: #f8fafc;
+  --bg-2: #ffffff;
+  --bg-3: #edf2f7;
+  --fg-1: #1e293b;
+  --fg-2: #475569;
+  --fg-3: #94a3b8;
+  --cyan: #3b82f6;
+  --cyan-dim: rgba(59,130,246,0.07);
+  --emerald: #059669;
+  --emerald-dim: rgba(5,150,105,0.07);
+  --amber: #d97706;
+  --amber-dim: rgba(217,119,6,0.06);
+  --rose: #dc2626;
+  --rose-dim: rgba(220,38,38,0.06);
+  --border: #e2e8f0;
+  --border-light: #cbd5e1;
   --radius: 12px;
-  --font-display: 'Syne', 'Noto Sans TC', sans-serif;
-  --font-body: 'Outfit', 'Noto Sans TC', sans-serif;
-  --font-mono: 'JetBrains Mono', 'Noto Sans Mono', monospace;
+  --font-display: -apple-system, BlinkMacSystemFont, 'Noto Sans TC', 'Segoe UI', sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'Noto Sans TC', 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Menlo', 'Consolas', monospace;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -48,10 +48,11 @@ body {
 /* ── Navigation ── */
 nav {
   position: fixed; top: 0; left: 0; right: 0;
-  background: rgba(12,16,24,0.85);
-  backdrop-filter: blur(16px) saturate(1.4);
-  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  background: rgba(248,250,252,0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   z-index: 100;
   padding: 0 24px;
 }
@@ -75,8 +76,8 @@ nav a {
   font-weight: 500; transition: all 0.25s;
   font-family: var(--font-body);
 }
-nav a:hover { color: var(--fg-2); background: rgba(34,211,238,0.06); }
-nav a.active { color: var(--cyan); background: rgba(34,211,238,0.10); }
+nav a:hover { color: var(--fg-2); background: rgba(59,130,246,0.06); }
+nav a.active { color: var(--cyan); background: rgba(59,130,246,0.08); }
 
 /* ── Main ── */
 main {
@@ -100,10 +101,10 @@ section {
 }
 .section-num {
   font-family: var(--font-display);
-  font-size: 72px;
+  font-size: 48px;
   font-weight: 800;
   line-height: 1;
-  color: rgba(34,211,238,0.08);
+  color: rgba(59,130,246,0.15);
   flex-shrink: 0;
   user-select: none;
   margin-top: -8px;
@@ -128,7 +129,7 @@ h1 {
   font-size: 44px;
   font-weight: 800;
   letter-spacing: -0.03em;
-  background: linear-gradient(135deg, var(--cyan), var(--emerald));
+  background: linear-gradient(135deg, #3b82f6, #0ea5e9);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -155,9 +156,10 @@ ol, ul { padding-left: 24px; }
   border-radius: var(--radius);
   padding: 24px;
   margin: 16px 0;
-  transition: border-color 0.3s;
+  transition: border-color 0.3s, box-shadow 0.3s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
-.card:hover { border-color: var(--border-light); }
+.card:hover { border-color: var(--border-light); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
 .card-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -168,8 +170,8 @@ ol, ul { padding-left: 24px; }
 /* ── Canvas viz ── */
 .viz {
   background:
-    linear-gradient(rgba(34,211,238,0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(34,211,238,0.02) 1px, transparent 1px),
+    linear-gradient(rgba(59,130,246,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(59,130,246,0.05) 1px, transparent 1px),
     var(--bg-3);
   background-size: 24px 24px;
   border: 1px solid var(--border);
@@ -188,40 +190,41 @@ ol, ul { padding-left: 24px; }
   margin: 14px 0 0; flex-wrap: wrap;
 }
 .btn {
-  background: linear-gradient(135deg, rgba(34,211,238,0.15), rgba(34,211,238,0.08));
-  color: var(--cyan);
-  border: 1px solid rgba(34,211,238,0.25);
+  background: var(--cyan);
+  color: #fff;
+  border: none;
   padding: 7px 18px;
   border-radius: 8px;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.25s;
+  transition: all 0.2s;
   font-family: var(--font-body);
+  box-shadow: 0 1px 3px rgba(59,130,246,0.3);
 }
 .btn:hover {
-  background: rgba(34,211,238,0.20);
-  border-color: var(--cyan);
-  box-shadow: 0 0 16px rgba(34,211,238,0.15);
+  filter: brightness(1.1);
+  box-shadow: 0 2px 8px rgba(59,130,246,0.3);
 }
 .btn:active { transform: scale(0.97); }
 .btn.secondary {
-  background: rgba(255,255,255,0.03);
+  background: var(--bg-2);
   color: var(--fg-2);
   border: 1px solid var(--border);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
 }
 .btn.secondary:hover { border-color: var(--cyan); color: var(--cyan); }
 
 input[type="range"] {
   -webkit-appearance: none; appearance: none;
-  height: 5px; background: var(--bg-3); border-radius: 3px;
-  outline: none; border: 1px solid var(--border);
+  height: 5px; background: var(--border); border-radius: 3px;
+  outline: none;
 }
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none; appearance: none;
   width: 16px; height: 16px; border-radius: 50%;
   background: var(--cyan); cursor: pointer;
-  box-shadow: 0 0 8px rgba(34,211,238,0.3);
+  box-shadow: 0 1px 4px rgba(59,130,246,0.3);
 }
 label { font-size: 13px; color: var(--fg-3); font-weight: 500; }
 .value-display {
@@ -233,7 +236,7 @@ label { font-size: 13px; color: var(--fg-3); font-weight: 500; }
 
 /* ── Math formula blocks ── */
 .formula {
-  background: var(--bg-2);
+  background: rgba(59,130,246,0.04);
   border-left: 3px solid var(--cyan);
   padding: 20px 24px;
   margin: 20px 0;
@@ -262,7 +265,7 @@ code {
   padding: 2px 7px; border-radius: 5px;
   font-family: var(--font-mono);
   font-size: 13.5px;
-  color: var(--emerald);
+  color: #0369a1;
 }
 
 /* ── Callouts ── */
@@ -347,7 +350,7 @@ code {
 @media (max-width: 640px) {
   h1 { font-size: 30px; }
   .section-header h2 { font-size: 22px; }
-  .section-num { font-size: 48px; }
+  .section-num { font-size: 36px; }
   main { padding: 64px 16px 40px; }
   .card-row { grid-template-columns: 1fr; }
   .section-header { gap: 12px; }
@@ -845,9 +848,9 @@ function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 
 // Colors matching CSS theme
 const C = {
-  cyan: '#22d3ee', emerald: '#34d399', amber: '#fbbf24', rose: '#fb7185',
-  fg1: '#e8ecf4', fg2: '#8b95a8', fg3: '#5a6478',
-  bg2: '#131a28', bg3: '#1a2236', border: '#1e293b'
+  cyan: '#3b82f6', emerald: '#059669', amber: '#d97706', rose: '#dc2626',
+  fg1: '#1e293b', fg2: '#475569', fg3: '#94a3b8',
+  bg2: '#ffffff', bg3: '#edf2f7', border: '#e2e8f0'
 };
 
 // =====================================================================
@@ -931,7 +934,7 @@ const nccAnim = (() => {
 
   function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#0f1420';
+    ctx.fillStyle = '#e2e8f0';
     ctx.fillRect(ox, oy, imgW, imgH);
 
     for (let y = 0; y < imgH; y += 2) {
@@ -957,7 +960,7 @@ const nccAnim = (() => {
 
     const rw = imgW - tmplW + 1, rh = imgH - tmplH + 1;
     const scaleX = respW / rw, scaleY = respH / rh;
-    ctx.fillStyle = '#0f1420';
+    ctx.fillStyle = '#e2e8f0';
     ctx.fillRect(respOx, respOy, respW, respH);
 
     for (let y = 0; y < rh; y++) {
@@ -998,7 +1001,7 @@ const nccAnim = (() => {
     ctx.lineTo(respOx - 18, respOy + respH / 2 - 5);
     ctx.lineTo(respOx - 18, respOy + respH / 2 + 5);
     ctx.fill();
-    ctx.font = '12px Outfit, sans-serif';
+    ctx.font = '12px system-ui, sans-serif';
     ctx.fillText('matchTemplate', ox + imgW + 20, oy + imgH / 2 - 8);
   }
 
@@ -1058,17 +1061,17 @@ const nccAnim = (() => {
       ctx.fillRect(x + 4, y + 4, d.drawW, d.drawH);
 
       const gradient = ctx.createLinearGradient(x, y, x + d.drawW, y + d.drawH);
-      if (i === levels) { gradient.addColorStop(0, '#1a3d2a'); gradient.addColorStop(1, '#0f2a1a'); }
-      else if (i === 0) { gradient.addColorStop(0, '#1a2a4e'); gradient.addColorStop(1, '#0f1a3e'); }
-      else { gradient.addColorStop(0, '#1a1d2e'); gradient.addColorStop(1, '#131620'); }
+      if (i === levels) { gradient.addColorStop(0, '#bbf7d0'); gradient.addColorStop(1, '#86efac'); }
+      else if (i === 0) { gradient.addColorStop(0, '#bfdbfe'); gradient.addColorStop(1, '#93c5fd'); }
+      else { gradient.addColorStop(0, '#e2e8f0'); gradient.addColorStop(1, '#cbd5e1'); }
       ctx.fillStyle = gradient;
       ctx.fillRect(x, y, d.drawW, d.drawH);
 
-      ctx.strokeStyle = i === levels ? C.emerald : i === 0 ? C.cyan : '#2d3a4f';
+      ctx.strokeStyle = i === levels ? C.emerald : i === 0 ? C.cyan : '#cbd5e1';
       ctx.lineWidth = i === levels ? 2 : 1;
       ctx.strokeRect(x, y, d.drawW, d.drawH);
 
-      ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+      ctx.strokeStyle = 'rgba(0,0,0,0.07)';
       ctx.lineWidth = 0.5;
       const gridStep = d.drawW / 6;
       for (let gx = gridStep; gx < d.drawW; gx += gridStep) {
@@ -1096,7 +1099,7 @@ const nccAnim = (() => {
 
       if (i < levels) {
         const nextX = x + d.drawW + 30;
-        ctx.strokeStyle = '#2d3a4f';
+        ctx.strokeStyle = '#cbd5e1';
         ctx.lineWidth = 1.5;
         ctx.setLineDash([4, 3]);
         ctx.beginPath();
@@ -1113,7 +1116,7 @@ const nccAnim = (() => {
 
     ctx.textAlign = 'left';
     ctx.fillStyle = C.cyan;
-    ctx.font = 'bold 13px Outfit, sans-serif';
+    ctx.font = 'bold 13px system-ui, sans-serif';
     ctx.fillText('搜尋在 Top Layer (綠框) 進行 → 速度快', 30, 28);
 
     const ratio = Math.pow(4, levels);
@@ -1162,7 +1165,7 @@ const rotAnim = (() => {
     ctx.setLineDash([]);
 
     const gradient = ctx.createLinearGradient(-srcW / 2, -srcH / 2, srcW / 2, srcH / 2);
-    gradient.addColorStop(0, '#1a2a4e'); gradient.addColorStop(1, '#0f1a3e');
+    gradient.addColorStop(0, '#bfdbfe'); gradient.addColorStop(1, '#93c5fd');
     ctx.fillStyle = gradient;
     ctx.fillRect(-srcW / 2, -srcH / 2, srcW, srcH);
     ctx.strokeStyle = C.cyan;
@@ -1175,7 +1178,7 @@ const rotAnim = (() => {
     ctx.lineWidth = 1.5;
     ctx.strokeRect(30, -10, tmplW, tmplH);
     ctx.fillStyle = C.emerald;
-    ctx.font = '16px Outfit, sans-serif';
+    ctx.font = '16px system-ui, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText('★', 30 + tmplW / 2, -10 + tmplH / 2 + 6);
     ctx.restore();
@@ -1193,7 +1196,7 @@ const rotAnim = (() => {
     ctx.lineWidth = 2;
     ctx.strokeRect(tmplX, tmplY, tmplW * 1.5, tmplH * 1.5);
     ctx.fillStyle = C.amber;
-    ctx.font = '13px Outfit, sans-serif';
+    ctx.font = '13px system-ui, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText('Template (不旋轉)', tmplX + tmplW * 0.75, tmplY - 12);
     ctx.fillText('已預計算 mean/norm', tmplX + tmplW * 0.75, tmplY + tmplH * 1.5 + 22);
@@ -1207,12 +1210,12 @@ const rotAnim = (() => {
     ctx.stroke();
     ctx.setLineDash([]);
     ctx.fillStyle = C.cyan;
-    ctx.font = '11px Outfit, sans-serif';
+    ctx.font = '11px system-ui, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText('matchTemplate', (srcX + srcW + tmplX) / 2 + 20, srcY + srcH / 2 - 20);
 
     const respX = 460, respY = 280, respW = 180, respH = 100;
-    ctx.fillStyle = '#0f1420';
+    ctx.fillStyle = '#e2e8f0';
     ctx.fillRect(respX, respY, respW, respH);
     ctx.strokeStyle = C.border;
     ctx.lineWidth = 1;
@@ -1246,7 +1249,7 @@ const rotAnim = (() => {
     ctx.beginPath();
     ctx.arc(indX + indR * 0.85 * Math.cos(aRad), indY - indR * 0.85 * Math.sin(aRad), 4, 0, Math.PI * 2);
     ctx.fill();
-    ctx.strokeStyle = '#2d3a4f';
+    ctx.strokeStyle = '#cbd5e1';
     ctx.lineWidth = 1; ctx.setLineDash([2, 2]);
     ctx.beginPath(); ctx.moveTo(indX, indY); ctx.lineTo(indX + indR, indY); ctx.stroke();
     ctx.setLineDash([]);
@@ -1288,15 +1291,15 @@ const topLayerAnim = (() => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     const mapX = 40, mapY = 40, mapW = 300, mapH = 240;
 
-    ctx.fillStyle = '#0f1420';
+    ctx.fillStyle = '#e2e8f0';
     ctx.fillRect(mapX, mapY, mapW, mapH);
-    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+    ctx.strokeStyle = 'rgba(0,0,0,0.07)';
     for (let x = 0; x < mapW; x += 20) { ctx.beginPath(); ctx.moveTo(mapX + x, mapY); ctx.lineTo(mapX + x, mapY + mapH); ctx.stroke(); }
     for (let y = 0; y < mapH; y += 20) { ctx.beginPath(); ctx.moveTo(mapX, mapY + y); ctx.lineTo(mapX + mapW, mapY + y); ctx.stroke(); }
 
     const features = [[80, 60], [200, 140], [140, 190], [250, 80]];
     features.forEach(([fx, fy]) => {
-      ctx.fillStyle = 'rgba(255,255,255,0.08)';
+      ctx.fillStyle = 'rgba(0,0,0,0.07)';
       ctx.beginPath(); ctx.arc(mapX + fx, mapY + fy, 15, 0, Math.PI * 2); ctx.fill();
     });
 
@@ -1315,7 +1318,7 @@ const topLayerAnim = (() => {
     });
 
     const barX = 420, barY = 50, barW = 400, barH = 20;
-    ctx.fillStyle = '#0f1420';
+    ctx.fillStyle = '#e2e8f0';
     ctx.fillRect(barX, barY, barW, barH);
     const progress = (currentAngle + 180) / 360;
     ctx.fillStyle = C.cyan;
@@ -1329,7 +1332,7 @@ const topLayerAnim = (() => {
     ctx.textAlign = 'left';
 
     ctx.fillStyle = C.fg1;
-    ctx.font = 'bold 13px Outfit, sans-serif';
+    ctx.font = 'bold 13px system-ui, sans-serif';
     ctx.fillText('候選結果 (' + candidates.length + ')', barX, barY + 60);
     candidates.slice(0, 8).forEach((c, i) => {
       ctx.fillStyle = c.score > 0.8 ? C.emerald : C.amber;
@@ -1339,7 +1342,7 @@ const topLayerAnim = (() => {
 
     if (!playing && candidates.length === 0) {
       ctx.fillStyle = C.cyan;
-      ctx.font = '14px Outfit, sans-serif';
+      ctx.font = '14px system-ui, sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText('按「模擬搜尋」開始', canvas.width / 2, canvas.height - 30);
       ctx.textAlign = 'left';
@@ -1392,13 +1395,13 @@ const refineAnim = (() => {
       const alpha = i === step ? 1.0 : 0.5;
       ctx.globalAlpha = alpha;
 
-      ctx.fillStyle = '#0f1420';
+      ctx.fillStyle = '#e2e8f0';
       ctx.fillRect(layerX, layerY, drawW, drawH);
-      ctx.strokeStyle = i === step ? C.cyan : '#2d3a4f';
+      ctx.strokeStyle = i === step ? C.cyan : '#cbd5e1';
       ctx.lineWidth = i === step ? 2 : 1;
       ctx.strokeRect(layerX, layerY, drawW, drawH);
 
-      ctx.fillStyle = 'rgba(255,255,255,0.08)';
+      ctx.fillStyle = 'rgba(0,0,0,0.07)';
       ctx.beginPath();
       ctx.arc(layerX + drawW * 0.6, layerY + drawH * 0.4, drawW * 0.1, 0, Math.PI * 2);
       ctx.fill();
@@ -1456,14 +1459,14 @@ const refineAnim = (() => {
       const angles = ['θ−Δ', 'θ', 'θ+Δ'];
       const angY = 300;
       ctx.fillStyle = C.fg1;
-      ctx.font = 'bold 12px Outfit, sans-serif';
+      ctx.font = 'bold 12px system-ui, sans-serif';
       ctx.textAlign = 'left';
       ctx.fillText('每層測試 3 個角度:', 30, angY);
       angles.forEach((a, i) => {
         const ax = 200 + i * 120;
         ctx.fillStyle = i === 1 ? 'rgba(52,211,153,0.15)' : 'rgba(34,211,238,0.06)';
         ctx.fillRect(ax, angY + 10, 90, 50);
-        ctx.strokeStyle = i === 1 ? C.emerald : '#2d3a4f';
+        ctx.strokeStyle = i === 1 ? C.emerald : '#cbd5e1';
         ctx.lineWidth = i === 1 ? 2 : 1;
         ctx.strokeRect(ax, angY + 10, 90, 50);
         ctx.fillStyle = i === 1 ? C.emerald : C.fg2;
@@ -1472,7 +1475,7 @@ const refineAnim = (() => {
         ctx.fillText(a, ax + 45, angY + 40);
         if (i === 1) {
           ctx.fillStyle = C.emerald;
-          ctx.font = '10px Outfit, sans-serif';
+          ctx.font = '10px system-ui, sans-serif';
           ctx.fillText('最佳', ax + 45, angY + 74);
         }
       });
@@ -1480,7 +1483,7 @@ const refineAnim = (() => {
 
     if (step >= totalSteps - 1) {
       ctx.fillStyle = C.emerald;
-      ctx.font = 'bold 13px Outfit, sans-serif';
+      ctx.font = 'bold 13px system-ui, sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText('→ 27 點亞像素精化 → 最終結果', canvas.width / 2, 430);
     }
@@ -1602,9 +1605,9 @@ const refineAnim = (() => {
 
     const exX = 550;
     ctx.fillStyle = C.fg1;
-    ctx.font = 'bold 16px Syne, sans-serif';
+    ctx.font = 'bold 16px system-ui, sans-serif';
     ctx.fillText('二次曲面擬合', exX, 50);
-    ctx.font = '13px Outfit, sans-serif';
+    ctx.font = '13px system-ui, sans-serif';
     ctx.fillStyle = C.fg2;
     const lines = [
       '', '● 橙色點 = 9 個整數像素觀測值', '● 紅色點 = 整數峰值 (0, 0)',
@@ -1659,14 +1662,14 @@ const nmsAnim = (() => {
     $('#nms-overlap-val').textContent = maxOverlap.toFixed(1);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    ctx.fillStyle = '#0f1420';
+    ctx.fillStyle = '#e2e8f0';
     ctx.fillRect(30, 30, 700, 280);
     ctx.strokeStyle = C.border;
     ctx.lineWidth = 1;
     ctx.strokeRect(30, 30, 700, 280);
 
     [[200, 120], [500, 180], [350, 80]].forEach(([fx, fy]) => {
-      ctx.fillStyle = 'rgba(255,255,255,0.06)';
+      ctx.fillStyle = 'rgba(0,0,0,0.06)';
       ctx.beginPath(); ctx.arc(fx, fy, 30, 0, Math.PI * 2); ctx.fill();
     });
 
@@ -1674,7 +1677,7 @@ const nmsAnim = (() => {
       if (suppressed.includes(i)) {
         drawRotatedRect(d, C.rose, 0.3, true);
         ctx.fillStyle = 'rgba(251,113,133,0.5)';
-        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.font = 'bold 20px system-ui, sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText('✕', d.x, d.y + 7);
       } else if (kept.includes(i)) {
@@ -1693,7 +1696,7 @@ const nmsAnim = (() => {
     });
 
     ctx.textAlign = 'left';
-    ctx.font = '12px Outfit, sans-serif';
+    ctx.font = '12px system-ui, sans-serif';
     ctx.fillStyle = C.cyan;  ctx.fillText('● 待處理', 760, 50);
     ctx.fillStyle = C.emerald; ctx.fillText('● 保留', 760, 72);
     ctx.fillStyle = C.rose;  ctx.fillText('● 抑制', 760, 94);
@@ -1749,7 +1752,7 @@ const nmsAnim = (() => {
     const chartX = 80, chartY = 30, chartW = 500, chartH = 250;
     const barX = 660, barY = 50;
 
-    ctx.strokeStyle = '#2d3a4f';
+    ctx.strokeStyle = '#cbd5e1';
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(chartX, chartY); ctx.lineTo(chartX, chartY + chartH);
@@ -1799,24 +1802,24 @@ const nmsAnim = (() => {
 
     ctx.textAlign = 'left';
     ctx.fillStyle = C.rose;
-    ctx.font = '12px Outfit, sans-serif';
+    ctx.font = '12px system-ui, sans-serif';
     ctx.fillText('● 空間域 O(WH×wh)', chartX + 10, chartY + 20);
     ctx.fillStyle = C.emerald;
     ctx.fillText('● FFT O(WH×log WH)', chartX + 10, chartY + 38);
 
     const ratio = (tmplSize * tmplSize) / (Math.log2(1024 * 1024));
     ctx.fillStyle = C.fg1;
-    ctx.font = 'bold 14px Outfit, sans-serif';
+    ctx.font = 'bold 14px system-ui, sans-serif';
     ctx.fillText('模板 ' + tmplSize + '×' + tmplSize + ' 時:', barX, barY);
     ctx.fillStyle = C.emerald;
-    ctx.font = 'bold 28px Syne, sans-serif';
+    ctx.font = 'bold 28px system-ui, sans-serif';
     ctx.fillText(ratio.toFixed(1) + '×', barX, barY + 40);
     ctx.fillStyle = C.fg2;
-    ctx.font = '13px Outfit, sans-serif';
+    ctx.font = '13px system-ui, sans-serif';
     ctx.fillText('FFT 加速比', barX, barY + 60);
     ctx.fillText('(1024×1024 影像)', barX, barY + 80);
     ctx.fillStyle = C.amber;
-    ctx.font = '12px Outfit, sans-serif';
+    ctx.font = '12px system-ui, sans-serif';
     ctx.fillText('注意：小模板時 FFT', barX, barY + 120);
     ctx.fillText('overhead 可能較大，', barX, barY + 140);
     ctx.fillText('OpenCV 內建 DFT 已', barX, barY + 160);
@@ -1849,15 +1852,15 @@ const coordAnim = (() => {
     const s = steps[currentStep];
 
     ctx.fillStyle = C.cyan;
-    ctx.font = 'bold 18px Syne, sans-serif';
+    ctx.font = 'bold 18px system-ui, sans-serif';
     ctx.textAlign = 'left';
     ctx.fillText(s.title, 30, 35);
     ctx.fillStyle = C.fg2;
-    ctx.font = '14px Outfit, sans-serif';
+    ctx.font = '14px system-ui, sans-serif';
     ctx.fillText(s.desc, 30, 58);
 
     const frameX = 80, frameY = 100, frameW = 300, frameH = 220;
-    ctx.strokeStyle = '#2d3a4f';
+    ctx.strokeStyle = '#cbd5e1';
     ctx.lineWidth = 1;
     ctx.strokeRect(frameX, frameY, frameW, frameH);
     const cxp = frameX + frameW / 2, cyp = frameY + frameH / 2;
@@ -1871,7 +1874,7 @@ const coordAnim = (() => {
       ctx.strokeStyle = C.cyan; ctx.lineWidth = 1;
       ctx.strokeRect(-120, -80, 240, 160);
       ctx.fillStyle = C.amber;
-      ctx.font = '11px Outfit, sans-serif';
+      ctx.font = '11px system-ui, sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText('Rotated Source', 0, -90);
       ctx.fillStyle = C.rose;
@@ -1884,7 +1887,7 @@ const coordAnim = (() => {
       ctx.strokeStyle = C.cyan; ctx.lineWidth = 1;
       ctx.strokeRect(frameX + 20, frameY + 20, 260, 180);
       ctx.fillStyle = C.cyan;
-      ctx.font = '11px Outfit, sans-serif'; ctx.textAlign = 'center';
+      ctx.font = '11px system-ui, sans-serif'; ctx.textAlign = 'center';
       ctx.fillText('Original Source', cxp, frameY + 12);
       ctx.fillStyle = C.emerald;
       ctx.beginPath(); ctx.arc(cxp + 50, cyp - 10, 6, 0, Math.PI * 2); ctx.fill();
@@ -1910,7 +1913,7 @@ const coordAnim = (() => {
       ctx.strokeStyle = C.emerald; ctx.lineWidth = 2;
       ctx.strokeRect(frameX + 20, frameY + 15, 260, 180);
       ctx.fillStyle = C.emerald;
-      ctx.font = '12px Outfit, sans-serif';
+      ctx.font = '12px system-ui, sans-serif';
       ctx.fillText('Layer N−1 (×2)', frameX + 150, frameY + 208);
       ctx.fillStyle = C.amber;
       ctx.beginPath(); ctx.arc(frameX + 160, frameY + 100, 4, 0, Math.PI * 2); ctx.fill();
@@ -1936,7 +1939,7 @@ const coordAnim = (() => {
       ctx.fillStyle = C.rose;
       ctx.beginPath(); ctx.arc(cxp + 3, cyp, 4, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = C.amber;
-      ctx.font = '12px Outfit, sans-serif';
+      ctx.font = '12px system-ui, sans-serif';
       ctx.fillText('warpAffine (旋轉裁切)', cxp, frameY + frameH + 20);
     } else if (currentStep === 4) {
       ctx.fillStyle = 'rgba(52,211,153,0.10)';
@@ -1944,7 +1947,7 @@ const coordAnim = (() => {
       ctx.strokeStyle = C.emerald; ctx.lineWidth = 2;
       ctx.strokeRect(frameX + 80, frameY + 50, 130, 110);
       ctx.fillStyle = C.emerald;
-      ctx.font = '11px Outfit, sans-serif'; ctx.textAlign = 'center';
+      ctx.font = '11px system-ui, sans-serif'; ctx.textAlign = 'center';
       ctx.fillText('ROI (已轉正)', frameX + 145, frameY + 40);
       ctx.fillStyle = C.amber;
       ctx.font = '10px JetBrains Mono, monospace';
@@ -1962,7 +1965,7 @@ const coordAnim = (() => {
     } else if (currentStep === 5) {
       ctx.fillStyle = 'rgba(34,211,238,0.06)';
       ctx.fillRect(frameX + 20, frameY + 15, 260, 180);
-      ctx.strokeStyle = '#2d3a4f'; ctx.lineWidth = 1;
+      ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1;
       ctx.strokeRect(frameX + 20, frameY + 15, 260, 180);
       ctx.save();
       ctx.translate(cxp + 20, cyp);
@@ -1984,13 +1987,13 @@ const coordAnim = (() => {
 
     const listX = 480;
     steps.forEach((st, i) => {
-      ctx.fillStyle = i === currentStep ? C.cyan : '#3a4050';
-      ctx.font = (i === currentStep ? 'bold ' : '') + '12px Outfit, sans-serif';
+      ctx.fillStyle = i === currentStep ? C.cyan : '#94a3b8';
+      ctx.font = (i === currentStep ? 'bold ' : '') + '12px system-ui, sans-serif';
       ctx.textAlign = 'left';
       ctx.fillText((i === currentStep ? '▸ ' : '  ') + st.title, listX, 100 + i * 55);
       if (i === currentStep) {
         ctx.fillStyle = C.fg2;
-        ctx.font = '11px Outfit, sans-serif';
+        ctx.font = '11px system-ui, sans-serif';
         ctx.fillText(st.desc, listX + 18, 118 + i * 55);
       }
     });
