@@ -623,7 +623,7 @@ class FpmGui(tk.Tk):
         if src is None or tmpl is None:
             messagebox.showerror("錯誤", "無法讀取圖像")
             return
-        if tmpl.shape[0] >= src.shape[0] or tmpl.shape[1] >= src.shape[1]:
+        if tmpl.shape[0] > src.shape[0] or tmpl.shape[1] > src.shape[1]:
             messagebox.showerror("錯誤", "樣板不能大於來源影像")
             return
 

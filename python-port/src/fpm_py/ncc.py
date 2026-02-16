@@ -270,15 +270,27 @@ def ncc_match_fft(
     N = float(h * w)
 
     if method == "ccoeff_normed":
-        # 零均值 NCC：分母 = std_I * std_T
+        # 零均值 NCC — 對齊 C++ CCOEFF_Denominator 三段式數值保護
         mean_I = sums / N
-        var_I = np.maximum(sums2 - N * (mean_I * mean_I), 0.0)
-        std_I = np.sqrt(var_I)
-        std_T = np.sqrt(max(sum_t2, 1e-12))
-        denom = std_I * std_T
-        resp = np.zeros_like(CC, dtype=np.float32)
-        np.divide(CC, np.maximum(denom, 1e-12), out=resp, where=denom > 0)
-        # 範圍理論上在 [-1, 1]；不強行裁切
+        # diff2 = Σ(I - μ_I)² = sums2 - (ΣI)²/N
+        diff2 = np.maximum(sums2 - N * (mean_I * mean_I), 0.0)
+        # C++ line 1385: 極小方差視為 0，避免 rounding error
+        eps_thresh = np.minimum(0.5, 10.0 * np.finfo(np.float32).eps * sums2)
+        diff2 = np.where(diff2 <= eps_thresh, 0.0, diff2)
+        # denom = sqrt(Σ(I-μ_I)²) × sqrt(Σ(T-μ_T)²)
+        denom = np.sqrt(diff2) * np.sqrt(max(sum_t2, 1e-12))
+        # CC 已使用零均值模板計算，即為 CCOEFF 分子
+        num = CC
+        resp = np.zeros_like(num, dtype=np.float32)
+        # 三段式飽和（對齊 C++ line 1390-1395）:
+        abs_num = np.abs(num)
+        # ① |num| < denom → 正常除法
+        normal = (denom > 0) & (abs_num < denom)
+        # ② |num| < denom × 1.125 → 飽和到 ±1
+        saturate = (denom > 0) & (~normal) & (abs_num < denom * 1.125)
+        # ③ 其餘 → 0（已初始化為零）
+        np.divide(num, denom, out=resp, where=normal)
+        resp = np.where(saturate, np.sign(num).astype(np.float32), resp)
         return resp
     else:
         # CCORR_NORMED：分母 = sqrt(sum_I2 * sum_T2)

@@ -477,8 +477,6 @@ fpm-py --src image.bmp --tmpl template.bmp \
 │  Score         │                                        │
 │  Overlap       │                                        │
 │  Angle         │                                        │
-│  Backend       │                                        │
-│  Method        │                                        │
 │ ─────────────  │                                        │
 │ [Match!]       │                                        │
 │ ─────────────  │                                        │
