@@ -1,4 +1,15 @@
 # Fastest Image Pattern Matching
+
+## Portable C++ core and Qt desktop refactor
+
+The new [`cpp-core`](cpp-core/README_zh-TW.md) provides a C++17 matching library
+with all image-processing algorithms in source, a C ABI, a Python ctypes example,
+and a Qt6 GUI sharing the same implementation. The core builds without OpenCV or
+Qt; image codecs and the GUI are optional. The original MFC sources remain below.
+See the [version audit](cpp-core/docs/AUDIT_zh-TW.md) for verified porting gaps,
+17 image comparisons, performance costs, and platform limits, and the
+[porting contract](cpp-core/docs/PORTING_zh-TW.md) for future language rewrites.
+
 ## **The best template matching implementation in the world.**
 
 Using C++/MFC/OpenCV to build a Normalized Cross Corelation-based image alignment algorithm

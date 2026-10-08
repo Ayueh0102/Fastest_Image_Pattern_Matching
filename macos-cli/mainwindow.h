@@ -1,130 +1,85 @@
 #pragma once
-
+#include "fpm/matcher.hpp"
 #include <QMainWindow>
-#include <QLabel>
-#include <QScrollArea>
-#include <QPushButton>
-#include <QSpinBox>
-#include <QDoubleSpinBox>
-#include <QCheckBox>
-#include <QComboBox>
-#include <QTableWidget>
-#include <QStatusBar>
-#include <QMenuBar>
-#include <QGroupBox>
-#include <QElapsedTimer>
-#include <QPixmap>
-#include <QSize>
+#include <QImage>
+#include <QWidget>
+#include <QFutureWatcher>
+#include <memory>
 
-#include <opencv2/opencv.hpp>
-#include "match_core.h"
+class QCheckBox;
+class QComboBox;
+class QDoubleSpinBox;
+class QGroupBox;
+class QLabel;
+class QPushButton;
+class QScrollArea;
+class QSpinBox;
+class QTableWidget;
 
-class ImageView : public QLabel
-{
+class ImageView : public QWidget {
 	Q_OBJECT
 public:
-	ImageView(QWidget* parent = nullptr);
-	void setImage(const cv::Mat& mat, const QSize& viewSize = QSize());
-	void setResults(const std::vector<s_SingleTargetMatch>& results, const cv::Size& tmplSize);
-	void clearResults();
-	double scale() const { return m_dScale; }
-
-signals:
-	void mouseMoved(int imgX, int imgY);
-
+	explicit ImageView(QWidget* parent = nullptr);
+	void setImage(const QImage& image, const QSize& viewport);
+	void setResults(const std::vector<fpm::Match>& results);
+	void selectResult(int index);
+	void fit(const QSize& viewport);
+	signals:
+	void mouseMoved(int x, int y);
 protected:
-	void wheelEvent(QWheelEvent* event) override;
-	void mouseMoveEvent(QMouseEvent* event) override;
-
+	void paintEvent(QPaintEvent*) override;
+	void wheelEvent(QWheelEvent*) override;
+	void mouseMoveEvent(QMouseEvent*) override;
 private:
-	void refresh();
-	cv::Mat m_matOriginal;
-	std::vector<s_SingleTargetMatch> m_vecResults;
-	cv::Size m_tmplSize;
-	double m_dScale = 1.0;
-	double m_dBaseScale = 1.0;
-	int m_iScaleTimes = 0;
-	static constexpr int MAX_SCALE_TIMES = 10;
-	static constexpr int MIN_SCALE_TIMES = 0;
-	static constexpr double SCALE_RATIO = 1.25;
+	void resizeImage();
+	QImage image_;
+	std::vector<fpm::Match> results_;
+	double scale_ = 1, fitScale_ = 1;
+	int selected_ = -1;
 };
 
-class MainWindow : public QMainWindow
-{
+struct MatchJobResult {
+	std::vector<fpm::Match> matches;
+	std::shared_ptr<const fpm::Pattern> pattern;
+	QString error;
+	double learnMs = 0, matchMs = 0;
+};
+
+class MainWindow : public QMainWindow {
 	Q_OBJECT
 public:
-	MainWindow(QWidget* parent = nullptr);
-
+	explicit MainWindow(QWidget* parent = nullptr);
+	bool loadSource(const QString& path);
+	bool loadTemplate(const QString& path);
+	bool exportResults(const QString& path) const;
+	signals:
+	void matchingFinished(bool success);
 protected:
-	void dragEnterEvent(QDragEnterEvent* event) override;
-	void dropEvent(QDropEvent* event) override;
-
+	void dragEnterEvent(QDragEnterEvent*) override;
+	void dropEvent(QDropEvent*) override;
 private slots:
-	void onLoadSrc();
-	void onLoadDst();
-	void onExecute();
-	void onLanguageChanged(int index);
-	void onMouseMoved(int imgX, int imgY);
-
-private:
-	void loadSrcImage(const QString& path);
-	void loadDstImage(const QString& path);
+	void execute();
+	void complete();
 	void updateLanguage();
-	void setupUI();
-
-	// Image data
-	cv::Mat m_matSrc;
-	cv::Mat m_matDst;
-	s_TemplData m_templData;
-	CMatchCore m_matcher;
-	std::vector<s_SingleTargetMatch> m_vecResults;
-
-	// Widgets
-	QScrollArea* m_srcScrollArea;
-	ImageView* m_srcView;
-	QLabel* m_dstView;
-	QPushButton* m_btnExecute;
-
-	// Parameters
-	QSpinBox* m_spinTargetNum;
-	QDoubleSpinBox* m_spinOverlap;
-	QDoubleSpinBox* m_spinScore;
-	QDoubleSpinBox* m_spinAngle;
-	QSpinBox* m_spinMinArea;
-
-	// Options
-	QCheckBox* m_chkSIMD;
-	QCheckBox* m_chkSubPixel;
-	QComboBox* m_cmbLanguage;
-
-	// Results
-	QTableWidget* m_tableResults;
-	QLabel* m_lblNum;
-
-	// Status bar labels
-	QLabel* m_lblExecTime;
-	QLabel* m_lblSrcSize;
-	QLabel* m_lblDstSize;
-	QLabel* m_lblPixelPos;
-
-	// Language labels (for dynamic update)
-	QLabel* m_lblTargetNum;
-	QLabel* m_lblOverlap;
-	QLabel* m_lblScore;
-	QLabel* m_lblAngle;
-	QLabel* m_lblMinArea;
-	QLabel* m_lblLanguage;
-	QLabel* m_lblNumLabel;
-	QGroupBox* m_grpParams;
-
-	// Language data
-	struct LangStrings {
-		QString targetNum, overlap, score, angle, minArea;
-		QString execute, language, paramSetting;
-		QString index, scoreCol, angleCol, posX, posY;
-		QString execTime, srcSize, dstSize, pixelPos;
-		QString num, subPixel, loadSrc, loadDst, file;
-	};
-	LangStrings m_lang[3]; // 0=繁中, 1=簡中, 2=English
-	int m_iLangIndex = 2;  // default English
+private:
+	void clearResults();
+	void setBusy(bool busy);
+	QString text(const char* traditional, const char* simplified, const char* english) const;
+	QImage source_, templ_;
+	std::shared_ptr<const fpm::Pattern> pattern_;
+	int learnedArea_ = 0;
+	std::vector<fpm::Match> results_;
+	QFutureWatcher<MatchJobResult> watcher_;
+	bool busy_ = false;
+	ImageView* view_;
+	QScrollArea* imageScroll_;
+	QLabel *templatePreview_, *sourceInfo_, *templateInfo_, *status_;
+	QPushButton *loadSource_, *loadTemplate_, *execute_, *export_, *fit_;
+	QSpinBox *targets_, *minArea_;
+	QDoubleSpinBox *score_, *overlap_, *angle_, *ranges_[4];
+	QCheckBox *useRanges_, *subpixel_, *invert_, *simd_, *fast_;
+	QComboBox* language_;
+	QTableWidget* table_;
+	QGroupBox* parameters_;
+	QLabel* labels_[5];
 };
