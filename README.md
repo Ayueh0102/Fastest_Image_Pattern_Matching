@@ -179,6 +179,6 @@ RotatedRect::RotatedRect(const Point2f& _point1, const Point2f& _point2, const P
 }
 ```
 
-modify threshold value of **CV_Assert line** to a bigger one
+modify threshold value FLT_EPSILON of **CV_Assert line** to a bigger one
 
 then recompile the source code
