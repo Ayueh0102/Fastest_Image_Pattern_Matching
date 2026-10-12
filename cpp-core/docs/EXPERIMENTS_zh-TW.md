@@ -4,6 +4,8 @@
 
 本次有實際執行的 C++ 單執行緒、C++ 固定執行緒池，以及 Metal GPU 核心。浮點 RGB、尺度、GPU 是獨立的研究介面；正式 `fpm_core`、穩定 C ABI 和 Qt GUI 仍使用原有灰階固定尺度核心。
 
+後續已補上[全圖候選搜尋實驗與並排結果圖](REAL_IMAGE_RESULTS_zh-TW.md)，包含原有 FastMode、CPU／Metal 精修、Fourier 局部提案、六物件旋轉尺度真值與小批次 RGB 反例。全圖排程目前是 Python 研究腳本；下列原始實驗的 ROI 時間與全圖時間分開解讀。受控真值圖使用 OpenCV 產生仿射影像，搜尋仍使用本專案 C++／Metal 核心。
+
 ## 原始碼與界線
 
 | 檔案 | 已實作 |
