@@ -1,0 +1,2 @@
+// Generated embedding: the authoritative complete kernel source is pose_ncc.metal.
+static constexpr const char* fpmMetalSource = R"FPM_METAL(@FPM_METAL_SOURCE@)FPM_METAL";

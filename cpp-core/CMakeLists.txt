@@ -6,6 +6,7 @@ option(FPM_WITH_OPENCV "Use OpenCV for CLI image codecs and comparison tests" OF
 option(FPM_BUILD_GUI "Build the Qt6 desktop GUI" OFF)
 option(FPM_DISABLE_SIMD "Compile only the portable scalar dot product" OFF)
 option(FPM_SANITIZERS "Enable address and undefined-behavior sanitizers" OFF)
+option(FPM_BUILD_EXPERIMENTS "Build isolated float/RGB similarity and GPU experiments" OFF)
 
 add_library(fpm_core STATIC src/image.cpp src/ncc.cpp src/geometry.cpp src/subpixel.cpp src/matcher.cpp)
 target_include_directories(fpm_core PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>)
@@ -84,6 +85,10 @@ if(FPM_BUILD_TESTS)
         add_test(NAME gui_workflow COMMAND fpm_gui_test)
         set_tests_properties(gui_workflow PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
     endif()
+endif()
+
+if(FPM_BUILD_EXPERIMENTS)
+    add_subdirectory(experiments)
 endif()
 
 include(GNUInstallDirs)

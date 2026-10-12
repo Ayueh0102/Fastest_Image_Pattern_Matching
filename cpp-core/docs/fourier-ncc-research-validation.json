@@ -1,0 +1,607 @@
+{
+  "status": "research prototype; no production matcher changes",
+  "numpy": "2.4.2",
+  "source_sha256": "788fdaf0d01cf2f81be7036255f911c906049c26ab2b6290de2df3cc1350c142",
+  "conventions": "x-right/y-up; angles CCW; I(x)=T(R(-theta)(x-translation)/scale)",
+  "assumptions": "single analytic object; no clutter/occlusion; finite sampled spectra are approximate",
+  "algebra": {
+    "fft_ncc": [
+      {
+        "channels": 1,
+        "masked": false,
+        "max_absolute_error": 7.66053886991358e-15
+      },
+      {
+        "channels": 1,
+        "masked": true,
+        "max_absolute_error": 5.828670879282072e-15
+      },
+      {
+        "channels": 3,
+        "masked": false,
+        "max_absolute_error": 2.7755575615628914e-15
+      },
+      {
+        "channels": 3,
+        "masked": true,
+        "max_absolute_error": 1.3877787807814457e-15
+      }
+    ],
+    "rgb": {
+      "common_gain_score": 1.0,
+      "independent_gain_joint_score": 0.9585606343512402,
+      "independent_gain_per_channel_score": 1.0,
+      "orthogonal_color_score_error": 0.0,
+      "same_grayscale_different_color_gray_score": 1.0,
+      "same_grayscale_different_color_rgb_score": 0.8821098806752372
+    },
+    "approximation_bound": {
+      "residual_norm": 0.8967159761873579,
+      "max_tested_score_error": 0.22637432273153604
+    },
+    "pointwise_scale_rotation_basis_error": 1.7568205063913642e-14
+  },
+  "ncc_similarity_gradient": {
+    "parameters": [
+      "tx",
+      "ty",
+      "theta_radians",
+      "log_scale"
+    ],
+    "analytic": [
+      -0.011245254313901951,
+      -0.003318747666926059,
+      -0.8584605222871473,
+      -0.5619296840006929
+    ],
+    "finite_difference": [
+      -0.011245254311065265,
+      -0.003318747671121613,
+      -0.8584605219075224,
+      -0.5619296844616706
+    ],
+    "max_absolute_error": 4.6097770045605557e-10
+  },
+  "similarity": [
+    {
+      "truth": {
+        "scale": 1,
+        "angle": 0,
+        "translation": [
+          7,
+          -9
+        ]
+      },
+      "estimate": {
+        "angle": -1.6022397630877094e-08,
+        "scale": 0.9999999982625541,
+        "translation": [
+          7.000000056449815,
+          -8.999999954678627
+        ],
+        "score": 0.9999999999999999
+      },
+      "hypotheses": [
+        {
+          "angle": -1.6022397630877094e-08,
+          "scale": 0.9999999982625541,
+          "translation": [
+            7.000000056449815,
+            -8.999999954678627
+          ],
+          "score": 0.9999999999999999
+        },
+        {
+          "angle": 179.9999999839776,
+          "scale": 0.9999999982625541,
+          "translation": [
+            -17.005457580245633,
+            -67.00679194130211
+          ],
+          "score": 0.052182540531661534
+        }
+      ],
+      "angle_error": 1.6022397630877094e-08,
+      "relative_scale_error": 1.7374458538554904e-09,
+      "translation_error": 7.239204685686198e-08
+    },
+    {
+      "truth": {
+        "scale": 0.8,
+        "angle": 31,
+        "translation": [
+          8,
+          -6
+        ]
+      },
+      "estimate": {
+        "angle": 31.003957521538183,
+        "scale": 0.7996826319617724,
+        "translation": [
+          8.010569261368698,
+          -6.021670966282259
+        ],
+        "score": 0.999992171030736
+      },
+      "hypotheses": [
+        {
+          "angle": 31.003957521538183,
+          "scale": 0.7996826319617724,
+          "translation": [
+            8.010569261368698,
+            -6.021670966282259
+          ],
+          "score": 0.999992171030736
+        },
+        {
+          "angle": -148.99604247846185,
+          "scale": 0.7996826319617724,
+          "translation": [
+            15.359420197435542,
+            -55.75341607714798
+          ],
+          "score": 0.07593251502556471
+        }
+      ],
+      "angle_error": 0.003957521538183073,
+      "relative_scale_error": 0.0003967100477846319,
+      "translation_error": 0.024110994701311023
+    },
+    {
+      "truth": {
+        "scale": 1.2,
+        "angle": -47,
+        "translation": [
+          -5,
+          7
+        ]
+      },
+      "estimate": {
+        "angle": -46.92366452549146,
+        "scale": 1.1999647505528108,
+        "translation": [
+          -5.046848728037787,
+          7.119870383542263
+        ],
+        "score": 0.9999424064681198
+      },
+      "hypotheses": [
+        {
+          "angle": -46.92366452549146,
+          "scale": 1.1999647505528108,
+          "translation": [
+            -5.046848728037787,
+            7.119870383542263
+          ],
+          "score": 0.9999424064681198
+        },
+        {
+          "angle": 133.07633547450854,
+          "scale": 1.1999647505528108,
+          "translation": [
+            -75.62904351385401,
+            -19.430984429067507
+          ],
+          "score": 0.02086216959408521
+        }
+      ],
+      "angle_error": 0.07633547450853939,
+      "relative_scale_error": 2.937453932427836e-05,
+      "translation_error": 0.12870008612789613
+    },
+    {
+      "truth": {
+        "scale": 1.1,
+        "angle": 143,
+        "translation": [
+          4,
+          3
+        ]
+      },
+      "estimate": {
+        "angle": 143.00651211945672,
+        "scale": 1.0973649790729334,
+        "translation": [
+          4.009142606471303,
+          3.029715209196837
+        ],
+        "score": 0.999965072221546
+      },
+      "hypotheses": [
+        {
+          "angle": -36.993487880543256,
+          "scale": 1.0973649790729334,
+          "translation": [
+            63.397324991457175,
+            38.001205980793316
+          ],
+          "score": 0.03745280337708259
+        },
+        {
+          "angle": 143.00651211945672,
+          "scale": 1.0973649790729334,
+          "translation": [
+            4.009142606471303,
+            3.029715209196837
+          ],
+          "score": 0.999965072221546
+        }
+      ],
+      "angle_error": 0.006512119456715482,
+      "relative_scale_error": 0.0023954735700606467,
+      "translation_error": 0.031089884379021222
+    }
+  ],
+  "similarity_rgb": [
+    {
+      "truth": {
+        "scale": 1,
+        "angle": 0,
+        "translation": [
+          7,
+          -9
+        ]
+      },
+      "estimate": {
+        "angle": -1.4257381053539575e-08,
+        "scale": 0.9999999961713771,
+        "translation": [
+          7.000000028912302,
+          -9.000000000451108
+        ],
+        "score": 0.9999999999999999
+      },
+      "hypotheses": [
+        {
+          "angle": -1.4257381053539575e-08,
+          "scale": 0.9999999961713771,
+          "translation": [
+            7.000000028912302,
+            -9.000000000451108
+          ],
+          "score": 0.9999999999999999
+        },
+        {
+          "angle": 179.99999998574265,
+          "scale": 0.9999999961713771,
+          "translation": [
+            -17.076159327785234,
+            -67.1190173733881
+          ],
+          "score": 0.022794252045772474
+        }
+      ],
+      "angle_error": 1.4257381053539575e-08,
+      "relative_scale_error": 3.8286228631889685e-09,
+      "translation_error": 2.891582090149585e-08
+    },
+    {
+      "truth": {
+        "scale": 0.8,
+        "angle": 31,
+        "translation": [
+          8,
+          -6
+        ]
+      },
+      "estimate": {
+        "angle": 31.003961769543537,
+        "scale": 0.7996827344007592,
+        "translation": [
+          8.015066400179432,
+          -5.986187233224601
+        ],
+        "score": 0.9999920157053614
+      },
+      "hypotheses": [
+        {
+          "angle": 31.003961769543537,
+          "scale": 0.7996827344007592,
+          "translation": [
+            8.015066400179432,
+            -5.986187233224601
+          ],
+          "score": 0.9999920157053614
+        },
+        {
+          "angle": -148.99603823045646,
+          "scale": 0.7996827344007592,
+          "translation": [
+            15.334994947306233,
+            -55.842354061105176
+          ],
+          "score": 0.04727663227311806
+        }
+      ],
+      "angle_error": 0.003961769543536775,
+      "relative_scale_error": 0.00039658199905101554,
+      "translation_error": 0.020439886016276103
+    },
+    {
+      "truth": {
+        "scale": 1.2,
+        "angle": -47,
+        "translation": [
+          -5,
+          7
+        ]
+      },
+      "estimate": {
+        "angle": -46.92069725441479,
+        "scale": 1.1998179982144204,
+        "translation": [
+          -5.0359573085196985,
+          7.398504576975569
+        ],
+        "score": 0.9997116533134889
+      },
+      "hypotheses": [
+        {
+          "angle": -46.92069725441479,
+          "scale": 1.1998179982144204,
+          "translation": [
+            -5.0359573085196985,
+            7.398504576975569
+          ],
+          "score": 0.9997116533134889
+        },
+        {
+          "angle": 133.0793027455852,
+          "scale": 1.1998179982144204,
+          "translation": [
+            39.373269205008,
+            1.423501087135719
+          ],
+          "score": 0.17576055721558095
+        }
+      ],
+      "angle_error": 0.07930274558520978,
+      "relative_scale_error": 0.00015166815464962013,
+      "translation_error": 0.40012351331364876
+    },
+    {
+      "truth": {
+        "scale": 1.1,
+        "angle": 143,
+        "translation": [
+          4,
+          3
+        ]
+      },
+      "estimate": {
+        "angle": 143.00868270589086,
+        "scale": 1.0972993075686457,
+        "translation": [
+          4.008735362615283,
+          3.0506732241920247
+        ],
+        "score": 0.9999586469589128
+      },
+      "hypotheses": [
+        {
+          "angle": -36.99131729410914,
+          "scale": 1.0972993075686457,
+          "translation": [
+            63.603607972738814,
+            38.08876248880398
+          ],
+          "score": 0.007553204942025551
+        },
+        {
+          "angle": 143.00868270589086,
+          "scale": 1.0972993075686457,
+          "translation": [
+            4.008735362615283,
+            3.0506732241920247
+          ],
+          "score": 0.9999586469589128
+        }
+      ],
+      "angle_error": 0.008682705890862508,
+      "relative_scale_error": 0.0024551749375949505,
+      "translation_error": 0.05142063992246387
+    }
+  ],
+  "assumption_stress": [
+    {
+      "case": "additive_background",
+      "estimate": {
+        "angle": 89.99821120998479,
+        "scale": 1.0001795929673472,
+        "translation": [
+          -16.356531671540154,
+          -20.22386359517942
+        ],
+        "score": 0.20684472334117412
+      },
+      "hypotheses": [
+        {
+          "angle": 89.99821120998479,
+          "scale": 1.0001795929673472,
+          "translation": [
+            -16.356531671540154,
+            -20.22386359517942
+          ],
+          "score": 0.20684472334117412
+        },
+        {
+          "angle": -90.00178879001521,
+          "scale": 1.0001795929673472,
+          "translation": [
+            41.022353100694474,
+            -44.992951372360736
+          ],
+          "score": 0.09525040688034811
+        }
+      ],
+      "underlying_pose": {
+        "angle": 31,
+        "scale": 0.8,
+        "translation": [
+          8,
+          -6
+        ]
+      },
+      "angle_error": 58.99821120998479,
+      "relative_scale_error": 0.2502244912091838
+    },
+    {
+      "case": "large_occlusion",
+      "estimate": {
+        "angle": -1.0046976703561086,
+        "scale": 0.5260982193466287,
+        "translation": [
+          3.772810999269013,
+          -2.8363180405460167
+        ],
+        "score": 0.20401680404057831
+      },
+      "hypotheses": [
+        {
+          "angle": -1.0046976703561086,
+          "scale": 0.5260982193466287,
+          "translation": [
+            3.772810999269013,
+            -2.8363180405460167
+          ],
+          "score": 0.20401680404057831
+        },
+        {
+          "angle": 178.9953023296439,
+          "scale": 0.5260982193466287,
+          "translation": [
+            4.855871630623425,
+            4.012001677030241
+          ],
+          "score": 0.1729743221443606
+        }
+      ],
+      "underlying_pose": {
+        "angle": 31,
+        "scale": 0.8,
+        "translation": [
+          8,
+          -6
+        ]
+      },
+      "angle_error": 32.00469767035611,
+      "relative_scale_error": 0.34237722581671415
+    },
+    {
+      "case": "two_different_poses",
+      "estimate": {
+        "angle": -0.007428875533491919,
+        "scale": 1.0000385288922835,
+        "translation": [
+          -22.453963573145273,
+          31.91907255139344
+        ],
+        "score": 0.18408127830763063
+      },
+      "hypotheses": [
+        {
+          "angle": -0.007428875533491919,
+          "scale": 1.0000385288922835,
+          "translation": [
+            -22.453963573145273,
+            31.91907255139344
+          ],
+          "score": 0.18408127830763063
+        },
+        {
+          "angle": 179.9925711244665,
+          "scale": 1.0000385288922835,
+          "translation": [
+            -46.33459734475963,
+            -25.763853198056538
+          ],
+          "score": -0.01251528158954103
+        }
+      ],
+      "underlying_poses": [
+        {
+          "angle": 31,
+          "scale": 0.8,
+          "translation": [
+            -38,
+            28
+          ]
+        },
+        {
+          "angle": -47,
+          "scale": 1.1,
+          "translation": [
+            38,
+            -30
+          ]
+        }
+      ],
+      "limitation": "one global similarity estimate cannot express both independently transformed objects"
+    }
+  ],
+  "template_basis": {
+    "template": "Dst7.bmp",
+    "sha256": "1c683a3c39af2c363bbe9fef8f754a02f580d2baf8cf97d05c6e808d05aacb5d",
+    "method": "mean-centered rectangle, zero outside, q=r*T on 720x512 log-polar grid; radius>=1",
+    "limitation": "finite-grid reconstruction proxy; not a certified Cartesian NCC bound or evidence against other bases",
+    "rotation": [
+      {
+        "max_order": 4,
+        "modes": 9,
+        "relative_l2_error": 0.7249812120455109
+      },
+      {
+        "max_order": 8,
+        "modes": 17,
+        "relative_l2_error": 0.5455226339030373
+      },
+      {
+        "max_order": 16,
+        "modes": 33,
+        "relative_l2_error": 0.3390704822981101
+      },
+      {
+        "max_order": 32,
+        "modes": 65,
+        "relative_l2_error": 0.22079429894162694
+      },
+      {
+        "max_order": 64,
+        "modes": 129,
+        "relative_l2_error": 0.13741481648606205
+      },
+      {
+        "max_order": 128,
+        "modes": 257,
+        "relative_l2_error": 0.07730664467218742
+      }
+    ],
+    "rotation_scale": [
+      {
+        "max_order": 4,
+        "modes": 81,
+        "relative_l2_error": 0.8506760647298566
+      },
+      {
+        "max_order": 8,
+        "modes": 289,
+        "relative_l2_error": 0.6700913331717666
+      },
+      {
+        "max_order": 16,
+        "modes": 1089,
+        "relative_l2_error": 0.4228794496839518
+      },
+      {
+        "max_order": 32,
+        "modes": 4225,
+        "relative_l2_error": 0.27334716796914876
+      },
+      {
+        "max_order": 64,
+        "modes": 16641,
+        "relative_l2_error": 0.17541614180822365
+      }
+    ]
+  }
+}

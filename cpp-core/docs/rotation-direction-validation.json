@@ -1,0 +1,628 @@
+{
+  "opencv": "4.13.0",
+  "excluded_template_border_pixels": 4,
+  "method": "masked NCC; template mask rotated with nearest neighbor; no padded corners included",
+  "search": "local coordinate search +/-3 source pixels and +/-1 degree; final steps 0.1 px / 0.01 degree",
+  "limitations": "different discrete pixel supports; local search, not global optimum; not a performance comparison",
+  "sanity_checks": "exact asymmetric template at 0, 90, 180 degrees scores >0.99999 in both directions",
+  "sha256": {
+    "Test Images/Src7.bmp": "7df5261e8f69da53706770f814cb2dfb3d7a2b1e6a006c3b8386066da51770d8",
+    "Test Images/Dst7.bmp": "1c683a3c39af2c363bbe9fef8f754a02f580d2baf8cf97d05c6e808d05aacb5d",
+    "cpp-core/docs/rotation-search-validation.json": "624e7bba69fdad757dac7de3cf1d6ca1782e8e03a93c5d0c983ba94a6b939208",
+    "cpp-core/tools/audit_rotation_direction.py": "6cbce437edf24d68f21be8f22159e161aa8cd21799d4e7a2d756507fb8a87d34"
+  },
+  "locations": [
+    {
+      "index": 0,
+      "seed": {
+        "score": 1.0,
+        "angle": 0.0,
+        "center": [
+          1726.0,
+          1045.5
+        ],
+        "offset": [
+          96,
+          96
+        ]
+      },
+      "variants": [
+        {
+          "interpolation": "linear",
+          "rotated": "source",
+          "fixed_pose_score": 0.9999997615814209,
+          "best": {
+            "center": [
+              1726.0,
+              1045.5
+            ],
+            "angle": 0.0,
+            "score": 0.9999997615814209,
+            "evaluations": 61
+          }
+        },
+        {
+          "interpolation": "linear",
+          "rotated": "template",
+          "fixed_pose_score": 1.0000000000000002,
+          "best": {
+            "center": [
+              1726.0,
+              1045.5
+            ],
+            "angle": 0.0,
+            "score": 1.0000000000000002,
+            "evaluations": 61
+          }
+        },
+        {
+          "interpolation": "cubic",
+          "rotated": "source",
+          "fixed_pose_score": 0.9999997615814209,
+          "best": {
+            "center": [
+              1726.0,
+              1045.5
+            ],
+            "angle": 0.0,
+            "score": 0.9999997615814209,
+            "evaluations": 61
+          }
+        },
+        {
+          "interpolation": "cubic",
+          "rotated": "template",
+          "fixed_pose_score": 1.0000000000000002,
+          "best": {
+            "center": [
+              1726.0,
+              1045.5
+            ],
+            "angle": 0.0,
+            "score": 1.0000000000000002,
+            "evaluations": 61
+          }
+        },
+        {
+          "interpolation": "lanczos4",
+          "rotated": "source",
+          "fixed_pose_score": 0.9999997615814209,
+          "best": {
+            "center": [
+              1726.0,
+              1045.5
+            ],
+            "angle": 0.0,
+            "score": 0.9999997615814209,
+            "evaluations": 61
+          }
+        },
+        {
+          "interpolation": "lanczos4",
+          "rotated": "template",
+          "fixed_pose_score": 1.0000000000000002,
+          "best": {
+            "center": [
+              1726.0,
+              1045.5
+            ],
+            "angle": 0.0,
+            "score": 1.0000000000000002,
+            "evaluations": 61
+          }
+        }
+      ],
+      "seconds": 2.2995966249145567
+    },
+    {
+      "index": 1,
+      "seed": {
+        "score": 0.991095781326294,
+        "angle": 120.12,
+        "center": [
+          1769.44475773,
+          2098.16066737
+        ],
+        "offset": [
+          3,
+          3
+        ]
+      },
+      "variants": [
+        {
+          "interpolation": "linear",
+          "rotated": "source",
+          "fixed_pose_score": 0.9909848570823669,
+          "best": {
+            "center": [
+              1769.2447577299997,
+              2098.3606673699996
+            ],
+            "angle": 120.13000000000001,
+            "score": 0.9912306666374207,
+            "evaluations": 121
+          }
+        },
+        {
+          "interpolation": "linear",
+          "rotated": "template",
+          "fixed_pose_score": 0.9910169569987772,
+          "best": {
+            "center": [
+              1769.2447577299997,
+              2098.3606673699996
+            ],
+            "angle": 120.13000000000001,
+            "score": 0.991260471104385,
+            "evaluations": 121
+          }
+        },
+        {
+          "interpolation": "cubic",
+          "rotated": "source",
+          "fixed_pose_score": 0.9906849265098572,
+          "best": {
+            "center": [
+              1769.2447577299997,
+              2098.3606673699996
+            ],
+            "angle": 120.13000000000001,
+            "score": 0.9909344911575317,
+            "evaluations": 121
+          }
+        },
+        {
+          "interpolation": "cubic",
+          "rotated": "template",
+          "fixed_pose_score": 0.990699681975939,
+          "best": {
+            "center": [
+              1769.2447577299997,
+              2098.3606673699996
+            ],
+            "angle": 120.13000000000001,
+            "score": 0.990947676050193,
+            "evaluations": 121
+          }
+        },
+        {
+          "interpolation": "lanczos4",
+          "rotated": "source",
+          "fixed_pose_score": 0.9907159805297852,
+          "best": {
+            "center": [
+              1769.2447577299997,
+              2098.3606673699996
+            ],
+            "angle": 120.13000000000001,
+            "score": 0.9909672737121582,
+            "evaluations": 121
+          }
+        },
+        {
+          "interpolation": "lanczos4",
+          "rotated": "template",
+          "fixed_pose_score": 0.9907276485679044,
+          "best": {
+            "center": [
+              1769.2447577299997,
+              2098.3606673699996
+            ],
+            "angle": 120.13000000000001,
+            "score": 0.990976032037166,
+            "evaluations": 121
+          }
+        }
+      ],
+      "seconds": 4.656827291939408
+    },
+    {
+      "index": 2,
+      "seed": {
+        "score": 0.9879831671714783,
+        "angle": -119.96000000000001,
+        "center": [
+          2662.40948836,
+          1537.78755118
+        ],
+        "offset": [
+          3,
+          3
+        ]
+      },
+      "variants": [
+        {
+          "interpolation": "linear",
+          "rotated": "source",
+          "fixed_pose_score": 0.9878595471382141,
+          "best": {
+            "center": [
+              2662.60948836,
+              1537.78755118
+            ],
+            "angle": -119.96000000000001,
+            "score": 0.9879637360572815,
+            "evaluations": 101
+          }
+        },
+        {
+          "interpolation": "linear",
+          "rotated": "template",
+          "fixed_pose_score": 0.9878508992067233,
+          "best": {
+            "center": [
+              2662.60948836,
+              1537.78755118
+            ],
+            "angle": -119.96000000000001,
+            "score": 0.9879581621451069,
+            "evaluations": 101
+          }
+        },
+        {
+          "interpolation": "cubic",
+          "rotated": "source",
+          "fixed_pose_score": 0.9874103665351868,
+          "best": {
+            "center": [
+              2662.60948836,
+              1537.78755118
+            ],
+            "angle": -119.96000000000001,
+            "score": 0.9875105619430542,
+            "evaluations": 101
+          }
+        },
+        {
+          "interpolation": "cubic",
+          "rotated": "template",
+          "fixed_pose_score": 0.9873706996452886,
+          "best": {
+            "center": [
+              2662.60948836,
+              1537.78755118
+            ],
+            "angle": -119.97000000000001,
+            "score": 0.9874798118075275,
+            "evaluations": 101
+          }
+        },
+        {
+          "interpolation": "lanczos4",
+          "rotated": "source",
+          "fixed_pose_score": 0.987462043762207,
+          "best": {
+            "center": [
+              2662.60948836,
+              1537.78755118
+            ],
+            "angle": -119.96000000000001,
+            "score": 0.9875636100769043,
+            "evaluations": 101
+          }
+        },
+        {
+          "interpolation": "lanczos4",
+          "rotated": "template",
+          "fixed_pose_score": 0.9874227345319522,
+          "best": {
+            "center": [
+              2662.70948836,
+              1537.6875511800001
+            ],
+            "angle": -119.96000000000001,
+            "score": 0.9875257633578186,
+            "evaluations": 101
+          }
+        }
+      ],
+      "seconds": 3.804675958119333
+    },
+    {
+      "index": 3,
+      "seed": {
+        "score": 0.6497381925582886,
+        "angle": -179.45,
+        "center": [
+          2380.86973748,
+          2070.9780331
+        ],
+        "offset": [
+          96,
+          96
+        ]
+      },
+      "variants": [
+        {
+          "interpolation": "linear",
+          "rotated": "source",
+          "fixed_pose_score": 0.6480387449264526,
+          "best": {
+            "center": [
+              2380.66973748,
+              2070.6780331
+            ],
+            "angle": -179.44,
+            "score": 0.6481189727783203,
+            "evaluations": 121
+          }
+        },
+        {
+          "interpolation": "linear",
+          "rotated": "template",
+          "fixed_pose_score": 0.6478699071094951,
+          "best": {
+            "center": [
+              2380.46973748,
+              2070.4780331
+            ],
+            "angle": -179.45999999999998,
+            "score": 0.6482962455245839,
+            "evaluations": 101
+          }
+        },
+        {
+          "interpolation": "cubic",
+          "rotated": "source",
+          "fixed_pose_score": 0.647582471370697,
+          "best": {
+            "center": [
+              2380.86973748,
+              2070.3780331000003
+            ],
+            "angle": -179.42,
+            "score": 0.6476532816886902,
+            "evaluations": 121
+          }
+        },
+        {
+          "interpolation": "cubic",
+          "rotated": "template",
+          "fixed_pose_score": 0.647353177090411,
+          "best": {
+            "center": [
+              2380.46973748,
+              2070.4780331
+            ],
+            "angle": -179.45999999999998,
+            "score": 0.6477804069470322,
+            "evaluations": 101
+          }
+        },
+        {
+          "interpolation": "lanczos4",
+          "rotated": "source",
+          "fixed_pose_score": 0.6476624011993408,
+          "best": {
+            "center": [
+              2380.76973748,
+              2070.4780331
+            ],
+            "angle": -179.39999999999998,
+            "score": 0.6477357149124146,
+            "evaluations": 101
+          }
+        },
+        {
+          "interpolation": "lanczos4",
+          "rotated": "template",
+          "fixed_pose_score": 0.647461765577903,
+          "best": {
+            "center": [
+              2380.46973748,
+              2070.4780331
+            ],
+            "angle": -179.45999999999998,
+            "score": 0.6478865348205707,
+            "evaluations": 101
+          }
+        }
+      ],
+      "seconds": 4.076038625091314
+    },
+    {
+      "index": 4,
+      "seed": {
+        "score": 0.6486939191818237,
+        "angle": 60.97,
+        "center": [
+          1447.47955688,
+          1588.59714123
+        ],
+        "offset": [
+          3,
+          3
+        ]
+      },
+      "variants": [
+        {
+          "interpolation": "linear",
+          "rotated": "source",
+          "fixed_pose_score": 0.6471896767616272,
+          "best": {
+            "center": [
+              1447.2795568800002,
+              1588.19714123
+            ],
+            "angle": 60.97,
+            "score": 0.6472634673118591,
+            "evaluations": 121
+          }
+        },
+        {
+          "interpolation": "linear",
+          "rotated": "template",
+          "fixed_pose_score": 0.6471562018964914,
+          "best": {
+            "center": [
+              1447.47955688,
+              1588.19714123
+            ],
+            "angle": 60.96,
+            "score": 0.6472568173743019,
+            "evaluations": 101
+          }
+        },
+        {
+          "interpolation": "cubic",
+          "rotated": "source",
+          "fixed_pose_score": 0.6466481685638428,
+          "best": {
+            "center": [
+              1447.37955688,
+              1588.2971412299999
+            ],
+            "angle": 60.99,
+            "score": 0.646728515625,
+            "evaluations": 121
+          }
+        },
+        {
+          "interpolation": "cubic",
+          "rotated": "template",
+          "fixed_pose_score": 0.6466378973785081,
+          "best": {
+            "center": [
+              1447.47955688,
+              1588.19714123
+            ],
+            "angle": 60.96,
+            "score": 0.6467545076272836,
+            "evaluations": 101
+          }
+        },
+        {
+          "interpolation": "lanczos4",
+          "rotated": "source",
+          "fixed_pose_score": 0.6467629671096802,
+          "best": {
+            "center": [
+              1447.37955688,
+              1588.2971412299999
+            ],
+            "angle": 60.98,
+            "score": 0.6468380689620972,
+            "evaluations": 121
+          }
+        },
+        {
+          "interpolation": "lanczos4",
+          "rotated": "template",
+          "fixed_pose_score": 0.6467428674890994,
+          "best": {
+            "center": [
+              1447.47955688,
+              1588.19714123
+            ],
+            "angle": 60.96,
+            "score": 0.646857440811842,
+            "evaluations": 101
+          }
+        }
+      ],
+      "seconds": 4.342068541096523
+    },
+    {
+      "index": 5,
+      "seed": {
+        "score": 0.6386390328407288,
+        "angle": -59.00999999999999,
+        "center": [
+          2329.82841177,
+          1023.98444639
+        ],
+        "offset": [
+          3,
+          3
+        ]
+      },
+      "variants": [
+        {
+          "interpolation": "linear",
+          "rotated": "source",
+          "fixed_pose_score": 0.6369729042053223,
+          "best": {
+            "center": [
+              2329.42841177,
+              1024.18444639
+            ],
+            "angle": -58.959999999999994,
+            "score": 0.6370837688446045,
+            "evaluations": 121
+          }
+        },
+        {
+          "interpolation": "linear",
+          "rotated": "template",
+          "fixed_pose_score": 0.6369787004873454,
+          "best": {
+            "center": [
+              2329.42841177,
+              1024.18444639
+            ],
+            "angle": -58.959999999999994,
+            "score": 0.6371010173635,
+            "evaluations": 121
+          }
+        },
+        {
+          "interpolation": "cubic",
+          "rotated": "source",
+          "fixed_pose_score": 0.6364991068840027,
+          "best": {
+            "center": [
+              2329.42841177,
+              1024.18444639
+            ],
+            "angle": -58.959999999999994,
+            "score": 0.6365960836410522,
+            "evaluations": 121
+          }
+        },
+        {
+          "interpolation": "cubic",
+          "rotated": "template",
+          "fixed_pose_score": 0.6364755312557876,
+          "best": {
+            "center": [
+              2329.42841177,
+              1024.18444639
+            ],
+            "angle": -58.959999999999994,
+            "score": 0.636595520835617,
+            "evaluations": 121
+          }
+        },
+        {
+          "interpolation": "lanczos4",
+          "rotated": "source",
+          "fixed_pose_score": 0.6365915536880493,
+          "best": {
+            "center": [
+              2329.32841177,
+              1024.18444639
+            ],
+            "angle": -58.96999999999999,
+            "score": 0.636691689491272,
+            "evaluations": 121
+          }
+        },
+        {
+          "interpolation": "lanczos4",
+          "rotated": "template",
+          "fixed_pose_score": 0.6365723144819694,
+          "best": {
+            "center": [
+              2329.42841177,
+              1024.18444639
+            ],
+            "angle": -58.959999999999994,
+            "score": 0.6366910175105033,
+            "evaluations": 121
+          }
+        }
+      ],
+      "seconds": 4.6267232918180525
+    }
+  ]
+}

@@ -1,0 +1,396 @@
+{
+  "tolerance": 3e-05,
+  "random_pose_checks": [
+    {
+      "shape": [
+        17,
+        19
+      ],
+      "channels": 1,
+      "backend": "cpu",
+      "threads": 1,
+      "max_error": 1.4064566834781633e-07,
+      "device": "C++ float sampling / double NCC / 1 threads"
+    },
+    {
+      "shape": [
+        17,
+        19
+      ],
+      "channels": 1,
+      "backend": "cpu",
+      "threads": 8,
+      "max_error": 1.4064566834781633e-07,
+      "device": "C++ float sampling / double NCC / 8 threads"
+    },
+    {
+      "shape": [
+        17,
+        19
+      ],
+      "channels": 1,
+      "backend": "metal",
+      "threads": 1,
+      "max_error": 1.331950877508925e-07,
+      "device": "Apple M4 Pro"
+    },
+    {
+      "shape": [
+        65,
+        63
+      ],
+      "channels": 3,
+      "backend": "cpu",
+      "threads": 1,
+      "max_error": 4.516882882305007e-08,
+      "device": "C++ float sampling / double NCC / 1 threads"
+    },
+    {
+      "shape": [
+        65,
+        63
+      ],
+      "channels": 3,
+      "backend": "cpu",
+      "threads": 8,
+      "max_error": 4.516882882305007e-08,
+      "device": "C++ float sampling / double NCC / 8 threads"
+    },
+    {
+      "shape": [
+        65,
+        63
+      ],
+      "channels": 3,
+      "backend": "metal",
+      "threads": 1,
+      "max_error": 4.7031473972281024e-08,
+      "device": "Apple M4 Pro"
+    },
+    {
+      "shape": [
+        128,
+        128
+      ],
+      "channels": 1,
+      "backend": "cpu",
+      "threads": 1,
+      "max_error": 9.200173054814409e-08,
+      "device": "C++ float sampling / double NCC / 1 threads"
+    },
+    {
+      "shape": [
+        128,
+        128
+      ],
+      "channels": 1,
+      "backend": "cpu",
+      "threads": 8,
+      "max_error": 9.200173054814409e-08,
+      "device": "C++ float sampling / double NCC / 8 threads"
+    },
+    {
+      "shape": [
+        128,
+        128
+      ],
+      "channels": 1,
+      "backend": "metal",
+      "threads": 1,
+      "max_error": 9.153606926083635e-08,
+      "device": "Apple M4 Pro"
+    },
+    {
+      "shape": [
+        257,
+        259
+      ],
+      "channels": 3,
+      "backend": "cpu",
+      "threads": 1,
+      "max_error": 5.769717012016687e-08,
+      "device": "C++ float sampling / double NCC / 1 threads"
+    },
+    {
+      "shape": [
+        257,
+        259
+      ],
+      "channels": 3,
+      "backend": "cpu",
+      "threads": 8,
+      "max_error": 5.769717012016687e-08,
+      "device": "C++ float sampling / double NCC / 8 threads"
+    },
+    {
+      "shape": [
+        257,
+        259
+      ],
+      "channels": 3,
+      "backend": "metal",
+      "threads": 1,
+      "max_error": 5.7813585441993803e-08,
+      "device": "Apple M4 Pro"
+    }
+  ],
+  "independent_analytic_truth": [
+    {
+      "rgb": false,
+      "backend": "cpu",
+      "threads": 1,
+      "scores": [
+        0.9999921917915344,
+        0.24655228853225708,
+        0.5910627841949463
+      ]
+    },
+    {
+      "rgb": false,
+      "backend": "cpu",
+      "threads": 8,
+      "scores": [
+        0.9999921917915344,
+        0.24655228853225708,
+        0.5910627841949463
+      ]
+    },
+    {
+      "rgb": false,
+      "backend": "metal",
+      "threads": 1,
+      "scores": [
+        0.9999921321868896,
+        0.2465522587299347,
+        0.5910627841949463
+      ]
+    },
+    {
+      "rgb": true,
+      "backend": "cpu",
+      "threads": 1,
+      "scores": [
+        0.9999921917915344,
+        0.2608324885368347,
+        0.418841153383255
+      ]
+    },
+    {
+      "rgb": true,
+      "backend": "cpu",
+      "threads": 8,
+      "scores": [
+        0.9999921917915344,
+        0.2608324885368347,
+        0.418841153383255
+      ]
+    },
+    {
+      "rgb": true,
+      "backend": "metal",
+      "threads": 1,
+      "scores": [
+        0.9999921321868896,
+        0.2608324885368347,
+        0.418841153383255
+      ]
+    }
+  ],
+  "flat_patches_in_nonconstant_image": [
+    {
+      "backend": "cpu",
+      "size": 17,
+      "amplitude": 0.731,
+      "score": -2.0
+    },
+    {
+      "backend": "cpu",
+      "size": 17,
+      "amplitude": 1.0,
+      "score": -2.0
+    },
+    {
+      "backend": "cpu",
+      "size": 17,
+      "amplitude": 4.0,
+      "score": -2.0
+    },
+    {
+      "backend": "cpu",
+      "size": 65,
+      "amplitude": 0.731,
+      "score": -2.0
+    },
+    {
+      "backend": "cpu",
+      "size": 65,
+      "amplitude": 1.0,
+      "score": -2.0
+    },
+    {
+      "backend": "cpu",
+      "size": 65,
+      "amplitude": 4.0,
+      "score": -2.0
+    },
+    {
+      "backend": "cpu",
+      "size": 127,
+      "amplitude": 0.731,
+      "score": -2.0
+    },
+    {
+      "backend": "cpu",
+      "size": 127,
+      "amplitude": 1.0,
+      "score": -2.0
+    },
+    {
+      "backend": "cpu",
+      "size": 127,
+      "amplitude": 4.0,
+      "score": -2.0
+    },
+    {
+      "backend": "cpu",
+      "size": 17,
+      "amplitude": 0.731,
+      "score": -2.0
+    },
+    {
+      "backend": "cpu",
+      "size": 17,
+      "amplitude": 1.0,
+      "score": -2.0
+    },
+    {
+      "backend": "cpu",
+      "size": 17,
+      "amplitude": 4.0,
+      "score": -2.0
+    },
+    {
+      "backend": "cpu",
+      "size": 65,
+      "amplitude": 0.731,
+      "score": -2.0
+    },
+    {
+      "backend": "cpu",
+      "size": 65,
+      "amplitude": 1.0,
+      "score": -2.0
+    },
+    {
+      "backend": "cpu",
+      "size": 65,
+      "amplitude": 4.0,
+      "score": -2.0
+    },
+    {
+      "backend": "cpu",
+      "size": 127,
+      "amplitude": 0.731,
+      "score": -2.0
+    },
+    {
+      "backend": "cpu",
+      "size": 127,
+      "amplitude": 1.0,
+      "score": -2.0
+    },
+    {
+      "backend": "cpu",
+      "size": 127,
+      "amplitude": 4.0,
+      "score": -2.0
+    },
+    {
+      "backend": "metal",
+      "size": 17,
+      "amplitude": 0.731,
+      "score": -2.0
+    },
+    {
+      "backend": "metal",
+      "size": 17,
+      "amplitude": 1.0,
+      "score": -2.0
+    },
+    {
+      "backend": "metal",
+      "size": 17,
+      "amplitude": 4.0,
+      "score": -2.0
+    },
+    {
+      "backend": "metal",
+      "size": 65,
+      "amplitude": 0.731,
+      "score": -2.0
+    },
+    {
+      "backend": "metal",
+      "size": 65,
+      "amplitude": 1.0,
+      "score": -2.0
+    },
+    {
+      "backend": "metal",
+      "size": 65,
+      "amplitude": 4.0,
+      "score": -2.0
+    },
+    {
+      "backend": "metal",
+      "size": 127,
+      "amplitude": 0.731,
+      "score": -2.0
+    },
+    {
+      "backend": "metal",
+      "size": 127,
+      "amplitude": 1.0,
+      "score": -2.0
+    },
+    {
+      "backend": "metal",
+      "size": 127,
+      "amplitude": 4.0,
+      "score": -2.0
+    }
+  ],
+  "degeneracy": [
+    {
+      "backend": "cpu",
+      "constant": true,
+      "score": -2.0
+    },
+    {
+      "backend": "cpu",
+      "constant": false,
+      "score": 1.0
+    },
+    {
+      "backend": "cpu",
+      "constant": true,
+      "score": -2.0
+    },
+    {
+      "backend": "cpu",
+      "constant": false,
+      "score": 1.0
+    },
+    {
+      "backend": "metal",
+      "constant": true,
+      "score": -2.0
+    },
+    {
+      "backend": "metal",
+      "constant": false,
+      "score": 0.9999999403953552
+    }
+  ],
+  "invalid_input_rejected": true
+}

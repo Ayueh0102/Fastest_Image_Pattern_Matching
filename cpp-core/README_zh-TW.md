@@ -8,6 +8,8 @@
 - [旋轉盤 3／6 個結果的設定實驗](docs/rotor-validation.json)（原因與演算法對照見稽核報告）
 - [原解析度密集角度搜尋與精修檢查](docs/rotation-search-validation.json)、[對齊比較圖](docs/rotation-search-validation.png)
 - [相同參數下的模式效能比較](docs/mode-benchmark.json)
+- [CPU／Metal／Fourier 實驗方法與重跑](docs/EXPERIMENTS_zh-TW.md)
+- [111 組時間、記憶體與精度實測](docs/EXPERIMENT_RESULTS_zh-TW.md)
 
 GUI 的完整原始碼位於 `../macos-cli/mainwindow.{h,cpp}` 與 `main.cpp`，使用 Qt6。CLI 可選用 OpenCV 解碼圖片。Qt、OpenCV、C++ 標準函式庫本身並未複製進專案；比對核心沒有呼叫它們的影像演算法，也沒有依賴未提供源碼的 FPM DLL／SO。
 
@@ -68,7 +70,25 @@ build/portable/fpm_cli --src "Test Images/Src7.bmp" \
 
 啟用 `--subpixel` 時，最細層會加密角度並反覆重設浮點原點，以減少小模板的平移／角度耦合偏差，代價是增加時間。此圖精修後的一組交疊約 10.006%，請用 `--overlap .2` 避免卡在 .1 的去重疊界限；六個結果中仍有三個分數約 .64～.65。
 
+### 旋轉來源圖與旋轉模板的獨立比較
+
+`tools/audit_rotation_direction.py` 以六個已知位置比較兩個方向；這是 OpenCV 診斷工具，尚未改變 C++／GUI 的來源圖旋轉流程。兩邊均測試雙線性、雙三次、Lanczos4，並各自在種子位置 ±3 px、角度 ±1° 內做局部座標搜尋，最後步距為 0.1 px／0.01°。先用非對稱合成模板的 0°／90°／180° 精確旋轉，確認兩個方向的座標與分數正確。
+
+旋轉模板時遮罩排除外接矩形的空白角落；為排除插值邊界影響，兩個方向一律略去模板最外側 4 px。因此下面數字與完整矩形的正式 matcher 分數稍有不同。雙線性插值的三個低分位置為：
+
+| 位置（診斷 JSON index） | 旋轉來源圖 | 旋轉模板 |
+|---|---:|---:|
+| 3 | 0.648119 | 0.648296 |
+| 4 | 0.647263 | 0.647257 |
+| 5 | 0.637084 | 0.637101 |
+
+六個位置雙線性分數的最大方向差約 0.00018；雙三次與 Lanczos4 也沒有讓低分三個變成高分。這支持「此樣本低分的主要原因不是旋轉哪一邊」，不代表所有影像／模板都等價。兩個方向的離散像素取樣集合不同，此局部搜尋也不是全域最大值證明，更不是速度比較。完整固定姿態與精修結果、輸入／工具雜湊保留於 [rotation-direction-validation.json](docs/rotation-direction-validation.json)。重跑：`python-port/venv/bin/python cpp-core/tools/audit_rotation_direction.py`。
+
 ## 模式、速度與 Subpixel
+
+旋轉、尺度、FFT、RGB 與 CPU／GPU 分工的數學推導及研究原型，見 [研究文件](docs/RESEARCH_FOURIER_SCALE_RGB_zh-TW.md)。正式核心目前仍是固定尺度灰階比對；研究原型未接入 GUI。
+
+`codex/ncc-fourier-gpu-experiments` 已提供可實跑的 C++ 多核與 Metal 浮點／RGB 姿態評分器，透過 `FPM_BUILD_EXPERIMENTS=ON` 額外編譯。實測區分常駐資料的評分時間、含 CPU 提案與同步的 ROI 管線時間、初始化與記憶體；[結果](docs/EXPERIMENT_RESULTS_zh-TW.md) 同時保留小批次 GPU 較慢、Fourier 裁切失敗及回退後仍不夠精確的案例。NumPy FFT 仍在 CPU，CUDA 是尚待實作的對應設計。
 
 2026-10-08，Apple Silicon Release；Src7 4024×3036、Dst7 762×521，target=70、score=.5、angle=180、overlap=.2、minArea=256。各模式先暖機一次，再序列量測三次，取比對時間中位數，排除讀圖與模板學習：
 
