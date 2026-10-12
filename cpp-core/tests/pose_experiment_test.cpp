@@ -67,6 +67,35 @@ static void testRefinement(int backend, int channels, int threads)
         require(std::abs(scores[i]-rescored[i]) < 1e-6, "refinement changed NCC semantics");
         require(stats[i].evaluations >= stats[i].iterations && stats[i].iterations > 0, "refinement stats");
     }
+    const auto referencePoses = output, referenceScores = scores;
+    const FpmPoseRefineStats referenceStats[2] = {stats[0], stats[1]};
+    void* verifier = fpm_pose_create(0, 1, source.data(), sw, sh, templ.data(), tw, th,
+        channels, error, sizeof(error));
+    require(verifier, error);
+    Cleanup verificationCleanup{verifier};
+    std::vector<float> exactInitial(2), exactFinal(2);
+    require(fpm_pose_score(verifier, seeds.data(), 2, exactInitial.data(), &metrics, error, sizeof(error)) == 0, error);
+    for (int polish : {0, 2}) {
+        require(fpm_pose_refine_accelerated(handle, seeds.data(), 2, &config, polish,
+            output.data(), scores.data(), stats, &metrics, error, sizeof(error)) == 0, error);
+        require(metrics.wall_ms >= 0, "accelerated wall time");
+        if (backend == 0) {
+            require(metrics.device_ms == -1, "CPU accelerated fallback mislabeled as GPU");
+            require(output == referencePoses && scores == referenceScores, "CPU accelerated fallback changed results");
+            for (int i = 0; i < 2; ++i)
+                require(stats[i].iterations == referenceStats[i].iterations
+                    && stats[i].evaluations == referenceStats[i].evaluations
+                    && stats[i].status == referenceStats[i].status, "CPU fallback applied extra polish");
+        }
+        require(fpm_pose_score(verifier, output.data(), 2, exactFinal.data(), &metrics, error, sizeof(error)) == 0, error);
+        for (int i = 0; i < 2; ++i) {
+            require(scores[i] == exactFinal[i] && scores[i] >= exactInitial[i], "accelerated CPU-verified score regression");
+            require(std::abs(output[4*i]-tx) < .03 && std::abs(output[4*i+1]-ty) < .03, "accelerated subpixel position");
+            require(std::abs(output[4*i+2]-angle) < .05
+                && std::abs(std::exp(output[4*i+3])/scale-1) < .001, "accelerated rotation/scale");
+            require(stats[i].iterations <= config.max_iterations+polish, "accelerated iteration limit");
+        }
+    }
     config.optimize_scale = config.optimize_angle = 0;
     config.max_translation = .1;
     require(fpm_pose_refine(handle, seeds.data(), 2, &config, output.data(), scores.data(),
@@ -76,13 +105,82 @@ static void testRefinement(int backend, int channels, int threads)
         require(std::abs(output[4*i]-seeds[4*i]) <= .100001f
             && std::abs(output[4*i+1]-seeds[4*i+1]) <= .100001f, "seed-relative bound exceeded");
     }
+    config.max_iterations = 1;
+    require(fpm_pose_refine_accelerated(handle, seeds.data(), 2, &config, 2,
+        output.data(), scores.data(), stats, &metrics, error, sizeof(error)) == 0, error);
+    for (int i = 0; i < 2; ++i) {
+        require(output[4*i+2] == seeds[4*i+2] && output[4*i+3] == seeds[4*i+3], "accelerated frozen parameters changed");
+        require(std::abs(output[4*i]-seeds[4*i]) <= .100001f
+            && std::abs(output[4*i+1]-seeds[4*i+1]) <= .100001f, "accelerated polish escaped original bounds");
+        require(stats[i].iterations <= (backend == 0 ? 1 : 3), "accelerated combined iteration budget");
+    }
+    for (int polish : {-1, 31})
+        require(fpm_pose_refine_accelerated(handle, seeds.data(), 2, &config, polish,
+            output.data(), scores.data(), stats, &metrics, error, sizeof(error)) != 0, "invalid polish iterations accepted");
     config.max_translation = -1;
     require(fpm_pose_refine(handle, seeds.data(), 2, &config, output.data(), scores.data(),
         nullptr, &metrics, error, sizeof(error)) != 0, "invalid refine config accepted");
+    require(fpm_pose_refine_accelerated(handle, seeds.data(), 2, &config, 2, output.data(), scores.data(),
+        nullptr, &metrics, error, sizeof(error)) != 0, "invalid accelerated config accepted");
+    fpm_pose_refine_default_config(&config);
+    for (int iterations : {0, 201}) {
+        config.max_iterations = iterations;
+        require(fpm_pose_refine_accelerated(handle, seeds.data(), 2, &config, 2, output.data(), scores.data(),
+            nullptr, &metrics, error, sizeof(error)) != 0, "invalid accelerated iteration bound accepted");
+    }
+    const float finiteSeed = seeds[0];
+    seeds[0] = std::numeric_limits<float>::quiet_NaN();
+    require(fpm_pose_refine_accelerated(handle, seeds.data(), 2, nullptr, 2, output.data(), scores.data(),
+        nullptr, &metrics, error, sizeof(error)) != 0, "non-finite accelerated seed accepted");
+    seeds[0] = finiteSeed;
     seeds[0] = 5000; seeds[1] = 5000;
     require(fpm_pose_refine(handle, seeds.data(), 1, nullptr, output.data(), scores.data(),
         stats, &metrics, error, sizeof(error)) == 0, error);
     require(scores[0] == -2 && stats[0].status == 2, "outside zero-support patch accepted");
+    require(fpm_pose_refine_accelerated(handle, seeds.data(), 1, nullptr, 0, output.data(), scores.data(),
+        stats, &metrics, error, sizeof(error)) == 0, error);
+    require(scores[0] == -2 && stats[0].status == 2, "accelerated outside-support patch accepted");
+}
+
+static void testNarrowRepresentableBounds(int backend)
+{
+    // At tx=10000 the adjacent floats are 0.0009765625 apart. A +/-0.0006
+    // interval therefore permits ONLY the original tx. Double-clamping then
+    // casting naively used to round outward and accept an illegal better pose.
+    const int sw = 32768, sh = 24, tw = 17, th = 13;
+    const float seed[4] = {10000, 0, 0, 0};
+    std::vector<float> source(size_t(sw)*sh, .2f), templ(size_t(tw)*th);
+    const int centerX = sw/2+10000;
+    for (int y = 0; y < sh; ++y) for (int x = centerX-20; x <= centerX+20; ++x)
+        source[size_t(y)*sw+x] = float(.4+.2*std::sin(.43*(x-centerX)+.16*y)
+            +.1*std::cos(.33*(x-centerX)-.29*y));
+    FpmPoseRefineConfig config;
+    fpm_pose_refine_default_config(&config);
+    config.max_iterations = 3;
+    config.optimize_angle = config.optimize_scale = 0;
+    config.max_translation = .0006;
+    for (double direction : {-1., 1.}) {
+        for (int y = 0; y < th; ++y) for (int x = 0; x < tw; ++x)
+            templ[size_t(y)*tw+x] = float(sampleReference(source, sw, sh, 1,
+                centerX+(x-tw*.5)+direction*.05, sh*.5+(y-th*.5)+direction*.05, 0));
+        char error[1024]{};
+        void* handle = fpm_pose_create(backend, 1, source.data(), sw, sh,
+            templ.data(), tw, th, 1, error, sizeof(error));
+        require(handle, error);
+        struct Cleanup { void* h; ~Cleanup() { fpm_pose_destroy(h); } } cleanup{handle};
+        FpmPoseMetrics metrics{};
+        FpmPoseRefineStats stats{};
+        float output[4]{}, score = 0;
+        for (int accelerated : {0, 1}) {
+            const int result = accelerated
+                ? fpm_pose_refine_accelerated(handle, seed, 1, &config, 2, output, &score, &stats, &metrics, error, sizeof(error))
+                : fpm_pose_refine(handle, seed, 1, &config, output, &score, &stats, &metrics, error, sizeof(error));
+            require(result == 0, error);
+            require(output[0] == seed[0], "float rounding escaped sub-ULP translation bound");
+            require(std::abs(double(output[1])-seed[1]) <= config.max_translation, "float rounding escaped y bound");
+            require(output[2] == seed[2] && output[3] == seed[3], "narrow-bounds frozen parameters changed");
+        }
+    }
 }
 int main(int argc, char**)
 {
@@ -111,6 +209,7 @@ int main(int argc, char**)
             poses[0] = 0;
             require(fpm_pose_score(handle, poses.data(), 1, scores.data(), &metrics, error, sizeof(error)) == 0, "handle unusable after invalid pose");
         }
+        testNarrowRepresentableBounds(backend);
         float x = 0;
         require(!fpm_pose_create(0, 0, &x, 1, 1, &x, 1, 1, 1, error, sizeof(error)), "zero threads accepted");
         require(!fpm_pose_create(0, 1, &x, 1, 1, &x, 1, 1, 2, error, sizeof(error)), "two channels accepted");

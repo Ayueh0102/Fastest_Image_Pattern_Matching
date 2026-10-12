@@ -8,6 +8,7 @@
 #include <cstdio>
 #include <exception>
 #include <functional>
+#include <limits>
 #include <mutex>
 #include <stdexcept>
 #include <thread>
@@ -59,10 +60,16 @@ static PackedPose pack(const double* p)
     return {float(p[0]), float(p[1]), float(scale*std::cos(theta)), float(scale*std::sin(theta))};
 }
 
-struct Linearization {
-    double score = -2;
-    double h[4][4]{}, g[4]{};
-};
+static float boundedFloat(double value, double lower, double upper)
+{
+    // Bounds contain the original float seed, so at least one representable
+    // result exists. Casting a double-clamped endpoint can round OUTSIDE its
+    // interval; move that result inward by one float ULP when necessary.
+    float result = float(std::clamp(value, lower, upper));
+    if (double(result) < lower) result = std::nextafter(result, std::numeric_limits<float>::infinity());
+    if (double(result) > upper) result = std::nextafter(result, -std::numeric_limits<float>::infinity());
+    return result;
+}
 
 // Let c = P I(W(p)), z = c/||c||, tau = P T/||P T||, where P removes
 // the mean independently in each channel. E = 1/2 ||z-tau||^2 = 1-NCC.
@@ -154,9 +161,10 @@ static bool solveDamped(const Linearization& a, double damping, double* step)
 }
 
 static void refineOne(const Data& d, const float* seed, const FpmPoseRefineConfig& config,
-    float* output, float& score, FpmPoseRefineStats& stats)
+    float* output, float& score, FpmPoseRefineStats& stats, const float* boundOrigin = nullptr)
 {
     double p[4] = {seed[0], seed[1], seed[2], seed[3]};
+    if (!boundOrigin) boundOrigin = seed;
     const double bound[4] = {config.max_translation, config.max_translation,
         config.optimize_angle ? config.max_angle_degrees : 0,
         config.optimize_scale ? config.max_log_scale : 0};
@@ -179,9 +187,9 @@ static void refineOne(const Data& d, const float* seed, const FpmPoseRefineConfi
             const double ratio = std::max({1.0, std::abs(step[0])/2,
                 std::abs(step[1])/2, std::abs(step[2])/5, std::abs(step[3])/.1});
             for (int k = 0; k < 4; ++k) {
-                const double lower = std::max(-limit[k], double(seed[k])-bound[k]);
-                const double upper = std::min(limit[k], double(seed[k])+bound[k]);
-                q[k] = float(std::clamp(p[k]+step[k]/ratio, lower, upper));
+                const double lower = std::max(-limit[k], double(boundOrigin[k])-bound[k]);
+                const double upper = std::min(limit[k], double(boundOrigin[k])+bound[k]);
+                q[k] = boundedFloat(p[k]+step[k]/ratio, lower, upper);
                 step[k] = q[k]-p[k];
             }
             small = std::max(std::abs(step[0]), std::abs(step[1])) < 1e-4
@@ -252,11 +260,32 @@ public:
     }
 };
 
+struct AcceleratedState {
+    double pose[4]{}, candidate[4]{};
+    double damping = 1e-3;
+    float initialScore = -2, deviceScore = -2;
+    FpmPoseRefineStats stats{};
+    bool active = false, pending = false;
+};
+struct AcceleratedWorkspace {
+    std::vector<AcceleratedState> states;
+    std::vector<size_t> active, pending, owners;
+    std::vector<PackedPose> packed;
+    std::vector<Linearization> linearizations;
+    std::vector<float> values;
+    uint64_t bytes() const {
+        return states.capacity()*sizeof(AcceleratedState)
+            + (active.capacity()+pending.capacity()+owners.capacity())*sizeof(size_t)
+            + packed.capacity()*sizeof(PackedPose)
+            + linearizations.capacity()*sizeof(Linearization) + values.capacity()*sizeof(float);
+    }
+};
 struct Context {
     Data data;
     std::vector<PackedPose> packed;
     std::unique_ptr<Backend> backend; // destroyed before data
     std::unique_ptr<Cpu> refiner;
+    AcceleratedWorkspace accelerated;
     int threads = 1;
 };
 static void errorMessage(char* error, int cap, const char* message) {
@@ -268,6 +297,147 @@ static size_t imageSize(int w, int h, int c) {
     const size_t size = size_t(w)*h*c;
     if (size > 128*1024*1024) throw std::invalid_argument("experiment image size limit exceeded");
     return size;
+}
+
+struct DeviceTiming {
+    double milliseconds = 0;
+    bool used = false, complete = true;
+    void add(const FpmPoseMetrics& metrics) {
+        used = true;
+        if (!std::isfinite(metrics.device_ms) || metrics.device_ms < 0) complete = false;
+        else milliseconds += metrics.device_ms;
+    }
+    double result() const { return used && complete ? milliseconds : -1; }
+};
+
+// Returns false only if the backend has no derivative implementation. All
+// expensive device operations are batches; the CPU only solves small systems
+// between dispatches, then verifies and optionally polishes the final poses.
+static bool refineAccelerated(Context& ctx, const float* seeds, int count,
+    const FpmPoseRefineConfig& config, int polishIterations, float* output,
+    float* scores, FpmPoseRefineStats* stats, double& deviceMilliseconds)
+{
+    if (!ctx.refiner) ctx.refiner = std::make_unique<Cpu>(ctx.data, ctx.threads);
+    auto& w = ctx.accelerated;
+    w.states.resize(size_t(count));
+    ctx.refiner->parallel(size_t(count), [&](size_t i) {
+        auto& s = w.states[i]; s = {};
+        for (int k = 0; k < 4; ++k) s.pose[k] = seeds[4*i+k];
+        s.initialScore = scoreOne(ctx.data, pack(s.pose));
+        s.stats.evaluations = 1;
+        s.stats.status = s.initialScore == -2 ? 2 : (s.initialScore == 1 ? 0 : 1);
+        s.active = s.initialScore > -2 && s.initialScore < 1;
+    });
+    DeviceTiming timing;
+    const double bound[4] = {config.max_translation, config.max_translation,
+        config.optimize_angle ? config.max_angle_degrees : 0,
+        config.optimize_scale ? config.max_log_scale : 0};
+    const double limit[4] = {1e6, 1e6, 36000, 3};
+    // GPU float reductions can change the last few score bits. Comparisons use
+    // the SAME score kernel on both sides and ignore gains below two float eps.
+    // This tolerance is not an accuracy guarantee; CPU verification below is.
+    constexpr double scoreTolerance = 2*std::numeric_limits<float>::epsilon();
+    for (int iteration = 0; iteration < config.max_iterations; ++iteration) {
+        w.active.clear(); w.packed.clear();
+        for (size_t i = 0; i < w.states.size(); ++i) if (w.states[i].active) {
+            w.active.push_back(i); w.packed.push_back(pack(w.states[i].pose));
+        }
+        if (w.active.empty()) break;
+        FpmPoseMetrics derivativeMetrics{}; derivativeMetrics.device_ms = -1;
+        if (!ctx.backend->linearize(w.packed, config, w.linearizations, derivativeMetrics)) {
+            if (iteration != 0) throw std::runtime_error("derivative backend became unavailable during refinement");
+            return false;
+        }
+        if (w.linearizations.size() != w.active.size()) throw std::runtime_error("invalid derivative batch size");
+        timing.add(derivativeMetrics);
+        if (iteration == 0) {
+            w.values.resize(w.active.size());
+            FpmPoseMetrics scoreMetrics{}; scoreMetrics.device_ms = -1;
+            ctx.backend->score(w.packed, w.values.data(), scoreMetrics);
+            timing.add(scoreMetrics);
+            for (size_t j = 0; j < w.active.size(); ++j) {
+                auto& s = w.states[w.active[j]];
+                s.deviceScore = w.values[j]; ++s.stats.evaluations;
+            }
+        }
+        w.pending.clear();
+        for (size_t j = 0; j < w.active.size(); ++j) {
+            auto& s = w.states[w.active[j]];
+            ++s.stats.iterations; ++s.stats.evaluations;
+            if (w.linearizations[j].score == -2 || s.deviceScore == -2) {
+                s.active = false; s.stats.status = 2;
+            } else if (!std::isfinite(w.linearizations[j].score) || !std::isfinite(s.deviceScore)) {
+                s.active = false; s.stats.status = 3;
+            } else { s.pending = true; w.pending.push_back(j); }
+        }
+        for (int trial = 0; trial < 10 && !w.pending.empty(); ++trial) {
+            w.owners.clear(); w.packed.clear();
+            for (size_t j : w.pending) {
+                const size_t index = w.active[j];
+                auto& s = w.states[index];
+                double step[4]{};
+                if (!solveDamped(w.linearizations[j], s.damping, step)) { s.damping *= 10; continue; }
+                step[2] /= radians;
+                const double ratio = std::max({1.0, std::abs(step[0])/2,
+                    std::abs(step[1])/2, std::abs(step[2])/5, std::abs(step[3])/.1});
+                for (int k = 0; k < 4; ++k) {
+                    const double lower = std::max(-limit[k], double(seeds[4*index+k])-bound[k]);
+                    const double upper = std::min(limit[k], double(seeds[4*index+k])+bound[k]);
+                    s.candidate[k] = boundedFloat(s.pose[k]+step[k]/ratio, lower, upper);
+                    step[k] = s.candidate[k]-s.pose[k];
+                }
+                const bool small = std::max(std::abs(step[0]), std::abs(step[1])) < 1e-4
+                    && std::abs(step[2]) < 1e-4 && std::abs(step[3]) < 1e-6;
+                if (small) { s.active = s.pending = false; s.stats.status = 0; continue; }
+                w.owners.push_back(j); w.packed.push_back(pack(s.candidate));
+            }
+            if (!w.owners.empty()) {
+                w.values.resize(w.owners.size());
+                FpmPoseMetrics scoreMetrics{}; scoreMetrics.device_ms = -1;
+                ctx.backend->score(w.packed, w.values.data(), scoreMetrics);
+                timing.add(scoreMetrics);
+                for (size_t j = 0; j < w.owners.size(); ++j) {
+                    auto& s = w.states[w.active[w.owners[j]]];
+                    ++s.stats.evaluations;
+                    const float next = w.values[j];
+                    if (std::isfinite(next) && double(next) > double(s.deviceScore)+scoreTolerance) {
+                        std::copy(s.candidate, s.candidate+4, s.pose); s.deviceScore = next;
+                        s.damping = std::max(1e-8, s.damping*.3); s.pending = false;
+                    } else s.damping *= 10;
+                }
+            }
+            w.pending.erase(std::remove_if(w.pending.begin(), w.pending.end(),
+                [&](size_t j) { return !w.states[w.active[j]].pending; }), w.pending.end());
+        }
+        for (size_t j : w.pending) {
+            auto& s = w.states[w.active[j]];
+            s.active = s.pending = false; s.stats.status = 3;
+        }
+    }
+    FpmPoseRefineConfig polishConfig = config;
+    polishConfig.max_iterations = polishIterations;
+    ctx.refiner->parallel(size_t(count), [&](size_t i) {
+        auto& s = w.states[i];
+        float verified = scoreOne(ctx.data, pack(s.pose)); ++s.stats.evaluations;
+        if (!std::isfinite(verified) || verified < s.initialScore) {
+            for (int k = 0; k < 4; ++k) s.pose[k] = seeds[4*i+k];
+            verified = s.initialScore; s.stats.status = 3;
+        }
+        if (polishIterations > 0) {
+            float start[4];
+            for (int k = 0; k < 4; ++k) start[k] = float(s.pose[k]);
+            FpmPoseRefineStats polished;
+            refineOne(ctx.data, start, polishConfig, output+4*i, scores[i], polished, seeds+4*i);
+            s.stats.iterations += polished.iterations; s.stats.evaluations += polished.evaluations;
+            s.stats.status = polished.status;
+        } else {
+            for (int k = 0; k < 4; ++k) output[4*i+k] = float(s.pose[k]);
+            scores[i] = verified;
+        }
+        if (stats) stats[i] = s.stats;
+    });
+    deviceMilliseconds = timing.result();
+    return true;
 }
 }
 
@@ -326,7 +496,7 @@ int fpm_pose_memory(void* handle, FpmPoseMetrics* metrics)
     auto& ctx = *static_cast<fpm_exp::Context*>(handle);
     *metrics = {}; metrics->device_ms = -1;
     metrics->host_buffer_bytes = (ctx.data.source.capacity()+ctx.data.templ.capacity())*sizeof(float)
-        + ctx.packed.capacity()*sizeof(fpm_exp::PackedPose);
+        + ctx.packed.capacity()*sizeof(fpm_exp::PackedPose) + ctx.accelerated.bytes();
     ctx.backend->memory(*metrics);
     return 0;
 }
@@ -351,7 +521,7 @@ int fpm_pose_score(void* handle, const float* poses, int count, float* scores,
         }
         ctx.backend->score(ctx.packed, scores, *metrics);
         metrics->host_buffer_bytes = (ctx.data.source.capacity()+ctx.data.templ.capacity())*sizeof(float)
-            + ctx.packed.capacity()*sizeof(PackedPose);
+            + ctx.packed.capacity()*sizeof(PackedPose) + ctx.accelerated.bytes();
         metrics->wall_ms = std::chrono::duration<double, std::milli>(Clock::now()-begin).count();
         errorMessage(error, error_capacity, "");
         return 0;
@@ -398,6 +568,52 @@ int fpm_pose_refine(void* handle, const float* seeds, int count,
             if (stats) stats[i] = localStats;
         });
         fpm_pose_memory(handle, metrics);
+        metrics->wall_ms = std::chrono::duration<double, std::milli>(Clock::now()-begin).count();
+        errorMessage(error, error_capacity, "");
+        return 0;
+    } catch (const std::exception& e) { errorMessage(error, error_capacity, e.what()); return -1; }
+}
+int fpm_pose_refine_accelerated(void* handle, const float* seeds, int count,
+    const FpmPoseRefineConfig* config, int cpu_polish_iterations, float* refined,
+    float* scores, FpmPoseRefineStats* stats, FpmPoseMetrics* metrics,
+    char* error, int error_capacity)
+{
+    using namespace fpm_exp;
+    try {
+        if (!handle || !seeds || !refined || !scores || !metrics || count < 1 || count > 65536)
+            throw std::invalid_argument("invalid refinement arguments (1 <= count <= 65536)");
+        if (cpu_polish_iterations < 0 || cpu_polish_iterations > 30)
+            throw std::invalid_argument("CPU polish iterations must be between 0 and 30");
+        FpmPoseRefineConfig options;
+        fpm_pose_refine_default_config(&options);
+        if (config) options = *config;
+        if (options.max_iterations < 1 || options.max_iterations > 200
+            || (options.optimize_scale != 0 && options.optimize_scale != 1)
+            || (options.optimize_angle != 0 && options.optimize_angle != 1)
+            || !std::isfinite(options.max_translation) || options.max_translation < 0 || options.max_translation > 1024
+            || !std::isfinite(options.max_angle_degrees) || options.max_angle_degrees < 0 || options.max_angle_degrees > 180
+            || !std::isfinite(options.max_log_scale) || options.max_log_scale < 0 || options.max_log_scale > 3)
+            throw std::invalid_argument("invalid refinement configuration");
+        for (int i = 0; i < count; ++i) {
+            const float* p = seeds+size_t(i)*4;
+            for (int j = 0; j < 4; ++j) if (!std::isfinite(p[j])) throw std::invalid_argument("non-finite refinement seed");
+            if (std::abs(p[0]) > 1e6 || std::abs(p[1]) > 1e6 || std::abs(p[2]) > 36000 || std::abs(p[3]) > 3)
+                throw std::invalid_argument("refinement seed outside experiment limits");
+        }
+        auto& ctx = *static_cast<Context*>(handle);
+        if (dynamic_cast<Cpu*>(ctx.backend.get()))
+            return fpm_pose_refine(handle, seeds, count, &options, refined, scores, stats, metrics, error, error_capacity);
+        const auto begin = Clock::now();
+        double deviceTime = -1;
+        if (!refineAccelerated(ctx, seeds, count, options, cpu_polish_iterations,
+            refined, scores, stats, deviceTime)) {
+            const int result = fpm_pose_refine(handle, seeds, count, &options,
+                refined, scores, stats, metrics, error, error_capacity);
+            if (result == 0) metrics->wall_ms = std::chrono::duration<double, std::milli>(Clock::now()-begin).count();
+            return result;
+        }
+        fpm_pose_memory(handle, metrics);
+        metrics->device_ms = deviceTime;
         metrics->wall_ms = std::chrono::duration<double, std::milli>(Clock::now()-begin).count();
         errorMessage(error, error_capacity, "");
         return 0;

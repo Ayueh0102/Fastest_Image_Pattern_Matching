@@ -41,6 +41,8 @@ METHODS = {
     'continuous_cpu': 'CPU coarse + CPU proposals + continuous CPU LM',
     'continuous_metal': 'CPU coarse + Metal proposals + continuous CPU LM',
     'continuous_direct_cpu': 'CPU coarse + continuous CPU LM (no extra proposal bank)',
+    'accelerated_metal': 'CPU coarse + Metal proposals/statistics + CPU small-system solve',
+    'accelerated_direct_metal': 'CPU coarse + Metal statistics + CPU small-system solve (no extra proposals)',
 }
 
 
@@ -177,7 +179,8 @@ class Search:
         self.shape = self.template.shape
         self.source_float = None
         self.method = job['method']
-        self.continuous = self.method.startswith('continuous')
+        self.accelerated = self.method.startswith('accelerated')
+        self.continuous = self.method.startswith('continuous') or self.accelerated
         self.hybrid = self.method.startswith('hybrid') or self.method == 'fourier_metal' or self.continuous
         self.scales = [1.] if self.method == 'cpu_fixed' else case['scales']
         self.allow_scale = len(self.scales) > 1 and self.hybrid
@@ -283,7 +286,7 @@ class Search:
             # A broad, inexpensive orientation/scale proposal bank increases
             # the optimizer's basin. Keep original seeds too; truth is absent.
             initial = poses
-            if self.method != 'continuous_direct_cpu':
+            if self.method not in ('continuous_direct_cpu', 'accelerated_direct_metal'):
                 offsets = np.array(list(itertools.product((0,), (0,),
                     (-6., -3., 0., 3., 6.) if self.rotation else (0.,),
                     (-math.log(1.1), 0., math.log(1.1)) if self.allow_scale else (0.,))), np.float32)
@@ -292,9 +295,14 @@ class Search:
                 best = candidates[np.arange(len(poses)), np.argmax(values, axis=1)]
                 different = np.any(best != poses, axis=1)
                 initial = np.concatenate((poses, best[different]))
-            poses, final_scores, solver_stats, metrics = self.scorer.refine(initial,
-                optimize_scale=self.allow_scale, optimize_angle=self.rotation)
+            options = dict(optimize_scale=self.allow_scale, optimize_angle=self.rotation)
+            solver = self.scorer.refine
+            if self.accelerated:
+                solver = self.scorer.refine_accelerated
+                options['cpu_polish_iterations'] = self.job.get('cpu_polish_iterations', 2)
+            poses, final_scores, solver_stats, metrics = solver(initial, **options)
             self.ncc_ms += metrics['wall_ms']
+            self.gpu_ms += max(0, metrics['device_ms'])
             self.evaluations += sum(s['evaluations'] for s in solver_stats)
         else:
             poses, final_scores = self.refine_grid(poses, origins)
@@ -419,6 +427,7 @@ def main():
     parser.add_argument('--cases', nargs='+')
     parser.add_argument('--held-out', action='store_true')
     parser.add_argument('--prune', action='store_true')
+    parser.add_argument('--cpu-polish-iterations', type=int, default=2)
     args = parser.parse_args()
     if args.worker:
         job = json.loads(args.worker.read_text())
@@ -426,6 +435,8 @@ def main():
         return
     if args.repeats < 1:
         parser.error('repeats must be positive')
+    if not 0 <= args.cpu_polish_iterations <= 30:
+        parser.error('cpu polish iterations must be in [0, 30]')
     args.assets.mkdir(parents=True, exist_ok=True)
     controlled = args.assets/'controlled-real-texture.png'
     truth = controlled_scene(controlled)
@@ -456,7 +467,7 @@ def main():
             methods.append('cpu_grid')
         methods = args.methods or methods
         tasks.extend(dict(case=case, method=method, build=str(args.build.resolve()), repeats=args.repeats,
-                          prune=args.prune) for method in methods)
+                          prune=args.prune, cpu_polish_iterations=args.cpu_polish_iterations) for method in methods)
     np.random.default_rng(27).shuffle(tasks)
     files = [Path(__file__).resolve(), ROOT/'cpp-core/tools/pose_experiment.py',
              ROOT/'cpp-core/tools/benchmark_pose_experiments.py', ROOT/'cpp-core/tools/research_ncc_fourier.py',
@@ -475,6 +486,8 @@ def main():
                                 scale_bank=[.75, 1., 1.25], refinement='6 local grid rounds; float sampling; fixed scale on original images',
                                 continuous='15 angle/scale proposals (5 fixed-scale or 1 translation-only), preserve original + best, C++ CPU analytic LM; Metal only scores proposals',
                                 continuous_direct='Ablation: identical CPU coarse seeds straight to LM without the additional proposal bank',
+                                accelerated='Same seed policy; Metal analytic derivative statistics and NCC proposals, CPU 4x4 solve and exact final score verification/polish',
+                                cpu_polish_iterations=args.cpu_polish_iterations,
                                 coarse_pruning=args.prune,
                                 fourier='local ROI proposal after CPU coarse search; CPU NumPy FFT; retain seed when proposal invalid or scores worse',
                                 raster='OpenCV used for image decoding and independent controlled-scene generation, not matching',

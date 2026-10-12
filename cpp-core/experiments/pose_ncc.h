@@ -68,6 +68,23 @@ FPM_EXP_API void fpm_pose_refine_default_config(FpmPoseRefineConfig* config);
 FPM_EXP_API int fpm_pose_refine(void* handle, const float* seeds, int count,
     const FpmPoseRefineConfig* config, float* refined, float* scores,
     FpmPoseRefineStats* stats, FpmPoseMetrics* metrics, char* error, int error_capacity);
+// Optional device-accelerated refinement: batched derivative reductions and
+// candidate scores on a capable backend, with small CPU solves. GPU acceptance
+// has a float noise tolerance; the trajectory need not equal CPU refinement.
+// Exact CPU verification restores the input seed on final score regression.
+// Optional CPU polish (0..30 iterations) stays inside the ORIGINAL seed bounds.
+// Stats include device iterations, CPU polish and verification evaluations;
+// iterations <= config.max_iterations + cpu_polish_iterations on a device.
+// Status describes the LAST phase (CPU polish, when enabled), not the sum:
+// 1 may mean only the polish budget was exhausted; 0 also covers a seed already
+// scoring 1. A status never certifies geometric accuracy or a global optimum.
+// CPU/unsupported handles explicitly fall back to fpm_pose_refine unchanged:
+// cpu_polish_iterations is validated but ignored, and device_ms remains -1.
+// Device time sums all dispatches, or is -1 if any timestamp is unavailable.
+FPM_EXP_API int fpm_pose_refine_accelerated(void* handle, const float* seeds, int count,
+    const FpmPoseRefineConfig* config, int cpu_polish_iterations, float* refined,
+    float* scores, FpmPoseRefineStats* stats, FpmPoseMetrics* metrics,
+    char* error, int error_capacity);
 FPM_EXP_API void fpm_pose_destroy(void* handle);
 #ifdef __cplusplus
 }

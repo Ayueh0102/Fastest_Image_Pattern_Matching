@@ -51,6 +51,11 @@ class Scorer:
             self.lib.fpm_pose_refine.argtypes = [C.c_void_p, FLOAT_P, C.c_int, C.POINTER(RefineConfig),
                 FLOAT_P, FLOAT_P, C.POINTER(RefineStats), C.POINTER(Metrics), C.c_char_p, C.c_int]
             self.lib.fpm_pose_refine.restype = C.c_int
+        if hasattr(self.lib, 'fpm_pose_refine_accelerated'):
+            self.lib.fpm_pose_refine_accelerated.argtypes = [C.c_void_p, FLOAT_P, C.c_int,
+                C.POINTER(RefineConfig), C.c_int, FLOAT_P, FLOAT_P, C.POINTER(RefineStats),
+                C.POINTER(Metrics), C.c_char_p, C.c_int]
+            self.lib.fpm_pose_refine_accelerated.restype = C.c_int
         self.lib.fpm_pose_device.argtypes = [C.c_void_p]
         self.lib.fpm_pose_device.restype = C.c_char_p
         self.lib.fpm_pose_memory.argtypes = [C.c_void_p, C.POINTER(Metrics)]
@@ -120,6 +125,33 @@ class Scorer:
         if self.lib.fpm_pose_memory(self.handle, C.byref(metrics)):
             raise RuntimeError("Invalid scorer handle")
         return {key: getattr(metrics, key) for key, _ in Metrics._fields_ if key.endswith('bytes')}
+
+    def refine_accelerated(self, seeds, cpu_polish_iterations=2, optimize_scale=True,
+                           optimize_angle=True, max_iterations=30, max_translation=12.,
+                           max_angle_degrees=15., max_log_scale=math.log(1.3)):
+        """Metal statistics + CPU small-system solve and bounded CPU polish.
+
+        CPU handles use the existing portable refinement. Bounds remain relative
+        to each seed. Metrics report total wall and summed GPU command time;
+        CPU solve/polish timings are not separately exposed by the current ABI.
+        """
+        if not hasattr(self.lib, 'fpm_pose_refine_accelerated'):
+            raise RuntimeError('Accelerated refinement is unavailable; rebuild the experimental library')
+        seeds = np.ascontiguousarray(seeds, dtype=np.float32)
+        if seeds.ndim != 2 or seeds.shape[1] != 4:
+            raise ValueError('Expected N x 4 poses')
+        config = RefineConfig(max_iterations, int(optimize_scale), int(optimize_angle),
+                              max_translation, max_angle_degrees, max_log_scale)
+        poses, scores = np.empty_like(seeds), np.empty(len(seeds), np.float32)
+        stats = (RefineStats * len(seeds))()
+        metrics, error = Metrics(), C.create_string_buffer(2048)
+        result = self.lib.fpm_pose_refine_accelerated(self.handle, seeds.ctypes.data_as(FLOAT_P),
+            len(seeds), C.byref(config), cpu_polish_iterations, poses.ctypes.data_as(FLOAT_P),
+            scores.ctypes.data_as(FLOAT_P), stats, C.byref(metrics), error, len(error))
+        if result:
+            raise RuntimeError(error.value.decode())
+        return poses, scores, [{key: getattr(row, key) for key, _ in RefineStats._fields_} for row in stats], \
+            {key: getattr(metrics, key) for key, _ in Metrics._fields_}
 
     def __enter__(self):
         return self

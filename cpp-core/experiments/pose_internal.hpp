@@ -15,11 +15,21 @@ struct Data {
     std::array<double, 3> templateSum{};
     double templateEnergy = 0;
 };
+// Normalized-NCC Gauss-Newton statistics. Translation uses pixels, rotation
+// uses radians, and scale uses log(scale), matching the portable CPU solver.
+struct Linearization {
+    double score = -2;
+    double h[4][4]{}, g[4]{};
+};
 struct Backend {
     virtual ~Backend() = default;
     virtual void score(const std::vector<PackedPose>&, float*, FpmPoseMetrics&) = 0;
     virtual const char* name() const = 0;
     virtual void memory(FpmPoseMetrics&) const {}
+    // Optional batched derivative path. False means unsupported; callers must
+    // explicitly select a CPU fallback rather than mislabeling device work.
+    virtual bool linearize(const std::vector<PackedPose>&, const FpmPoseRefineConfig&,
+        std::vector<Linearization>&, FpmPoseMetrics&) { return false; }
 };
 #ifdef FPM_EXPERIMENT_METAL
 std::unique_ptr<Backend> makeMetal(const Data&);
