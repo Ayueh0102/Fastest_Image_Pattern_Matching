@@ -1,5 +1,6 @@
 """Small ctypes binding for the isolated C++/Metal pose scorer (experimental ABI 1)."""
 import ctypes as C
+import math
 from pathlib import Path
 import sys
 import time
@@ -14,6 +15,16 @@ class Metrics(C.Structure):
 
 
 FLOAT_P = C.POINTER(C.c_float)
+
+
+class RefineConfig(C.Structure):
+    _fields_ = [("max_iterations", C.c_int), ("optimize_scale", C.c_int),
+                ("optimize_angle", C.c_int), ("max_translation", C.c_double),
+                ("max_angle_degrees", C.c_double), ("max_log_scale", C.c_double)]
+
+
+class RefineStats(C.Structure):
+    _fields_ = [("iterations", C.c_int), ("evaluations", C.c_int), ("status", C.c_int)]
 
 
 def library_path(build):
@@ -36,6 +47,10 @@ class Scorer:
         self.lib.fpm_pose_score.argtypes = [C.c_void_p, FLOAT_P, C.c_int, FLOAT_P,
                                             C.POINTER(Metrics), C.c_char_p, C.c_int]
         self.lib.fpm_pose_score.restype = C.c_int
+        if hasattr(self.lib, 'fpm_pose_refine'):
+            self.lib.fpm_pose_refine.argtypes = [C.c_void_p, FLOAT_P, C.c_int, C.POINTER(RefineConfig),
+                FLOAT_P, FLOAT_P, C.POINTER(RefineStats), C.POINTER(Metrics), C.c_char_p, C.c_int]
+            self.lib.fpm_pose_refine.restype = C.c_int
         self.lib.fpm_pose_device.argtypes = [C.c_void_p]
         self.lib.fpm_pose_device.restype = C.c_char_p
         self.lib.fpm_pose_memory.argtypes = [C.c_void_p, C.POINTER(Metrics)]
@@ -76,6 +91,29 @@ class Scorer:
         if getattr(self, "handle", None):
             self.lib.fpm_pose_destroy(self.handle)
             self.handle = None
+
+    def refine(self, seeds, optimize_scale=True, optimize_angle=True, max_iterations=30,
+               max_translation=12., max_angle_degrees=15., max_log_scale=math.log(1.3)):
+        """CPU analytic normalized-NCC LM, including when the scorer is Metal.
+
+        Returns (poses, scores, per-seed statistics, timing/memory metrics).
+        Bounds are relative to each input seed; this is a local optimizer.
+        """
+        seeds = np.ascontiguousarray(seeds, dtype=np.float32)
+        if seeds.ndim != 2 or seeds.shape[1] != 4:
+            raise ValueError('Expected N x 4 poses')
+        config = RefineConfig(max_iterations, int(optimize_scale), int(optimize_angle),
+                              max_translation, max_angle_degrees, max_log_scale)
+        poses, scores = np.empty_like(seeds), np.empty(len(seeds), np.float32)
+        stats = (RefineStats * len(seeds))()
+        metrics, error = Metrics(), C.create_string_buffer(2048)
+        result = self.lib.fpm_pose_refine(self.handle, seeds.ctypes.data_as(FLOAT_P), len(seeds),
+            C.byref(config), poses.ctypes.data_as(FLOAT_P), scores.ctypes.data_as(FLOAT_P),
+            stats, C.byref(metrics), error, len(error))
+        if result:
+            raise RuntimeError(error.value.decode())
+        return poses, scores, [{key: getattr(row, key) for key, _ in RefineStats._fields_} for row in stats], \
+            {key: getattr(metrics, key) for key, _ in Metrics._fields_}
 
     def memory(self):
         metrics = Metrics()

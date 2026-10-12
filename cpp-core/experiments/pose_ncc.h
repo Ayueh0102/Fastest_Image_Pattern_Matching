@@ -40,6 +40,34 @@ FPM_EXP_API int fpm_pose_memory(void* handle, FpmPoseMetrics* metrics);
 // A degenerate template/patch returns -2 (invalid), never a perfect match.
 FPM_EXP_API int fpm_pose_score(void* handle, const float* poses, int count,
     float* scores, FpmPoseMetrics* metrics, char* error, int error_capacity);
+
+// Continuous local refinement; this path runs portable C++ on either kind of
+// handle. It minimizes 1-NCC with an analytic bilinear-sampling Jacobian and a
+// damped Gauss-Newton step. Accepted scores never decrease. This is a local
+// solver, not a guarantee that the best rotation/scale has been found.
+typedef struct FpmPoseRefineConfig {
+    int max_iterations;
+    int optimize_scale;
+    int optimize_angle;
+    double max_translation;         // independent x/y bounds from each input seed
+    double max_angle_degrees;       // angle bound from each input seed
+    double max_log_scale;           // log-scale bound from each input seed
+} FpmPoseRefineConfig;
+typedef struct FpmPoseRefineStats {
+    int iterations;
+    int evaluations;
+    int status;                    // 0: small step, 1: iteration limit,
+                                   // 2: degenerate patch/template, 3: stalled
+} FpmPoseRefineStats;
+// Defaults: 30 iterations, angle/scale enabled, +/-12 px, +/-15 deg,
+// +/-log(1.3). A zero bound freezes that coordinate. Config may be null below.
+FPM_EXP_API void fpm_pose_refine_default_config(FpmPoseRefineConfig* config);
+// Input/output poses have the same layout as score(). Stats may be null.
+// Inputs/outputs must not overlap. Uses the thread count supplied at creation.
+// Refinement reports CPU wall time; device_ms is -1 even for a Metal handle.
+FPM_EXP_API int fpm_pose_refine(void* handle, const float* seeds, int count,
+    const FpmPoseRefineConfig* config, float* refined, float* scores,
+    FpmPoseRefineStats* stats, FpmPoseMetrics* metrics, char* error, int error_capacity);
 FPM_EXP_API void fpm_pose_destroy(void* handle);
 #ifdef __cplusplus
 }

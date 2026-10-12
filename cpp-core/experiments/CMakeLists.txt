@@ -26,6 +26,9 @@ else()
     target_compile_options(fpm_pose_experiment PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 if(FPM_SANITIZERS AND NOT MSVC)
-    target_compile_options(fpm_pose_experiment PRIVATE -fsanitize=address,undefined -fno-omit-frame-pointer)
-    target_link_options(fpm_pose_experiment PRIVATE -fsanitize=address,undefined)
+    # Consumers must use the same libc++ container annotations as this library:
+    # mixed sanitized/unsanitized weak vector instantiations can leave valid
+    # elements poisoned. Propagate instrumentation rather than disable checks.
+    target_compile_options(fpm_pose_experiment PUBLIC -fsanitize=address,undefined -fno-omit-frame-pointer)
+    target_link_options(fpm_pose_experiment PUBLIC -fsanitize=address,undefined)
 endif()

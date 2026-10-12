@@ -76,7 +76,16 @@ public:
     }
     void score(const std::vector<PackedPose>& poses, float* out, FpmPoseMetrics& metrics) override {
         @autoreleasepool {
-            const size_t count = poses.size();
+            // Bound retained auxiliary storage independently of batch size.
+            // Source/template remain resident. One oversized pose is permitted
+            // when its reduction alone exceeds the budget. Buffer replacement
+            // can transiently retain the previous allocation as well.
+            constexpr size_t workspaceBytes = 16 * 1024 * 1024;
+            const size_t partialBytes = size_t(config_.tiles) * 64;
+            const size_t perPose = sizeof(PackedPose) + partialBytes + sizeof(float);
+            const size_t capacity = std::min(poses.size(), std::max(size_t(1),
+                std::min(workspaceBytes / perPose, size_t(device_.maxBufferLength) / partialBytes)));
+            const size_t count = capacity;
             if (!poses_ || poses_.length < count*sizeof(PackedPose)) {
                 // Allocate a complete replacement first; failed growth keeps the old buffers valid.
                 id<MTLBuffer> p = buffer(count*sizeof(PackedPose));
@@ -84,7 +93,12 @@ public:
                 id<MTLBuffer> score = buffer(count*sizeof(float));
                 poses_ = p; partials_ = partial; scores_ = score;
             }
-            std::memcpy(poses_.contents, poses.data(), count*sizeof(PackedPose));
+            metrics.device_ms = 0;
+            bool allChunksTimed = true;
+            for (size_t offset = 0; offset < poses.size(); offset += capacity) {
+              @autoreleasepool {
+            const size_t count = std::min(capacity, poses.size() - offset);
+            std::memcpy(poses_.contents, poses.data() + offset, count*sizeof(PackedPose));
             config_.count = uint32_t(count);
             id<MTLCommandBuffer> command = [queue_ commandBuffer];
             if (!command) throw std::runtime_error("Could not create Metal command buffer");
@@ -108,9 +122,13 @@ public:
             [command commit]; [command waitUntilCompleted];
             if (command.status != MTLCommandBufferStatusCompleted)
                 throw std::runtime_error(command.error ? [[command.error localizedDescription] UTF8String] : "Metal command failed");
-            std::memcpy(out, scores_.contents, count*sizeof(float));
-            if (command.GPUStartTime > 0 && command.GPUEndTime >= command.GPUStartTime)
-                metrics.device_ms = (command.GPUEndTime-command.GPUStartTime)*1000;
+            std::memcpy(out + offset, scores_.contents, count*sizeof(float));
+            if (command.GPUStartTime > 0 && command.GPUEndTime >= command.GPUStartTime) {
+                metrics.device_ms += (command.GPUEndTime-command.GPUStartTime)*1000;
+            } else allChunksTimed = false;
+              }
+            }
+            if (!allChunksTimed) metrics.device_ms = -1;
             memory(metrics);
         }
     }

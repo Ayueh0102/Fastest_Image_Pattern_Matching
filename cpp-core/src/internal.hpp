@@ -29,7 +29,16 @@ struct ScoreMap {
 };
 struct Peak { int x = 0; int y = 0; double score = -std::numeric_limits<double>::infinity(); };
 std::uint64_t dotProduct(const std::uint8_t* a, const std::uint8_t* b, int size, Backend backend);
-ScoreMap ncc(ImageView source, const TemplateLevel& templ, Backend backend);
+struct NccStats {
+	std::uint64_t windows = 0, projectionChecks = 0, partialChecks = 0;
+	std::uint64_t rejected = 0, fullDotProducts = 0, dotPixels = 0;
+};
+// A finite positive rejectBelow enables conservative bounds. Values proven
+// strictly below it may become -infinity; all other values are bit-identical
+// to exhaustive NCC. Nonpositive thresholds bypass bounds (legacy saturation
+// can map large negative numerators to zero). Stats are reset per invocation.
+ScoreMap ncc(ImageView source, const TemplateLevel& templ, Backend backend,
+	double rejectBelow = -std::numeric_limits<double>::infinity(), NccStats* stats = nullptr);
 Peak maximum(const ScoreMap& map);
 std::vector<Peak> selectPeaks(ScoreMap map, int width, int height,
 	int count, double overlap, double threshold, bool blocked);

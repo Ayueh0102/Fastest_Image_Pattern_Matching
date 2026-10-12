@@ -11,6 +11,7 @@
 - [CPU／Metal／Fourier 實驗方法與重跑](docs/EXPERIMENTS_zh-TW.md)
 - [111 組時間、記憶體與精度實測](docs/EXPERIMENT_RESULTS_zh-TW.md)
 - [實圖完整搜尋並排圖、旋轉尺度誤差與 RGB 批次比較](docs/REAL_IMAGE_RESULTS_zh-TW.md)
+- [連續姿態精修、NCC 保守篩選與大量候選記憶體實測](docs/PERFORMANCE_ACCURACY_zh-TW.md)
 
 GUI 的完整原始碼位於 `../macos-cli/mainwindow.{h,cpp}` 與 `main.cpp`，使用 Qt6。CLI 可選用 OpenCV 解碼圖片。Qt、OpenCV、C++ 標準函式庫本身並未複製進專案；比對核心沒有呼叫它們的影像演算法，也沒有依賴未提供源碼的 FPM DLL／SO。
 

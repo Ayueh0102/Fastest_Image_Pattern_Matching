@@ -52,6 +52,9 @@ class Library:
         self.dll.fpm_match.argtypes = [Image, C.c_void_p, C.POINTER(Config), C.POINTER(Result),
                                       C.c_size_t, C.POINTER(C.c_size_t), C.POINTER(C.c_char), C.c_size_t]
         self.dll.fpm_match.restype = C.c_int
+        if hasattr(self.dll, 'fpm_match_pruned'):
+            self.dll.fpm_match_pruned.argtypes = self.dll.fpm_match.argtypes
+            self.dll.fpm_match_pruned.restype = C.c_int
 
     def config(self) -> Config:
         return self.dll.fpm_default_config()
@@ -69,7 +72,7 @@ class Pattern:
         if status:
             raise ValueError(error.value.decode("utf-8", errors="replace"))
 
-    def match(self, image: Image, config: Config | None = None) -> list[dict]:
+    def match(self, image: Image, config: Config | None = None, *, prune: bool = False) -> list[dict]:
         if not self.handle:
             raise ValueError("pattern is closed")
         config = config if config is not None else self.library.config()
@@ -78,7 +81,8 @@ class Pattern:
         results = (Result * config.max_targets)()
         count = C.c_size_t()
         error = C.create_string_buffer(1024)
-        status = self.library.dll.fpm_match(image, self.handle, C.byref(config), results,
+        function = self.library.dll.fpm_match_pruned if prune else self.library.dll.fpm_match
+        status = function(image, self.handle, C.byref(config), results,
                                             len(results), C.byref(count), error, len(error))
         if status:
             raise ValueError(error.value.decode("utf-8", errors="replace") or f"FPM status {status}")

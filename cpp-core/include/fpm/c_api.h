@@ -49,6 +49,11 @@ FPM_API void fpm_destroy(fpm_pattern* pattern);
 FPM_API int fpm_match(fpm_image source, const fpm_pattern* pattern,
 	const fpm_config* config, fpm_result* results, size_t capacity,
 	size_t* count, char* error, size_t error_capacity);
+/* Additive opt-in entry point: conservative coarse NCC rejection. Same ABI 1
+ * structs and result semantics as fpm_match; fine/subpixel maps stay complete. */
+FPM_API int fpm_match_pruned(fpm_image source, const fpm_pattern* pattern,
+	const fpm_config* config, fpm_result* results, size_t capacity,
+	size_t* count, char* error, size_t error_capacity);
 
 #ifdef __cplusplus
 }

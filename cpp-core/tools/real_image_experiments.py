@@ -38,6 +38,9 @@ METHODS = {
     'hybrid_cpu': 'CPU coarse + CPU 8-thread refinement',
     'hybrid_metal': 'CPU coarse + Metal refinement',
     'fourier_metal': 'CPU coarse + Fourier proposals + Metal',
+    'continuous_cpu': 'CPU coarse + CPU proposals + continuous CPU LM',
+    'continuous_metal': 'CPU coarse + Metal proposals + continuous CPU LM',
+    'continuous_direct_cpu': 'CPU coarse + continuous CPU LM (no extra proposal bank)',
 }
 
 
@@ -139,6 +142,30 @@ def controlled_scene(path):
     return truths
 
 
+def held_out_scene(path):
+    """Predetermined held-out full-search scene; poses never enter Search."""
+    template = cv2.imread(str(ROOT/'Test Images/Dst3.bmp'), cv2.IMREAD_GRAYSCALE)
+    canvas = np.full((1200, 1800), 150., np.float32)
+    rng = np.random.default_rng(721106)
+    truths = []
+    for row in range(3):
+        for column in range(4):
+            center = np.array([225.+450*column, 200.+400*row]) + rng.uniform(-35, 35, 2)
+            angle, scale = float(rng.uniform(-180, 180)), float(np.exp(rng.uniform(math.log(.72), math.log(1.28))))
+            theta = math.radians(angle)
+            linear = scale*np.array([[math.cos(theta), math.sin(theta)], [-math.sin(theta), math.cos(theta)]])
+            matrix = np.column_stack((linear, center-linear @ [template.shape[1]/2, template.shape[0]/2]))
+            gain, bias = rng.uniform(.85, 1.1), rng.uniform(-12, 12)
+            patch = cv2.warpAffine(template.astype(np.float32)*gain+bias, matrix, (1800, 1200), flags=cv2.INTER_LINEAR)
+            mask = cv2.warpAffine(np.ones(template.shape, np.float32), matrix, (1800, 1200), flags=cv2.INTER_LINEAR)
+            canvas = canvas*(1-mask)+patch
+            truths.append(dict(index=len(truths), pos_x=float(center[0]), pos_y=float(center[1]),
+                               angle=angle, scale=scale, corners=corners(center, angle, scale, template.shape)))
+    canvas += rng.normal(0, 2, canvas.shape)
+    cv2.imwrite(str(path), np.clip(np.rint(canvas), 0, 255).astype(np.uint8))
+    return truths
+
+
 class Search:
     def __init__(self, job):
         self.job = job
@@ -150,7 +177,8 @@ class Search:
         self.shape = self.template.shape
         self.source_float = None
         self.method = job['method']
-        self.hybrid = self.method.startswith('hybrid') or self.method == 'fourier_metal'
+        self.continuous = self.method.startswith('continuous')
+        self.hybrid = self.method.startswith('hybrid') or self.method == 'fourier_metal' or self.continuous
         self.scales = [1.] if self.method == 'cpu_fixed' else case['scales']
         self.allow_scale = len(self.scales) > 1 and self.hybrid
         self.rotation = case['angle'] != 0
@@ -174,7 +202,7 @@ class Search:
         if self.hybrid:
             self.source_float = self.source.astype(np.float32)/255
             self.scorer = Scorer(job['build'], self.source_float, self.template.astype(np.float32)/255,
-                                 'cpu' if self.method == 'hybrid_cpu' else 'metal', 8)
+                                 'cpu' if self.method.endswith('_cpu') else 'metal', 8)
         self.fourier_cache = {}
         if self.method == 'fourier_metal' and self.rotation:
             for scale in self.scales:
@@ -198,7 +226,7 @@ class Search:
     def coarse(self):
         candidates = []
         for scale, pattern in self.patterns:
-            for match in pattern.match(image_view(self.source), self.config):
+            for match in pattern.match(image_view(self.source), self.config, prune=self.job.get('prune', False)):
                 match['scale'] = scale
                 match['seed_scale'] = scale
                 match['corners'] = corners([match['pos_x'], match['pos_y']], match['angle'], scale, self.shape)
@@ -250,6 +278,36 @@ class Search:
             poses, fft_valid, fft_adopted = self.fourier(seeds, poses)
             fft_ms = (time.perf_counter()-start)*1000
         start = time.perf_counter()
+        solver_stats = []
+        if self.continuous:
+            # A broad, inexpensive orientation/scale proposal bank increases
+            # the optimizer's basin. Keep original seeds too; truth is absent.
+            initial = poses
+            if self.method != 'continuous_direct_cpu':
+                offsets = np.array(list(itertools.product((0,), (0,),
+                    (-6., -3., 0., 3., 6.) if self.rotation else (0.,),
+                    (-math.log(1.1), 0., math.log(1.1)) if self.allow_scale else (0.,))), np.float32)
+                candidates = poses[:, None, :] + offsets[None, :, :]
+                values = self.score(candidates.reshape(-1, 4)).reshape(candidates.shape[:2])
+                best = candidates[np.arange(len(poses)), np.argmax(values, axis=1)]
+                different = np.any(best != poses, axis=1)
+                initial = np.concatenate((poses, best[different]))
+            poses, final_scores, solver_stats, metrics = self.scorer.refine(initial,
+                optimize_scale=self.allow_scale, optimize_angle=self.rotation)
+            self.ncc_ms += metrics['wall_ms']
+            self.evaluations += sum(s['evaluations'] for s in solver_stats)
+        else:
+            poses, final_scores = self.refine_grid(poses, origins)
+        output = []
+        for pose, score in zip(poses, final_scores):
+            center = [float(pose[0]+sw/2), float(sh/2-pose[1])]
+            angle, scale = float((pose[2]+180) % 360-180), math.exp(float(pose[3]))
+            output.append(dict(pos_x=center[0], pos_y=center[1], angle=angle, scale=scale,
+                               score=float(score), corners=corners(center, angle, scale, self.shape)))
+        return output, dict(fft_ms=fft_ms, fft_valid_proposals=fft_valid, fft_adopted_seeds=fft_adopted,
+                            solver_stats=solver_stats, refine_ms=(time.perf_counter()-start)*1000)
+
+    def refine_grid(self, poses, origins):
         offsets = np.array(list(itertools.product((-1, 0, 1), (-1, 0, 1),
                            (-1, 0, 1) if self.rotation else (0,), (-1, 0, 1) if self.allow_scale else (0,))), np.float32)
         steps = np.array([2., 2., 1., math.log(1.12)], np.float32)
@@ -264,17 +322,10 @@ class Search:
                 candidates[:, :, 3] = 0
             scores = self.score(candidates.reshape(-1, 4)).reshape(candidates.shape[:2])
             indices = np.argmax(scores, axis=1)
-            poses = candidates[np.arange(len(seeds)), indices]
-            final_scores = scores[np.arange(len(seeds)), indices]
+            poses = candidates[np.arange(len(poses)), indices]
+            final_scores = scores[np.arange(len(poses)), indices]
             steps *= .5
-        output = []
-        for pose, score in zip(poses, final_scores):
-            center = [float(pose[0]+sw/2), float(sh/2-pose[1])]
-            angle, scale = float((pose[2]+180) % 360-180), math.exp(float(pose[3]))
-            output.append(dict(pos_x=center[0], pos_y=center[1], angle=angle, scale=scale,
-                               score=float(score), corners=corners(center, angle, scale, self.shape)))
-        return output, dict(fft_ms=fft_ms, fft_valid_proposals=fft_valid, fft_adopted_seeds=fft_adopted,
-                            refine_ms=(time.perf_counter()-start)*1000)
+        return poses, final_scores
 
     def run(self):
         self.ncc_ms, self.gpu_ms, self.evaluations = 0., 0., 0
@@ -364,6 +415,10 @@ def main():
     parser.add_argument('--assets', type=Path, default=ROOT/'cpp-core/docs/real-image-experiments')
     parser.add_argument('--repeats', type=int, default=5)
     parser.add_argument('--worker', type=Path)
+    parser.add_argument('--methods', nargs='+', choices=METHODS)
+    parser.add_argument('--cases', nargs='+')
+    parser.add_argument('--held-out', action='store_true')
+    parser.add_argument('--prune', action='store_true')
     args = parser.parse_args()
     if args.worker:
         job = json.loads(args.worker.read_text())
@@ -382,6 +437,16 @@ def main():
                   angle=180, limit=1, proposal_score=.8, score=.8, overlap=0., scales=[1.]),
              dict(name='controlled_scale', source=str(controlled), template=str(ROOT/'Test Images/Dst3.bmp'),
                   angle=180, limit=70, proposal_score=.5, score=.8, overlap=.2, scales=[.75, 1., 1.25], truth=truth)]
+    if args.held_out:
+        held_out = args.assets/'held-out-real-texture.png'
+        cases.append(dict(name='held_out_scale', source=str(held_out), template=str(ROOT/'Test Images/Dst3.bmp'),
+                          angle=180, limit=70, proposal_score=.5, score=.8, overlap=.2,
+                          scales=[.75, 1., 1.25], truth=held_out_scene(held_out)))
+    if args.cases:
+        missing = set(args.cases)-{c['name'] for c in cases}
+        if missing:
+            parser.error(f'Unknown cases: {sorted(missing)}')
+        cases = [c for c in cases if c['name'] in args.cases]
     tasks = []
     for case in cases:
         methods = ['cpu_fixed', 'cpu_fast', 'hybrid_cpu', 'hybrid_metal']
@@ -389,7 +454,9 @@ def main():
             methods.append('fourier_metal')
         if case.get('truth'):
             methods.append('cpu_grid')
-        tasks.extend(dict(case=case, method=method, build=str(args.build.resolve()), repeats=args.repeats) for method in methods)
+        methods = args.methods or methods
+        tasks.extend(dict(case=case, method=method, build=str(args.build.resolve()), repeats=args.repeats,
+                          prune=args.prune) for method in methods)
     np.random.default_rng(27).shuffle(tasks)
     files = [Path(__file__).resolve(), ROOT/'cpp-core/tools/pose_experiment.py',
              ROOT/'cpp-core/tools/benchmark_pose_experiments.py', ROOT/'cpp-core/tools/research_ncc_fourier.py',
@@ -406,6 +473,9 @@ def main():
                   protocol=dict(algorithm='full source search every run; cached template/scorer initialization excluded and separately reported',
                                 candidates='current C++ pyramid/NCC generates all seeds; no saved detections or truth positions',
                                 scale_bank=[.75, 1., 1.25], refinement='6 local grid rounds; float sampling; fixed scale on original images',
+                                continuous='15 angle/scale proposals (5 fixed-scale or 1 translation-only), preserve original + best, C++ CPU analytic LM; Metal only scores proposals',
+                                continuous_direct='Ablation: identical CPU coarse seeds straight to LM without the additional proposal bank',
+                                coarse_pruning=args.prune,
                                 fourier='local ROI proposal after CPU coarse search; CPU NumPy FFT; retain seed when proposal invalid or scores worse',
                                 raster='OpenCV used for image decoding and independent controlled-scene generation, not matching',
                                 truth='only controlled scene: <=2px, <=1deg, <=2% scale; original photos only reference agreement',
@@ -425,8 +495,9 @@ def main():
                   f"{r['algorithm']['median_ms']:.2f} ms; {len(r['runs'][-1]['matches'])} matches; "
                   f"pose TP={r['accuracy']['pose_tp'] if r['accuracy'] else 'unlabeled'}", flush=True)
     for entry in report['results']:
-        baseline = next(r for r in report['results'] if r['job']['case']['name'] == entry['job']['case']['name'] and r['job']['method'] == 'cpu_fixed')
-        entry['result']['reference_agreement'] = compare(baseline['result']['runs'][-1]['matches'], entry['result']['runs'][-1]['matches'])
+        baseline = next((r for r in report['results'] if r['job']['case']['name'] == entry['job']['case']['name'] and r['job']['method'] == 'cpu_fixed'), None)
+        if baseline:
+            entry['result']['reference_agreement'] = compare(baseline['result']['runs'][-1]['matches'], entry['result']['runs'][-1]['matches'])
     args.output.write_text(json.dumps(report, indent=2)+'\n')
     print('Saved', args.output)
 

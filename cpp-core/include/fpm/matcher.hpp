@@ -57,6 +57,9 @@ struct MatchConfig {
 	bool invertSource = false;
 	int stopLayer = 0; // 0 = full precision, 1 = stop at half resolution (legacy FastMode).
 	Backend backend = Backend::Auto;
+	// Opt-in exact threshold bounds at the coarse layer. Fine score maps and
+	// accepted coarse scores are unchanged. Small/unprofitable cases bypass it.
+	bool coarseNccPruning = false;
 };
 
 struct Match {

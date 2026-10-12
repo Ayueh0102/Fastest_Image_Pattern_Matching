@@ -42,14 +42,15 @@ int fpm_learn(fpm_image image, int area, fpm_pattern** out, char* error, size_t 
 	});
 }
 void fpm_destroy(fpm_pattern* pattern) { delete pattern; }
-int fpm_match(fpm_image source, const fpm_pattern* pattern, const fpm_config* config,
-	fpm_result* results, size_t capacity, size_t* count, char* error, size_t errorCapacity)
+static int matchImpl(fpm_image source, const fpm_pattern* pattern, const fpm_config* config,
+	fpm_result* results, size_t capacity, size_t* count, char* error, size_t errorCapacity, bool prune)
 {
 	if (count) *count = 0;
 	return protect(error, errorCapacity, [&]() -> int {
 		if (!pattern || !count || (!results && capacity))
 			throw std::invalid_argument("pattern, count and output buffer must be valid");
 		fpm::MatchConfig c;
+		c.coarseNccPruning = prune;
 		if (config) {
 			c.maxTargets = config->max_targets;
 			c.minScore = config->min_score;
@@ -74,5 +75,15 @@ int fpm_match(fpm_image source, const fpm_pattern* pattern, const fpm_config* co
 		}
 		return FPM_OK;
 	});
+}
+int fpm_match(fpm_image source, const fpm_pattern* pattern, const fpm_config* config,
+	fpm_result* results, size_t capacity, size_t* count, char* error, size_t errorCapacity)
+{
+	return matchImpl(source, pattern, config, results, capacity, count, error, errorCapacity, false);
+}
+int fpm_match_pruned(fpm_image source, const fpm_pattern* pattern, const fpm_config* config,
+	fpm_result* results, size_t capacity, size_t* count, char* error, size_t errorCapacity)
+{
+	return matchImpl(source, pattern, config, results, capacity, count, error, errorCapacity, true);
 }
 } // extern C

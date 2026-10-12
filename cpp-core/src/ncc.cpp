@@ -67,7 +67,8 @@ std::uint64_t dotProduct(const std::uint8_t* a, const std::uint8_t* b, int size,
 	return total;
 }
 
-ScoreMap ncc(ImageView src, const TemplateLevel& templ, Backend backend)
+ScoreMap ncc(ImageView src, const TemplateLevel& templ, Backend backend,
+	double rejectBelow, NccStats* stats)
 {
 	validateImage(src);
 	const auto& t = templ.image;
@@ -75,6 +76,9 @@ ScoreMap ncc(ImageView src, const TemplateLevel& templ, Backend backend)
 	if (t.width() < 1 || t.height() < 1 || width <= 0 || height <= 0)
 		throw std::invalid_argument("NCC template must fit the source");
 	ScoreMap out{width, height, std::vector<double>(std::size_t(width) * height)};
+	NccStats counters;
+	counters.windows = out.values.size();
+	if (stats) *stats = counters;
 	const double area = double(t.width()) * t.height();
 	if (templ.norm * templ.norm / area < DBL_EPSILON) {
 		std::fill(out.values.begin(), out.values.end(), 1.0);
@@ -94,6 +98,52 @@ ScoreMap ncc(ImageView src, const TemplateLevel& templ, Backend backend)
 			squares[i] = squares[i - stride] + square;
 		}
 	}
+	// Integral entries are exact integers within binary64's integer range.
+	// Beyond it, keep the original evaluation path instead of relying on a
+	// cancellation-sensitive bound. The guard is far above practical images.
+	const bool useBounds = std::isfinite(rejectBelow) && rejectBelow > 0 && rejectBelow <= 1 &&
+		area >= 256 && double(src.width) * src.height <= 9007199254740992.0 / 65025;
+	struct Block { int x0, y0, x1, y1; double count, centeredSum; };
+	std::array<Block, 4> blocks{};
+	double templateProjection = 0;
+	bool project = false;
+	// Roundoff allowance covers centering, projection and the learned norm's
+	// area-term sum. Inflate residual energies as well as the final numerator;
+	// candidates on/near the threshold therefore fall back to exact evaluation.
+	const double roundoff = 64 * DBL_EPSILON * area * area * 65025;
+	if (useBounds && t.width() >= 2 && t.height() >= 2) {
+		int index = 0;
+		for (int by = 0; by < 2; ++by) for (int bx = 0; bx < 2; ++bx) {
+			auto& b = blocks[index++];
+			b.x0 = bx * t.width() / 2; b.x1 = (bx + 1) * t.width() / 2;
+			b.y0 = by * t.height() / 2; b.y1 = (by + 1) * t.height() / 2;
+			b.count = double(b.x1 - b.x0) * (b.y1 - b.y0);
+			double sum = 0;
+			for (int y = b.y0; y < b.y1; ++y)
+				for (int x = b.x0; x < b.x1; ++x) sum += t.row(y)[x];
+			b.centeredSum = sum - b.count * templ.mean;
+			templateProjection += b.centeredSum * b.centeredSum / b.count;
+		}
+		// For unstructured patches this bound is at least approximately
+		// sqrt(1 - projected_fraction). Skip it when it is unlikely to reject.
+		project = templateProjection / (templ.norm * templ.norm) > 1 - rejectBelow * rejectBelow + .05;
+	}
+	const bool partial = useBounds && area >= 1024 && rejectBelow >= .5 && t.height() >= 4;
+	std::array<int, 2> checkRows{};
+	std::array<double, 2> prefixTemplateSum{}, tailTemplateEnergy{};
+	if (partial) {
+		checkRows[0] = std::clamp(int(std::ceil(t.height() * (1 - rejectBelow + .1))), 1, t.height() - 2);
+		checkRows[1] = (checkRows[0] + t.height()) / 2;
+		for (int k = 0; k < 2; ++k)
+			for (int y = 0; y < t.height(); ++y)
+				for (int x = 0; x < t.width(); ++x) {
+					if (y < checkRows[k]) prefixTemplateSum[k] += t.row(y)[x];
+					else {
+						const double v = t.row(y)[x] - templ.mean;
+						tailTemplateEnergy[k] += v * v;
+					}
+				}
+	}
 	for (int y = 0; y < height; ++y)
 		for (int x = 0; x < width; ++x) {
 			const std::size_t a = std::size_t(y) * stride + x;
@@ -105,15 +155,69 @@ ScoreMap ncc(ImageView src, const TemplateLevel& templ, Backend backend)
 			if (variance > std::min(0.5, 10 * FLT_EPSILON * square))
 				denominator = std::sqrt(variance) * templ.norm;
 			if (denominator == 0) { out.at(x, y) = 0; continue; }
+			const double sourceMean = sum / area;
+			if (project) {
+				if (stats) ++counters.projectionChecks;
+				double product = 0, projection = 0;
+				for (const auto& block : blocks) {
+					const auto i = a + std::size_t(block.y0) * stride + block.x0;
+					const auto j = a + std::size_t(block.y0) * stride + block.x1;
+					const auto k = a + std::size_t(block.y1) * stride + block.x0;
+					const auto l = a + std::size_t(block.y1) * stride + block.x1;
+					const double centeredSum = sums[l] - sums[j] - sums[k] + sums[i] - block.count * sourceMean;
+					product += centeredSum * block.centeredSum / block.count;
+					projection += centeredSum * centeredSum / block.count;
+				}
+				// Orthogonal projection onto the four rectangular means:
+				// <x,t> <= <Px,Pt> + ||(I-P)x|| ||(I-P)t||.
+				const double sourceResidual = std::max(0.0, variance - projection) + roundoff;
+				const double templateResidual = std::max(0.0, templ.norm * templ.norm - templateProjection) + roundoff;
+				const double upper = product + std::sqrt(sourceResidual * templateResidual) + roundoff;
+				if (upper < rejectBelow * denominator) {
+					out.at(x, y) = -std::numeric_limits<double>::infinity();
+					if (stats) ++counters.rejected;
+					continue;
+				}
+			}
 			double product = 0;
-			for (int ty = 0; ty < t.height(); ++ty)
+			int rows = 0, checkpoint = 0;
+			bool rejected = false;
+			if (!partial) {
+				for (int ty = 0; ty < t.height(); ++ty)
+					product += double(dotProduct(t.row(ty), src.data + std::size_t(y + ty) * src.stride + x, t.width(), backend));
+				rows = t.height();
+			} else for (int ty = 0; ty < t.height(); ++ty) {
 				product += double(dotProduct(t.row(ty), src.data + std::size_t(y + ty) * src.stride + x, t.width(), backend));
+				rows = ty + 1;
+				if (checkpoint >= 2 || rows != checkRows[checkpoint]) continue;
+				if (stats) ++counters.partialChecks;
+				const auto e = a + std::size_t(rows) * stride, f = e + t.width();
+				const double prefixSum = sums[f] - sums[b] - sums[e] + sums[a];
+				const double prefixSquare = squares[f] - squares[b] - squares[e] + squares[a];
+				const double prefixCount = double(rows) * t.width();
+				const double centeredProduct = product - templ.mean * prefixSum -
+					sourceMean * (prefixTemplateSum[checkpoint] - prefixCount * templ.mean);
+				const double tailEnergy = std::max(0.0, square - prefixSquare - 2 * sourceMean * (sum - prefixSum) +
+					(area - prefixCount) * sourceMean * sourceMean) + roundoff;
+				const double upper = centeredProduct +
+					std::sqrt(tailEnergy * (tailTemplateEnergy[checkpoint] + roundoff)) + roundoff;
+				++checkpoint;
+				if (upper < rejectBelow * denominator) { rejected = true; break; }
+			}
+			if (stats) counters.dotPixels += std::uint64_t(rows) * t.width();
+			if (rejected) {
+				out.at(x, y) = -std::numeric_limits<double>::infinity();
+				if (stats) ++counters.rejected;
+				continue;
+			}
+			if (stats) ++counters.fullDotProducts;
 			const double numerator = product - sum * templ.mean;
 			// Original CCOEFF_Denominator's three-way numerical guard.
 			if (std::abs(numerator) < denominator) out.at(x, y) = numerator / denominator;
 			else if (std::abs(numerator) < denominator * 1.125) out.at(x, y) = numerator > 0 ? 1 : -1;
 			else out.at(x, y) = 0;
 		}
+	if (stats) *stats = counters;
 	return out;
 }
 

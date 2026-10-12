@@ -88,6 +88,79 @@ void nccReference()
 	for (int y=0;y<5;++y) for (int x=0;x<7;++x) inverted.row(y)[x] = 255-inverted.row(y)[x];
 	near(ncc(inverted.view(), templ, Backend::Auto).at(0,0), -1);
 }
+void nccPruning()
+{
+	auto verify = [](ImageView source, const TemplateLevel& templ, double threshold, Backend backend) {
+		const auto full = ncc(source, templ, backend);
+		NccStats stats;
+		const auto bounded = ncc(source, templ, backend, threshold, &stats);
+		require(stats.windows == full.values.size(), "NCC stats window count");
+		for (std::size_t i = 0; i < full.values.size(); ++i) {
+			if (std::isfinite(bounded.values[i])) near(bounded.values[i], full.values[i], 0);
+			else require(full.values[i] < threshold, "bound must not reject a score at or above threshold");
+		}
+		const auto a = selectPeaks(full, templ.image.width(), templ.image.height(), 50, .6, threshold, true);
+		const auto b = selectPeaks(bounded, templ.image.width(), templ.image.height(), 50, .6, threshold, true);
+		require(a.size() == b.size(), "pruned peak count must match exhaustive");
+		for (std::size_t i = 0; i < a.size(); ++i)
+			require(a[i].x == b[i].x && a[i].y == b[i].y && a[i].score == b[i].score,
+				"pruning must preserve peak order and scores");
+		return stats;
+	};
+	for (int size : {16, 31, 32, 65}) {
+		auto patch = noise(size, size + 2, 741 + size);
+		auto source = noise(130, 121, 502 + size);
+		paste(source, patch, 5, 8);
+		const auto templ = learnLevel(patch);
+		for (Backend backend : {Backend::Scalar, Backend::Auto})
+			for (double threshold : {-1.0, -.5, 0.0, .5, .8, .99, 1.0}) {
+				const auto stats = verify(source.view(), templ, threshold, backend);
+				if (size >= 32 && threshold >= .8) require(stats.rejected > 0 && stats.partialChecks > 0,
+					"large random template should exercise partial-dot bounds");
+			}
+		// Equality and adjacent representable thresholds at a nonperfect peak.
+		source.row(8)[5] ^= 63;
+		const double equality = ncc(source.view(), templ, Backend::Auto).at(5, 8);
+		for (double threshold : {std::nextafter(equality, 0.0), equality, std::nextafter(equality, 1.0)})
+			verify(source.view(), templ, threshold, Backend::Auto);
+	}
+	Image blockPatch(32, 34);
+	for (int y = 0; y < 34; ++y) for (int x = 0; x < 32; ++x)
+		blockPatch.row(y)[x] = std::uint8_t(20 + (x >= 16 ? 100 : 0) + (y >= 17 ? 70 : 0));
+	auto source = noise(111, 103, 2001);
+	paste(source, blockPatch, 17, 31);
+	const auto structured = learnLevel(blockPatch);
+	const auto projected = verify(source.view(), structured, .8, Backend::Auto);
+	require(projected.projectionChecks > 0 && projected.rejected > 0, "rectangular projection bound exercised");
+	// Odd support, padded stride, low variance and negative legacy saturation.
+	for (int y = 0; y < source.height(); ++y) for (int x = 0; x < source.width(); ++x)
+		source.row(y)[x] = 128 + (source.row(y)[x] % 2);
+	auto low = noise(35, 33, 17);
+	for (int y = 0; y < low.height(); ++y) for (int x = 0; x < low.width(); ++x)
+		low.row(y)[x] = 128 + (low.row(y)[x] % 2);
+	paste(source, low, 23, 17);
+	std::vector<std::uint8_t> padded(120 * 103, 231);
+	for (int y = 0; y < 103; ++y) std::copy_n(source.row(y), 111, padded.data() + y * 120);
+	verify({padded.data(), 111, 103, 120}, learnLevel(low), .95, Backend::Auto);
+	verify(Image(111, 103).view(), structured, .8, Backend::Auto);
+	verify(source.view(), learnLevel(Image(32, 34)), 1, Backend::Auto);
+	Image negative(blockPatch.view());
+	for (int y = 0; y < 34; ++y) for (int x = 0; x < 32; ++x) negative.row(y)[x] = 255 - negative.row(y)[x];
+	verify(negative.view(), structured, .8, Backend::Auto);
+	verify(negative.view(), structured, -1, Backend::Auto);
+	MatchConfig config; config.minScore = .8; config.maxTargets = 3; config.subpixel = true;
+	// No reduction ensures a useful coarse bound, then fine maps are reused
+	// by subpixel fitting. Full end-to-end results must remain identical.
+	const Pattern pattern(low.view(), 10000);
+	const auto full = fpm::match(source.view(), pattern, config);
+	config.coarseNccPruning = true;
+	const auto bounded = fpm::match(source.view(), pattern, config);
+	require(full.size() == bounded.size() && !full.empty(), "bounded matcher count");
+	for (std::size_t i = 0; i < full.size(); ++i) {
+		near(bounded[i].score, full[i].score, 0); near(bounded[i].angle, full[i].angle, 0);
+		near(bounded[i].center.x, full[i].center.x, 0); near(bounded[i].center.y, full[i].center.y, 0);
+	}
+}
 void simdOverflow()
 {
 	std::vector<std::uint8_t> a(200003,255), b(a);
@@ -294,7 +367,7 @@ void fractionalPose()
 }
 int main()
 {
-	const std::pair<const char*,std::function<void()>> tests[]={{"image/pyramid",imageAndPyramid},{"NCC/reference/stride",nccReference},{"SIMD/overflow/tails",simdOverflow},{"peaks/BlockMax",peakExtraction},{"geometry/NMS",geometry},{"match/six-rotated-copies",sixRotatedCopies},{"subpixel/fits",subpixel},{"match/validation/invert",matching},{"rotation/ranges/layer0",rotatedMatching},{"subpixel/known-fractional-pose",fractionalPose}};
+	const std::pair<const char*,std::function<void()>> tests[]={{"image/pyramid",imageAndPyramid},{"NCC/reference/stride",nccReference},{"NCC/conservative-pruning",nccPruning},{"SIMD/overflow/tails",simdOverflow},{"peaks/BlockMax",peakExtraction},{"geometry/NMS",geometry},{"match/six-rotated-copies",sixRotatedCopies},{"subpixel/fits",subpixel},{"match/validation/invert",matching},{"rotation/ranges/layer0",rotatedMatching},{"subpixel/known-fractional-pose",fractionalPose}};
 	int failed=0;
 	for(const auto& test:tests) {
 		try { test.second(); std::cout<<"PASS "<<test.first<<'\n'; }

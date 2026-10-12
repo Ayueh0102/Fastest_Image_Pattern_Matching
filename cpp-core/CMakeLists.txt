@@ -89,6 +89,9 @@ endif()
 
 if(FPM_BUILD_EXPERIMENTS)
     add_subdirectory(experiments)
+    add_executable(fpm_ncc_pruning_benchmark tools/benchmark_ncc_pruning.cpp)
+    target_include_directories(fpm_ncc_pruning_benchmark PRIVATE src)
+    target_link_libraries(fpm_ncc_pruning_benchmark PRIVATE fpm_core)
 endif()
 
 include(GNUInstallDirs)

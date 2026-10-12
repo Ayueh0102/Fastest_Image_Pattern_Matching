@@ -119,7 +119,8 @@ std::vector<Match> match(ImageView source, const Pattern& pattern, const MatchCo
 	for (double angle : coarseAngles(config, ranges, angleStep(top))) {
 		auto canvas = rotateCanvas(topSource.view(), topW, topH, angle, pattern.borderColor());
 		if (canvas.image.width() < topW || canvas.image.height() < topH) continue;
-		auto response = ncc(canvas.image.view(), topTemplate, config.backend);
+		auto response = ncc(canvas.image.view(), topTemplate, config.backend,
+			config.coarseNccPruning ? thresholds[top] : -std::numeric_limits<double>::infinity());
 		for (const auto& peak : selectPeaks(std::move(response), topW, topH,
 			config.maxTargets + EXTRA_CANDIDATES, config.maxOverlap, thresholds[top], blocked)) {
 			const Point rotated{peak.x - canvas.translation.x, peak.y - canvas.translation.y};

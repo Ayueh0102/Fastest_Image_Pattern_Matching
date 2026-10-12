@@ -18,6 +18,8 @@ int main(void)
 	fpm_result result;
 	CHECK(fpm_match(image,pattern,&config,&result,1,&count,error,sizeof(error))==FPM_OK);
 	CHECK(count==1 && result.score>.999 && result.center.x==4 && result.center.y==4);
+	CHECK(fpm_match_pruned(image,pattern,&config,&result,1,&count,error,sizeof(error))==FPM_OK);
+	CHECK(count==1 && result.score>.999 && result.center.x==4 && result.center.y==4);
 	config.max_targets=0;
 	CHECK(fpm_match(image,pattern,&config,&result,1,&count,error,sizeof(error))==FPM_ERROR);
 	CHECK(count==0 && strlen(error)>0);
