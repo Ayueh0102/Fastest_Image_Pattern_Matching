@@ -1,0 +1,28 @@
+{
+  "archive": "raw-results.tar.gz",
+  "bytes": 4660433,
+  "sha256": "351312e7466bc1137a13baae2716bcb7d152f5d096861fb170e6f2a4f94c89a6",
+  "manifest": "sha256.json",
+  "manifest_sha256": "07b472628dd39a2bc6b7d76566919e51cee80c1211d29c7210a3f629e92270cf",
+  "files": 684,
+  "measured_sources": 39,
+  "relocated_summary_byte_identical": true,
+  "artifacts": {
+    "formal-summary.json": {
+      "bytes": 5534524,
+      "sha256": "dfaef3947aef3d82cd30f7883dc8b0700e8a23bf0050c6d154153f12fc615d9e"
+    },
+    "validation.json": {
+      "bytes": 77880,
+      "sha256": "bacd890ccab20e41dab1f0f210e4f032466ccb17162d774debab37f7888f3c82"
+    },
+    "protocol.json": {
+      "bytes": 1355,
+      "sha256": "01d245fa631234c02765ff7f67cfbf0398009557f8d28df98976059ed261bf2a"
+    },
+    "performance.png": {
+      "bytes": 116352,
+      "sha256": "4ef270d4907fa7a0a7632dbdf87c4a81eab3572deb7f54a30b21144dd0448e13"
+    }
+  }
+}

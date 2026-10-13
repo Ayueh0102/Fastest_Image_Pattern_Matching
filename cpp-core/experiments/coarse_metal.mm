@@ -55,7 +55,10 @@ double normalize(double sum, double square, double product,
 class MetalBackend final : public Backend {
     id<MTLDevice> device_;
     id<MTLCommandQueue> queue_;
+    id<MTLLibrary> library_;
     id<MTLComputePipelineState> stats32_, stats64_;
+    id<MTLComputePipelineState> parallelStats32_, parallelStats64_;
+    int coarsePeakMode_ = 0, coarseNccMode_ = 0;
     id<MTLComputePipelineState> pyramidDirect_, pyramidHorizontal_, pyramidVertical_;
     id<MTLComputePipelineState> fineWarp_, fineStats32_, fineStats64_;
     id<MTLBuffer> source_, batchSource_, template_, workspace_;
@@ -116,6 +119,27 @@ class MetalBackend final : public Backend {
                 fineMetrics_.device_ms += 1000 * (command.GPUEndTime - command.GPUStartTime);
         } else fineMetrics_.device_ms = -1;
     }
+    void dispatchCoarse(id<MTLComputeCommandEncoder> encoder,
+        id<MTLComputePipelineState> pipeline, size_t windows) const
+    {
+        if (coarseNccMode_ == 0) {
+            const NSUInteger threads = std::min<NSUInteger>(256, pipeline.maxTotalThreadsPerThreadgroup);
+            [encoder dispatchThreads:MTLSizeMake(windows, 1, 1)
+                threadsPerThreadgroup:MTLSizeMake(threads, 1, 1)];
+            return;
+        }
+        const NSUInteger simdWidth = pipeline.threadExecutionWidth;
+        if (!simdWidth || simdWidth > 1024 || pipeline.maxTotalThreadsPerThreadgroup < simdWidth)
+            throw std::runtime_error("coarse parallel NCC requires complete SIMD groups of at most 1024 lanes");
+        const NSUInteger groups = std::min<NSUInteger>(4, pipeline.maxTotalThreadsPerThreadgroup / simdWidth);
+        const NSUInteger threadgroups = (windows + groups - 1) / groups;
+        // Shader grid indices use uint. The 16 MiB statistics limit normally
+        // makes this automatic; retain an explicit guard if limits change.
+        if (threadgroups > std::numeric_limits<uint32_t>::max() / (groups * simdWidth))
+            throw std::invalid_argument("coarse parallel NCC grid exceeds uint32 indices");
+        [encoder dispatchThreadgroups:MTLSizeMake(threadgroups, 1, 1)
+            threadsPerThreadgroup:MTLSizeMake(groups * simdWidth, 1, 1)];
+    }
 public:
     MetalBackend() {
         @autoreleasepool {
@@ -137,6 +161,7 @@ public:
             id<MTLLibrary> library = [device_ newLibraryWithSource:
                 [NSString stringWithUTF8String:fpmCoarseMetalSource] options:options error:&error];
             if (!library) throw metalError("coarse shader compilation", error);
+            library_ = library;
             stats32_ = [device_ newComputePipelineStateWithFunction:[library newFunctionWithName:@"coarse_stats32"] error:&error];
             if (!stats32_) throw metalError("coarse uint32 pipeline", error);
             stats64_ = [device_ newComputePipelineStateWithFunction:[library newFunctionWithName:@"coarse_stats64"] error:&error];
@@ -165,6 +190,24 @@ public:
     void invalidateFineSource() override {
         fineSources_.clear(); nextFineSourceBuffer_ = 0;
     }
+    void setCoarseOptimization(int peakMode, int nccMode) override {
+        if (peakMode < 0 || peakMode > 1 || nccMode < 0 || nccMode > 1)
+            throw std::invalid_argument("coarse optimization modes must be 0 or 1");
+        if (nccMode == 1 && !parallelStats32_) {
+            @autoreleasepool {
+                NSError* error = nil;
+                const id<MTLComputePipelineState> stats32 = [device_ newComputePipelineStateWithFunction:
+                    [library_ newFunctionWithName:@"coarse_parallel_stats32"] error:&error];
+                if (!stats32) throw metalError("coarse parallel uint32 pipeline", error);
+                const id<MTLComputePipelineState> stats64 = [device_ newComputePipelineStateWithFunction:
+                    [library_ newFunctionWithName:@"coarse_parallel_stats64"] error:&error];
+                if (!stats64) throw metalError("coarse parallel uint64 pipeline", error);
+                parallelStats32_ = stats32; parallelStats64_ = stats64;
+            }
+        }
+        coarsePeakMode_ = peakMode; coarseNccMode_ = nccMode;
+    }
+    bool fastCoarsePeaks() const override { return coarsePeakMode_ == 1; }
     void setFineBatchSize(size_t count) override {
         if (count > 1024) throw std::invalid_argument("fine batch size must be in 0..1024");
         fineBatchSize_ = count;
@@ -526,8 +569,8 @@ public:
                 uploadedTemplate_ = &templ;
             }
             metrics_.upload_ms += elapsed(upload);
-            const id<MTLComputePipelineState> pipeline = use32 ? stats32_ : stats64_;
-            const NSUInteger threads = std::min<NSUInteger>(256, pipeline.maxTotalThreadsPerThreadgroup);
+            const id<MTLComputePipelineState> pipeline = coarseNccMode_ == 1 ?
+                (use32 ? parallelStats32_ : parallelStats64_) : (use32 ? stats32_ : stats64_);
             for (size_t first = 0; first < windows; first += batch) {
                 const size_t count = std::min(batch, windows - first);
                 const Config config{uint32_t(source.width), uint32_t(tw), uint32_t(th),
@@ -541,8 +584,7 @@ public:
                 [encoder setBuffer:template_ offset:0 atIndex:1];
                 [encoder setBuffer:workspace_ offset:0 atIndex:2];
                 [encoder setBytes:&config length:sizeof(config) atIndex:3];
-                [encoder dispatchThreads:MTLSizeMake(count, 1, 1)
-                    threadsPerThreadgroup:MTLSizeMake(threads, 1, 1)];
+                dispatchCoarse(encoder, pipeline, count);
                 [encoder endEncoding];
                 const auto wait = Clock::now();
                 [command commit]; [command waitUntilCompleted];
@@ -650,8 +692,8 @@ public:
                 }
                 metrics_.upload_ms += elapsed(upload);
                 const auto encode = Clock::now();
-                const id<MTLComputePipelineState> pipeline = use32 ? stats32_ : stats64_;
-                const NSUInteger threads = std::min<NSUInteger>(256, pipeline.maxTotalThreadsPerThreadgroup);
+                const id<MTLComputePipelineState> pipeline = coarseNccMode_ == 1 ?
+                    (use32 ? parallelStats32_ : parallelStats64_) : (use32 ? stats32_ : stats64_);
                 id<MTLCommandBuffer> command = [queue_ commandBuffer];
                 if (!command) throw std::runtime_error("Metal batched NCC command buffer creation failed");
                 id<MTLComputeCommandEncoder> encoder = [command computeCommandEncoder];
@@ -666,8 +708,7 @@ public:
                     [encoder setBuffer:batchSource_ offset:sourceOffsets[i] atIndex:0];
                     [encoder setBuffer:workspace_ offset:statisticsOffsets[i] atIndex:2];
                     [encoder setBytes:&config length:sizeof(config) atIndex:3];
-                    [encoder dispatchThreads:MTLSizeMake(item.windows, 1, 1)
-                        threadsPerThreadgroup:MTLSizeMake(threads, 1, 1)];
+                    dispatchCoarse(encoder, pipeline, item.windows);
                 }
                 [encoder endEncoding];
                 executionMetrics_.batch_encode_ms += elapsed(encode);

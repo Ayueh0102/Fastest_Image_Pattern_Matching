@@ -185,6 +185,25 @@ int fpm_frame_create(const FpmFrameConfigV1* config, size_t bytes,
     return FPM_ERROR;
 }
 void fpm_frame_destroy(fpm_frame_handle* frame) { delete frame; }
+int fpm_frame_set_coarse_optimization(fpm_frame_handle* frame,
+    const FpmCoarseOptimizationConfigV1* config, size_t bytes, char* error, size_t capacity)
+{
+    static_assert(sizeof(FpmCoarseOptimizationConfigV1) == 32, "coarse optimization v1 ABI changed");
+    message(error, capacity, "");
+    try {
+        if (!frame || !config || bytes != sizeof(*config) || config->version != 1 ||
+            config->struct_bytes != sizeof(*config) || config->reserved0 || config->reserved1 ||
+            config->peak_mode < 0 || config->peak_mode > 1 || config->ncc_mode < 0 || config->ncc_mode > 1)
+            throw std::invalid_argument("valid coarse optimization v1, exact size and modes 0..1 are required");
+        if (frame->backend) frame->backend->setCoarseOptimization(config->peak_mode, config->ncc_mode);
+        else if (config->peak_mode || config->ncc_mode)
+            throw std::invalid_argument("coarse optimization frame requires Metal backend");
+        return FPM_OK;
+    } catch (const std::exception& e) { message(error, capacity, e.what()); }
+    catch (...) { message(error, capacity, "unknown coarse optimization exception"); }
+    return FPM_ERROR;
+}
+
 int fpm_frame_prepare(fpm_frame_handle* frame, fpm_image source,
     fpm_coarse_handle* const* patterns, size_t patternCount, int invert,
     FpmFrameMetricsV1* metrics, char* error, size_t capacity)

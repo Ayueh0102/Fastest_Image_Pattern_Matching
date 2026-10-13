@@ -19,6 +19,7 @@
 - [NCC 局部錯峰救援、8K／大量候選與 Metal 粗 NCC 比較](docs/NCC_RESCUE_AND_METAL_COARSE_zh-TW.md)
 - [搜尋階段計時、Metal 精確金字塔、角度批次與 8K 時間／記憶體比較](docs/PIPELINE_STAGES_AND_METAL_PYRAMID_zh-TW.md)
 - [同圖跨尺度金字塔共用、Metal 批次細搜尋與完整比較](docs/SHARED_FRAME_AND_FINE_METAL_zh-TW.md)
+- [粗搜尋精確選峰與 GPU NCC 平行方式比較](docs/COARSE_SELECTION_AND_PARALLEL_zh-TW.md)
 
 GUI 的完整原始碼位於 `../macos-cli/mainwindow.{h,cpp}` 與 `main.cpp`，使用 Qt6。CLI 可選用 OpenCV 解碼圖片。Qt、OpenCV、C++ 標準函式庫本身並未複製進專案；比對核心沒有呼叫它們的影像演算法，也沒有依賴未提供源碼的 FPM DLL／SO。
 

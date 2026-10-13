@@ -197,6 +197,7 @@ std::vector<Match> detail::matchWithCoarseNcc(ImageView source, const Pattern& p
 	const Point center{(topSource.width() - 1) * 0.5, (topSource.height() - 1) * 0.5};
 	const auto& topTemplate = levels[top];
 	const int topW = topTemplate.image.width(), topH = topTemplate.image.height();
+	const auto selectCoarsePeaks = provider && provider->fastCoarsePeaks() ? selectPeaksFast : selectPeaks;
 	const bool blocked = double(topSource.width()) * topSource.height() / (double(topW) * topH) > 500 && config.maxTargets > 10;
 	struct Candidate { Point point; double angle; double score; };
 	std::vector<Candidate> candidates;
@@ -229,7 +230,7 @@ std::vector<Match> detail::matchWithCoarseNcc(ImageView source, const Pattern& p
 			profile->scoremap_peak_bytes = std::max(profile->scoremap_peak_bytes, bytes);
 		}
 		StageScope peakStage(stageClock, Stage::PeakSelection);
-		for (const auto& peak : selectPeaks(std::move(response), topW, topH,
+		for (const auto& peak : selectCoarsePeaks(std::move(response), topW, topH,
 			config.maxTargets + EXTRA_CANDIDATES, config.maxOverlap, thresholds[top], blocked)) {
 			const Point rotated{peak.x - canvas.translation.x, peak.y - canvas.translation.y};
 			candidates.push_back({rotate(rotated, center, -angle), angle, peak.score});
@@ -277,7 +278,7 @@ std::vector<Match> detail::matchWithCoarseNcc(ImageView source, const Pattern& p
 					profile->scoremap_peak_bytes = std::max(profile->scoremap_peak_bytes, bytes);
 				}
 				StageScope peakStage(stageClock, Stage::PeakSelection);
-				for (const auto& peak : selectPeaks(std::move(response), topW, topH,
+				for (const auto& peak : selectCoarsePeaks(std::move(response), topW, topH,
 					config.maxTargets + EXTRA_CANDIDATES, config.maxOverlap, thresholds[top], blocked)) {
 					const Point rotated{peak.x - canvas.translation.x, peak.y - canvas.translation.y};
 					candidates.push_back({rotate(rotated, center, -angle), angle, peak.score});

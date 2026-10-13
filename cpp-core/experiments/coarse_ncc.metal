@@ -230,3 +230,54 @@ kernel void fine_stats64(device const uchar* rois [[buffer(0)]],
     sum = fine_simd_sum64(sum); square = fine_simd_sum64(square); product = fine_simd_sum64(product);
     if (lane == 0) output[index] = {sum, square, product};
 }
+
+// Optional coarse path: a complete SIMD group cooperates on one NCC window.
+// The host still uses the identical bounded statistics workspace, chunk/window
+// ordering and binary64 normalization. All terms are nonnegative and the host
+// selects uint32 only when 65025 * template_area <= UINT32_MAX, making both
+// partial sums and the SIMD reductions exact.
+kernel void coarse_parallel_stats32(device const uchar* source [[buffer(0)]],
+    device const uchar* templ [[buffer(1)]], device Coarse32* output [[buffer(2)]],
+    constant CoarseConfig& cfg [[buffer(3)]], uint gid [[thread_position_in_grid]],
+    uint lane [[thread_index_in_simdgroup]], uint simdWidth [[threads_per_simdgroup]])
+{
+    const uint window = gid / simdWidth;
+    if (window >= cfg.count) return; // Uniform within a complete SIMD group.
+    const ulong index = cfg.first_window + window;
+    const ulong y = index / cfg.output_width, x = index % cfg.output_width;
+    const uint area = cfg.tw * cfg.th;
+    uint sum = 0, square = 0, product = 0;
+    for (uint pixel = lane; pixel < area; pixel += simdWidth) {
+        const uint ty = pixel / cfg.tw, tx = pixel % cfg.tw;
+        const uint value = source[(y + ty) * cfg.sw + x + tx];
+        const uint t = templ[pixel];
+        sum += value; square += value * value; product += value * t;
+    }
+    sum = simd_sum(sum); square = simd_sum(square); product = simd_sum(product);
+    if (lane == 0) output[window] = {sum, square, product};
+}
+
+kernel void coarse_parallel_stats64(device const uchar* source [[buffer(0)]],
+    device const uchar* templ [[buffer(1)]], device Coarse64* output [[buffer(2)]],
+    constant CoarseConfig& cfg [[buffer(3)]], uint gid [[thread_position_in_grid]],
+    uint lane [[thread_index_in_simdgroup]], uint simdWidth [[threads_per_simdgroup]])
+{
+    const uint window = gid / simdWidth;
+    if (window >= cfg.count) return;
+    const ulong index = cfg.first_window + window;
+    const ulong y = index / cfg.output_width, x = index % cfg.output_width;
+    // Keep large-template pixel/index arithmetic in 64 bits. Complete sums
+    // are <= 2^53 by the same host guard as the original scalar uint64 path.
+    const ulong area = ulong(cfg.tw) * cfg.th;
+    ulong sum = 0, square = 0, product = 0;
+    for (ulong pixel = lane; pixel < area; pixel += simdWidth) {
+        const ulong ty = pixel / cfg.tw, tx = pixel % cfg.tw;
+        const uint value = source[(y + ty) * cfg.sw + x + tx];
+        const uint t = templ[pixel];
+        sum += value; square += value * value; product += value * t;
+    }
+    // Reuse the proven 16/16/32-bit limb reduction from fine search; no
+    // floating-point conversion or threadgroup memory synchronization.
+    sum = fine_simd_sum64(sum); square = fine_simd_sum64(square); product = fine_simd_sum64(product);
+    if (lane == 0) output[window] = {sum, square, product};
+}

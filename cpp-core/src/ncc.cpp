@@ -270,5 +270,86 @@ std::vector<Peak> selectPeaks(ScoreMap map, int tw, int th, int count,
 	}
 	return peaks;
 }
+
+std::vector<Peak> selectPeaksFast(ScoreMap map, int tw, int th, int count,
+	double overlapRatio, double threshold, bool blocked)
+{
+	// `blocked` chooses only an implementation in the legacy selector. Both
+	// choices have the same score / y / x ordering and suppression rectangle.
+	(void)blocked;
+	std::vector<Peak> peaks;
+	if (count <= 0 || map.width <= 0 || map.height <= 0) return peaks;
+	if (count == 1) {
+		const auto p = maximum(map);
+		if (std::isfinite(p.score) && !(p.score < threshold)) peaks.push_back(p);
+		return peaks;
+	}
+
+	// A bounded tournament tree stores one winner per 32x32 tile. Suppression
+	// only decreases scores: a tile whose winner survives cannot have a new
+	// winner, even if other pixels in that tile have been suppressed. This
+	// avoids rescanning every intersecting block after every selected peak.
+	// The tree has fewer than 4 * tileCount Peak entries, independent of count.
+	constexpr int tileSide = 32;
+	const int columns = (map.width - 1) / tileSide + 1;
+	const int rows = (map.height - 1) / tileSide + 1;
+	const std::size_t tileCount = std::size_t(columns) * rows;
+	std::size_t leafBase = 1;
+	while (leafBase < tileCount) leafBase *= 2;
+	std::vector<Peak> tree(leafBase * 2);
+	auto winner = [](Peak a, Peak b) { return better(b, a) ? b : a; };
+	auto scan = [&](int tx, int ty) {
+		Peak best;
+		const int x0 = tx * tileSide, y0 = ty * tileSide;
+		const int x1 = x0 + std::min(tileSide, map.width - x0);
+		const int y1 = y0 + std::min(tileSide, map.height - y0);
+		for (int y = y0; y < y1; ++y)
+			for (int x = x0; x < x1; ++x) {
+				const Peak p{x, y, map.at(x, y)};
+				if (better(p, best)) best = p;
+			}
+		return best;
+	};
+	for (int ty = 0; ty < rows; ++ty)
+		for (int tx = 0; tx < columns; ++tx)
+			tree[leafBase + std::size_t(ty) * columns + tx] = scan(tx, ty);
+	for (std::size_t node = leafBase; node-- > 1;)
+		tree[node] = winner(tree[node * 2], tree[node * 2 + 1]);
+	for (int i = 0; i < count; ++i) {
+		const auto p = tree[1];
+		// Keep the legacy NaN-threshold behavior and its stop at +infinity.
+		// NaN map values never become winners because better() discards them.
+		if (!std::isfinite(p.score) || p.score < threshold) break;
+		peaks.push_back(p);
+		if (i + 1 == count) break;
+		// Deliberately retain truncation toward zero and the asymmetric legacy
+		// endpoint calculation, including suppression of the selected pixel
+		// when overlapRatio == 1.
+		const double rx = tw * (1 - overlapRatio), ry = th * (1 - overlapRatio);
+		const int left = int(p.x - rx), top = int(p.y - ry);
+		const int x0 = std::max(0, std::min(p.x, left));
+		const int y0 = std::max(0, std::min(p.y, top));
+		const int x1 = std::min(map.width, std::max(p.x + 1, left + int(2 * rx)));
+		const int y1 = std::min(map.height, std::max(p.y + 1, top + int(2 * ry)));
+		for (int y = y0; y < y1; ++y)
+			std::fill_n(map.values.data() + std::size_t(y) * map.width + x0,
+				x1 - x0, -std::numeric_limits<double>::infinity());
+		for (int ty = y0 / tileSide; ty <= (y1 - 1) / tileSide; ++ty)
+			for (int tx = x0 / tileSide; tx <= (x1 - 1) / tileSide; ++tx) {
+				auto node = leafBase + std::size_t(ty) * columns + tx;
+				const auto old = tree[node];
+				if (old.x < x0 || old.x >= x1 || old.y < y0 || old.y >= y1) continue;
+				tree[node] = scan(tx, ty);
+				while (node > 1) {
+					node /= 2;
+					const auto next = winner(tree[node * 2], tree[node * 2 + 1]);
+					const auto previous = tree[node];
+					if (next.score == previous.score && next.x == previous.x && next.y == previous.y) break;
+					tree[node] = next;
+				}
+			}
+	}
+	return peaks;
+}
 } // namespace detail
 } // namespace fpm

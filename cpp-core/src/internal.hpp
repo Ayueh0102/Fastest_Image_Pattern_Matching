@@ -55,6 +55,7 @@ public:
 	// means the provider has left the vector unchanged and requests CPU pyramid.
 	virtual bool buildPyramid(std::vector<Image>&, int) { return false; }
 	virtual std::size_t coarseBatchAngles() const { return 1; }
+	virtual bool fastCoarsePeaks() const { return false; }
 	virtual std::vector<ScoreMap> computeBatch(const std::vector<ImageView>& sources,
 		const TemplateLevel& templ) {
 		std::vector<ScoreMap> result;
@@ -112,6 +113,9 @@ ScoreMap ncc(ImageView source, const TemplateLevel& templ, Backend backend,
 	double rejectBelow = -std::numeric_limits<double>::infinity(), NccStats* stats = nullptr);
 Peak maximum(const ScoreMap& map);
 std::vector<Peak> selectPeaks(ScoreMap map, int width, int height,
+	int count, double overlap, double threshold, bool blocked);
+// Exact tournament selector; legacy selectPeaks remains the default/reference.
+std::vector<Peak> selectPeaksFast(ScoreMap map, int width, int height,
 	int count, double overlap, double threshold, bool blocked);
 double overlap(const Match& a, const Match& b);
 std::vector<Match> suppress(std::vector<Match> candidates, int maxTargets, double maxOverlap);

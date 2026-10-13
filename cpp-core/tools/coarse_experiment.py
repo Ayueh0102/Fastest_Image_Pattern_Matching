@@ -238,6 +238,12 @@ class FineMetricsV1(C.Structure):
             'retained_gpu_bytes', 'peak_batch_maps')]
 
 
+class CoarseOptimizationConfigV1(C.Structure):
+    _fields_ = [('version', C.c_uint32), ('struct_bytes', C.c_uint32),
+                ('peak_mode', C.c_int32), ('ncc_mode', C.c_int32),
+                ('reserved0', C.c_uint64), ('reserved1', C.c_uint64)]
+
+
 class FrameConfigV1(C.Structure):
     _fields_ = [('version', C.c_uint32), ('struct_bytes', C.c_uint32)] + [
         (name, C.c_int32) for name in ('backend', 'pyramid_mode', 'batch_angles', 'fine_batch_size')
@@ -335,6 +341,22 @@ class SourceFrame:
             C.byref(metrics), self.error, len(self.error)))
         self._ready = True
         return _fields_snapshot(metrics)
+
+    def set_coarse_optimization(self, *, peak_mode=0, ncc_mode=0):
+        if not self.handle:
+            raise ValueError('frame is closed')
+        if any(not isinstance(x, int) or x not in (0, 1) for x in (peak_mode, ncc_mode)):
+            raise ValueError('coarse optimization modes must be integers 0 or 1')
+        if not hasattr(self.dll, 'fpm_frame_set_coarse_optimization'):
+            raise RuntimeError('Coarse optimization API unavailable; rebuild experimental library')
+        function = self.dll.fpm_frame_set_coarse_optimization
+        function.argtypes = [C.c_void_p, C.POINTER(CoarseOptimizationConfigV1), C.c_size_t,
+                             C.POINTER(C.c_char), C.c_size_t]
+        function.restype = C.c_int
+        config = CoarseOptimizationConfigV1(1, C.sizeof(CoarseOptimizationConfigV1),
+                                            peak_mode, ncc_mode, 0, 0)
+        self._check(function(self.handle, C.byref(config), C.sizeof(config), self.error, len(self.error)))
+        self.coarse_optimization = dict(peak_mode=peak_mode, ncc_mode=ncc_mode)
 
     def _frame_snapshot(self):
         if not self.handle:

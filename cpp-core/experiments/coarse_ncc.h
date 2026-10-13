@@ -123,6 +123,17 @@ typedef struct FpmFrameMetricsV1 {
     uint64_t generation, models_matched, pyramid_levels, host_pyramid_bytes;
     uint64_t coarse_gpu_bytes, fine_gpu_bytes;
 } FpmFrameMetricsV1;
+/* Optional coarse execution changes; 0 preserves legacy behavior, 1 selects
+ * exact tile-tournament peaks or SIMD-group NCC respectively. Existing frame
+ * and execution v1 structures keep their original layout/reserved semantics. */
+typedef struct FpmCoarseOptimizationConfigV1 {
+    uint32_t version, struct_bytes;
+    int32_t peak_mode, ncc_mode;
+    uint64_t reserved0, reserved1;
+} FpmCoarseOptimizationConfigV1;
+FPM_API int fpm_frame_set_coarse_optimization(fpm_frame_handle* frame,
+    const FpmCoarseOptimizationConfigV1* config, size_t config_bytes,
+    char* error, size_t error_capacity);
 FPM_API void fpm_frame_default_config(FpmFrameConfigV1* config);
 FPM_API int fpm_frame_create(const FpmFrameConfigV1* config, size_t config_bytes,
     fpm_frame_handle** out, char* error, size_t error_capacity);

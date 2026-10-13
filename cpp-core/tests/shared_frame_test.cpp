@@ -10,6 +10,7 @@
 #include <vector>
 
 namespace {
+bool coarseOptimized = false;
 void require(bool value, const char* text) { if (!value) throw std::runtime_error(text); }
 fpm_image view(fpm::ImageView value) { return {value.data, value.width, value.height, value.stride}; }
 fpm::Image noise(int width, int height, unsigned seed)
@@ -62,6 +63,20 @@ struct Frame {
         if (!backend) { config.backend = 0; config.pyramid_mode = 0; config.batch_angles = 1; }
         config.fine_batch_size = fineEnabled ? 128 : 0;
         require(fpm_frame_create(&config, sizeof(config), &value, error, sizeof(error)) == FPM_OK, error);
+        FpmCoarseOptimizationConfigV1 optimization{1, sizeof(FpmCoarseOptimizationConfigV1),
+            coarseOptimized ? 1 : 0, coarseOptimized ? 1 : 0, 0, 0};
+        require(fpm_frame_set_coarse_optimization(value, &optimization, sizeof(optimization), error, sizeof(error)) == FPM_OK, error);
+        auto invalid = optimization; invalid.reserved1 = 1;
+        require(fpm_frame_set_coarse_optimization(value, &invalid, sizeof(invalid), error, sizeof(error)) == FPM_ERROR &&
+            fpm_frame_set_coarse_optimization(value, &optimization, sizeof(optimization)-1, error, sizeof(error)) == FPM_ERROR &&
+            fpm_frame_set_coarse_optimization(value, nullptr, sizeof(optimization), error, sizeof(error)) == FPM_ERROR,
+            "invalid coarse optimization config accepted");
+        invalid = optimization; invalid.peak_mode = 2;
+        require(fpm_frame_set_coarse_optimization(value, &invalid, sizeof(invalid), error, sizeof(error)) == FPM_ERROR,
+            "invalid peak mode accepted");
+        invalid = optimization; invalid.ncc_mode = -1;
+        require(fpm_frame_set_coarse_optimization(value, &invalid, sizeof(invalid), error, sizeof(error)) == FPM_ERROR,
+            "invalid NCC mode accepted");
     }
     ~Frame() { fpm_frame_destroy(value); }
     void prepare(fpm::ImageView source, const std::vector<fpm_coarse_handle*>& models, bool inverted = false) {
@@ -242,8 +257,9 @@ int main(int argc, char** argv)
         "shared-frame/fine diagnostics ABI changed");
     try {
         const bool metal = argc == 2 && std::string(argv[1]) == "--metal";
-        const bool fine = argc == 2 && std::string(argv[1]) == "--fine";
-        require(argc == 1 || metal || fine, "Usage: shared_frame_test [--metal|--fine]");
+        coarseOptimized = argc == 2 && std::string(argv[1]) == "--optimized";
+        const bool fine = coarseOptimized || (argc == 2 && std::string(argv[1]) == "--fine");
+        require(argc == 1 || metal || fine, "Usage: shared_frame_test [--metal|--fine|--optimized]");
         configurationErrors(); lifecycle(metal || fine, fine); templateLifetime(metal || fine, fine);
         std::cout << "Shared source lifecycle, refresh, model identity, exact matching and ABI errors passed\n";
         return 0;
