@@ -1,5 +1,7 @@
 # 搜尋流程分段量測與 Metal 平行化
 
+後續實作與測試見 [跨尺度共用金字塔與 Metal 批次細搜尋](SHARED_FRAME_AND_FINE_METAL_zh-TW.md)；下文保留此輪原始結果。
+
 基準版本 `91842dd`，Apple M4 Pro／48 GiB／macOS 26.6.2。此次先量來源複製、金字塔、粗層旋轉、粗 NCC、峰值選取、細層旋轉、細 NCC、控制與次像素、NMS，再選擇實作。預先約定的驗證方式見 [protocol.json](pipeline-stages/protocol.json)，凍結的舊 binary 雜湊見 [baseline-provenance.json](pipeline-stages/baseline-provenance.json)。正式比較採 6 個場景、10 種執行／計時設定、正反順序各一個獨立程序區塊，每區塊暖機至少 1 秒並量測 5 次。
 
 ## 先量測，再選擇搬移部分

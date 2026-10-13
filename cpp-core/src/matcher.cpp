@@ -132,7 +132,8 @@ std::vector<double> localAngles(double center, double step, const std::vector<An
 }
 
 std::vector<Match> detail::matchWithCoarseNcc(ImageView source, const Pattern& pattern,
-	const MatchConfig& config, CoarseNccProvider* provider, MatchStageProfile* profile)
+	const MatchConfig& config, CoarseNccProvider* provider, MatchStageProfile* profile,
+	const SourcePyramid* prepared)
 {
 	using namespace detail;
 	StageClock stageClock(profile);
@@ -143,30 +144,47 @@ std::vector<Match> detail::matchWithCoarseNcc(ImageView source, const Pattern& p
 	const int tw = levels[0].image.width(), th = levels[0].image.height();
 	if (tw > INT_MAX - 2 * PADDING || th > INT_MAX - 2 * PADDING)
 		throw std::invalid_argument("template too large for ROI padding");
-	if (tw > source.width || th > source.height) return {};
 	const int top = int(levels.size()) - 1;
 	const int stopLayer = std::min(config.stopLayer, top);
-	std::vector<Image> sourcePyramid;
+	if (prepared) {
+		if (prepared->inverted != config.invertSource || prepared->levels.size() < levels.size())
+			throw std::invalid_argument("prepared source pyramid inversion or depth does not match the request");
+		int width = source.width, height = source.height;
+		for (int layer = 0; layer <= top; ++layer) {
+			const auto& image = prepared->levels[layer];
+			if (image.width() != width || image.height() != height)
+				throw std::invalid_argument("prepared source pyramid dimensions do not match the request");
+			width = width/2 + width%2; height = height/2 + height%2;
+		}
+	}
+	if (tw > source.width || th > source.height) return {};
+	std::vector<Image> ownedSourcePyramid;
+	const auto& sourcePyramid = prepared ? prepared->levels : ownedSourcePyramid;
+	if (!prepared) {
+	if (provider) provider->invalidateFineSource();
 	{
 	StageScope stage(stageClock, Stage::Source);
-	sourcePyramid.emplace_back(source);
+	ownedSourcePyramid.emplace_back(source);
 	if (config.invertSource)
 		for (int y = 0; y < source.height; ++y)
 			for (int x = 0; x < source.width; ++x)
-				sourcePyramid[0].row(y)[x] = 255 - sourcePyramid[0].row(y)[x];
+				ownedSourcePyramid[0].row(y)[x] = 255 - ownedSourcePyramid[0].row(y)[x];
 	}
 	{
 	StageScope stage(stageClock, Stage::Pyramid);
-	if (!provider || !provider->buildPyramid(sourcePyramid, top))
+	if (!provider || !provider->buildPyramid(ownedSourcePyramid, top))
 		for (int layer = 1; layer <= top; ++layer)
-			sourcePyramid.push_back(pyrDown(sourcePyramid.back().view()));
+			ownedSourcePyramid.push_back(pyrDown(ownedSourcePyramid.back().view()));
+	}
 	}
 	if (profile) {
-		profile->pyramid_levels = sourcePyramid.size();
-		profile->source_copy_bytes = std::uint64_t(source.width)*source.height;
-		for (const auto& level : sourcePyramid)
+		profile->pyramid_levels = levels.size();
+		profile->source_copy_bytes = prepared ? 0 : std::uint64_t(source.width)*source.height;
+		for (int layer = 0; layer <= top; ++layer) {
+			const auto& level = sourcePyramid[layer];
 			profile->pyramid_live_bytes += std::uint64_t(level.width())*level.height();
-		profile->pyramid_generated_bytes = profile->pyramid_live_bytes-profile->source_copy_bytes;
+		}
+		profile->pyramid_generated_bytes = prepared ? 0 : profile->pyramid_live_bytes-profile->source_copy_bytes;
 	}
 	const auto ranges = config.angleRanges.empty() ?
 		std::vector<AngleRange>{{-config.toleranceAngle, config.toleranceAngle}} : config.angleRanges;
@@ -273,10 +291,13 @@ std::vector<Match> detail::matchWithCoarseNcc(ImageView source, const Pattern& p
 	}
 	if (profile) profile->coarse_candidates = candidates.size();
 	std::vector<Match> refined;
+	const std::size_t fineBatchSize = provider ? provider->fineBatchSize() : 0;
+	if (fineBatchSize > 1024) throw std::runtime_error("fine provider batch size must be at most 1024");
 	// Every candidate is refined before NMS: coarse scores do not bound fine
 	// scores, and many high-scoring candidates can belong to the same object.
 	{
 	StageScope fineStage(stageClock, Stage::FineControl);
+	if (fineBatchSize == 0) {
 	for (const auto& candidate : candidates) {
 		Point point = candidate.point;
 		double angle = candidate.angle;
@@ -395,6 +416,175 @@ std::vector<Match> detail::matchWithCoarseNcc(ImageView source, const Pattern& p
 				}
 			}
 			if (!accepted) break;
+		}
+	}
+	} else {
+		{
+		StageScope stage(stageClock, Stage::FineNcc);
+		provider->beginFineMatch(sourcePyramid);
+		}
+		struct FineState {
+			Point point, anchor;
+			double angle = 0, sampleStep = 0;
+			bool active = true, evaluating = false, hasOutput = false;
+			int resolution = 0, attempt = 0, best = -1;
+			std::vector<double> testAngles;
+			std::vector<ScoreMap> maps;
+			std::vector<Peak> peaks;
+			Match output;
+		};
+		// A bounded candidate group retains the angle planes needed by the
+		// existing quadratic fit. GPU requests are bounded separately below.
+		for (std::size_t first = 0; first < candidates.size(); first += fineBatchSize) {
+			const std::size_t count = std::min(fineBatchSize, candidates.size()-first);
+			std::vector<FineState> states(count);
+			for (std::size_t index = 0; index < count; ++index) {
+				const auto& candidate = candidates[first+index]; auto& state = states[index];
+				state.point = candidate.point; state.angle = candidate.angle;
+				if (stopLayer > 0 && top == stopLayer) {
+					state.active = false;
+					if (candidate.score >= config.minScore) {
+						state.output = makeMatch({state.point.x*2, state.point.y*2}, tw, th, state.angle, candidate.score);
+						state.hasOutput = true;
+					}
+				}
+			}
+			for (int layer = std::max(0, top-1); layer >= stopLayer; --layer) {
+				const auto& templ = levels[layer];
+				const int passes = config.subpixel && layer == 0 ? 3 : 1;
+				if (profile) for (const auto& state : states) if (state.active) ++profile->fine_layer_visits;
+				for (int pass = 0; pass < passes; ++pass) {
+					for (auto& state : states) {
+						state.evaluating = state.active;
+						if (!state.active) continue;
+						if (profile) ++profile->fine_passes;
+						const double scale = top == 0 || pass > 0 ? 1 : 2;
+						state.anchor = {state.point.x*scale, state.point.y*scale};
+						state.sampleStep = angleStep(layer);
+						state.testAngles = localAngles(state.angle, state.sampleStep, ranges);
+						state.resolution = 0; state.attempt = 0;
+					}
+					while (std::any_of(states.begin(), states.end(), [](const FineState& state) { return state.evaluating; })) {
+						std::vector<FineRequest> requests;
+						std::vector<std::pair<std::size_t, std::size_t>> destinations;
+						requests.reserve(fineBatchSize); destinations.reserve(fineBatchSize);
+						auto flush = [&] {
+							if (requests.empty()) return;
+							double rotationWallMs = 0;
+							const double before = profile ? profile->fine_ncc_ms : 0;
+							auto maps = [&] {
+								StageScope stage(stageClock, Stage::FineNcc);
+								return provider->computeFineBatch(sourcePyramid[layer].view(), templ, requests, &rotationWallMs);
+							}();
+							if (!std::isfinite(rotationWallMs) || rotationWallMs < 0)
+								throw std::runtime_error("fine provider returned an invalid rotation wall time");
+							if (profile) {
+								const double rotation = std::min(rotationWallMs, profile->fine_ncc_ms-before);
+								profile->fine_ncc_ms -= rotation; profile->fine_rotation_ms += rotation;
+							}
+							if (maps.size() != requests.size()) throw std::runtime_error("fine provider returned the wrong map count");
+							for (std::size_t index = 0; index < maps.size(); ++index) {
+								auto& map = maps[index];
+								if (map.width != 2*PADDING+1 || map.height != 2*PADDING+1 ||
+									map.values.size() != std::size_t(map.width)*map.height)
+									throw std::runtime_error("fine provider returned an invalid score map");
+								if (profile) {
+									++profile->fine_rotations; ++profile->fine_maps;
+									profile->fine_windows += map.values.size();
+									const auto roiBytes = std::uint64_t(templ.image.width()+2*PADDING)*(templ.image.height()+2*PADDING);
+									profile->fine_roi_total_bytes += roiBytes;
+									profile->fine_roi_peak_bytes = std::max(profile->fine_roi_peak_bytes, roiBytes);
+									const auto mapBytes = std::uint64_t(map.values.size())*sizeof(double);
+									profile->scoremap_total_bytes += mapBytes;
+									profile->scoremap_peak_bytes = std::max(profile->scoremap_peak_bytes, mapBytes);
+								}
+								const auto destination = destinations[index];
+								states[destination.first].maps[destination.second] = std::move(map);
+							}
+							requests.clear(); destinations.clear();
+						};
+						for (std::size_t index = 0; index < count; ++index) {
+							auto& state = states[index];
+							if (!state.evaluating) continue;
+							state.maps.clear(); state.maps.resize(state.testAngles.size());
+							state.peaks.clear(); state.best = -1;
+							for (std::size_t angle = 0; angle < state.testAngles.size(); ++angle) {
+								requests.push_back({state.anchor, state.testAngles[angle]}); destinations.push_back({index, angle});
+								if (requests.size() == fineBatchSize) flush();
+							}
+						}
+						flush();
+						for (auto& state : states) {
+							if (!state.evaluating) continue;
+							{
+							StageScope peakStage(stageClock, Stage::PeakSelection);
+							for (const auto& map : state.maps) {
+								state.peaks.push_back(maximum(map));
+								const int index = int(state.peaks.size())-1;
+								if (state.best < 0 || state.peaks[index].score > state.peaks[state.best].score) state.best = index;
+							}
+							}
+							// Resume precisely where the original nested bracketing
+							// loops would request their next evaluateAngles() call.
+							if (config.subpixel && layer == 0) {
+								if (state.attempt < 3 && state.best >= 0 && state.testAngles.size() > 1 &&
+									!(state.best > 0 && state.best+1 < int(state.testAngles.size()))) {
+									auto next = localAngles(state.testAngles[state.best], state.sampleStep, ranges);
+									if (next != state.testAngles) {
+										state.testAngles = std::move(next); ++state.attempt;
+										continue;
+									}
+								}
+								if (state.resolution < 2 && state.best >= 0 && state.testAngles.size() >= 2) {
+									state.sampleStep *= 0.5;
+									state.testAngles = localAngles(state.testAngles[state.best], state.sampleStep, ranges);
+									++state.resolution; state.attempt = 0;
+									continue;
+								}
+							}
+							state.evaluating = false;
+							const int best = state.best;
+							if (best < 0 || state.peaks[best].score < thresholds[layer]) { state.active = false; continue; }
+							const Peak peak = state.peaks[best];
+							Point location{double(peak.x), double(peak.y)};
+							auto& angle = state.angle; const auto& testAngles = state.testAngles;
+							const auto& maps = state.maps; const double sampleStep = state.sampleStep;
+							angle = testAngles[best];
+							if (config.subpixel && layer == 0 && peak.x > 0 && peak.y > 0 && peak.x+1 < maps[best].width && peak.y+1 < maps[best].height) {
+								bool refined3d = false;
+								if (best > 0 && best+1 < int(testAngles.size()) &&
+									std::abs(normalizeAngle(angle-testAngles[best-1])-sampleStep) < 1e-8 &&
+									std::abs(normalizeAngle(testAngles[best+1]-angle)-sampleStep) < 1e-8) {
+									std::array<double, 27> samples{}; int index = 0;
+									for (int k = best-1; k <= best+1; ++k)
+										for (int y = -1; y <= 1; ++y)
+											for (int x = -1; x <= 1; ++x) samples[index++] = maps[k].at(peak.x+x, peak.y+y);
+									std::array<double, 3> offset{};
+									if (refine3d(samples, offset) && allowed(angle+offset[2]*sampleStep, ranges)) {
+										location.x += offset[0]; location.y += offset[1]; angle += offset[2]*sampleStep; refined3d = true;
+									}
+								}
+								if (!refined3d) {
+									std::array<double, 9> samples{}; int index = 0;
+									for (int y = -1; y <= 1; ++y)
+										for (int x = -1; x <= 1; ++x) samples[index++] = maps[best].at(peak.x+x, peak.y+y);
+									Point offset;
+									if (refine2d(samples, offset)) { location.x += offset.x; location.y += offset.y; }
+								}
+							}
+							const Point delta = rotate({location.x-PADDING, location.y-PADDING}, {0, 0}, -angle);
+							state.point = {state.anchor.x+delta.x, state.anchor.y+delta.y};
+							if (pass+1 == passes && layer == stopLayer && peak.score >= config.minScore && allowed(angle, ranges)) {
+								const double outputScale = stopLayer == 0 ? 1 : 2;
+								state.output = makeMatch({state.point.x*outputScale, state.point.y*outputScale}, tw, th, angle, peak.score);
+								state.hasOutput = true;
+							}
+						}
+					}
+				}
+			}
+			// GPU completion order cannot change stable candidate ties or NMS.
+			for (const auto& state : states) if (state.hasOutput) refined.push_back(state.output);
 		}
 	}
 	}

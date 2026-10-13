@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: BSD-2-Clause
 #include "coarse_internal.hpp"
 #include "coarse_metal_source.hpp"
+#include "fine_sampling.hpp"
 #import <Foundation/Foundation.h>
 #import <Metal/Metal.h>
 #include <algorithm>
 #include <cfloat>
+#include <climits>
 #include <chrono>
 #include <cmath>
 #include <cstring>
@@ -55,12 +57,26 @@ class MetalBackend final : public Backend {
     id<MTLCommandQueue> queue_;
     id<MTLComputePipelineState> stats32_, stats64_;
     id<MTLComputePipelineState> pyramidDirect_, pyramidHorizontal_, pyramidVertical_;
+    id<MTLComputePipelineState> fineWarp_, fineStats32_, fineStats64_;
     id<MTLBuffer> source_, batchSource_, template_, workspace_;
     id<MTLBuffer> pyramidInput_, pyramidOutput_, pyramidScratch_;
     const fpm::TemplateLevel* uploadedTemplate_ = nullptr;
     FpmCoarseMetrics metrics_{};
     FpmCoarseExecutionConfigV1 execution_{1, sizeof(FpmCoarseExecutionConfigV1), 0, 1, 0, 0};
     FpmCoarseExecutionMetricsV1 executionMetrics_{};
+    FpmFineMetricsV1 fineMetrics_{};
+    size_t fineBatchSize_ = 0, nextFineSourceBuffer_ = 0;
+    id<MTLBuffer> fineRois_, fineGuards_, fineDescriptors_, fineStatistics_, fineTemplate_;
+    const fpm::TemplateLevel* uploadedFineTemplate_ = nullptr;
+    struct FineSource {
+        fpm::ImageView view;
+        id<MTLBuffer> buffer;
+        size_t offset;
+    };
+    std::vector<FineSource> fineSources_;
+    // Only these source buffers are owned exclusively by fine search. Aliases
+    // of the already-accounted pyramid input/output must not be counted again.
+    std::vector<id<MTLBuffer>> fineSourceBuffers_;
 
     void ensure(id<MTLBuffer> __strong& buffer, size_t bytes, double* setup = nullptr) {
         if (buffer && buffer.length >= bytes) return;
@@ -71,6 +87,34 @@ class MetalBackend final : public Backend {
         if (!replacement) throw std::runtime_error("Metal buffer allocation failed");
         buffer = replacement;
         (setup ? *setup : metrics_.setup_ms) += elapsed(start);
+    }
+    FineSource fineSource(fpm::ImageView source) {
+        for (const auto& existing : fineSources_)
+            if (existing.view.data == source.data && existing.view.width == source.width &&
+                existing.view.height == source.height && existing.view.stride == source.stride)
+                return existing;
+        if (nextFineSourceBuffer_ == fineSourceBuffers_.size()) fineSourceBuffers_.push_back(nil);
+        auto& buffer = fineSourceBuffers_[nextFineSourceBuffer_++];
+        ensure(buffer, size_t(source.width) * source.height, &fineMetrics_.setup_ms);
+        const auto upload = Clock::now();
+        for (int y = 0; y < source.height; ++y)
+            std::memcpy(static_cast<uint8_t*>(buffer.contents) + size_t(y) * source.width,
+                source.data + size_t(y) * source.stride, source.width);
+        fineMetrics_.upload_ms += elapsed(upload);
+        ++fineMetrics_.source_uploads;
+        fineMetrics_.source_upload_bytes += uint64_t(source.width) * source.height;
+        fineSources_.push_back({source, buffer, 0});
+        return fineSources_.back();
+    }
+    void finishFineCommand(id<MTLCommandBuffer> command, const char* stage) {
+        const auto wait = Clock::now();
+        [command commit]; [command waitUntilCompleted];
+        fineMetrics_.wait_ms += elapsed(wait); ++fineMetrics_.command_buffers;
+        if (command.status != MTLCommandBufferStatusCompleted) throw metalError(stage, command.error);
+        if (command.GPUEndTime > command.GPUStartTime && command.GPUStartTime > 0) {
+            if (fineMetrics_.device_ms >= 0)
+                fineMetrics_.device_ms += 1000 * (command.GPUEndTime - command.GPUStartTime);
+        } else fineMetrics_.device_ms = -1;
     }
 public:
     MetalBackend() {
@@ -103,9 +147,48 @@ public:
             if (!pyramidHorizontal_) throw metalError("pyramid horizontal pipeline", error);
             pyramidVertical_ = [device_ newComputePipelineStateWithFunction:[library newFunctionWithName:@"pyramid_vertical"] error:&error];
             if (!pyramidVertical_) throw metalError("pyramid vertical pipeline", error);
+            fineWarp_ = [device_ newComputePipelineStateWithFunction:[library newFunctionWithName:@"fine_guarded_warp"] error:&error];
+            if (!fineWarp_) throw metalError("fine guarded warp pipeline", error);
+            fineStats32_ = [device_ newComputePipelineStateWithFunction:[library newFunctionWithName:@"fine_stats32"] error:&error];
+            if (!fineStats32_) throw metalError("fine uint32 pipeline", error);
+            fineStats64_ = [device_ newComputePipelineStateWithFunction:[library newFunctionWithName:@"fine_stats64"] error:&error];
+            if (!fineStats64_) throw metalError("fine uint64 pipeline", error);
         }
     }
-    void resetMetrics() override { metrics_ = {}; executionMetrics_ = {}; }
+    void resetMetrics() override {
+        metrics_ = {}; executionMetrics_ = {}; fineMetrics_ = {};
+        // A shared frame may visit new pattern objects at recycled addresses.
+        // Revalidate template content once per model; source-frame identities
+        // remain valid until explicit invalidateFineSource/prepare.
+        uploadedTemplate_ = nullptr; uploadedFineTemplate_ = nullptr;
+    }
+    void invalidateFineSource() override {
+        fineSources_.clear(); nextFineSourceBuffer_ = 0;
+    }
+    void setFineBatchSize(size_t count) override {
+        if (count > 1024) throw std::invalid_argument("fine batch size must be in 0..1024");
+        fineBatchSize_ = count;
+    }
+    size_t fineBatchSize() const override { return fineBatchSize_; }
+    void beginFineMatch(const std::vector<fpm::Image>&) override {
+        // Each new model must upload its template even if its address was reused.
+        // Do not invalidate immutable source levels shared by other scale models.
+        uploadedFineTemplate_ = nullptr;
+    }
+    FpmFineMetricsV1 fineMetrics() const override {
+        auto m = fineMetrics_;
+        m.version = 1; m.struct_bytes = sizeof(m);
+        m.source_buffer_bytes = 0;
+        for (const auto& buffer : fineSourceBuffers_) if (buffer) m.source_buffer_bytes += buffer.length;
+        m.roi_buffer_bytes = fineRois_ ? fineRois_.length : 0;
+        m.guard_buffer_bytes = fineGuards_ ? fineGuards_.length : 0;
+        m.descriptor_buffer_bytes = fineDescriptors_ ? fineDescriptors_.length : 0;
+        m.statistics_buffer_bytes = fineStatistics_ ? fineStatistics_.length : 0;
+        m.template_buffer_bytes = fineTemplate_ ? fineTemplate_.length : 0;
+        m.retained_gpu_bytes = m.source_buffer_bytes + m.roi_buffer_bytes + m.guard_buffer_bytes +
+            m.descriptor_buffer_bytes + m.statistics_buffer_bytes + m.template_buffer_bytes;
+        return m;
+    }
     void setExecution(const FpmCoarseExecutionConfigV1& config) override {
         if (config.version != 1 || config.struct_bytes != sizeof(config) ||
             config.pyramid_mode < 0 || config.pyramid_mode > 2 ||
@@ -139,6 +222,7 @@ public:
     }
     bool buildPyramid(std::vector<fpm::Image>& pyramid, int top) override {
         if (execution_.pyramid_mode == 0) return false;
+        invalidateFineSource();
         @autoreleasepool {
             const auto start = Clock::now();
             if (pyramid.size() != 1 || top < 0)
@@ -227,10 +311,181 @@ public:
                 std::memcpy(pyramid.back().row(0),
                     static_cast<const uint8_t*>(pyramidOutput_.contents) + level.offset, level.bytes);
             }
+            // The GPU already owns byte-identical frame levels. Fine search can
+            // read these directly; only metadata is cached, never stale pixels.
+            fineSources_.push_back({pyramid.front().view(), pyramidInput_, 0});
+            for (size_t layer = 0; layer < levels.size(); ++layer)
+                fineSources_.push_back({pyramid[layer + 1].view(), pyramidOutput_, levels[layer].offset});
             executionMetrics_.pyramid_copyout_ms += elapsed(copyout);
             executionMetrics_.pyramid_levels += levels.size();
             executionMetrics_.pyramid_wall_ms += elapsed(start);
             return true;
+        }
+    }
+    std::vector<fpm::detail::ScoreMap> computeFineBatch(fpm::ImageView source,
+        const fpm::TemplateLevel& templ, const std::vector<fpm::detail::FineRequest>& requests,
+        double* rotationWallMs) override
+    {
+        if (rotationWallMs) *rotationWallMs = 0;
+        if (!fineBatchSize_) throw std::runtime_error("fine GPU batching was not enabled");
+        @autoreleasepool {
+            const auto start = Clock::now();
+            ++fineMetrics_.calls;
+            fpm::detail::validateImage(source);
+            const int tw = templ.image.width(), th = templ.image.height();
+            if (tw < 1 || th < 1 || tw > INT_MAX - 2 * fpm::detail::PADDING ||
+                th > INT_MAX - 2 * fpm::detail::PADDING)
+                throw std::invalid_argument("fine template dimensions exceed ROI limits");
+            const int rw = tw + 2 * fpm::detail::PADDING, rh = th + 2 * fpm::detail::PADDING;
+            const size_t roiPixels = size_t(rw) * rh, roiStride = alignedBytes(roiPixels);
+            // A hard arena limit is explicit, rather than an unreported CPU
+            // fallback or an unbounded allocation for an oversized template.
+            if (roiStride > SOURCE_ARENA_LIMIT)
+                throw std::invalid_argument("fine ROI exceeds the 64 MiB Metal arena limit");
+            const uint64_t area = uint64_t(tw) * th;
+            if (area > (uint64_t(1) << 53) / 65025)
+                throw std::invalid_argument("template exceeds exact NCC statistics range");
+            constexpr int outputWidth = 2 * fpm::detail::PADDING + 1;
+            constexpr size_t windowsPerMap = size_t(outputWidth) * outputWidth;
+            const bool use32 = area <= std::numeric_limits<uint32_t>::max() / uint64_t(65025);
+            const size_t itemBytes = use32 ? sizeof(Stats32) : sizeof(Stats64);
+            const size_t maxMaps = std::min({fineBatchSize_, SOURCE_ARENA_LIMIT / roiStride,
+                WORKSPACE_LIMIT / (windowsPerMap * itemBytes)});
+            std::vector<fpm::detail::ScoreMap> maps;
+            maps.reserve(requests.size());
+            if (requests.empty()) {
+                fineMetrics_.wall_ms += elapsed(start);
+                return maps;
+            }
+            const auto resident = fineSource(source);
+            ensure(fineTemplate_, size_t(area), &fineMetrics_.setup_ms);
+            if (uploadedFineTemplate_ != &templ) {
+                const auto upload = Clock::now();
+                std::memcpy(fineTemplate_.contents, templ.image.view().data, size_t(area));
+                fineMetrics_.upload_ms += elapsed(upload);
+                uploadedFineTemplate_ = &templ;
+            }
+            double rotationTotal = 0;
+            for (size_t first = 0; first < requests.size(); first += maxMaps) {
+                const size_t count = std::min(maxMaps, requests.size() - first);
+                const size_t pixels = count * roiPixels, guardWords = (pixels + 31) / 32;
+                ensure(fineRois_, count * roiStride, &fineMetrics_.setup_ms);
+                ensure(fineGuards_, guardWords * sizeof(uint32_t), &fineMetrics_.setup_ms);
+                ensure(fineDescriptors_, count * sizeof(FineWarpDescriptor), &fineMetrics_.setup_ms);
+                ensure(fineStatistics_, count * windowsPerMap * itemBytes, &fineMetrics_.setup_ms);
+                const auto rotation = Clock::now();
+                std::vector<FineWarpPlan> plans;
+                plans.reserve(count);
+                for (size_t i = 0; i < count; ++i) plans.push_back(prepareFineWarp(requests[first + i], rw, rh));
+                const auto upload = Clock::now();
+                auto* descriptors = static_cast<FineWarpDescriptor*>(fineDescriptors_.contents);
+                for (size_t i = 0; i < count; ++i) descriptors[i] = plans[i].descriptor;
+                std::memset(fineGuards_.contents, 0, guardWords * sizeof(uint32_t));
+                fineMetrics_.upload_ms += elapsed(upload);
+                const FineWarpConfig warpConfig{uint32_t(source.width), uint32_t(source.height),
+                    uint32_t(rw), uint32_t(rh), uint32_t(roiPixels), uint32_t(roiStride), uint32_t(count), 0};
+                const auto warpEncode = Clock::now();
+                id<MTLCommandBuffer> warpCommand = [queue_ commandBuffer];
+                if (!warpCommand) throw std::runtime_error("fine warp command buffer creation failed");
+                id<MTLComputeCommandEncoder> warpEncoder = [warpCommand computeCommandEncoder];
+                if (!warpEncoder) throw std::runtime_error("fine warp encoder creation failed");
+                [warpEncoder setComputePipelineState:fineWarp_];
+                [warpEncoder setBuffer:resident.buffer offset:resident.offset atIndex:0];
+                [warpEncoder setBuffer:fineRois_ offset:0 atIndex:1];
+                [warpEncoder setBuffer:fineGuards_ offset:0 atIndex:2];
+                [warpEncoder setBuffer:fineDescriptors_ offset:0 atIndex:3];
+                [warpEncoder setBytes:&warpConfig length:sizeof(warpConfig) atIndex:4];
+                [warpEncoder dispatchThreads:MTLSizeMake(pixels, 1, 1)
+                    threadsPerThreadgroup:MTLSizeMake(std::min<NSUInteger>(256,
+                        fineWarp_.maxTotalThreadsPerThreadgroup), 1, 1)];
+                [warpEncoder endEncoding];
+                fineMetrics_.encode_ms += elapsed(warpEncode);
+                finishFineCommand(warpCommand, "fine guarded warp execution");
+
+                const auto repair = Clock::now();
+                auto* roiData = static_cast<uint8_t*>(fineRois_.contents);
+                for (size_t i = 0; i < count; ++i) if (plans[i].descriptor.repairAll) {
+                    ++fineMetrics_.repair_all_maps;
+                    auto* output = roiData + i * roiStride;
+                    for (int y = 0; y < rh; ++y) for (int x = 0; x < rw; ++x)
+                        output[size_t(y) * rw + x] = sampleFineLegacyPixel(source, plans[i], x, y);
+                    fineMetrics_.repair_pixels += roiPixels;
+                }
+                const auto* guards = static_cast<const uint32_t*>(fineGuards_.contents);
+                for (size_t word = 0; word < guardWords; ++word) {
+                    uint32_t bits = guards[word];
+                    while (bits) {
+                        const unsigned bit = unsigned(__builtin_ctz(bits));
+                        const size_t index = word * 32 + bit;
+                        const size_t map = index / roiPixels, pixel = index % roiPixels;
+                        // Padding bits are initialized to zero and no shader
+                        // invocation writes beyond count*roiPixels.
+                        roiData[map * roiStride + pixel] = sampleFineLegacyPixel(source, plans[map],
+                            int(pixel % rw), int(pixel / rw));
+                        ++fineMetrics_.repair_pixels;
+                        bits &= bits - 1;
+                    }
+                }
+                fineMetrics_.repair_ms += elapsed(repair);
+                const double rotationElapsed = elapsed(rotation);
+                rotationTotal += rotationElapsed; fineMetrics_.rotation_ms += rotationElapsed;
+                fineMetrics_.roi_pixels += pixels;
+
+                const auto ncc = Clock::now();
+                const auto nccEncode = Clock::now();
+                const id<MTLComputePipelineState> pipeline = use32 ? fineStats32_ : fineStats64_;
+                const NSUInteger simdWidth = pipeline.threadExecutionWidth;
+                if (!simdWidth || simdWidth > 1024 || pipeline.maxTotalThreadsPerThreadgroup < simdWidth)
+                    throw std::runtime_error("fine NCC SIMD width exceeds exact reduction limits");
+                const NSUInteger groupsPerThreadgroup = std::min<NSUInteger>(8,
+                    pipeline.maxTotalThreadsPerThreadgroup / simdWidth);
+                const FineStatsConfig statsConfig{uint32_t(rw), uint32_t(tw), uint32_t(th), uint32_t(outputWidth),
+                    uint32_t(roiStride), uint32_t(windowsPerMap), uint32_t(count), 0};
+                id<MTLCommandBuffer> statsCommand = [queue_ commandBuffer];
+                if (!statsCommand) throw std::runtime_error("fine NCC command buffer creation failed");
+                id<MTLComputeCommandEncoder> statsEncoder = [statsCommand computeCommandEncoder];
+                if (!statsEncoder) throw std::runtime_error("fine NCC encoder creation failed");
+                [statsEncoder setComputePipelineState:pipeline];
+                [statsEncoder setBuffer:fineRois_ offset:0 atIndex:0];
+                [statsEncoder setBuffer:fineTemplate_ offset:0 atIndex:1];
+                [statsEncoder setBuffer:fineStatistics_ offset:0 atIndex:2];
+                [statsEncoder setBytes:&statsConfig length:sizeof(statsConfig) atIndex:3];
+                // Full threadgroups guarantee every valid window receives a
+                // complete SIMD group, including the last dispatch tail. The
+                // extra groups uniformly return before their reductions.
+                [statsEncoder dispatchThreadgroups:MTLSizeMake(
+                    (count * windowsPerMap + groupsPerThreadgroup - 1) / groupsPerThreadgroup, 1, 1)
+                    threadsPerThreadgroup:MTLSizeMake(groupsPerThreadgroup * simdWidth, 1, 1)];
+                [statsEncoder endEncoding];
+                fineMetrics_.encode_ms += elapsed(nccEncode);
+                // CPU repairs are complete before this commit, so shared ROI
+                // writes are visible to the following GPU statistics dispatch.
+                finishFineCommand(statsCommand, "fine NCC execution");
+                const auto normalization = Clock::now();
+                const bool degenerate = templ.norm * templ.norm / double(area) < DBL_EPSILON;
+                for (size_t i = 0; i < count; ++i) {
+                    fpm::detail::ScoreMap map{outputWidth, outputWidth, std::vector<double>(windowsPerMap)};
+                    if (degenerate) std::fill(map.values.begin(), map.values.end(), 1.0);
+                    else if (use32) {
+                        const auto* stats = static_cast<const Stats32*>(fineStatistics_.contents) + i * windowsPerMap;
+                        for (size_t j = 0; j < windowsPerMap; ++j)
+                            map.values[j] = normalize(stats[j].sum, stats[j].square, stats[j].product, templ, double(area));
+                    } else {
+                        const auto* stats = static_cast<const Stats64*>(fineStatistics_.contents) + i * windowsPerMap;
+                        for (size_t j = 0; j < windowsPerMap; ++j)
+                            map.values[j] = normalize(double(stats[j].sum), double(stats[j].square),
+                                double(stats[j].product), templ, double(area));
+                    }
+                    maps.push_back(std::move(map));
+                }
+                fineMetrics_.normalization_ms += elapsed(normalization);
+                fineMetrics_.ncc_ms += elapsed(ncc);
+                fineMetrics_.maps += count;
+                fineMetrics_.peak_batch_maps = std::max<uint64_t>(fineMetrics_.peak_batch_maps, count);
+            }
+            if (rotationWallMs) *rotationWallMs = rotationTotal;
+            fineMetrics_.wall_ms += elapsed(start);
+            return maps;
         }
     }
     fpm::detail::ScoreMap compute(fpm::ImageView source, const fpm::TemplateLevel& templ) override {

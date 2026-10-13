@@ -1,0 +1,7 @@
+{
+  "file": "raw-results.tar.gz",
+  "sha256": "9ff5d75b423ca114c6228c06af9a54733683df730570e42146efc8cbda392361",
+  "bytes": 3778857,
+  "entries_manifest": "manifest-sha256.json",
+  "formal_summary_sha256": "e63908dc03eb39ac1bec6a9c3437518d3bf824fa43d42a09aaea0657962e1153"
+}

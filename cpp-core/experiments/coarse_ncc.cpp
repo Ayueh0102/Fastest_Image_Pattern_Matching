@@ -79,6 +79,27 @@ struct fpm_coarse_handle {
     }
 };
 
+struct fpm_frame_handle {
+    FpmFrameConfigV1 config{};
+    std::unique_ptr<fpm_coarse_detail::Backend> backend;
+    fpm::detail::SourcePyramid pyramid;
+    FpmFrameMetricsV1 frameMetrics{};
+    FpmCoarseExecutionMetricsV1 prepareExecution{};
+    uint64_t generation = 0;
+    bool ready = false;
+    FpmFrameMetricsV1 metrics() const {
+        auto value = frameMetrics;
+        value.version = 1; value.struct_bytes = sizeof(value); value.generation = generation;
+        value.pyramid_levels = pyramid.levels.size(); value.host_pyramid_bytes = 0;
+        for (const auto& level : pyramid.levels) value.host_pyramid_bytes += uint64_t(level.width())*level.height();
+        if (backend) {
+            value.coarse_gpu_bytes = backend->metrics().gpu_bytes;
+            value.fine_gpu_bytes = backend->fineMetrics().retained_gpu_bytes;
+        }
+        return value;
+    }
+};
+
 namespace {
 int exportMatches(const std::vector<fpm::Match>& matches, fpm_result* results,
     size_t capacity, size_t* count)
@@ -114,6 +135,175 @@ void copyProfile(FpmCoarseProfileV1& output, const fpm::detail::MatchStageProfil
 }
 
 extern "C" {
+void fpm_frame_default_config(FpmFrameConfigV1* config)
+{
+    static_assert(sizeof(FpmFrameConfigV1) == 32, "frame config v1 ABI changed");
+    static_assert(sizeof(FpmFineMetricsV1) == 216, "fine metrics v1 ABI changed");
+    static_assert(sizeof(FpmFrameMetricsV1) == 80, "frame metrics v1 ABI changed");
+    if (!config) return;
+    *config = {}; config->version = 1; config->struct_bytes = sizeof(*config);
+    config->backend = 1; config->pyramid_mode = 1; config->batch_angles = 4;
+}
+int fpm_frame_create(const FpmFrameConfigV1* config, size_t bytes,
+    fpm_frame_handle** out, char* error, size_t capacity)
+{
+    if (out) *out = nullptr;
+    message(error, capacity, "");
+    try {
+        if (!out || !config || bytes != sizeof(*config) || config->version != 1 ||
+            config->struct_bytes != sizeof(*config) || config->reserved)
+            throw std::invalid_argument("valid frame config v1, exact size and output are required");
+        if (config->backend < 0 || config->backend > 1 || config->pyramid_mode < 0 ||
+            config->pyramid_mode > 2 || config->batch_angles < 1 || config->batch_angles > 4 ||
+            config->fine_batch_size < 0 || config->fine_batch_size > 1024)
+            throw std::invalid_argument("invalid frame backend/pyramid/batch configuration");
+        if (config->backend == 0 && (config->pyramid_mode || config->batch_angles != 1 || config->fine_batch_size))
+            throw std::invalid_argument("CPU frame supports only CPU pyramid, single coarse angle and CPU fine search");
+        auto frame = std::make_unique<fpm_frame_handle>();
+        frame->config = *config;
+        frame->prepareExecution.version = 1;
+        frame->prepareExecution.struct_bytes = sizeof(frame->prepareExecution);
+        frame->prepareExecution.pyramid_mode = config->pyramid_mode;
+        frame->prepareExecution.batch_angles = config->batch_angles;
+        if (config->backend) {
+#ifdef FPM_EXPERIMENT_METAL
+            frame->backend = fpm_coarse_detail::makeMetalBackend();
+            FpmCoarseExecutionConfigV1 execution{};
+            fpm_coarse_execution_default_config(&execution);
+            execution.pyramid_mode = config->pyramid_mode;
+            execution.batch_angles = config->batch_angles;
+            frame->backend->setExecution(execution);
+            frame->backend->setFineBatchSize(size_t(config->fine_batch_size));
+#else
+            throw std::runtime_error("Metal shared frame is unavailable on this build");
+#endif
+        }
+        *out = frame.release();
+        return FPM_OK;
+    } catch (const std::exception& e) { message(error, capacity, e.what()); }
+    catch (...) { message(error, capacity, "unknown frame creation exception"); }
+    return FPM_ERROR;
+}
+void fpm_frame_destroy(fpm_frame_handle* frame) { delete frame; }
+int fpm_frame_prepare(fpm_frame_handle* frame, fpm_image source,
+    fpm_coarse_handle* const* patterns, size_t patternCount, int invert,
+    FpmFrameMetricsV1* metrics, char* error, size_t capacity)
+{
+    const auto start = Clock::now();
+    message(error, capacity, "");
+    if (metrics) *metrics = {};
+    try {
+        if (frame) {
+            frame->ready = false;
+            if (frame->backend) { frame->backend->invalidateFineSource(); frame->backend->resetMetrics(); }
+            frame->pyramid = {}; frame->frameMetrics = {}; frame->prepareExecution = {};
+        }
+        if (!frame || !patterns || !patternCount || !metrics || (invert != 0 && invert != 1))
+            throw std::invalid_argument("frame, nonempty patterns, metrics and boolean invert are required");
+        fpm::detail::validateImage(view(source));
+        int top = 0;
+        for (size_t i = 0; i < patternCount; ++i) {
+            if (!patterns[i]) throw std::invalid_argument("pattern handle is null");
+            top = std::max(top, int(patterns[i]->pattern.levels().size())-1);
+        }
+        const auto copy = Clock::now();
+        frame->pyramid.inverted = invert != 0;
+        frame->pyramid.levels.emplace_back(view(source));
+        if (invert) {
+            auto& level = frame->pyramid.levels.front();
+            for (int y = 0; y < level.height(); ++y)
+                for (int x = 0; x < level.width(); ++x) level.row(y)[x] = uint8_t(255-level.row(y)[x]);
+        }
+        frame->frameMetrics.source_copy_ms = elapsed(copy);
+        const auto pyramid = Clock::now();
+        if (!frame->backend || !frame->backend->buildPyramid(frame->pyramid.levels, top))
+            for (int layer = 1; layer <= top; ++layer)
+                frame->pyramid.levels.push_back(fpm::detail::pyrDown(frame->pyramid.levels.back().view()));
+        frame->frameMetrics.pyramid_ms = elapsed(pyramid);
+        if (frame->backend) frame->prepareExecution = frame->backend->executionMetrics();
+        else {
+            frame->prepareExecution.version = 1; frame->prepareExecution.struct_bytes = sizeof(frame->prepareExecution);
+            frame->prepareExecution.batch_angles = 1; frame->prepareExecution.pyramid_device_ms = -1;
+        }
+        frame->frameMetrics.prepare_wall_ms = elapsed(start);
+        ++frame->generation;
+        frame->ready = true;
+        *metrics = frame->metrics();
+        return FPM_OK;
+    } catch (const std::exception& e) { message(error, capacity, e.what()); }
+    catch (...) { message(error, capacity, "unknown frame preparation exception"); }
+    if (frame) {
+        if (frame->backend) frame->backend->invalidateFineSource();
+        frame->pyramid = {};
+    }
+    return FPM_ERROR;
+}
+int fpm_frame_get_metrics(fpm_frame_handle* frame, FpmFrameMetricsV1* metrics,
+    size_t metricsBytes, FpmCoarseExecutionMetricsV1* execution, size_t executionBytes,
+    char* error, size_t capacity)
+{
+    message(error, capacity, "");
+    try {
+        if (!frame || !metrics || metricsBytes != sizeof(*metrics) ||
+            !execution || executionBytes != sizeof(*execution))
+            throw std::invalid_argument("frame metrics/execution pointers and exact v1 sizes are required");
+        *metrics = frame->metrics(); *execution = frame->prepareExecution;
+        return FPM_OK;
+    } catch (const std::exception& e) { message(error, capacity, e.what()); }
+    catch (...) { message(error, capacity, "unknown frame metrics exception"); }
+    return FPM_ERROR;
+}
+int fpm_frame_match(fpm_frame_handle* frame, fpm_coarse_handle* pattern,
+    const fpm_config* config, fpm_result* results, size_t capacity, size_t* count,
+    FpmCoarseMetrics* metrics, FpmCoarseProfileV1* profile, size_t profileBytes,
+    FpmCoarseExecutionMetricsV1* execution, size_t executionBytes,
+    FpmFineMetricsV1* fine, size_t fineBytes, char* error, size_t errorCapacity)
+{
+    const auto start = Clock::now();
+    if (count) *count = 0;
+    const bool writableProfile = profile && profileBytes == sizeof(*profile);
+    if (writableProfile) *profile = {};
+    fpm::detail::MatchStageProfile stages;
+    const int status = protect(metrics, error, errorCapacity, [&] {
+        if (!frame || !frame->ready || !pattern || !count || (!results && capacity) ||
+            (!writableProfile && (profile || profileBytes)) || !execution || executionBytes != sizeof(*execution) ||
+            !fine || fineBytes != sizeof(*fine))
+            throw std::invalid_argument("ready frame, pattern, valid outputs and exact optional profile sizes are required");
+        *execution = {}; *fine = {};
+        const auto settings = convert(config);
+        if (settings.invertSource != frame->pyramid.inverted)
+            throw std::invalid_argument("config inversion differs from prepared frame");
+        if (frame->backend) frame->backend->resetMetrics();
+        const auto found = fpm::detail::matchWithCoarseNcc(frame->pyramid.levels.front().view(), pattern->pattern,
+            settings, frame->backend.get(), writableProfile ? &stages : nullptr, &frame->pyramid);
+        *metrics = frame->backend ? frame->backend->metrics() : FpmCoarseMetrics{};
+        for (const auto& level : pattern->pattern.levels()) metrics->host_bytes += uint64_t(level.image.width())*level.image.height();
+        if (frame->backend) {
+            *execution = frame->backend->executionMetrics(); *fine = frame->backend->fineMetrics();
+        } else {
+            metrics->device_ms = -1;
+            execution->version = 1; execution->struct_bytes = sizeof(*execution); execution->batch_angles = 1;
+            execution->pyramid_device_ms = -1;
+            fine->version = 1; fine->struct_bytes = sizeof(*fine); fine->device_ms = -1;
+            if (writableProfile) {
+                metrics->ncc_ms = stages.coarse_ncc_ms;
+                metrics->score_maps = stages.coarse_maps; metrics->windows = stages.coarse_windows;
+            }
+        }
+        ++frame->frameMetrics.models_matched;
+        return exportMatches(found, results, capacity, count);
+    });
+    if (writableProfile) {
+        copyProfile(*profile, stages, frame && frame->backend ? 1 : 0);
+        if (metrics) {
+            metrics->wall_ms = elapsed(start);
+            profile->api_wall_ms = metrics->wall_ms;
+            profile->api_residual_ms = metrics->wall_ms-stages.core_wall_ms;
+        }
+    }
+    return status;
+}
+
 void fpm_coarse_execution_default_config(FpmCoarseExecutionConfigV1* config)
 {
     static_assert(sizeof(FpmCoarseExecutionConfigV1) == 32, "execution config v1 ABI changed");

@@ -93,6 +93,58 @@ typedef struct FpmCoarseExecutionMetricsV1 {
     uint64_t max_batch_maps, batch_source_arena_bytes, batch_source_upload_bytes;
     uint64_t batch_template_buffer_bytes, batch_statistics_bytes, reserved_bytes;
 } FpmCoarseExecutionMetricsV1;
+/* Batched fine search diagnostics. All host times are ms and include waits;
+ * device_ms overlaps wait_ms. Retained bytes are capacities, overlap RSS, and
+ * are NOT included in the legacy coarse gpu_bytes. Reset per pattern match;
+ * cached allocations survive until frame destruction. */
+typedef struct FpmFineMetricsV1 {
+    uint32_t version, struct_bytes;
+    double wall_ms, setup_ms, upload_ms, rotation_ms, repair_ms;
+    double ncc_ms, normalization_ms, encode_ms, wait_ms, device_ms;
+    uint64_t calls, maps, roi_pixels, repair_pixels, repair_all_maps;
+    uint64_t command_buffers, source_uploads, source_upload_bytes;
+    uint64_t source_buffer_bytes, roi_buffer_bytes, guard_buffer_bytes;
+    uint64_t descriptor_buffer_bytes, statistics_buffer_bytes, template_buffer_bytes;
+    uint64_t retained_gpu_bytes, peak_batch_maps;
+} FpmFineMetricsV1;
+/* A frame owns one immutable source pyramid and execution backend, reused by
+ * any number of template/scale handles. Explicit prepare ALWAYS refreshes pixels;
+ * input pointer/dimensions alone never imply content identity. One caller at a
+ * time. No asynchronous access or ownership of pattern handles is retained. */
+typedef struct fpm_frame_handle fpm_frame_handle;
+typedef struct FpmFrameConfigV1 {
+    uint32_t version, struct_bytes;
+    int32_t backend, pyramid_mode, batch_angles, fine_batch_size;
+    uint64_t reserved;
+} FpmFrameConfigV1;
+typedef struct FpmFrameMetricsV1 {
+    uint32_t version, struct_bytes;
+    double prepare_wall_ms, source_copy_ms, pyramid_ms;
+    uint64_t generation, models_matched, pyramid_levels, host_pyramid_bytes;
+    uint64_t coarse_gpu_bytes, fine_gpu_bytes;
+} FpmFrameMetricsV1;
+FPM_API void fpm_frame_default_config(FpmFrameConfigV1* config);
+FPM_API int fpm_frame_create(const FpmFrameConfigV1* config, size_t config_bytes,
+    fpm_frame_handle** out, char* error, size_t error_capacity);
+FPM_API void fpm_frame_destroy(fpm_frame_handle* frame);
+/* Build to the deepest provided model. Patterns are consulted only during this
+ * call. Failed prepare invalidates the old frame to prevent stale use. */
+FPM_API int fpm_frame_prepare(fpm_frame_handle* frame, fpm_image source,
+    fpm_coarse_handle* const* patterns, size_t pattern_count, int invert_source,
+    FpmFrameMetricsV1* metrics, char* error, size_t error_capacity);
+FPM_API int fpm_frame_get_metrics(fpm_frame_handle* frame, FpmFrameMetricsV1* metrics,
+    size_t metrics_bytes, FpmCoarseExecutionMetricsV1* prepare_execution,
+    size_t execution_bytes, char* error, size_t error_capacity);
+/* config invert_source must agree with the prepared snapshot. Profile optional:
+ * use NULL/0 to disable clocks. Result capacity semantics match coarse_match.
+ * Coarse/execution/fine diagnostics are per model; prepare costs are separate
+ * and must be counted ONCE in a timed multiscale workflow. */
+FPM_API int fpm_frame_match(fpm_frame_handle* frame, fpm_coarse_handle* pattern,
+    const fpm_config* config, fpm_result* results, size_t capacity, size_t* count,
+    FpmCoarseMetrics* metrics, FpmCoarseProfileV1* profile, size_t profile_bytes,
+    FpmCoarseExecutionMetricsV1* execution, size_t execution_bytes,
+    FpmFineMetricsV1* fine, size_t fine_bytes, char* error, size_t error_capacity);
+
 FPM_API void fpm_coarse_execution_default_config(FpmCoarseExecutionConfigV1* config);
 FPM_API int fpm_coarse_set_execution(fpm_coarse_handle* handle,
     const FpmCoarseExecutionConfigV1* config, size_t config_bytes, char* error, size_t error_capacity);

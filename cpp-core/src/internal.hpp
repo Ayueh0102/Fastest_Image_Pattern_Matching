@@ -6,6 +6,7 @@
 #include <cfloat>
 #include <cmath>
 #include <limits>
+#include <stdexcept>
 
 namespace fpm::detail {
 constexpr double PI = 3.14159265358979323846;
@@ -31,11 +32,23 @@ struct ScoreMap {
 	double at(int x, int y) const { return values[std::size_t(y) * width + x]; }
 };
 struct Peak { int x = 0; int y = 0; double score = -std::numeric_limits<double>::infinity(); };
-// Optional experimental provider only at the dense pyramid-top stage. The
-// portable CPU entry point never installs one; fine NCC remains unchanged.
+struct FineRequest { Point anchor; double angle = 0; };
+// An explicit immutable snapshot, reusable across template scales. Preparing a
+// new frame must replace its pixels, even at the same input pointer/dimensions.
+struct SourcePyramid { std::vector<Image> levels; bool inverted = false; };
+// Experimental providers; portable entry points keep their original CPU path.
 class CoarseNccProvider {
 public:
 	virtual ~CoarseNccProvider() = default;
+	virtual void invalidateFineSource() {}
+	virtual std::size_t fineBatchSize() const { return 0; }
+	// Called once per match with immutable frame levels. Providers may cache
+	// resources only within the explicitly prepared frame lifetime.
+	virtual void beginFineMatch(const std::vector<Image>&) {}
+	virtual std::vector<ScoreMap> computeFineBatch(ImageView, const TemplateLevel&,
+		const std::vector<FineRequest>&, double* rotationWallMs) {
+		(void)rotationWallMs; throw std::runtime_error("fine batching is unavailable");
+	}
 	virtual ScoreMap compute(ImageView source, const TemplateLevel& templ) = 0;
 	// Optional experimental execution hooks. Level 0 has already been copied
 	// and inverted on CPU. A requested GPU mode must throw on failure; false
@@ -68,7 +81,8 @@ struct MatchStageProfile {
 	std::uint64_t scoremap_peak_bytes = 0, scoremap_total_bytes = 0, timed_transitions = 0;
 };
 std::vector<Match> matchWithCoarseNcc(ImageView source, const Pattern& pattern,
-	const MatchConfig& config, CoarseNccProvider* provider, MatchStageProfile* profile = nullptr);
+	const MatchConfig& config, CoarseNccProvider* provider, MatchStageProfile* profile = nullptr,
+	const SourcePyramid* prepared = nullptr);
 std::uint64_t dotProduct(const std::uint8_t* a, const std::uint8_t* b, int size, Backend backend);
 struct NccStats {
 	std::uint64_t windows = 0, projectionChecks = 0, partialChecks = 0;

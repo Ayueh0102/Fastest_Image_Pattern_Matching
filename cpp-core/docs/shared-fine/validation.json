@@ -1,0 +1,147 @@
+{
+  "baseline_commit": "2c28ffbde86d3ef9840cb00c2d15268b5cf72624",
+  "hardware": {
+    "chip": "Apple M4 Pro",
+    "cpu_cores": 12,
+    "gpu_cores": 16,
+    "memory_gib": 48,
+    "os": "macOS 26.6.2",
+    "compiler": "AppleClang 21.0.0"
+  },
+  "release": {
+    "passed": 19,
+    "total": 19
+  },
+  "asan_ubsan": {
+    "passed": 17,
+    "total": 17,
+    "leak_detection": false,
+    "note": "detect_leaks=1 is unsupported on this AppleClang/macOS; initial rejected invocation preserved; supported run used detect_leaks=0"
+  },
+  "harness_unit_tests": {
+    "passed": 6,
+    "total": 6
+  },
+  "python_binding_smoke": "PASS CPU default/context/failed prepare/recovery",
+  "exact_fine_maps": 1812,
+  "windows_per_map": 49,
+  "formal": {
+    "cases": 10,
+    "worker_processes": 160,
+    "measured_calls": 800,
+    "warmup_calls": 5987,
+    "first_calls": 160,
+    "exact_all_outputs": true,
+    "profile_valid": true,
+    "sources_unchanged": true,
+    "accuracy_and_integrity_passed": true,
+    "all_paired_fine_performance_gates_passed": true
+  },
+  "truth": [
+    {
+      "case": "controlled6",
+      "tp": 6,
+      "fp": 0,
+      "fn": 0,
+      "max_errors": {
+        "position_px": 0.022762758554983418,
+        "angle_deg": 0.0270538330078125,
+        "relative_scale": 0.0019094709532277987
+      }
+    },
+    {
+      "case": "heldout12",
+      "tp": 12,
+      "fp": 0,
+      "fn": 0,
+      "max_errors": {
+        "position_px": 0.09024940753950134,
+        "angle_deg": 0.05026388549362082,
+        "relative_scale": 0.0024967771473467515
+      }
+    },
+    {
+      "case": "8k_t256",
+      "tp": 6,
+      "fp": 0,
+      "fn": 0,
+      "max_errors": {
+        "position_px": 0.0,
+        "angle_deg": 0.0,
+        "relative_scale": 0.0
+      }
+    },
+    {
+      "case": "8k_t256_3scales",
+      "tp": 6,
+      "fp": 0,
+      "fn": 0,
+      "max_errors": {
+        "position_px": 0.0,
+        "angle_deg": 0.0,
+        "relative_scale": 0.0
+      }
+    },
+    {
+      "case": "8k_t256_angle180",
+      "tp": 6,
+      "fp": 0,
+      "fn": 0,
+      "max_errors": {
+        "position_px": 0.0,
+        "angle_deg": 0.0,
+        "relative_scale": 0.0
+      }
+    },
+    {
+      "case": "8k_t256_angle180_3scales",
+      "tp": 6,
+      "fp": 0,
+      "fn": 0,
+      "max_errors": {
+        "position_px": 0.0,
+        "angle_deg": 0.0,
+        "relative_scale": 0.0
+      }
+    },
+    {
+      "case": "8k_t512",
+      "tp": 6,
+      "fp": 0,
+      "fn": 0,
+      "max_errors": {
+        "position_px": 0.0,
+        "angle_deg": 0.0,
+        "relative_scale": 0.0
+      }
+    },
+    {
+      "case": "small_fullres",
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "max_errors": {
+        "position_px": 2.8541271670128925e-05,
+        "angle_deg": 0.0,
+        "relative_scale": 0.0
+      }
+    },
+    {
+      "case": "small_fullres_3scales",
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "max_errors": {
+        "position_px": 2.8541271670128925e-05,
+        "angle_deg": 0.0,
+        "relative_scale": 0.0
+      }
+    }
+  ],
+  "scope": "Gray8 opt-in experiment; no GUI default change; GPU warp+NCC with guarded CPU pixel repair/normalization/search control; correctness preserving, not new recall claim; no leak or all-workload speed guarantee",
+  "artifact_validation": {
+    "all_report_links_exist": true,
+    "archive_member_hashes_verified": 658,
+    "relocated_replay_exact_summary": true
+  }
+}

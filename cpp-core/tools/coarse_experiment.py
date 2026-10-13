@@ -223,3 +223,161 @@ class CoarsePattern:
 
     def __exit__(self, *_):
         self.close()
+
+
+class FineMetricsV1(C.Structure):
+    _fields_ = [('version', C.c_uint32), ('struct_bytes', C.c_uint32)] + [
+        (name, C.c_double) for name in (
+            'wall_ms', 'setup_ms', 'upload_ms', 'rotation_ms', 'repair_ms',
+            'ncc_ms', 'normalization_ms', 'encode_ms', 'wait_ms', 'device_ms')] + [
+        (name, C.c_uint64) for name in (
+            'calls', 'maps', 'roi_pixels', 'repair_pixels', 'repair_all_maps',
+            'command_buffers', 'source_uploads', 'source_upload_bytes',
+            'source_buffer_bytes', 'roi_buffer_bytes', 'guard_buffer_bytes',
+            'descriptor_buffer_bytes', 'statistics_buffer_bytes', 'template_buffer_bytes',
+            'retained_gpu_bytes', 'peak_batch_maps')]
+
+
+class FrameConfigV1(C.Structure):
+    _fields_ = [('version', C.c_uint32), ('struct_bytes', C.c_uint32)] + [
+        (name, C.c_int32) for name in ('backend', 'pyramid_mode', 'batch_angles', 'fine_batch_size')
+    ] + [('reserved', C.c_uint64)]
+
+
+class FrameMetricsV1(C.Structure):
+    _fields_ = [('version', C.c_uint32), ('struct_bytes', C.c_uint32)] + [
+        (name, C.c_double) for name in ('prepare_wall_ms', 'source_copy_ms', 'pyramid_ms')] + [
+        (name, C.c_uint64) for name in (
+            'generation', 'models_matched', 'pyramid_levels', 'host_pyramid_bytes',
+            'coarse_gpu_bytes', 'fine_gpu_bytes')]
+
+
+def _fields_snapshot(value):
+    return {name: getattr(value, name) for name, _ in value._fields_}
+
+
+class SourceFrame:
+    """Explicit source snapshot shared by any number of scales/templates.
+
+    Call prepare ONCE per new image (even if its address and size are unchanged)
+    and include that cost in frame latency. match reads the immutable snapshot.
+    Fine GPU search is opt-in through fine_batch_size=1..1024. Each match saves
+    independent diagnostics; capture them immediately after each scale, then
+    query frame_metrics once for shared retained memory (never sum per model).
+    """
+    def __init__(self, build, *, backend='metal', pyramid_mode=None, batch_angles=None, fine_batch_size=0):
+        if backend not in ('cpu', 'metal'):
+            raise ValueError('backend must be cpu or metal')
+        pyramid_mode = (1 if backend == 'metal' else 0) if pyramid_mode is None else pyramid_mode
+        batch_angles = (4 if backend == 'metal' else 1) if batch_angles is None else batch_angles
+        self._ready = False
+        for value in (pyramid_mode, batch_angles, fine_batch_size):
+            if not isinstance(value, int):
+                raise ValueError('frame execution options must be integers')
+        if pyramid_mode not in (0, 1, 2) or batch_angles not in (1, 2, 3, 4) or not 0 <= fine_batch_size <= 1024:
+            raise ValueError('invalid frame execution options')
+        self.dll = C.CDLL(str(library_path(build)))
+        self.handle = C.c_void_p()
+        self.error = C.create_string_buffer(1024)
+        if not hasattr(self.dll, 'fpm_frame_create'):
+            raise RuntimeError('Shared frame API is unavailable; rebuild the experimental library')
+        self.dll.fpm_frame_create.argtypes = [C.POINTER(FrameConfigV1), C.c_size_t,
+            C.POINTER(C.c_void_p), C.POINTER(C.c_char), C.c_size_t]
+        self.dll.fpm_frame_create.restype = C.c_int
+        self.dll.fpm_frame_destroy.argtypes = [C.c_void_p]
+        self.dll.fpm_frame_destroy.restype = None
+        self.dll.fpm_frame_prepare.argtypes = [C.c_void_p, Image, C.POINTER(C.c_void_p), C.c_size_t,
+            C.c_int, C.POINTER(FrameMetricsV1), C.POINTER(C.c_char), C.c_size_t]
+        self.dll.fpm_frame_prepare.restype = C.c_int
+        self.dll.fpm_frame_get_metrics.argtypes = [C.c_void_p, C.POINTER(FrameMetricsV1), C.c_size_t,
+            C.POINTER(CoarseExecutionMetricsV1), C.c_size_t, C.POINTER(C.c_char), C.c_size_t]
+        self.dll.fpm_frame_get_metrics.restype = C.c_int
+        self.dll.fpm_frame_match.argtypes = [C.c_void_p, C.c_void_p, C.POINTER(Config), C.POINTER(Result),
+            C.c_size_t, C.POINTER(C.c_size_t), C.POINTER(CoarseMetrics), C.POINTER(CoarseProfileV1), C.c_size_t,
+            C.POINTER(CoarseExecutionMetricsV1), C.c_size_t, C.POINTER(FineMetricsV1), C.c_size_t,
+            C.POINTER(C.c_char), C.c_size_t]
+        self.dll.fpm_frame_match.restype = C.c_int
+        self.config = FrameConfigV1(1, C.sizeof(FrameConfigV1), int(backend == 'metal'),
+                                   pyramid_mode, batch_angles, fine_batch_size, 0)
+        self.last_metrics = self.last_profile = self.last_execution_metrics = self.last_fine_metrics = None
+        self._check(self.dll.fpm_frame_create(C.byref(self.config), C.sizeof(self.config),
+            C.byref(self.handle), self.error, len(self.error)))
+
+    def _check(self, status):
+        if status:
+            raise RuntimeError(self.error.value.decode('utf-8', errors='replace') or f'FPM status {status}')
+
+    def _pattern(self, pattern):
+        if not self.handle:
+            raise ValueError('frame is closed')
+        if not isinstance(pattern, CoarsePattern) or not pattern.handle:
+            raise ValueError('an open CoarsePattern is required')
+        if Path(pattern.dll._name).resolve() != Path(self.dll._name).resolve():
+            raise ValueError('frame and pattern must come from the same library')
+        return pattern.handle
+
+    @property
+    def execution_config(self):
+        return _fields_snapshot(self.config)
+
+    def prepare(self, image, patterns, *, invert_source=False):
+        if not self.handle:
+            raise ValueError('frame is closed')
+        self._ready = False
+        self.last_metrics = self.last_profile = self.last_execution_metrics = self.last_fine_metrics = None
+        models = list(patterns)
+        if not models:
+            raise ValueError('at least one pattern is required')
+        handles = (C.c_void_p * len(models))(*(self._pattern(p).value for p in models))
+        metrics = FrameMetricsV1()
+        self.last_metrics = self.last_profile = self.last_execution_metrics = self.last_fine_metrics = None
+        self._check(self.dll.fpm_frame_prepare(self.handle, image, handles, len(models), int(bool(invert_source)),
+            C.byref(metrics), self.error, len(self.error)))
+        self._ready = True
+        return _fields_snapshot(metrics)
+
+    def _frame_snapshot(self):
+        if not self.handle:
+            raise ValueError('frame is closed')
+        metrics, execution = FrameMetricsV1(), CoarseExecutionMetricsV1()
+        self._check(self.dll.fpm_frame_get_metrics(self.handle, C.byref(metrics), C.sizeof(metrics),
+            C.byref(execution), C.sizeof(execution), self.error, len(self.error)))
+        return _fields_snapshot(metrics), _fields_snapshot(execution)
+
+    @property
+    def frame_metrics(self):
+        return self._frame_snapshot()[0]
+
+    @property
+    def prepare_execution_metrics(self):
+        return self._frame_snapshot()[1]
+
+    def match(self, pattern, config, *, profile=False):
+        handle = self._pattern(pattern)
+        if not self._ready:
+            raise ValueError('prepare a source frame successfully before matching')
+        if config.max_targets < 1:
+            raise ValueError('max_targets must be positive')
+        results, count = (Result * config.max_targets)(), C.c_size_t()
+        metrics, execution, fine = CoarseMetrics(), CoarseExecutionMetricsV1(), FineMetricsV1()
+        stages = CoarseProfileV1() if profile else None
+        self.last_metrics = self.last_profile = self.last_execution_metrics = self.last_fine_metrics = None
+        self._check(self.dll.fpm_frame_match(self.handle, handle, C.byref(config), results, len(results),
+            C.byref(count), C.byref(metrics), C.byref(stages) if stages is not None else None,
+            C.sizeof(stages) if stages is not None else 0, C.byref(execution), C.sizeof(execution),
+            C.byref(fine), C.sizeof(fine), self.error, len(self.error)))
+        self.last_metrics, self.last_execution_metrics, self.last_fine_metrics = map(_fields_snapshot, (metrics, execution, fine))
+        self.last_profile = _fields_snapshot(stages) if stages is not None else None
+        return [dict(index=i, score=r.score, angle=r.angle, pos_x=r.center.x, pos_y=r.center.y,
+                     corners=[[p.x, p.y] for p in r.corners]) for i, r in enumerate(results[:count.value])]
+
+    def close(self):
+        if self.handle:
+            self.dll.fpm_frame_destroy(self.handle)
+            self.handle = C.c_void_p()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.close()
