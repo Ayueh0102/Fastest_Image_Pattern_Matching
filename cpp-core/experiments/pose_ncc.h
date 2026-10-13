@@ -20,7 +20,7 @@ extern "C" {
 // backend: 0 = C++ (threads >= 1), 1 = Metal, 2 = C++ with lazy Metal auto
 // refinement. Mode 2 does not initialize Metal at creation. Handles are NOT
 // thread safe. score(), refine(), and refine_accelerated() on mode 2 remain
-// CPU operations; only refine_auto() can select and initialize Metal.
+// CPU operations; refine_auto() and refine_resident() can initialize Metal.
 // The handle owns copies; source/template preparation is measured separately.
 typedef struct FpmPoseMetrics {
     double wall_ms;                 // packing, allocations, dispatch, wait, output copy
@@ -90,6 +90,42 @@ FPM_EXP_API int fpm_pose_refine_accelerated(void* handle, const float* seeds, in
     const FpmPoseRefineConfig* config, int cpu_polish_iterations, float* refined,
     float* scores, FpmPoseRefineStats* stats, FpmPoseMetrics* metrics,
     char* error, int error_capacity);
+
+// Opt-in GPU-resident refinement diagnostics; all times are milliseconds.
+// wait_ms includes GPU execution and must NOT be added to metrics.device_ms.
+// Auxiliary bytes exclude resident source/template buffers; memory() reports
+// all retained buffers. Dispatch counts include predicated inactive work.
+typedef struct FpmPoseResidentMetrics {
+    uint64_t command_buffers;
+    uint64_t cpu_waits;
+    uint64_t encoded_dispatches;
+    uint64_t auxiliary_buffer_bytes;
+    double setup_ms;                // this call's lazy Metal/resident pipeline setup
+    double encode_ms;
+    double wait_ms;
+    double cpu_verify_ms;
+    int cpu_verified;
+    int reserved;
+} FpmPoseResidentMetrics;
+// GPU owns the local solve, acceptance and stopping decisions. Only Metal or
+// auto handles are supported; CPU handles and unavailable Metal return errors.
+// Auto handles initialize Metal lazily, without applying workload thresholds.
+// Resident auxiliary storage is capped at 16 MiB; a single pose that cannot
+// fit returns an error rather than taking the older paths' oversized exception.
+// cpu_verify must be 0 or 1 (recommended: 1). When 1, AFTER device work the CPU
+// recomputes both original/final NCC scores and restores the seed on regression.
+// These two evaluations are included in stats; there is no CPU polish. When 0,
+// scores are device scores and CPU NCC monotonicity is not guaranteed; no CPU
+// pixel scans occur. Both modes reject nonfinite/out-of-bounds device outputs.
+// Config and stats may be null; both metrics outputs are required. Inputs and
+// outputs must not overlap. wall_ms includes validation, setup and verification.
+// On failure, provided metrics are reset (device_ms=-1); use memory() to query
+// allocations retained by the handle after a failed call.
+// GPU float arithmetic may follow a different path from either existing solver.
+FPM_EXP_API int fpm_pose_refine_resident(void* handle, const float* seeds, int count,
+    const FpmPoseRefineConfig* config, int cpu_verify, float* refined, float* scores,
+    FpmPoseRefineStats* stats, FpmPoseResidentMetrics* resident_metrics,
+    FpmPoseMetrics* metrics, char* error, int error_capacity);
 
 // Opt-in workload routing; thresholds are tunable heuristics, not a guarantee
 // that the selected backend is fastest. Samples count scalar channel values:

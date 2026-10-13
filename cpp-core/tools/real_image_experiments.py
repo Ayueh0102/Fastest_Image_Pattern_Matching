@@ -44,6 +44,8 @@ METHODS = {
     'accelerated_metal': 'CPU coarse + Metal proposals/statistics + CPU small-system solve',
     'accelerated_direct_metal': 'CPU coarse + Metal statistics + CPU small-system solve (no extra proposals)',
     'adaptive_direct_auto': 'CPU coarse + automatic CPU/Metal continuous refinement (no extra proposals)',
+    'resident_direct_metal': 'CPU coarse + GPU-resident continuous refinement (device scores)',
+    'resident_verified_direct_metal': 'CPU coarse + GPU-resident refinement + final CPU score verification',
 }
 
 
@@ -181,8 +183,9 @@ class Search:
         self.source_float = None
         self.method = job['method']
         self.automatic = self.method == 'adaptive_direct_auto'
+        self.resident = self.method in ('resident_direct_metal', 'resident_verified_direct_metal')
         self.accelerated = self.method.startswith('accelerated')
-        self.continuous = self.method.startswith('continuous') or self.accelerated or self.automatic
+        self.continuous = self.method.startswith('continuous') or self.accelerated or self.automatic or self.resident
         self.hybrid = self.method.startswith('hybrid') or self.method == 'fourier_metal' or self.continuous
         self.scales = [1.] if self.method == 'cpu_fixed' else case['scales']
         self.allow_scale = len(self.scales) > 1 and self.hybrid
@@ -285,11 +288,13 @@ class Search:
         start = time.perf_counter()
         solver_stats = []
         route = None
+        resident_metrics = None
         if self.continuous:
             # A broad, inexpensive orientation/scale proposal bank increases
             # the optimizer's basin. Keep original seeds too; truth is absent.
             initial = poses
-            if self.method not in ('continuous_direct_cpu', 'accelerated_direct_metal', 'adaptive_direct_auto'):
+            if self.method not in ('continuous_direct_cpu', 'accelerated_direct_metal', 'adaptive_direct_auto',
+                                   'resident_direct_metal', 'resident_verified_direct_metal'):
                 offsets = np.array(list(itertools.product((0,), (0,),
                     (-6., -3., 0., 3., 6.) if self.rotation else (0.,),
                     (-math.log(1.1), 0., math.log(1.1)) if self.allow_scale else (0.,))), np.float32)
@@ -300,7 +305,10 @@ class Search:
                 initial = np.concatenate((poses, best[different]))
             options = dict(optimize_scale=self.allow_scale, optimize_angle=self.rotation)
             solver = self.scorer.refine
-            if self.automatic:
+            if self.resident:
+                solver = self.scorer.refine_resident
+                options['cpu_verify'] = self.method == 'resident_verified_direct_metal'
+            elif self.automatic:
                 solver = self.scorer.refine_auto
                 options.update(self.job.get('routing_policy', {}))
                 options['cpu_polish_iterations'] = self.job.get('cpu_polish_iterations', 0)
@@ -309,6 +317,11 @@ class Search:
                 options['cpu_polish_iterations'] = self.job.get('cpu_polish_iterations', 2)
             poses, final_scores, solver_stats, metrics = solver(initial, **options)
             route = metrics.get('route')
+            resident_metrics = metrics.get('resident')
+            # Optional benchmark audit: retain array references, without copying
+            # or serializing them inside the measured full-image pipeline.
+            if self.job.get('audit_refinement'):
+                self.last_refinement = (initial, poses, final_scores, solver_stats, metrics)
             self.ncc_ms += metrics['wall_ms']
             self.gpu_ms += max(0, metrics['device_ms'])
             self.evaluations += sum(s['evaluations'] for s in solver_stats)
@@ -321,7 +334,8 @@ class Search:
             output.append(dict(pos_x=center[0], pos_y=center[1], angle=angle, scale=scale,
                                score=float(score), corners=corners(center, angle, scale, self.shape)))
         return output, dict(fft_ms=fft_ms, fft_valid_proposals=fft_valid, fft_adopted_seeds=fft_adopted,
-                            solver_stats=solver_stats, route=route, refine_ms=(time.perf_counter()-start)*1000)
+                            solver_stats=solver_stats, route=route, resident_metrics=resident_metrics,
+                            refine_ms=(time.perf_counter()-start)*1000)
 
     def refine_grid(self, poses, origins):
         offsets = np.array(list(itertools.product((-1, 0, 1), (-1, 0, 1),
@@ -345,6 +359,7 @@ class Search:
 
     def run(self):
         self.ncc_ms, self.gpu_ms, self.evaluations = 0., 0., 0
+        self.last_refinement = None
         start = time.perf_counter()
         seeds = self.coarse()
         search_ms = (time.perf_counter()-start)*1000
@@ -518,6 +533,7 @@ def main():
                                 continuous='15 angle/scale proposals (5 fixed-scale or 1 translation-only), preserve original + best, C++ CPU analytic LM; Metal only scores proposals',
                                 continuous_direct='Ablation: identical CPU coarse seeds straight to LM without the additional proposal bank',
                                 accelerated='Same seed policy; Metal analytic derivative statistics and NCC proposals, CPU 4x4 solve and exact final score verification/polish',
+                                resident='GPU owns local solve, acceptance and stopping; CPU coarse/NMS remain. Verified variant performs final CPU score checks; neither variant adds CPU polish.',
                                 cpu_polish_iterations=args.cpu_polish_iterations,
                                 automatic='Lazy Metal initialization, explicit workload thresholds; default polish=0 for auto and 2 for forced Metal. Every run records selected backend and reason.',
                                 routing_policy=routing_policy,

@@ -1,0 +1,28 @@
+{
+  "baseline_commit": "4144ffcb8897ead17d9cea20c346638bab933d24",
+  "benchmark_candidate_source_hashes_unchanged_at_final_audit": true,
+  "benchmark_strict_acceptance_passed": false,
+  "release_ctest": {
+    "passed": 8,
+    "failed": 0,
+    "log": "release-tests.txt"
+  },
+  "asan_ubsan_ctest": {
+    "passed": 6,
+    "failed": 0,
+    "log": "sanitizer-tests.txt"
+  },
+  "metal_api_validation": {
+    "passed": true,
+    "command": "MTL_DEBUG_LAYER=1 build/fourier-gpu/experiments/fpm_pose_resident_test",
+    "observation": "Metal API Validation Enabled; resident test passed with no validation error"
+  },
+  "compiler": "Apple clang version 21.0.0 (clang-2100.1.1.101)\nTarget: arm64-apple-darwin25.6.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+  "binary_sha256": {
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/resident-refinement/report-artifacts-1791861942982180000/baseline-frozen/experiments/libfpm_pose_experiment.dylib": "a8fee695fab005e07005338082d37aa319492c84e730cca176d2fa710cb3cf60",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/resident-refinement/report-artifacts-1791861942982180000/baseline-frozen/libfpm_c.dylib": "e772ab0004591f63b4bbc711b5626355de81671386c5cc2c31600465a36eb3b4",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/fourier-gpu/experiments/libfpm_pose_experiment.dylib": "9dd592aeeeb9f524f58989bcfebf2c5898f6a0f703a70272eec585f8286eef14",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/fourier-gpu/libfpm_c.dylib": "e772ab0004591f63b4bbc711b5626355de81671386c5cc2c31600465a36eb3b4"
+  },
+  "report_uncompressed_sha256": "ee2e9209c041bf4512d64891f0694d5db204de065700d32b9e557a50bbf1dc35"
+}

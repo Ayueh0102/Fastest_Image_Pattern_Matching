@@ -28,6 +28,14 @@ class RefineStats(C.Structure):
     _fields_ = [("iterations", C.c_int), ("evaluations", C.c_int), ("status", C.c_int)]
 
 
+class ResidentMetrics(C.Structure):
+    _fields_ = [("command_buffers", C.c_uint64), ("cpu_waits", C.c_uint64),
+                ("encoded_dispatches", C.c_uint64), ("auxiliary_buffer_bytes", C.c_uint64),
+                ("setup_ms", C.c_double), ("encode_ms", C.c_double),
+                ("wait_ms", C.c_double), ("cpu_verify_ms", C.c_double),
+                ("cpu_verified", C.c_int), ("reserved", C.c_int)]
+
+
 class AutoConfig(C.Structure):
     _fields_ = [("min_pose_samples", C.c_uint64), ("min_batch_samples", C.c_uint64),
                 ("min_iterations", C.c_int), ("cpu_polish_iterations", C.c_int)]
@@ -68,6 +76,11 @@ class Scorer:
                 C.POINTER(RefineConfig), C.c_int, FLOAT_P, FLOAT_P, C.POINTER(RefineStats),
                 C.POINTER(Metrics), C.c_char_p, C.c_int]
             self.lib.fpm_pose_refine_accelerated.restype = C.c_int
+        if hasattr(self.lib, 'fpm_pose_refine_resident'):
+            self.lib.fpm_pose_refine_resident.argtypes = [C.c_void_p, FLOAT_P, C.c_int,
+                C.POINTER(RefineConfig), C.c_int, FLOAT_P, FLOAT_P, C.POINTER(RefineStats),
+                C.POINTER(ResidentMetrics), C.POINTER(Metrics), C.c_char_p, C.c_int]
+            self.lib.fpm_pose_refine_resident.restype = C.c_int
         if hasattr(self.lib, 'fpm_pose_refine_auto'):
             self.lib.fpm_pose_auto_default_config.argtypes = [C.POINTER(AutoConfig)]
             self.lib.fpm_pose_auto_default_config.restype = None
@@ -175,6 +188,44 @@ class Scorer:
             raise RuntimeError(error.value.decode())
         return poses, scores, [{key: getattr(row, key) for key, _ in RefineStats._fields_} for row in stats], \
             {key: getattr(metrics, key) for key, _ in Metrics._fields_}
+
+    def refine_resident(self, seeds, cpu_verify=True, optimize_scale=True,
+                        optimize_angle=True, max_iterations=30, max_translation=12.,
+                        max_angle_degrees=15., max_log_scale=math.log(1.3)):
+        """Opt-in GPU solves, acceptance and stopping; Metal/auto handles only.
+
+        The default CPU verification runs only after GPU work, recomputes seed
+        and final scores, and restores a regressed seed without CPU polish.
+        With cpu_verify=False, scores remain device scores; no CPU pixel scans
+        occur, but finite values and original seed bounds are still validated.
+        Metrics['resident'] separates setup, encoding, waits and verification.
+        wait_ms includes GPU execution; do not add it to device_ms.
+        """
+        if not hasattr(self.lib, 'fpm_pose_refine_resident'):
+            raise RuntimeError('Resident refinement is unavailable; rebuild the experimental library')
+        cpu_verify = operator.index(cpu_verify)
+        if cpu_verify not in (0, 1):
+            raise ValueError('cpu_verify must be True/False or 0/1')
+        max_iterations = operator.index(max_iterations)
+        optimize_scale, optimize_angle = operator.index(optimize_scale), operator.index(optimize_angle)
+        if not 1 <= max_iterations <= 200 or optimize_scale not in (0, 1) or optimize_angle not in (0, 1):
+            raise ValueError('Invalid resident iteration count or optimize flags')
+        seeds = np.ascontiguousarray(seeds, dtype=np.float32)
+        if seeds.ndim != 2 or seeds.shape[1] != 4 or not 1 <= len(seeds) <= 65536:
+            raise ValueError('Expected N x 4 poses with 1 <= N <= 65536')
+        config = RefineConfig(max_iterations, optimize_scale, optimize_angle,
+                              max_translation, max_angle_degrees, max_log_scale)
+        poses, scores = np.empty_like(seeds), np.empty(len(seeds), np.float32)
+        stats = (RefineStats * len(seeds))()
+        resident, metrics, error = ResidentMetrics(), Metrics(), C.create_string_buffer(2048)
+        result = self.lib.fpm_pose_refine_resident(self.handle, seeds.ctypes.data_as(FLOAT_P),
+            len(seeds), C.byref(config), cpu_verify, poses.ctypes.data_as(FLOAT_P),
+            scores.ctypes.data_as(FLOAT_P), stats, C.byref(resident), C.byref(metrics), error, len(error))
+        if result:
+            raise RuntimeError(error.value.decode())
+        measured = {key: getattr(metrics, key) for key, _ in Metrics._fields_}
+        measured['resident'] = {key: getattr(resident, key) for key, _ in ResidentMetrics._fields_}
+        return poses, scores, [{key: getattr(row, key) for key, _ in RefineStats._fields_} for row in stats], measured
 
     def refine_auto(self, seeds, min_pose_samples=None, min_batch_samples=None,
                     min_iterations=None, cpu_polish_iterations=None, optimize_scale=True,

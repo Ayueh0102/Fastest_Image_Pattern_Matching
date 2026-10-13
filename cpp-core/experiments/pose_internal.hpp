@@ -14,6 +14,11 @@ struct MetalUnavailable : std::runtime_error {
     using std::runtime_error::runtime_error;
 };
 struct PackedPose { float tx, ty, cs, sn; };
+// Public pose units. Endpoints are rounded INWARD from double seed-relative
+// bounds on the host; device code must not recompute seed +/- float(bound).
+struct ResidentSeed { float pose[4], lower[4], upper[4]; };
+static_assert(sizeof(ResidentSeed) == 48);
+static_assert(sizeof(FpmPoseResidentMetrics) == 72);
 struct Data {
     int sw, sh, tw, th, channels;
     std::vector<float> source, templ;
@@ -36,6 +41,8 @@ struct Backend {
     // explicitly select a CPU fallback rather than mislabeling device work.
     virtual bool linearize(const std::vector<PackedPose>&, const FpmPoseRefineConfig&,
         std::vector<Linearization>&, FpmPoseMetrics&) { return false; }
+    virtual bool refineResident(const std::vector<ResidentSeed>&, const FpmPoseRefineConfig&,
+        float*, float*, FpmPoseRefineStats*, FpmPoseResidentMetrics&, FpmPoseMetrics&) { return false; }
 };
 #ifdef FPM_EXPERIMENT_METAL
 std::unique_ptr<Backend> makeMetal(const Data&);

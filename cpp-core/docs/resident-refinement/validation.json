@@ -1,0 +1,45 @@
+{
+  "created_at": "2026-10-13T03:34:30.576169+00:00",
+  "report_sha256": {
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/docs/resident-refinement/report.json.gz": "ef3bdf0cf88ffd04d7a4ccb5a935667edcca7065ac58b61925c1a9b28ecac308"
+  },
+  "tool_sha256": "75a8b810ebd51c2997685d435e85b2bae59a6abda23c922d7a3acba6b448ac31",
+  "gates": {
+    "complete": true,
+    "correctness": true,
+    "provenance": true,
+    "accuracy": {
+      "local": false,
+      "full": true
+    }
+  },
+  "passed": false,
+  "reports": [
+    {
+      "report": "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/docs/resident-refinement/report.json.gz",
+      "gates": {
+        "complete": true,
+        "correctness": true,
+        "provenance": true,
+        "accuracy": {
+          "local": false,
+          "full": true
+        }
+      },
+      "passed": false,
+      "issues": [
+        "Strict truth accuracy gate failed"
+      ],
+      "baseline_source_manifest_present": true,
+      "provenance_basis": "Saved run-time hash checks; files are not rehashed against the possibly changed checkout."
+    }
+  ],
+  "notes": [
+    "Only selected cases are covered; an absent suite is not claimed tested.",
+    "Retained owned-buffer snapshots are not transient allocation peaks.",
+    "Shared GPU buffers can overlap process RSS; do not add them.",
+    "GPU command intervals overlap wait/API/outer wall and include device memory stalls.",
+    "Main local charts select large_* cases when present; table.json retains every case.",
+    "Resident representative fields belong to the median outer-wall run; medians are not additive."
+  ]
+}

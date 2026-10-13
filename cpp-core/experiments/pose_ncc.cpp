@@ -287,6 +287,7 @@ struct Context {
     std::unique_ptr<Backend> lazyMetal;
     std::unique_ptr<Cpu> refiner;
     AcceleratedWorkspace accelerated;
+    std::vector<ResidentSeed> residentSeeds;
     int threads = 1, creationBackend = 0;
 };
 static void errorMessage(char* error, int cap, const char* message) {
@@ -506,7 +507,8 @@ int fpm_pose_memory(void* handle, FpmPoseMetrics* metrics)
     auto& ctx = *static_cast<fpm_exp::Context*>(handle);
     *metrics = {}; metrics->device_ms = -1;
     metrics->host_buffer_bytes = (ctx.data.source.capacity()+ctx.data.templ.capacity())*sizeof(float)
-        + ctx.packed.capacity()*sizeof(fpm_exp::PackedPose) + ctx.accelerated.bytes();
+        + ctx.packed.capacity()*sizeof(fpm_exp::PackedPose) + ctx.accelerated.bytes()
+        + ctx.residentSeeds.capacity()*sizeof(fpm_exp::ResidentSeed);
     ctx.backend->memory(*metrics);
     if (ctx.lazyMetal) {
         FpmPoseMetrics lazy{};
@@ -543,7 +545,8 @@ int fpm_pose_score(void* handle, const float* poses, int count, float* scores,
             metrics->gpu_allocated_bytes = std::max(metrics->gpu_allocated_bytes, lazy.gpu_allocated_bytes);
         }
         metrics->host_buffer_bytes = (ctx.data.source.capacity()+ctx.data.templ.capacity())*sizeof(float)
-            + ctx.packed.capacity()*sizeof(PackedPose) + ctx.accelerated.bytes();
+            + ctx.packed.capacity()*sizeof(PackedPose) + ctx.accelerated.bytes()
+            + ctx.residentSeeds.capacity()*sizeof(ResidentSeed);
         metrics->wall_ms = std::chrono::duration<double, std::milli>(Clock::now()-begin).count();
         errorMessage(error, error_capacity, "");
         return 0;
@@ -640,6 +643,122 @@ int fpm_pose_refine_accelerated(void* handle, const float* seeds, int count,
         errorMessage(error, error_capacity, "");
         return 0;
     } catch (const std::exception& e) { errorMessage(error, error_capacity, e.what()); return -1; }
+}
+int fpm_pose_refine_resident(void* handle, const float* seeds, int count,
+    const FpmPoseRefineConfig* config, int cpu_verify, float* refined, float* scores,
+    FpmPoseRefineStats* stats, FpmPoseResidentMetrics* resident_metrics,
+    FpmPoseMetrics* metrics, char* error, int error_capacity)
+{
+    using namespace fpm_exp;
+    const auto begin = Clock::now();
+    if (resident_metrics) *resident_metrics = {};
+    if (metrics) { *metrics = {}; metrics->device_ms = -1; }
+    try {
+        if (!handle || !seeds || !refined || !scores || !resident_metrics || !metrics
+            || count < 1 || count > 65536)
+            throw std::invalid_argument("invalid resident refinement arguments (1 <= count <= 65536)");
+        if (cpu_verify != 0 && cpu_verify != 1)
+            throw std::invalid_argument("CPU verification must be 0 or 1");
+        FpmPoseRefineConfig options;
+        fpm_pose_refine_default_config(&options);
+        if (config) options = *config;
+        if (options.max_iterations < 1 || options.max_iterations > 200
+            || (options.optimize_scale != 0 && options.optimize_scale != 1)
+            || (options.optimize_angle != 0 && options.optimize_angle != 1)
+            || !std::isfinite(options.max_translation) || options.max_translation < 0 || options.max_translation > 1024
+            || !std::isfinite(options.max_angle_degrees) || options.max_angle_degrees < 0 || options.max_angle_degrees > 180
+            || !std::isfinite(options.max_log_scale) || options.max_log_scale < 0 || options.max_log_scale > 3)
+            throw std::invalid_argument("invalid refinement configuration");
+        for (int i = 0; i < count; ++i) {
+            const float* p = seeds+size_t(i)*4;
+            for (int k = 0; k < 4; ++k) if (!std::isfinite(p[k]))
+                throw std::invalid_argument("non-finite refinement seed");
+            if (std::abs(p[0]) > 1e6 || std::abs(p[1]) > 1e6 || std::abs(p[2]) > 36000 || std::abs(p[3]) > 3)
+                throw std::invalid_argument("refinement seed outside experiment limits");
+        }
+        auto& ctx = *static_cast<Context*>(handle);
+        if (ctx.creationBackend == 0)
+            throw std::invalid_argument("GPU-resident refinement requires a Metal or auto handle");
+        ctx.residentSeeds.resize(size_t(count));
+        const double bound[4] = {options.max_translation, options.max_translation,
+            options.optimize_angle ? options.max_angle_degrees : 0,
+            options.optimize_scale ? options.max_log_scale : 0};
+        const double limit[4] = {1e6, 1e6, 36000, 3};
+        for (int i = 0; i < count; ++i) for (int k = 0; k < 4; ++k) {
+            auto& seed = ctx.residentSeeds[size_t(i)];
+            seed.pose[k] = seeds[size_t(i)*4+k];
+            const double lower = std::max(-limit[k], double(seed.pose[k])-bound[k]);
+            const double upper = std::min(limit[k], double(seed.pose[k])+bound[k]);
+            seed.lower[k] = boundedFloat(lower, lower, upper);
+            seed.upper[k] = boundedFloat(upper, lower, upper);
+        }
+        Backend* selected = ctx.backend.get();
+        if (ctx.creationBackend == 2) {
+#ifdef FPM_EXPERIMENT_METAL
+            if (!ctx.lazyMetal) {
+                const auto setupBegin = Clock::now();
+                ctx.lazyMetal = makeMetal(ctx.data);
+                resident_metrics->setup_ms = std::chrono::duration<double, std::milli>(Clock::now()-setupBegin).count();
+            }
+            selected = ctx.lazyMetal.get();
+#else
+            throw std::runtime_error("Metal backend was not compiled on this platform");
+#endif
+        }
+        if (!selected->refineResident(ctx.residentSeeds, options, refined, scores, stats, *resident_metrics, *metrics))
+            throw std::runtime_error("GPU-resident refinement is unsupported by this backend");
+        // Cheap validation remains enabled even when CPU pixel verification is
+        // disabled. Device failures are errors, never silently repaired poses.
+        for (int i = 0; i < count; ++i) {
+            if (!std::isfinite(scores[i]) || (scores[i] != -2.f && (scores[i] < -1.f || scores[i] > 1.f)))
+                throw std::runtime_error("invalid score returned by GPU-resident refinement");
+            for (int k = 0; k < 4; ++k) {
+                const float value = refined[size_t(i)*4+k];
+                const auto& seed = ctx.residentSeeds[size_t(i)];
+                if (!std::isfinite(value) || value < seed.lower[k] || value > seed.upper[k])
+                    throw std::runtime_error("GPU-resident refinement returned a pose outside its bounds");
+            }
+        }
+        resident_metrics->cpu_verified = 0;
+        resident_metrics->cpu_verify_ms = 0;
+        if (cpu_verify) {
+            const auto verifyBegin = Clock::now();
+            auto* cpu = dynamic_cast<Cpu*>(ctx.backend.get());
+            if (!cpu) {
+                if (!ctx.refiner) ctx.refiner = std::make_unique<Cpu>(ctx.data, ctx.threads);
+                cpu = ctx.refiner.get();
+            }
+            cpu->parallel(size_t(count), [&](size_t i) {
+                const auto& seed = ctx.residentSeeds[i];
+                double original[4], candidate[4];
+                for (int k = 0; k < 4; ++k) {
+                    original[k] = seed.pose[k]; candidate[k] = refined[4*i+k];
+                }
+                const float initialScore = scoreOne(ctx.data, pack(original));
+                float finalScore = scoreOne(ctx.data, pack(candidate));
+                if (stats) stats[i].evaluations += 2;
+                if (!std::isfinite(finalScore) || finalScore < initialScore) {
+                    for (int k = 0; k < 4; ++k) refined[4*i+k] = seed.pose[k];
+                    finalScore = initialScore;
+                    if (stats) stats[i].status = 3;
+                }
+                scores[i] = finalScore;
+            });
+            resident_metrics->cpu_verify_ms = std::chrono::duration<double, std::milli>(Clock::now()-verifyBegin).count();
+            resident_metrics->cpu_verified = 1;
+        }
+        const double deviceTime = metrics->device_ms;
+        fpm_pose_memory(handle, metrics);
+        metrics->device_ms = deviceTime;
+        metrics->wall_ms = std::chrono::duration<double, std::milli>(Clock::now()-begin).count();
+        errorMessage(error, error_capacity, "");
+        return 0;
+    } catch (const std::exception& e) {
+        if (resident_metrics) *resident_metrics = {};
+        if (metrics) { *metrics = {}; metrics->device_ms = -1; }
+        errorMessage(error, error_capacity, e.what());
+        return -1;
+    }
 }
 void fpm_pose_auto_default_config(FpmPoseAutoConfig* config)
 {
