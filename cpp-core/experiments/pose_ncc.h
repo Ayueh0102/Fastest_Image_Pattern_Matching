@@ -127,6 +127,62 @@ FPM_EXP_API int fpm_pose_refine_resident(void* handle, const float* seeds, int c
     FpmPoseRefineStats* stats, FpmPoseResidentMetrics* resident_metrics,
     FpmPoseMetrics* metrics, char* error, int error_capacity);
 
+// Optional bounded local-basin rescue. The baseline runs once, then up to
+// max_rescued_seeds low-scoring parents receive a fixed 16-point Halton bank
+// (bases 2,3,5,7; indices 1..16), short refinement and at most one continuation.
+// Every retry keeps the ORIGINAL input seed's bounds. No ground truth enters
+// selection. The default score window is [0.1,0.8), descending score/stable tie.
+typedef struct FpmPoseRescueConfig {
+    int backend;                   // 0 = CPU, 1 = resident Metal + CPU verification
+    int max_rescued_seeds;          // 0..64; 0 disables retries
+    int short_iterations;          // 1..200
+    int reserved;                  // must be zero
+    double trigger_min_score;
+    double trigger_score;
+    double translation_radius;
+    double angle_radius_degrees;
+    double log_scale_radius;
+    uint64_t max_retry_sample_iterations;
+} FpmPoseRescueConfig;
+typedef struct FpmPoseRescueMetrics {
+    uint64_t eligible_seeds;
+    uint64_t selected_seeds;
+    uint64_t accepted_seeds;
+    uint64_t budget_skipped_seeds;
+    uint64_t parent_cap_skipped_seeds;
+    uint64_t retry_starts;
+    uint64_t continuations;
+    uint64_t reserved_retry_sample_iterations;
+    uint64_t retry_evaluations;
+    uint64_t command_buffers;
+    uint64_t cpu_waits;
+    uint64_t auxiliary_buffer_bytes; // maximum resident GPU workspace, images excluded
+    uint64_t host_workspace_bytes;  // retained rescue vector capacities
+    double baseline_ms;
+    double retry_ms;
+    double cpu_verify_ms;           // baseline/retry exact CPU score checks
+    int selected_backend;
+    int reserved;
+} FpmPoseRescueMetrics;
+// Defaults: CPU, at most 4 parents, 8 short iterations, score window [0.1,0.8),
+// Halton radii [3 px,3 px,6 deg,0.06 log-scale], 512*1024*1024 sample-iterations.
+// The work proxy reserves template_width*height*channels*(16*short_iterations
+// + max_iterations) per parent, including a full continuation even if unused.
+// It is not a measured pixel-operation count: LM line-search trials and exact
+// CPU verification add work. No parent starts unless its whole proxy fits.
+FPM_EXP_API void fpm_pose_rescue_default_config(FpmPoseRescueConfig* config);
+// CPU handles support only backend 0; backend 1 requires Metal/auto and never
+// silently falls back. Every retry result is re-scored exactly on CPU before
+// comparison; returned NCC never decreases from the selected baseline path.
+// Stats sum baseline + ALL short/continuation iterations/evaluations, while
+// status describes the chosen endpoint. Configs/stats may be null; both metrics
+// outputs are required. Error resets metrics. Inputs/outputs must not overlap.
+FPM_EXP_API int fpm_pose_refine_rescue(void* handle, const float* seeds, int count,
+    const FpmPoseRefineConfig* config, const FpmPoseRescueConfig* rescue_config,
+    float* refined, float* scores, FpmPoseRefineStats* stats,
+    FpmPoseRescueMetrics* rescue_metrics, FpmPoseMetrics* metrics,
+    char* error, int error_capacity);
+
 // Opt-in workload routing; thresholds are tunable heuristics, not a guarantee
 // that the selected backend is fastest. Samples count scalar channel values:
 // pose_samples = template_width * template_height * channels;

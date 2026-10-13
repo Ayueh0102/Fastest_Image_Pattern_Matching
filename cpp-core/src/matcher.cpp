@@ -81,7 +81,8 @@ std::vector<double> localAngles(double center, double step, const std::vector<An
 }
 }
 
-std::vector<Match> match(ImageView source, const Pattern& pattern, const MatchConfig& config)
+std::vector<Match> detail::matchWithCoarseNcc(ImageView source, const Pattern& pattern,
+	const MatchConfig& config, CoarseNccProvider* provider)
 {
 	using namespace detail;
 	validateImage(source);
@@ -119,7 +120,8 @@ std::vector<Match> match(ImageView source, const Pattern& pattern, const MatchCo
 	for (double angle : coarseAngles(config, ranges, angleStep(top))) {
 		auto canvas = rotateCanvas(topSource.view(), topW, topH, angle, pattern.borderColor());
 		if (canvas.image.width() < topW || canvas.image.height() < topH) continue;
-		auto response = ncc(canvas.image.view(), topTemplate, config.backend,
+		auto response = provider ? provider->compute(canvas.image.view(), topTemplate) :
+			ncc(canvas.image.view(), topTemplate, config.backend,
 			config.coarseNccPruning ? thresholds[top] : -std::numeric_limits<double>::infinity());
 		for (const auto& peak : selectPeaks(std::move(response), topW, topH,
 			config.maxTargets + EXTRA_CANDIDATES, config.maxOverlap, thresholds[top], blocked)) {
@@ -229,5 +231,9 @@ std::vector<Match> match(ImageView source, const Pattern& pattern, const MatchCo
 		}
 	}
 	return suppress(std::move(refined), config.maxTargets, config.maxOverlap);
+}
+std::vector<Match> match(ImageView source, const Pattern& pattern, const MatchConfig& config)
+{
+	return detail::matchWithCoarseNcc(source, pattern, config, nullptr);
 }
 } // namespace fpm

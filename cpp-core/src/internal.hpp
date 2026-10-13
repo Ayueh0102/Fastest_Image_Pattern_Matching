@@ -2,6 +2,9 @@
 #pragma once
 #include "fpm/matcher.hpp"
 #include <array>
+#include <algorithm>
+#include <cfloat>
+#include <cmath>
 #include <limits>
 
 namespace fpm::detail {
@@ -28,11 +31,36 @@ struct ScoreMap {
 	double at(int x, int y) const { return values[std::size_t(y) * width + x]; }
 };
 struct Peak { int x = 0; int y = 0; double score = -std::numeric_limits<double>::infinity(); };
+// Optional experimental provider only at the dense pyramid-top stage. The
+// portable CPU entry point never installs one; fine NCC remains unchanged.
+class CoarseNccProvider {
+public:
+	virtual ~CoarseNccProvider() = default;
+	virtual ScoreMap compute(ImageView source, const TemplateLevel& templ) = 0;
+};
+std::vector<Match> matchWithCoarseNcc(ImageView source, const Pattern& pattern,
+	const MatchConfig& config, CoarseNccProvider* provider);
 std::uint64_t dotProduct(const std::uint8_t* a, const std::uint8_t* b, int size, Backend backend);
 struct NccStats {
 	std::uint64_t windows = 0, projectionChecks = 0, partialChecks = 0;
 	std::uint64_t rejected = 0, fullDotProducts = 0, dotPixels = 0;
 };
+// Shared normalization guards; retain legacy expression order. Integer GPU
+// statistics and portable CPU statistics use these same binary64 operations.
+inline double nccDenominator(double variance, double square, double templateNorm)
+{
+	return variance > std::min(0.5, 10 * FLT_EPSILON * square) ?
+		std::sqrt(variance) * templateNorm : 0;
+}
+inline double nccNormalizeProduct(double product, double sum, double templateMean,
+	double denominator)
+{
+	if (denominator == 0) return 0;
+	const double numerator = product - sum * templateMean;
+	if (std::abs(numerator) < denominator) return numerator / denominator;
+	if (std::abs(numerator) < denominator * 1.125) return numerator > 0 ? 1 : -1;
+	return 0;
+}
 // A finite positive rejectBelow enables conservative bounds. Values proven
 // strictly below it may become -infinity; all other values are bit-identical
 // to exhaustive NCC. Nonpositive thresholds bypass bounds (legacy saturation

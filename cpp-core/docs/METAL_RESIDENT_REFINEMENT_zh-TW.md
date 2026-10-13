@@ -1,5 +1,7 @@
 # Metal GPU 常駐 NCC 精修
 
+後續的低分錯峰救援與更大型測試另見 [NCC 救援與 Metal 粗 NCC 實驗](NCC_RESCUE_AND_METAL_COARSE_zh-TW.md)；本頁保留本輪原始結果與失敗紀錄。
+
 2026-10-13，Apple M4 Pro（12 CPU／16 GPU 核心、48 GiB），macOS 26.6.2，Release，CPU 8 threads。
 
 **常駐控制已實作且有大型工作加速，沒有觀察到新增精度退步；嚴格的所有案例精度門檻尚未通過。** 擴大測試找到原 CPU、原混合版與新版本共同的 NCC 錯峰，保留失敗結果，因此本輪沒有搬粗搜尋，也沒有切換自動分流或 GUI 預設。

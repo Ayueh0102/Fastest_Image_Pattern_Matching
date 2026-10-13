@@ -1,0 +1,8 @@
+{
+  "commit": "958ab796ba1161a48a6e0511d0d4c6d687b5d735",
+  "note": "Frozen existing Release binaries before NCC rescue/coarse changes; 958ab79 baseline.",
+  "sha256": {
+    "experiments/libfpm_pose_experiment.dylib": "9dd592aeeeb9f524f58989bcfebf2c5898f6a0f703a70272eec585f8286eef14",
+    "libfpm_c.dylib": "e772ab0004591f63b4bbc711b5626355de81671386c5cc2c31600465a36eb3b4"
+  }
+}

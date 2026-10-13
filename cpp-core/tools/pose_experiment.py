@@ -36,6 +36,24 @@ class ResidentMetrics(C.Structure):
                 ("cpu_verified", C.c_int), ("reserved", C.c_int)]
 
 
+class RescueConfig(C.Structure):
+    _fields_ = [("backend", C.c_int), ("max_rescued_seeds", C.c_int),
+                ("short_iterations", C.c_int), ("reserved", C.c_int),
+                ("trigger_min_score", C.c_double), ("trigger_score", C.c_double),
+                ("translation_radius", C.c_double), ("angle_radius_degrees", C.c_double),
+                ("log_scale_radius", C.c_double), ("max_retry_sample_iterations", C.c_uint64)]
+
+
+class RescueMetrics(C.Structure):
+    _fields_ = [(name, C.c_uint64) for name in (
+        'eligible_seeds', 'selected_seeds', 'accepted_seeds', 'budget_skipped_seeds',
+        'parent_cap_skipped_seeds', 'retry_starts', 'continuations',
+        'reserved_retry_sample_iterations', 'retry_evaluations', 'command_buffers',
+        'cpu_waits', 'auxiliary_buffer_bytes', 'host_workspace_bytes')]
+    _fields_ += [(name, C.c_double) for name in ('baseline_ms', 'retry_ms', 'cpu_verify_ms')]
+    _fields_ += [('selected_backend', C.c_int), ('reserved', C.c_int)]
+
+
 class AutoConfig(C.Structure):
     _fields_ = [("min_pose_samples", C.c_uint64), ("min_batch_samples", C.c_uint64),
                 ("min_iterations", C.c_int), ("cpu_polish_iterations", C.c_int)]
@@ -81,6 +99,14 @@ class Scorer:
                 C.POINTER(RefineConfig), C.c_int, FLOAT_P, FLOAT_P, C.POINTER(RefineStats),
                 C.POINTER(ResidentMetrics), C.POINTER(Metrics), C.c_char_p, C.c_int]
             self.lib.fpm_pose_refine_resident.restype = C.c_int
+        if hasattr(self.lib, 'fpm_pose_refine_rescue'):
+            self.lib.fpm_pose_rescue_default_config.argtypes = [C.POINTER(RescueConfig)]
+            self.lib.fpm_pose_rescue_default_config.restype = None
+            self.lib.fpm_pose_refine_rescue.argtypes = [C.c_void_p, FLOAT_P, C.c_int,
+                C.POINTER(RefineConfig), C.POINTER(RescueConfig), FLOAT_P, FLOAT_P,
+                C.POINTER(RefineStats), C.POINTER(RescueMetrics), C.POINTER(Metrics),
+                C.c_char_p, C.c_int]
+            self.lib.fpm_pose_refine_rescue.restype = C.c_int
         if hasattr(self.lib, 'fpm_pose_refine_auto'):
             self.lib.fpm_pose_auto_default_config.argtypes = [C.POINTER(AutoConfig)]
             self.lib.fpm_pose_auto_default_config.restype = None
@@ -226,6 +252,66 @@ class Scorer:
         measured = {key: getattr(metrics, key) for key, _ in Metrics._fields_}
         measured['resident'] = {key: getattr(resident, key) for key, _ in ResidentMetrics._fields_}
         return poses, scores, [{key: getattr(row, key) for key, _ in RefineStats._fields_} for row in stats], measured
+
+    def refine_rescue(self, seeds, resident=False, max_rescued_seeds=None,
+                      short_iterations=None, trigger_min_score=None, trigger_score=None,
+                      translation_radius=None, angle_radius_degrees=None, log_scale_radius=None,
+                      max_retry_sample_iterations=None, optimize_scale=True, optimize_angle=True,
+                      max_iterations=30, max_translation=12., max_angle_degrees=15.,
+                      max_log_scale=math.log(1.3)):
+        """Optional truth-free multistart rescue, preserving original seed bounds.
+
+        A fixed 16-point Halton bank runs only for low-scoring selected parents.
+        The default work proxy caps additional scalar-sample-iterations at
+        536870912 (a work count, not allocated bytes). Resident=True keeps every
+        refinement solve/stop decision on Metal; exact CPU scoring verifies all
+        retry candidates. It does not perform CPU polish or promise a global
+        optimum. Stats aggregate all attempted starts, not just the winner.
+        Diagnostics are returned in metrics['rescue'].
+        """
+        if not hasattr(self.lib, 'fpm_pose_refine_rescue'):
+            raise RuntimeError('Rescue refinement is unavailable; rebuild the experimental library')
+        resident = operator.index(resident)
+        if resident not in (0, 1):
+            raise ValueError('resident must be True/False or 0/1')
+        seeds = np.ascontiguousarray(seeds, dtype=np.float32)
+        if seeds.ndim != 2 or seeds.shape[1] != 4 or not 1 <= len(seeds) <= 65536:
+            raise ValueError('Expected N x 4 poses with 1 <= N <= 65536')
+        max_iterations = operator.index(max_iterations)
+        optimize_scale, optimize_angle = operator.index(optimize_scale), operator.index(optimize_angle)
+        if not 1 <= max_iterations <= 200 or optimize_scale not in (0, 1) or optimize_angle not in (0, 1):
+            raise ValueError('Invalid rescue iteration count or optimize flags')
+        policy = RescueConfig()
+        self.lib.fpm_pose_rescue_default_config(C.byref(policy))
+        policy.backend = resident
+        for key, value, minimum, maximum in (
+                ('max_rescued_seeds', max_rescued_seeds, 0, 64),
+                ('short_iterations', short_iterations, 1, 200),
+                ('max_retry_sample_iterations', max_retry_sample_iterations, 0, 2**64-1)):
+            if value is not None:
+                value = operator.index(value)
+                if not minimum <= value <= maximum:
+                    raise ValueError(f'{key} must be between {minimum} and {maximum}')
+                setattr(policy, key, value)
+        for key, value in (('trigger_min_score', trigger_min_score), ('trigger_score', trigger_score),
+                           ('translation_radius', translation_radius), ('angle_radius_degrees', angle_radius_degrees),
+                           ('log_scale_radius', log_scale_radius)):
+            if value is not None:
+                setattr(policy, key, float(value))
+        config = RefineConfig(max_iterations, optimize_scale, optimize_angle,
+                              max_translation, max_angle_degrees, max_log_scale)
+        poses, scores = np.empty_like(seeds), np.empty(len(seeds), np.float32)
+        stats = (RefineStats * len(seeds))()
+        rescue, metrics, error = RescueMetrics(), Metrics(), C.create_string_buffer(2048)
+        result = self.lib.fpm_pose_refine_rescue(self.handle, seeds.ctypes.data_as(FLOAT_P),
+            len(seeds), C.byref(config), C.byref(policy), poses.ctypes.data_as(FLOAT_P),
+            scores.ctypes.data_as(FLOAT_P), stats, C.byref(rescue), C.byref(metrics), error, len(error))
+        if result:
+            raise RuntimeError(error.value.decode())
+        measured = {key: getattr(metrics, key) for key, _ in Metrics._fields_}
+        measured['rescue'] = {key: getattr(rescue, key) for key, _ in RescueMetrics._fields_}
+        return poses, scores, [{key: getattr(row, key) for key, _ in RefineStats._fields_}
+                               for row in stats], measured
 
     def refine_auto(self, seeds, min_pose_samples=None, min_batch_samples=None,
                     min_iterations=None, cpu_polish_iterations=None, optimize_scale=True,

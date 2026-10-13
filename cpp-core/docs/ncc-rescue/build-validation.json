@@ -1,0 +1,42 @@
+{
+  "release": {
+    "command": "ctest --test-dir build/fourier-gpu --output-on-failure",
+    "passed": 11,
+    "failed": 0,
+    "seconds": 10.25
+  },
+  "asan_ubsan": {
+    "command": "ctest --test-dir build/fourier-gpu-sanitized --output-on-failure",
+    "passed": 9,
+    "failed": 0,
+    "seconds": 30.46
+  },
+  "metal_api_validation": {
+    "environment": {
+      "MTL_DEBUG_LAYER": "1"
+    },
+    "passed": [
+      "fpm_coarse_test",
+      "fpm_pose_rescue_test --metal"
+    ]
+  },
+  "note": "Algorithm/library sources frozen before formal measurements. Coarse overflow fixture strengthened after these runs; targeted repeat recorded separately.",
+  "strengthened_integer_overflow_test": {
+    "release": {
+      "passed": 1,
+      "failed": 0,
+      "seconds": 0.62
+    },
+    "asan_ubsan": {
+      "passed": 1,
+      "failed": 0,
+      "seconds": 2.06
+    },
+    "fixture": "66052 gray8 samples, one value 254 and remaining 255; actual square/product exceed UINT32_MAX"
+  },
+  "python_tools": {
+    "syntax_checked": 10,
+    "caller_threshold_checks": "passed: 0, 0.05, 0.1, 0.5, 0.8, 1; invalid -0.1, 1.01, NaN, infinity rejected; custom policy preserved without mutation"
+  },
+  "log_normalization": "Trailing whitespace removed from archived Release text log only; test content unchanged."
+}

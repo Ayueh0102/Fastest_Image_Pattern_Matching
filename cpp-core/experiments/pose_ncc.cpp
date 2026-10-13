@@ -280,6 +280,18 @@ struct AcceleratedWorkspace {
             + linearizations.capacity()*sizeof(Linearization) + values.capacity()*sizeof(float);
     }
 };
+struct RescueWorkspace {
+    std::vector<size_t> eligible, parents, owners, continuationOwners;
+    std::vector<ResidentSeed> trials, continuation;
+    std::vector<float> output, values, baseScores;
+    std::vector<FpmPoseRefineStats> trialStats, totalStats;
+    uint64_t bytes() const {
+        return (eligible.capacity()+parents.capacity()+owners.capacity()+continuationOwners.capacity())*sizeof(size_t)
+            + (trials.capacity()+continuation.capacity())*sizeof(ResidentSeed)
+            + (output.capacity()+values.capacity()+baseScores.capacity())*sizeof(float)
+            + (trialStats.capacity()+totalStats.capacity())*sizeof(FpmPoseRefineStats);
+    }
+};
 struct Context {
     Data data;
     std::vector<PackedPose> packed;
@@ -287,6 +299,7 @@ struct Context {
     std::unique_ptr<Backend> lazyMetal;
     std::unique_ptr<Cpu> refiner;
     AcceleratedWorkspace accelerated;
+    RescueWorkspace rescue;
     std::vector<ResidentSeed> residentSeeds;
     int threads = 1, creationBackend = 0;
 };
@@ -508,7 +521,7 @@ int fpm_pose_memory(void* handle, FpmPoseMetrics* metrics)
     *metrics = {}; metrics->device_ms = -1;
     metrics->host_buffer_bytes = (ctx.data.source.capacity()+ctx.data.templ.capacity())*sizeof(float)
         + ctx.packed.capacity()*sizeof(fpm_exp::PackedPose) + ctx.accelerated.bytes()
-        + ctx.residentSeeds.capacity()*sizeof(fpm_exp::ResidentSeed);
+        + ctx.residentSeeds.capacity()*sizeof(fpm_exp::ResidentSeed) + ctx.rescue.bytes();
     ctx.backend->memory(*metrics);
     if (ctx.lazyMetal) {
         FpmPoseMetrics lazy{};
@@ -546,7 +559,7 @@ int fpm_pose_score(void* handle, const float* poses, int count, float* scores,
         }
         metrics->host_buffer_bytes = (ctx.data.source.capacity()+ctx.data.templ.capacity())*sizeof(float)
             + ctx.packed.capacity()*sizeof(PackedPose) + ctx.accelerated.bytes()
-            + ctx.residentSeeds.capacity()*sizeof(ResidentSeed);
+            + ctx.residentSeeds.capacity()*sizeof(ResidentSeed) + ctx.rescue.bytes();
         metrics->wall_ms = std::chrono::duration<double, std::milli>(Clock::now()-begin).count();
         errorMessage(error, error_capacity, "");
         return 0;
@@ -755,6 +768,221 @@ int fpm_pose_refine_resident(void* handle, const float* seeds, int count,
         return 0;
     } catch (const std::exception& e) {
         if (resident_metrics) *resident_metrics = {};
+        if (metrics) { *metrics = {}; metrics->device_ms = -1; }
+        errorMessage(error, error_capacity, e.what());
+        return -1;
+    }
+}
+void fpm_pose_rescue_default_config(FpmPoseRescueConfig* config)
+{
+    if (config) *config = {0, 4, 8, 0, .1, .8, 3., 6., .06, uint64_t(512)*1024*1024};
+}
+int fpm_pose_refine_rescue(void* handle, const float* seeds, int count,
+    const FpmPoseRefineConfig* config, const FpmPoseRescueConfig* rescue_config,
+    float* refined, float* scores, FpmPoseRefineStats* stats,
+    FpmPoseRescueMetrics* rescue_metrics, FpmPoseMetrics* metrics,
+    char* error, int error_capacity)
+{
+    using namespace fpm_exp;
+    static_assert(sizeof(FpmPoseRescueConfig) == 64);
+    static_assert(sizeof(FpmPoseRescueMetrics) == 136);
+    const auto begin = Clock::now();
+    if (rescue_metrics) *rescue_metrics = {};
+    if (metrics) { *metrics = {}; metrics->device_ms = -1; }
+    try {
+        if (!handle || !seeds || !refined || !scores || !rescue_metrics || !metrics
+            || count < 1 || count > 65536)
+            throw std::invalid_argument("invalid rescue refinement arguments (1 <= count <= 65536)");
+        FpmPoseRefineConfig options;
+        fpm_pose_refine_default_config(&options);
+        if (config) options = *config;
+        FpmPoseRescueConfig policy;
+        fpm_pose_rescue_default_config(&policy);
+        if (rescue_config) policy = *rescue_config;
+        if ((policy.backend != 0 && policy.backend != 1)
+            || policy.max_rescued_seeds < 0 || policy.max_rescued_seeds > 64
+            || policy.short_iterations < 1 || policy.short_iterations > 200 || policy.reserved != 0
+            || !std::isfinite(policy.trigger_min_score) || policy.trigger_min_score < -1 || policy.trigger_min_score > 1
+            || !std::isfinite(policy.trigger_score) || policy.trigger_score < policy.trigger_min_score || policy.trigger_score > 1
+            || !std::isfinite(policy.translation_radius) || policy.translation_radius < 0 || policy.translation_radius > 1024
+            || !std::isfinite(policy.angle_radius_degrees) || policy.angle_radius_degrees < 0 || policy.angle_radius_degrees > 180
+            || !std::isfinite(policy.log_scale_radius) || policy.log_scale_radius < 0 || policy.log_scale_radius > 3)
+            throw std::invalid_argument("invalid rescue configuration");
+        // Validate every option and seed before dispatching or allocating Metal.
+        if (options.max_iterations < 1 || options.max_iterations > 200
+            || (options.optimize_scale != 0 && options.optimize_scale != 1)
+            || (options.optimize_angle != 0 && options.optimize_angle != 1)
+            || !std::isfinite(options.max_translation) || options.max_translation < 0 || options.max_translation > 1024
+            || !std::isfinite(options.max_angle_degrees) || options.max_angle_degrees < 0 || options.max_angle_degrees > 180
+            || !std::isfinite(options.max_log_scale) || options.max_log_scale < 0 || options.max_log_scale > 3)
+            throw std::invalid_argument("invalid refinement configuration");
+        for (int i = 0; i < count; ++i) {
+            const float* p = seeds+size_t(i)*4;
+            for (int k = 0; k < 4; ++k) if (!std::isfinite(p[k]))
+                throw std::invalid_argument("non-finite refinement seed");
+            if (std::abs(p[0]) > 1e6 || std::abs(p[1]) > 1e6 || std::abs(p[2]) > 36000 || std::abs(p[3]) > 3)
+                throw std::invalid_argument("refinement seed outside experiment limits");
+        }
+        auto& ctx = *static_cast<Context*>(handle);
+        if (policy.backend == 1 && ctx.creationBackend == 0)
+            throw std::invalid_argument("resident rescue requires a Metal or auto handle");
+        auto& w = ctx.rescue;
+        w.totalStats.resize(size_t(count));
+        w.eligible.clear(); w.parents.clear(); w.owners.clear(); w.trials.clear();
+        w.continuation.clear(); w.continuationOwners.clear(); w.baseScores.clear();
+        rescue_metrics->selected_backend = policy.backend;
+        DeviceTiming deviceTiming;
+        auto recordResident = [&](const FpmPoseResidentMetrics& diagnostic, const FpmPoseMetrics& measured) {
+            rescue_metrics->command_buffers += diagnostic.command_buffers;
+            rescue_metrics->cpu_waits += diagnostic.cpu_waits;
+            rescue_metrics->auxiliary_buffer_bytes = std::max(rescue_metrics->auxiliary_buffer_bytes,
+                diagnostic.auxiliary_buffer_bytes);
+            rescue_metrics->cpu_verify_ms += diagnostic.cpu_verify_ms;
+            deviceTiming.add(measured);
+        };
+        const auto baselineBegin = Clock::now();
+        FpmPoseMetrics baselineMetrics{};
+        char phaseError[2048]{};
+        if (policy.backend == 1) {
+            FpmPoseResidentMetrics resident{};
+            if (fpm_pose_refine_resident(handle, seeds, count, &options, 1, refined, scores,
+                w.totalStats.data(), &resident, &baselineMetrics, phaseError, sizeof(phaseError)))
+                throw std::runtime_error(phaseError);
+            recordResident(resident, baselineMetrics);
+        } else if (fpm_pose_refine(handle, seeds, count, &options, refined, scores,
+            w.totalStats.data(), &baselineMetrics, phaseError, sizeof(phaseError)))
+            throw std::runtime_error(phaseError);
+        rescue_metrics->baseline_ms = std::chrono::duration<double, std::milli>(Clock::now()-baselineBegin).count();
+        const auto retryBegin = Clock::now();
+        for (int i = 0; i < count; ++i)
+            if (std::isfinite(scores[i]) && scores[i] >= policy.trigger_min_score && scores[i] < policy.trigger_score)
+                w.eligible.push_back(size_t(i));
+        // Stable score priority is deterministic and independent of the truth.
+        std::stable_sort(w.eligible.begin(), w.eligible.end(), [&](size_t a, size_t b) { return scores[a] > scores[b]; });
+        rescue_metrics->eligible_seeds = w.eligible.size();
+        const size_t parentLimit = std::min(w.eligible.size(), size_t(policy.max_rescued_seeds));
+        rescue_metrics->parent_cap_skipped_seeds = w.eligible.size()-parentLimit;
+        const uint64_t perParent = uint64_t(ctx.data.tw)*ctx.data.th*ctx.data.channels
+            *(uint64_t(16)*policy.short_iterations+options.max_iterations);
+        uint64_t remaining = policy.max_retry_sample_iterations;
+        const double bound[4] = {options.max_translation, options.max_translation,
+            options.optimize_angle ? options.max_angle_degrees : 0,
+            options.optimize_scale ? options.max_log_scale : 0};
+        const double radii[4] = {policy.translation_radius, policy.translation_radius,
+            options.optimize_angle ? policy.angle_radius_degrees : 0,
+            options.optimize_scale ? policy.log_scale_radius : 0};
+        const double limit[4] = {1e6, 1e6, 36000, 3};
+        const unsigned bases[4] = {2, 3, 5, 7};
+        auto halton = [](unsigned index, unsigned base) {
+            double value = 0, factor = 1;
+            while (index) { factor /= base; value += factor*(index%base); index /= base; }
+            return value;
+        };
+        for (size_t rank = 0; rank < parentLimit; ++rank) {
+            if (perParent > remaining) { ++rescue_metrics->budget_skipped_seeds; continue; }
+            const size_t parent = w.eligible[rank], first = w.trials.size();
+            for (unsigned index = 1; index <= 16; ++index) {
+                ResidentSeed trial{};
+                bool unchanged = true;
+                for (int k = 0; k < 4; ++k) {
+                    const double origin = seeds[4*parent+k];
+                    const double lower = std::max(-limit[k], origin-bound[k]);
+                    const double upper = std::min(limit[k], origin+bound[k]);
+                    trial.lower[k] = boundedFloat(lower, lower, upper);
+                    trial.upper[k] = boundedFloat(upper, lower, upper);
+                    trial.pose[k] = boundedFloat(origin+(2*halton(index, bases[k])-1)*radii[k], lower, upper);
+                    unchanged &= trial.pose[k] == seeds[4*parent+k];
+                }
+                if (unchanged) continue;
+                bool duplicate = false;
+                for (size_t previous = first; previous < w.trials.size(); ++previous)
+                    duplicate |= std::equal(trial.pose, trial.pose+4, w.trials[previous].pose);
+                if (duplicate) continue;
+                w.trials.push_back(trial); w.owners.push_back(parent);
+            }
+            if (w.trials.size() == first) continue;
+            w.parents.push_back(parent); w.baseScores.push_back(scores[parent]);
+            remaining -= perParent;
+            rescue_metrics->reserved_retry_sample_iterations += perParent;
+        }
+        rescue_metrics->selected_seeds = w.parents.size();
+        rescue_metrics->retry_starts = w.trials.size();
+        if (!w.trials.empty()) {
+            auto* cpu = dynamic_cast<Cpu*>(ctx.backend.get());
+            if (!cpu) {
+                if (!ctx.refiner) ctx.refiner = std::make_unique<Cpu>(ctx.data, ctx.threads);
+                cpu = ctx.refiner.get();
+            }
+            Backend* residentBackend = ctx.creationBackend == 2 ? ctx.lazyMetal.get() : ctx.backend.get();
+            auto runTrials = [&](const std::vector<ResidentSeed>& trials, const std::vector<size_t>& owners,
+                const FpmPoseRefineConfig& trialConfig) {
+                w.output.resize(trials.size()*4); w.values.resize(trials.size()); w.trialStats.resize(trials.size());
+                if (policy.backend == 1) {
+                    FpmPoseResidentMetrics resident{}; FpmPoseMetrics measured{}; measured.device_ms = -1;
+                    if (!residentBackend->refineResident(trials, trialConfig, w.output.data(), w.values.data(),
+                        w.trialStats.data(), resident, measured))
+                        throw std::runtime_error("GPU-resident rescue unsupported by this backend");
+                    recordResident(resident, measured);
+                } else cpu->parallel(trials.size(), [&](size_t i) {
+                    refineOne(ctx.data, trials[i].pose, trialConfig, w.output.data()+4*i,
+                        w.values[i], w.trialStats[i], seeds+4*owners[i]);
+                });
+                for (size_t i = 0; i < trials.size(); ++i) for (int k = 0; k < 4; ++k) {
+                    const float value = w.output[4*i+k];
+                    if (!std::isfinite(value) || value < trials[i].lower[k] || value > trials[i].upper[k])
+                        throw std::runtime_error("rescue returned a pose outside ORIGINAL seed bounds");
+                }
+                // Re-score all retries before ranking/acceptance. A GPU score
+                // never replaces the exact baseline on its own. No CPU polish.
+                const auto verifyBegin = Clock::now();
+                cpu->parallel(trials.size(), [&](size_t i) {
+                    double pose[4];
+                    for (int k = 0; k < 4; ++k) pose[k] = w.output[4*i+k];
+                    w.values[i] = scoreOne(ctx.data, pack(pose));
+                    ++w.trialStats[i].evaluations;
+                });
+                rescue_metrics->cpu_verify_ms += std::chrono::duration<double, std::milli>(Clock::now()-verifyBegin).count();
+                for (size_t i = 0; i < trials.size(); ++i) {
+                    const size_t owner = owners[i];
+                    w.totalStats[owner].iterations += w.trialStats[i].iterations;
+                    w.totalStats[owner].evaluations += w.trialStats[i].evaluations;
+                    rescue_metrics->retry_evaluations += w.trialStats[i].evaluations;
+                    if (w.values[i] > scores[owner]) {
+                        std::copy(w.output.data()+4*i, w.output.data()+4*i+4, refined+4*owner);
+                        scores[owner] = w.values[i]; w.totalStats[owner].status = w.trialStats[i].status;
+                    }
+                }
+            };
+            auto shortConfig = options; shortConfig.max_iterations = policy.short_iterations;
+            runTrials(w.trials, w.owners, shortConfig);
+            for (size_t i = 0; i < w.parents.size(); ++i) {
+                const size_t parent = w.parents[i];
+                if (!(scores[parent] > w.baseScores[i])) continue;
+                ResidentSeed trial{};
+                for (int k = 0; k < 4; ++k) {
+                    const double lower = std::max(-limit[k], double(seeds[4*parent+k])-bound[k]);
+                    const double upper = std::min(limit[k], double(seeds[4*parent+k])+bound[k]);
+                    trial.pose[k] = refined[4*parent+k];
+                    trial.lower[k] = boundedFloat(lower, lower, upper);
+                    trial.upper[k] = boundedFloat(upper, lower, upper);
+                }
+                w.continuation.push_back(trial); w.continuationOwners.push_back(parent);
+            }
+            rescue_metrics->continuations = w.continuation.size();
+            if (!w.continuation.empty()) runTrials(w.continuation, w.continuationOwners, options);
+            for (size_t i = 0; i < w.parents.size(); ++i)
+                rescue_metrics->accepted_seeds += scores[w.parents[i]] > w.baseScores[i];
+        }
+        if (stats) std::copy(w.totalStats.begin(), w.totalStats.end(), stats);
+        rescue_metrics->retry_ms = std::chrono::duration<double, std::milli>(Clock::now()-retryBegin).count();
+        rescue_metrics->host_workspace_bytes = w.bytes();
+        fpm_pose_memory(handle, metrics);
+        metrics->device_ms = deviceTiming.result();
+        metrics->wall_ms = std::chrono::duration<double, std::milli>(Clock::now()-begin).count();
+        errorMessage(error, error_capacity, "");
+        return 0;
+    } catch (const std::exception& e) {
+        if (rescue_metrics) *rescue_metrics = {};
         if (metrics) { *metrics = {}; metrics->device_ms = -1; }
         errorMessage(error, error_capacity, e.what());
         return -1;

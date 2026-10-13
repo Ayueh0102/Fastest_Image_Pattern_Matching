@@ -151,9 +151,7 @@ ScoreMap ncc(ImageView src, const TemplateLevel& templ, Backend backend,
 			const double sum = sums[d] - sums[b] - sums[c] + sums[a];
 			const double square = squares[d] - squares[b] - squares[c] + squares[a];
 			const double variance = std::max(0.0, square - sum * sum / area);
-			double denominator = 0;
-			if (variance > std::min(0.5, 10 * FLT_EPSILON * square))
-				denominator = std::sqrt(variance) * templ.norm;
+			const double denominator = nccDenominator(variance, square, templ.norm);
 			if (denominator == 0) { out.at(x, y) = 0; continue; }
 			const double sourceMean = sum / area;
 			if (project) {
@@ -211,11 +209,7 @@ ScoreMap ncc(ImageView src, const TemplateLevel& templ, Backend backend,
 				continue;
 			}
 			if (stats) ++counters.fullDotProducts;
-			const double numerator = product - sum * templ.mean;
-			// Original CCOEFF_Denominator's three-way numerical guard.
-			if (std::abs(numerator) < denominator) out.at(x, y) = numerator / denominator;
-			else if (std::abs(numerator) < denominator * 1.125) out.at(x, y) = numerator > 0 ? 1 : -1;
-			else out.at(x, y) = 0;
+			out.at(x, y) = nccNormalizeProduct(product, sum, templ.mean, denominator);
 		}
 	if (stats) *stats = counters;
 	return out;

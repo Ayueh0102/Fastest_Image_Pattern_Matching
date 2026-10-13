@@ -1,0 +1,23 @@
+Test project /Users/Ayueh/Fastest_Image_Pattern_Matching/build/fourier-gpu-sanitized
+    Start 1: portable_core
+1/9 Test #1: portable_core .........................   Passed   23.85 sec
+    Start 2: c_abi
+2/9 Test #2: c_abi .................................   Passed    0.37 sec
+    Start 3: experimental_coarse_metal
+3/9 Test #3: experimental_coarse_metal .............   Passed    2.40 sec
+    Start 4: experimental_pose_cpu
+4/9 Test #4: experimental_pose_cpu .................   Passed    0.69 sec
+    Start 5: experimental_pose_auto_fallback
+5/9 Test #5: experimental_pose_auto_fallback .......   Passed    0.41 sec
+    Start 6: experimental_pose_resident
+6/9 Test #6: experimental_pose_resident ............   Passed    1.50 sec
+    Start 7: experimental_pose_rescue_cpu
+7/9 Test #7: experimental_pose_rescue_cpu ..........   Passed    0.50 sec
+    Start 8: experimental_pose_rescue_metal
+8/9 Test #8: experimental_pose_rescue_metal ........   Passed    0.26 sec
+    Start 9: experimental_pose_metal_derivatives
+9/9 Test #9: experimental_pose_metal_derivatives ...   Passed    0.48 sec
+
+100% tests passed, 0 tests failed out of 9
+
+Total Test time (real) =  30.46 sec
