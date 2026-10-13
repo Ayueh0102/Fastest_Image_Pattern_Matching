@@ -37,9 +37,38 @@ class CoarseNccProvider {
 public:
 	virtual ~CoarseNccProvider() = default;
 	virtual ScoreMap compute(ImageView source, const TemplateLevel& templ) = 0;
+	// Optional experimental execution hooks. Level 0 has already been copied
+	// and inverted on CPU. A requested GPU mode must throw on failure; false
+	// means the provider has left the vector unchanged and requests CPU pyramid.
+	virtual bool buildPyramid(std::vector<Image>&, int) { return false; }
+	virtual std::size_t coarseBatchAngles() const { return 1; }
+	virtual std::vector<ScoreMap> computeBatch(const std::vector<ImageView>& sources,
+		const TemplateLevel& templ) {
+		std::vector<ScoreMap> result;
+		result.reserve(sources.size());
+		for (const auto& source : sources) result.push_back(compute(source, templ));
+		return result;
+	}
+};
+// Optional exclusive host-wall profiling. A null pointer leaves all clocks and
+// counters disabled; algorithm inputs, floating-point operations and order are
+// unchanged. Byte counts describe nominal image/map buffers, not process RSS.
+struct MatchStageProfile {
+	double core_wall_ms = 0, source_copy_invert_ms = 0, pyramid_ms = 0;
+	double coarse_rotation_ms = 0, coarse_ncc_ms = 0, peak_selection_ms = 0;
+	double fine_rotation_ms = 0, fine_ncc_ms = 0, fine_control_ms = 0;
+	double nms_ms = 0, unclassified_ms = 0;
+	std::uint64_t pyramid_levels = 0, coarse_angles = 0, coarse_maps = 0, coarse_windows = 0;
+	std::uint64_t coarse_candidates = 0, fine_layer_visits = 0, fine_passes = 0;
+	std::uint64_t fine_rotations = 0, fine_maps = 0, fine_windows = 0;
+	std::uint64_t refined_candidates = 0, output_matches = 0, source_copy_bytes = 0;
+	std::uint64_t pyramid_generated_bytes = 0, pyramid_live_bytes = 0;
+	std::uint64_t coarse_rotation_total_bytes = 0, coarse_rotation_peak_bytes = 0;
+	std::uint64_t fine_roi_total_bytes = 0, fine_roi_peak_bytes = 0;
+	std::uint64_t scoremap_peak_bytes = 0, scoremap_total_bytes = 0, timed_transitions = 0;
 };
 std::vector<Match> matchWithCoarseNcc(ImageView source, const Pattern& pattern,
-	const MatchConfig& config, CoarseNccProvider* provider);
+	const MatchConfig& config, CoarseNccProvider* provider, MatchStageProfile* profile = nullptr);
 std::uint64_t dotProduct(const std::uint8_t* a, const std::uint8_t* b, int size, Backend backend);
 struct NccStats {
 	std::uint64_t windows = 0, projectionChecks = 0, partialChecks = 0;

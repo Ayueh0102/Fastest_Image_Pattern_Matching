@@ -1,0 +1,47 @@
+{
+  "baseline_commit": "91842dd8a94d7278a221bd177ee964dc98d0db46",
+  "release": {
+    "passed": 14,
+    "total": 14,
+    "seconds": 9.49
+  },
+  "sanitizer": {
+    "passed": 12,
+    "total": 12,
+    "seconds": 35.19,
+    "mode": "Debug ASan/UBSan, scalar, GUI/OpenCV disabled"
+  },
+  "metal_validation_stress": {
+    "passed": true,
+    "environment": "MTL_DEBUG_LAYER=1",
+    "coverage": "4097/8193 source arena cap, source >64 MiB fallback; exact output and bounded workspace"
+  },
+  "python": {
+    "passed": 10,
+    "total": 10
+  },
+  "formal": {
+    "correctness_and_integrity_passed": true,
+    "workers": 120,
+    "first_calls": 120,
+    "measured_calls": 600,
+    "warmup_digest_calls": 1631,
+    "combined_per_block_regression_gates_passed": true,
+    "known_truth_cases": 5,
+    "src7": "agreement only"
+  },
+  "post_measurement_source_changes": [
+    {
+      "path": "cpp-core/experiments/coarse_ncc.h",
+      "measured_sha256": "5e70ef5d7be801e5a6dc33e75ef07480d28543ab07f31c8c4218749a0fc8010e",
+      "final_sha256": "be0cc5086523155a71c1914a077b3842f85f35e265ae5315c98aa5448d0ad186",
+      "kind": "comment-only clarification of GPU pyramid timing and default CPU pyramid; measured source retained in archive"
+    }
+  ],
+  "archive": "raw-results.tar.gz",
+  "notes": [
+    "Performance gates are separate from the raw report correctness flag; see formal-summary.json for failed control comparisons.",
+    "Shared GPU capacities overlap RSS.",
+    "Measured source snapshot is under sources/; frozen binaries remain locally in build/pipeline-baseline and are identified by SHA, not shipped in this archive."
+  ]
+}

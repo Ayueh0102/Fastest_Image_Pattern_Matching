@@ -4,10 +4,60 @@
 #include <algorithm>
 #include <cmath>
 #include <climits>
+#include <chrono>
 #include <stdexcept>
 
 namespace fpm {
 namespace {
+enum class Stage { Unclassified, Source, Pyramid, CoarseRotation, CoarseNcc,
+	PeakSelection, FineRotation, FineNcc, FineControl, Nms };
+class StageClock {
+	using Clock = std::chrono::steady_clock;
+	detail::MatchStageProfile* profile_;
+	Clock::time_point begin_{}, last_{};
+	Stage current_ = Stage::Unclassified;
+	double& destination(Stage stage) {
+		switch (stage) {
+		case Stage::Source: return profile_->source_copy_invert_ms;
+		case Stage::Pyramid: return profile_->pyramid_ms;
+		case Stage::CoarseRotation: return profile_->coarse_rotation_ms;
+		case Stage::CoarseNcc: return profile_->coarse_ncc_ms;
+		case Stage::PeakSelection: return profile_->peak_selection_ms;
+		case Stage::FineRotation: return profile_->fine_rotation_ms;
+		case Stage::FineNcc: return profile_->fine_ncc_ms;
+		case Stage::FineControl: return profile_->fine_control_ms;
+		case Stage::Nms: return profile_->nms_ms;
+		default: return profile_->unclassified_ms;
+		}
+	}
+public:
+	explicit StageClock(detail::MatchStageProfile* profile) : profile_(profile) {
+		if (profile_) { *profile_ = {}; begin_ = last_ = Clock::now(); }
+	}
+	Stage enter(Stage next) {
+		const Stage previous = current_;
+		if (profile_) {
+			const auto now = Clock::now();
+			destination(current_) += std::chrono::duration<double, std::milli>(now-last_).count();
+			last_ = now; current_ = next; ++profile_->timed_transitions;
+		}
+		return previous;
+	}
+	~StageClock() {
+		if (profile_) {
+			const auto now = Clock::now();
+			destination(current_) += std::chrono::duration<double, std::milli>(now-last_).count();
+			profile_->core_wall_ms = std::chrono::duration<double, std::milli>(now-begin_).count();
+		}
+	}
+};
+class StageScope {
+	StageClock& clock_;
+	Stage previous_;
+public:
+	StageScope(StageClock& clock, Stage stage) : clock_(clock), previous_(clock.enter(stage)) {}
+	~StageScope() { clock_.enter(previous_); }
+};
 void validateConfig(const MatchConfig& config)
 {
 	if (config.maxTargets < 1 || config.maxTargets > INT_MAX - detail::EXTRA_CANDIDATES)
@@ -82,9 +132,10 @@ std::vector<double> localAngles(double center, double step, const std::vector<An
 }
 
 std::vector<Match> detail::matchWithCoarseNcc(ImageView source, const Pattern& pattern,
-	const MatchConfig& config, CoarseNccProvider* provider)
+	const MatchConfig& config, CoarseNccProvider* provider, MatchStageProfile* profile)
 {
 	using namespace detail;
+	StageClock stageClock(profile);
 	validateImage(source);
 	validateConfig(config);
 	const auto& levels = pattern.levels();
@@ -96,13 +147,27 @@ std::vector<Match> detail::matchWithCoarseNcc(ImageView source, const Pattern& p
 	const int top = int(levels.size()) - 1;
 	const int stopLayer = std::min(config.stopLayer, top);
 	std::vector<Image> sourcePyramid;
+	{
+	StageScope stage(stageClock, Stage::Source);
 	sourcePyramid.emplace_back(source);
 	if (config.invertSource)
 		for (int y = 0; y < source.height; ++y)
 			for (int x = 0; x < source.width; ++x)
 				sourcePyramid[0].row(y)[x] = 255 - sourcePyramid[0].row(y)[x];
-	for (int layer = 1; layer <= top; ++layer)
-		sourcePyramid.push_back(pyrDown(sourcePyramid.back().view()));
+	}
+	{
+	StageScope stage(stageClock, Stage::Pyramid);
+	if (!provider || !provider->buildPyramid(sourcePyramid, top))
+		for (int layer = 1; layer <= top; ++layer)
+			sourcePyramid.push_back(pyrDown(sourcePyramid.back().view()));
+	}
+	if (profile) {
+		profile->pyramid_levels = sourcePyramid.size();
+		profile->source_copy_bytes = std::uint64_t(source.width)*source.height;
+		for (const auto& level : sourcePyramid)
+			profile->pyramid_live_bytes += std::uint64_t(level.width())*level.height();
+		profile->pyramid_generated_bytes = profile->pyramid_live_bytes-profile->source_copy_bytes;
+	}
 	const auto ranges = config.angleRanges.empty() ?
 		std::vector<AngleRange>{{-config.toleranceAngle, config.toleranceAngle}} : config.angleRanges;
 	auto angleStep = [&](int layer) {
@@ -117,22 +182,101 @@ std::vector<Match> detail::matchWithCoarseNcc(ImageView source, const Pattern& p
 	const bool blocked = double(topSource.width()) * topSource.height() / (double(topW) * topH) > 500 && config.maxTargets > 10;
 	struct Candidate { Point point; double angle; double score; };
 	std::vector<Candidate> candidates;
-	for (double angle : coarseAngles(config, ranges, angleStep(top))) {
-		auto canvas = rotateCanvas(topSource.view(), topW, topH, angle, pattern.borderColor());
+	const auto angles = coarseAngles(config, ranges, angleStep(top));
+	const std::size_t batchAngles = provider ? provider->coarseBatchAngles() : 1;
+	if (batchAngles < 1 || batchAngles > 4) throw std::runtime_error("coarse provider batch size must be 1..4");
+	if (batchAngles == 1) {
+	for (double angle : angles) {
+		if (profile) ++profile->coarse_angles;
+		auto canvas = [&] {
+			StageScope stage(stageClock, Stage::CoarseRotation);
+			return rotateCanvas(topSource.view(), topW, topH, angle, pattern.borderColor());
+		}();
+		if (profile) {
+			const auto bytes = std::uint64_t(canvas.image.width())*canvas.image.height();
+			profile->coarse_rotation_total_bytes += bytes;
+			profile->coarse_rotation_peak_bytes = std::max(profile->coarse_rotation_peak_bytes, bytes);
+		}
 		if (canvas.image.width() < topW || canvas.image.height() < topH) continue;
-		auto response = provider ? provider->compute(canvas.image.view(), topTemplate) :
-			ncc(canvas.image.view(), topTemplate, config.backend,
-			config.coarseNccPruning ? thresholds[top] : -std::numeric_limits<double>::infinity());
+		auto response = [&] {
+			StageScope stage(stageClock, Stage::CoarseNcc);
+			return provider ? provider->compute(canvas.image.view(), topTemplate) :
+				ncc(canvas.image.view(), topTemplate, config.backend,
+				config.coarseNccPruning ? thresholds[top] : -std::numeric_limits<double>::infinity());
+		}();
+		if (profile) {
+			++profile->coarse_maps; profile->coarse_windows += response.values.size();
+			const auto bytes = std::uint64_t(response.values.size())*sizeof(double);
+			profile->scoremap_total_bytes += bytes;
+			profile->scoremap_peak_bytes = std::max(profile->scoremap_peak_bytes, bytes);
+		}
+		StageScope peakStage(stageClock, Stage::PeakSelection);
 		for (const auto& peak : selectPeaks(std::move(response), topW, topH,
 			config.maxTargets + EXTRA_CANDIDATES, config.maxOverlap, thresholds[top], blocked)) {
 			const Point rotated{peak.x - canvas.translation.x, peak.y - canvas.translation.y};
 			candidates.push_back({rotate(rotated, center, -angle), angle, peak.score});
 		}
 	}
+	} else {
+		// Keep at most four rotated canvases/maps alive. Submission order and
+		// candidate insertion order remain identical to the single-angle path.
+		for (std::size_t first = 0; first < angles.size(); first += batchAngles) {
+			std::vector<Canvas> canvases;
+			std::vector<double> batchAngleValues;
+			canvases.reserve(batchAngles); batchAngleValues.reserve(batchAngles);
+			for (std::size_t index = first; index < std::min(first + batchAngles, angles.size()); ++index) {
+				if (profile) ++profile->coarse_angles;
+				auto canvas = [&] {
+					StageScope stage(stageClock, Stage::CoarseRotation);
+					return rotateCanvas(topSource.view(), topW, topH, angles[index], pattern.borderColor());
+				}();
+				if (profile) {
+					const auto bytes = std::uint64_t(canvas.image.width())*canvas.image.height();
+					profile->coarse_rotation_total_bytes += bytes;
+					profile->coarse_rotation_peak_bytes = std::max(profile->coarse_rotation_peak_bytes, bytes);
+				}
+				if (canvas.image.width() < topW || canvas.image.height() < topH) continue;
+				canvases.push_back(std::move(canvas)); batchAngleValues.push_back(angles[index]);
+			}
+			if (canvases.empty()) continue;
+			std::vector<ImageView> views; views.reserve(canvases.size());
+			for (const auto& canvas : canvases) views.push_back(canvas.image.view());
+			auto responses = [&] {
+				StageScope stage(stageClock, Stage::CoarseNcc);
+				return provider->computeBatch(views, topTemplate);
+			}();
+			if (responses.size() != canvases.size()) throw std::runtime_error("coarse provider returned the wrong map count");
+			for (std::size_t index = 0; index < canvases.size(); ++index) {
+				auto& response = responses[index]; const auto& canvas = canvases[index];
+				const auto angle = batchAngleValues[index];
+				const int width = canvas.image.width()-topW+1, height = canvas.image.height()-topH+1;
+				if (response.width != width || response.height != height || response.values.size() != std::size_t(width)*height)
+					throw std::runtime_error("coarse provider returned an invalid score map");
+				if (profile) {
+					++profile->coarse_maps; profile->coarse_windows += response.values.size();
+					const auto bytes = std::uint64_t(response.values.size())*sizeof(double);
+					profile->scoremap_total_bytes += bytes;
+					profile->scoremap_peak_bytes = std::max(profile->scoremap_peak_bytes, bytes);
+				}
+				StageScope peakStage(stageClock, Stage::PeakSelection);
+				for (const auto& peak : selectPeaks(std::move(response), topW, topH,
+					config.maxTargets + EXTRA_CANDIDATES, config.maxOverlap, thresholds[top], blocked)) {
+					const Point rotated{peak.x - canvas.translation.x, peak.y - canvas.translation.y};
+					candidates.push_back({rotate(rotated, center, -angle), angle, peak.score});
+				}
+			}
+		}
+	}
+	{
+	StageScope stage(stageClock, Stage::PeakSelection);
 	std::stable_sort(candidates.begin(), candidates.end(), [](const Candidate& a, const Candidate& b) { return a.score > b.score; });
+	}
+	if (profile) profile->coarse_candidates = candidates.size();
 	std::vector<Match> refined;
 	// Every candidate is refined before NMS: coarse scores do not bound fine
 	// scores, and many high-scoring candidates can belong to the same object.
+	{
+	StageScope fineStage(stageClock, Stage::FineControl);
 	for (const auto& candidate : candidates) {
 		Point point = candidate.point;
 		double angle = candidate.angle;
@@ -142,12 +286,14 @@ std::vector<Match> detail::matchWithCoarseNcc(ImageView source, const Pattern& p
 			continue;
 		}
 		for (int layer = std::max(0, top - 1); layer >= stopLayer; --layer) {
+			if (profile) ++profile->fine_layer_visits;
 			// Recenter on the fractional pose before fitting again. Otherwise
 			// the integer translation grid can bias the angle maximum, even
 			// after making angular samples finer (especially on small templates).
 			const int passes = config.subpixel && layer == 0 ? 3 : 1;
 			bool accepted = false;
 			for (int pass = 0; pass < passes; ++pass) {
+				if (profile) ++profile->fine_passes;
 				const double scale = top == 0 || pass > 0 ? 1 : 2;
 				const Point anchor{point.x * scale, point.y * scale};
 				const auto& templ = levels[layer];
@@ -159,9 +305,30 @@ std::vector<Match> detail::matchWithCoarseNcc(ImageView source, const Pattern& p
 				auto evaluateAngles = [&] {
 					maps.clear(); peaks.clear(); best = -1;
 					for (double testAngle : testAngles) {
-						auto roi = rotatedRoi(sourcePyramid[layer].view(), templ.image.width(), templ.image.height(), anchor, testAngle);
+						auto roi = [&] {
+							StageScope stage(stageClock, Stage::FineRotation);
+							return rotatedRoi(sourcePyramid[layer].view(), templ.image.width(), templ.image.height(), anchor, testAngle);
+						}();
+						if (profile) {
+							++profile->fine_rotations;
+							const auto bytes = std::uint64_t(roi.width())*roi.height();
+							profile->fine_roi_total_bytes += bytes;
+							profile->fine_roi_peak_bytes = std::max(profile->fine_roi_peak_bytes, bytes);
+						}
+						{
+						StageScope stage(stageClock, Stage::FineNcc);
 						maps.push_back(ncc(roi.view(), templ, config.backend));
+						}
+						if (profile) {
+							++profile->fine_maps; profile->fine_windows += maps.back().values.size();
+							const auto bytes = std::uint64_t(maps.back().values.size())*sizeof(double);
+							profile->scoremap_total_bytes += bytes;
+							profile->scoremap_peak_bytes = std::max(profile->scoremap_peak_bytes, bytes);
+						}
+						{
+						StageScope stage(stageClock, Stage::PeakSelection);
 						peaks.push_back(maximum(maps.back()));
+						}
 						const int index = int(peaks.size()) - 1;
 						if (best < 0 || peaks[index].score > peaks[best].score) best = index;
 					}
@@ -230,7 +397,14 @@ std::vector<Match> detail::matchWithCoarseNcc(ImageView source, const Pattern& p
 			if (!accepted) break;
 		}
 	}
-	return suppress(std::move(refined), config.maxTargets, config.maxOverlap);
+	}
+	if (profile) profile->refined_candidates = refined.size();
+	auto output = [&] {
+		StageScope stage(stageClock, Stage::Nms);
+		return suppress(std::move(refined), config.maxTargets, config.maxOverlap);
+	}();
+	if (profile) profile->output_matches = output.size();
+	return output;
 }
 std::vector<Match> match(ImageView source, const Pattern& pattern, const MatchConfig& config)
 {

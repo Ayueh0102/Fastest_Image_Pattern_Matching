@@ -1,0 +1,9 @@
+{
+  "commit": "91842dd8a94d7278a221bd177ee964dc98d0db46",
+  "created": "2026-10-13T06:41:20.903924+00:00",
+  "files": {
+    "libfpm_c.dylib": "30d5fad43a4fc6f4128d90d70a12bab2253ba8f64c77d534ceef1a934b8cd258",
+    "experiments/libfpm_coarse_experiment.dylib": "d3167be6a517a6761f71d9c8742b6873e9b5001fd817d29fb3ad5bceda38dbf8",
+    "experiments/libfpm_pose_experiment.dylib": "706afd39db7ddc9891afc6d598fedcf7e767b0b34a9e241958586efe599468b0"
+  }
+}

@@ -23,6 +23,82 @@ typedef struct FpmCoarseMetrics {
     uint64_t source_buffer_bytes, template_buffer_bytes, scoremap_peak_bytes, reserved_bytes;
 } FpmCoarseMetrics;
 
+/* Version 1 opt-in exclusive host-wall profile. Each core stage plus
+ * unclassified_ms sums to core_wall_ms (roundoff aside); api_residual_ms is
+ * API validation/result packing outside that core interval. Coarse NCC GPU wait time is
+ * INCLUDED in coarse_ncc_ms; GPU pyramid wait is included in pyramid_ms.
+ * Neither wait is added again to these exclusive stage times.
+ * peak_selection_ms includes coarse candidate extraction/sort and fine maxima.
+ * fine_control_ms includes local-angle control, subpixel fitting and temporary
+ * cleanup outside measured fine ROI/NCC calls. All profiling bookkeeping and
+ * clock overhead are part of the reported wall intervals; measure profile-off
+ * separately before interpreting small performance deltas.
+ * Byte counters are nominal image/map output bytes, not allocations or RSS:
+ * pyramid_live_bytes includes source level 0; generated excludes it; neither
+ * counts CPU horizontal-filter scratch (e.g. 128 MiB on the first 8K level).
+ * Process peak RSS must be measured separately. Total
+ * rotation/ROI/map bytes sum across calls, and peak is largest SINGLE output.
+ * Maps retained together for subpixel fitting are not a combined memory peak.
+ */
+typedef struct FpmCoarseProfileV1 {
+    uint32_t version, struct_bytes;
+    int32_t backend, reserved;
+    double api_wall_ms, core_wall_ms, source_copy_invert_ms, pyramid_ms;
+    double coarse_rotation_ms, coarse_ncc_ms, peak_selection_ms;
+    double fine_rotation_ms, fine_ncc_ms, fine_control_ms, nms_ms;
+    double unclassified_ms, api_residual_ms;
+    uint64_t pyramid_levels, coarse_angles, coarse_maps, coarse_windows;
+    uint64_t coarse_candidates, fine_layer_visits, fine_passes;
+    uint64_t fine_rotations, fine_maps, fine_windows, refined_candidates, output_matches;
+    uint64_t source_copy_bytes, pyramid_generated_bytes, pyramid_live_bytes;
+    uint64_t coarse_rotation_total_bytes, coarse_rotation_peak_bytes;
+    uint64_t fine_roi_total_bytes, fine_roi_peak_bytes;
+    uint64_t scoremap_peak_bytes, scoremap_total_bytes, timed_transitions;
+} FpmCoarseProfileV1;
+
+/* Explicit execution options. Defaults retain CPU pyramid and one coarse
+ * angle per submission. GPU modes must fail explicitly if unsupported.
+ * pyramid_mode: 0 CPU, 1 direct exact integer GPU filter, 2 separable exact
+ * integer GPU filter. batch_angles: 1..4, a bounded CPU-rotation/GPU-NCC batch.
+ * Batch source arenas are capped at 64 MiB and statistics at 16 MiB;
+ * actual batches may be smaller to obey these limits. A single source larger
+ * than 64 MiB retains the original single-map path, whose source buffer may
+ * exceed that batch-arena cap. Fine search stays CPU.
+ */
+typedef struct FpmCoarseExecutionConfigV1 {
+    uint32_t version, struct_bytes;
+    int32_t pyramid_mode, batch_angles;
+    uint64_t reserved0, reserved1;
+} FpmCoarseExecutionConfigV1;
+/* Additional diagnostics; original 160B metrics and 296B profile are unchanged.
+ * Pyramid intervals are nested in profile.pyramid_ms. Existing metrics' NCC,
+ * upload, wait and device intervals still describe coarse NCC only. GPU bytes
+ * in original metrics count ALL retained allocations; the following byte fields
+ * are breakdowns, not additional allocations to add to that total or to RSS.
+ * Pyramid output is copied back for unchanged CPU fine search. Counters/times
+ * reset per match; retained capacities and selected options remain queryable.
+ * pyramid_levels counts generated levels (excluding level 0). Pyramid buffer
+ * byte counters describe retained capacities including alignment padding.
+ * batch_calls counts actual provider groups, including groups of one;
+ * batch_maps counts their maps. batch_encode_ms and source_upload_bytes count
+ * only multi-map batches; source upload bytes exclude alignment padding.
+ */
+typedef struct FpmCoarseExecutionMetricsV1 {
+    uint32_t version, struct_bytes;
+    int32_t pyramid_mode, batch_angles;
+    double pyramid_wall_ms, pyramid_setup_ms, pyramid_upload_ms, pyramid_encode_ms;
+    double pyramid_wait_ms, pyramid_device_ms, pyramid_copyout_ms, batch_encode_ms;
+    uint64_t pyramid_command_buffers, pyramid_levels, pyramid_input_bytes, pyramid_output_bytes;
+    uint64_t pyramid_scratch_bytes, pyramid_buffer_bytes, batch_calls, batch_maps;
+    uint64_t max_batch_maps, batch_source_arena_bytes, batch_source_upload_bytes;
+    uint64_t batch_template_buffer_bytes, batch_statistics_bytes, reserved_bytes;
+} FpmCoarseExecutionMetricsV1;
+FPM_API void fpm_coarse_execution_default_config(FpmCoarseExecutionConfigV1* config);
+FPM_API int fpm_coarse_set_execution(fpm_coarse_handle* handle,
+    const FpmCoarseExecutionConfigV1* config, size_t config_bytes, char* error, size_t error_capacity);
+FPM_API int fpm_coarse_get_execution_metrics(fpm_coarse_handle* handle,
+    FpmCoarseExecutionMetricsV1* metrics, size_t metrics_bytes, char* error, size_t error_capacity);
+
 /* Experimental, explicitly selected Metal coarse NCC. Each handle is owned by
  * one caller at a time. Existing CPU entry points and ABI 1 are unchanged.
  * Shader compilation occurs at create; no silent CPU fallback on failure.
@@ -30,16 +106,34 @@ typedef struct FpmCoarseMetrics {
  */
 FPM_API int fpm_coarse_create(fpm_image templ, int min_area,
     fpm_coarse_handle** out, FpmCoarseMetrics* metrics, char* error, size_t error_capacity);
+/* Additional explicit backend constructor: 0 portable CPU, 1 existing Metal
+ * dense coarse NCC. CPU works without Metal and never creates a GPU context.
+ * It shares the exact matching algorithm with the Metal constructor.
+ * Original fpm_coarse_create remains equivalent to backend=1.
+ */
+FPM_API int fpm_coarse_create_backend(fpm_image templ, int min_area, int backend,
+    fpm_coarse_handle** out, FpmCoarseMetrics* metrics, char* error, size_t error_capacity);
 FPM_API void fpm_coarse_destroy(fpm_coarse_handle* handle);
 /* GPU computes exact integer sum/square/product for each top-layer window.
- * CPU keeps double normalization, pyramid, rotation, peak selection, fine
- * search and suppression. This is not a fully GPU-resident coarse search.
+ * CPU keeps double normalization, rotation, peak selection, fine search and
+ * suppression. The source pyramid defaults to CPU; execution config can select
+ * an exact GPU pyramid. This is not a fully GPU-resident coarse search.
  * Config/result capacity semantics match fpm_match, including recomputation
  * after BUFFER_TOO_SMALL. Config may be NULL; no partial results are written.
  */
 FPM_API int fpm_coarse_match(fpm_coarse_handle* handle, fpm_image source,
     const fpm_config* config, fpm_result* results, size_t capacity, size_t* count,
     FpmCoarseMetrics* metrics, char* error, size_t error_capacity);
+/* Profiling is enabled only through this additional entry point; old match()
+ * does not read profiling clocks or maintain profiling counters. Profile and
+ * profile_bytes==sizeof(FpmCoarseProfileV1) are required. Version/size are output
+ * fields. BUFFER_TOO_SMALL still profiles the completed match without writing
+ * partial results. On errors, any available profile is partial diagnostic data.
+ */
+FPM_API int fpm_coarse_match_profile(fpm_coarse_handle* handle, fpm_image source,
+    const fpm_config* config, fpm_result* results, size_t capacity, size_t* count,
+    FpmCoarseMetrics* metrics, FpmCoarseProfileV1* profile, size_t profile_bytes,
+    char* error, size_t error_capacity);
 /* Diagnostic dense NCC against the ORIGINAL template (not pyramid top).
  * Output is row-major (source.w-template.w+1)*(source.h-template.h+1).
  * A too-small buffer receives no partial output and matching is not run.

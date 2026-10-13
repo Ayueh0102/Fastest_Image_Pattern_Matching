@@ -1,0 +1,8 @@
+{
+  "purpose": "Instrumented pre-optimization library used for initial bottleneck decision, built from 91842dd plus instrumentation patch",
+  "files": {
+    "libfpm_c.dylib": "37b222555c6c7531ffb43074f62d2fdfd6da2670bc0af9a19820c66cf4772ad9",
+    "experiments/libfpm_coarse_experiment.dylib": "7da65b5aa265deedf3ed7fa4bd219a0144285279c3c86d619549ae7321a73746",
+    "instrumentation.patch": "ba6f9341c7443c5b21308ff85620b4262d6106d7c403c42d5b470fb3dbeb50b4"
+  }
+}

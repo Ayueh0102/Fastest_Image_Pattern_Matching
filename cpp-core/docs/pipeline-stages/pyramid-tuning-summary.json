@@ -1,0 +1,2367 @@
+{
+  "report": "pyramid-tuning.json",
+  "report_sha256": "5aa327ec9ffae11dd62d7290fbce297f02aa8777b957a7f73ebe117804cb2724",
+  "raw_worker_sha256": {
+    "pyramid-tuning-jobs/src7-frozen_cpu-b-1.result.json": "ba829ed8de0da3b2d4bf0257f99569b2c5231b9dda8475550a9b71c8e5892f46",
+    "pyramid-tuning-jobs/src7-pyramid_direct_profile-b0.result.json": "1af5e2cc3db5ed50ff504d387476523e010099017a8660403f7f92107464c088",
+    "pyramid-tuning-jobs/src7-pyramid_separable_profile-b0.result.json": "bbb7100d9a6d9bd38d313d8430b930ea12f2131f2331f194992f4d89393d85b8",
+    "pyramid-tuning-jobs/src7-pyramid_separable_profile-b1.result.json": "9a8b7f5c1cb50532406bb5287f575f52c587e7a53cb9635a426eb190cfef31b7",
+    "pyramid-tuning-jobs/src7-pyramid_direct_profile-b1.result.json": "8ad24c7d1d60e37f84f34fe1fa798f9e33632f4af888c4a91aa03d4e483e43a5",
+    "pyramid-tuning-jobs/8k_t256-frozen_cpu-b-1.result.json": "ccd75779b25b9a7df7823201cc9f045dcb5dc9b13a302b3c30c1e3cab4758455",
+    "pyramid-tuning-jobs/8k_t256-pyramid_direct_profile-b0.result.json": "f8662cf12eb113fc51461d842e31340a14d884688baca2298f25cb37a3ab91c1",
+    "pyramid-tuning-jobs/8k_t256-pyramid_separable_profile-b0.result.json": "00d5e102537e5e354188b489f2002c5f04d13457eb111acbbef6afd01b9310e3",
+    "pyramid-tuning-jobs/8k_t256-pyramid_separable_profile-b1.result.json": "4d650f2e8df4f1bb4048f1fc1254215af8aae86480ed5af4e5b36d4eefa89893",
+    "pyramid-tuning-jobs/8k_t256-pyramid_direct_profile-b1.result.json": "7e774858a68e69826fd2579d8b22cb6faa869df504c8d726a70bb3eeb586cae8"
+  },
+  "artifact_resolution": "raw_worker_sha256 keys are original jobs-directory/basename, linked to report execution_order entries by the same logical path. Explicit --worker-root is authoritative and never falls back to original absolute paths; otherwise an absent original path falls back relative to the report. Every raw result is SHA-verified before parsing.",
+  "correctness_and_integrity_passed": true,
+  "complete": true,
+  "design": {
+    "methods": [
+      "pyramid_direct_profile",
+      "pyramid_separable_profile"
+    ],
+    "blocks": 2,
+    "repeats": 3,
+    "warmup_seconds": 0.5,
+    "combined_pyramid_mode": 2
+  },
+  "performance_policy": {
+    "regression_limit": "candidate warm whole-pipeline median <= baseline + max(10% of baseline, 2 ms), separately in every matching order block",
+    "references": "report frozen 91842dd CPU, frozen 91842dd Metal, and current unprofiled Metal separately; never substitute profile-on timings for unprofiled production speed",
+    "targeted_bottleneck": "require improvement in at least two matching profile blocks, with profile overhead reported; a failed/no-improvement workload remains visible and is not averaged away",
+    "unavailable": "missing tuning-only baselines or insufficient blocks remain unassessed, never silently passed"
+  },
+  "interpretation": [
+    "Exclusive stage ratios are from one actual call nearest the median proposal wall time; independent stage medians are not added.",
+    "GPU copy, command interval, wait and normalization are nested in coarse NCC. Wait overlaps device time; wait minus device is not CPU busy time.",
+    "Upload is shared-memory CPU memcpy on Apple Silicon, not a PCIe transfer measurement.",
+    "Ideal speed bounds assume the named stage becomes free and all remaining work stays fixed; they are not measured GPU predictions.",
+    "Forward/reverse fresh-process blocks reduce order bias but do not control thermal/frequency variation. Profile-on clocks have measurable overhead.",
+    "Nominal output bytes and the CPU pyramid scratch proxy are not measured resident memory. Retained buffers overlap RSS and Metal allocated totals.",
+    "Execution metrics are a breakdown: pyramid and batch buffer sizes are already included in coarse gpu_bytes. Upload/output/scratch component byte counts overlap pyramid_buffer_bytes; do not add them again.",
+    "The 8K full-angle stress searches six upright copies. Rotated/scaled ground truth is supplied by the separate six/twelve-object scenes."
+  ],
+  "cases": [
+    {
+      "name": "src7",
+      "workflow": "full_rescue",
+      "exact_all_outputs": true,
+      "truth_passed": null,
+      "profile_valid": true,
+      "methods": {
+        "pyramid_direct_profile": {
+          "total_ms": {
+            "count": 6,
+            "median": 163.76631252933294,
+            "min": 161.764333024621,
+            "max": 165.52641708403826,
+            "values": [
+              163.33179199136794,
+              164.56004092469811,
+              161.764333024621,
+              162.01512492261827,
+              165.52641708403826,
+              164.20083306729794
+            ]
+          },
+          "proposal_ms": {
+            "count": 6,
+            "median": 124.68860449735075,
+            "min": 123.14604199491441,
+            "max": 125.66337501630187,
+            "values": [
+              124.72887500189245,
+              124.93145791813731,
+              123.14604199491441,
+              123.71374992653728,
+              124.64833399280906,
+              125.66337501630187
+            ]
+          },
+          "first_total_ms": [
+            181.90845800563693,
+            179.78012491948903
+          ],
+          "construct_ms": [
+            139.95516602881253,
+            69.5838329847902
+          ],
+          "peak_rss_bytes": [
+            278478848,
+            279527424
+          ],
+          "blocks": [
+            {
+              "block": 0,
+              "total_ms": 163.33179199136794,
+              "proposal_ms": 124.72887500189245
+            },
+            {
+              "block": 1,
+              "total_ms": 164.20083306729794,
+              "proposal_ms": 124.64833399280906
+            }
+          ],
+          "representative_median_proposal_call": {
+            "total_wall_ms": 163.33179199136794,
+            "proposal_wall_ms": 124.72887500189245,
+            "output_sha256": "99e5c641328f91728bffde4cedfcccb28a26a7b7d3328a7a65048b1ca9fdcc0c",
+            "core_wall_ms": 124.618166,
+            "api_wall_ms": 124.619459,
+            "exclusive_stages": {
+              "source_copy_invert_ms": {
+                "ms": 0.334917,
+                "fraction_of_core": 0.00268754557020202,
+                "fraction_of_total": 0.0020505315953289753
+              },
+              "pyramid_ms": {
+                "ms": 1.865417,
+                "fraction_of_core": 0.014969061573254096,
+                "fraction_of_total": 0.011421028185979782
+              },
+              "coarse_rotation_ms": {
+                "ms": 0.445667,
+                "fraction_of_core": 0.0035762603022098717,
+                "fraction_of_total": 0.0027285992185988716
+              },
+              "coarse_ncc_ms": {
+                "ms": 6.5271690000000016,
+                "fraction_of_core": 0.05237734761720054,
+                "fraction_of_total": 0.039962636302581934
+              },
+              "peak_selection_ms": {
+                "ms": 0.7289630000000235,
+                "fraction_of_core": 0.005849572525405513,
+                "fraction_of_total": 0.00446308089265652
+              },
+              "fine_rotation_ms": {
+                "ms": 58.91263399999978,
+                "fraction_of_core": 0.47274515338317347,
+                "fraction_of_total": 0.3606929997015725
+              },
+              "fine_ncc_ms": {
+                "ms": 55.45034799999901,
+                "fraction_of_core": 0.4449619969531489,
+                "fraction_of_total": 0.33949513027402256
+              },
+              "fine_control_ms": {
+                "ms": 0.32005399999998924,
+                "fraction_of_core": 0.0025682772445871915,
+                "fraction_of_total": 0.001959532777408724
+              },
+              "nms_ms": {
+                "ms": 0.020208,
+                "fraction_of_core": 0.00016215934360645301,
+                "fraction_of_total": 0.00012372361653307514
+              },
+              "unclassified_ms": {
+                "ms": 0.012789000000000007,
+                "fraction_of_core": 0.00010262548720224311,
+                "fraction_of_total": 7.830073890743759e-05
+              }
+            },
+            "ideal_zero_cost_stage_speed_bound": {
+              "pyramid_ms": 1.0115529750395382,
+              "coarse_rotation_ms": 1.0027360648429915,
+              "fine_rotation_ms": 1.5641937277915017,
+              "fine_ncc_ms": 1.5139933796625427
+            },
+            "nested_metal": {
+              "values": {
+                "upload_ms": 0.020415000000000006,
+                "device_ms": 0.5170840304344893,
+                "wait_ms": 6.039878,
+                "normalization_ms": 0.309835,
+                "ncc_ms": 6.523002,
+                "command_buffers": 40
+              },
+              "shared_memcpy_fraction_of_total": 0.00012499097543164735,
+              "wait_fraction_of_total": 0.03697919386275519,
+              "device_fraction_of_total": 0.0031658504699551516,
+              "wait_minus_device_ms": 5.522793969565511
+            },
+            "retained_coarse_buffers": {
+              "host_bytes": 529900,
+              "gpu_bytes": 16333532,
+              "workspace_bytes": 39672,
+              "source_buffer_bytes": 4488,
+              "template_buffer_bytes": 108
+            },
+            "execution_config": [
+              {
+                "version": 1,
+                "struct_bytes": 32,
+                "pyramid_mode": 1,
+                "batch_angles": 1,
+                "reserved0": 0,
+                "reserved1": 0
+              }
+            ],
+            "nested_execution": {
+              "values": {
+                "pyramid_wall_ms": 1.860667,
+                "pyramid_setup_ms": 0.0,
+                "pyramid_upload_ms": 0.290833,
+                "pyramid_encode_ms": 0.030542,
+                "pyramid_wait_ms": 1.471791,
+                "pyramid_device_ms": 0.7907918188720942,
+                "pyramid_copyout_ms": 0.066125,
+                "batch_encode_ms": 0.0
+              },
+              "pyramid_copy_fraction_of_total": 0.002185477766746508,
+              "pyramid_wait_fraction_of_total": 0.009011050341490063,
+              "pyramid_device_fraction_of_total": 0.004841628253940221,
+              "counters": {
+                "pyramid_command_buffers": 1,
+                "pyramid_levels": 6,
+                "batch_calls": 0,
+                "batch_maps": 0
+              },
+              "max_batch_maps": 0,
+              "buffer_breakdown": {
+                "pyramid_input_bytes": 12216864,
+                "pyramid_output_bytes": 4072400,
+                "pyramid_scratch_bytes": 0,
+                "pyramid_buffer_bytes": 16289264,
+                "batch_source_arena_bytes": 0,
+                "batch_source_upload_bytes": 0,
+                "batch_template_buffer_bytes": 108,
+                "batch_statistics_bytes": 39672
+              }
+            },
+            "truth_accuracy": null
+          },
+          "nominal_output_buffers": {
+            "source_copy_bytes": {
+              "count": 6,
+              "median": 12216864.0,
+              "min": 12216864,
+              "max": 12216864,
+              "values": [
+                12216864,
+                12216864,
+                12216864,
+                12216864,
+                12216864,
+                12216864
+              ]
+            },
+            "pyramid_generated_bytes": {
+              "count": 6,
+              "median": 4071784.0,
+              "min": 4071784,
+              "max": 4071784,
+              "values": [
+                4071784,
+                4071784,
+                4071784,
+                4071784,
+                4071784,
+                4071784
+              ]
+            },
+            "pyramid_live_bytes": {
+              "count": 6,
+              "median": 16288648.0,
+              "min": 16288648,
+              "max": 16288648,
+              "values": [
+                16288648,
+                16288648,
+                16288648,
+                16288648,
+                16288648,
+                16288648
+              ]
+            },
+            "coarse_rotation_total_bytes": {
+              "count": 6,
+              "median": 159576.0,
+              "min": 159576,
+              "max": 159576,
+              "values": [
+                159576,
+                159576,
+                159576,
+                159576,
+                159576,
+                159576
+              ]
+            },
+            "coarse_rotation_peak_bytes": {
+              "count": 6,
+              "median": 4488.0,
+              "min": 4488,
+              "max": 4488,
+              "values": [
+                4488,
+                4488,
+                4488,
+                4488,
+                4488,
+                4488
+              ]
+            },
+            "fine_roi_total_bytes": {
+              "count": 6,
+              "median": 21165960.0,
+              "min": 21165960,
+              "max": 21165960,
+              "values": [
+                21165960,
+                21165960,
+                21165960,
+                21165960,
+                21165960,
+                21165960
+              ]
+            },
+            "fine_roi_peak_bytes": {
+              "count": 6,
+              "median": 103329.0,
+              "min": 103329,
+              "max": 103329,
+              "values": [
+                103329,
+                103329,
+                103329,
+                103329,
+                103329,
+                103329
+              ]
+            },
+            "scoremap_peak_bytes": {
+              "count": 6,
+              "median": 26448.0,
+              "min": 26448,
+              "max": 26448,
+              "values": [
+                26448,
+                26448,
+                26448,
+                26448,
+                26448,
+                26448
+              ]
+            },
+            "scoremap_total_bytes": {
+              "count": 6,
+              "median": 1783736.0,
+              "min": 1783736,
+              "max": 1783736,
+              "values": [
+                1783736,
+                1783736,
+                1783736,
+                1783736,
+                1783736,
+                1783736
+              ]
+            },
+            "cpu_pyramid_horizontal_scratch_peak_proxy_bytes": 0
+          },
+          "execution_config": [
+            {
+              "version": 1,
+              "struct_bytes": 32,
+              "pyramid_mode": 1,
+              "batch_angles": 1,
+              "reserved0": 0,
+              "reserved1": 0
+            }
+          ],
+          "work_counters": {
+            "pyramid_levels": {
+              "count": 6,
+              "median": 7.0,
+              "min": 7,
+              "max": 7,
+              "values": [
+                7,
+                7,
+                7,
+                7,
+                7,
+                7
+              ]
+            },
+            "coarse_angles": {
+              "count": 6,
+              "median": 40.0,
+              "min": 40,
+              "max": 40,
+              "values": [
+                40,
+                40,
+                40,
+                40,
+                40,
+                40
+              ]
+            },
+            "coarse_maps": {
+              "count": 6,
+              "median": 40.0,
+              "min": 40,
+              "max": 40,
+              "values": [
+                40,
+                40,
+                40,
+                40,
+                40,
+                40
+              ]
+            },
+            "coarse_windows": {
+              "count": 6,
+              "median": 115216.0,
+              "min": 115216,
+              "max": 115216,
+              "values": [
+                115216,
+                115216,
+                115216,
+                115216,
+                115216,
+                115216
+              ]
+            },
+            "coarse_candidates": {
+              "count": 6,
+              "median": 337.0,
+              "min": 337,
+              "max": 337,
+              "values": [
+                337,
+                337,
+                337,
+                337,
+                337,
+                337
+              ]
+            },
+            "fine_layer_visits": {
+              "count": 6,
+              "median": 726.0,
+              "min": 726,
+              "max": 726,
+              "values": [
+                726,
+                726,
+                726,
+                726,
+                726,
+                726
+              ]
+            },
+            "fine_passes": {
+              "count": 6,
+              "median": 726.0,
+              "min": 726,
+              "max": 726,
+              "values": [
+                726,
+                726,
+                726,
+                726,
+                726,
+                726
+              ]
+            },
+            "fine_rotations": {
+              "count": 6,
+              "median": 2199.0,
+              "min": 2199,
+              "max": 2199,
+              "values": [
+                2199,
+                2199,
+                2199,
+                2199,
+                2199,
+                2199
+              ]
+            },
+            "fine_maps": {
+              "count": 6,
+              "median": 2199.0,
+              "min": 2199,
+              "max": 2199,
+              "values": [
+                2199,
+                2199,
+                2199,
+                2199,
+                2199,
+                2199
+              ]
+            },
+            "fine_windows": {
+              "count": 6,
+              "median": 107751.0,
+              "min": 107751,
+              "max": 107751,
+              "values": [
+                107751,
+                107751,
+                107751,
+                107751,
+                107751,
+                107751
+              ]
+            },
+            "refined_candidates": {
+              "count": 6,
+              "median": 24.0,
+              "min": 24,
+              "max": 24,
+              "values": [
+                24,
+                24,
+                24,
+                24,
+                24,
+                24
+              ]
+            },
+            "output_matches": {
+              "count": 6,
+              "median": 6.0,
+              "min": 6,
+              "max": 6,
+              "values": [
+                6,
+                6,
+                6,
+                6,
+                6,
+                6
+              ]
+            },
+            "timed_transitions": {
+              "count": 6,
+              "median": 13444.0,
+              "min": 13444,
+              "max": 13444,
+              "values": [
+                13444,
+                13444,
+                13444,
+                13444,
+                13444,
+                13444
+              ]
+            }
+          },
+          "owned_pose_buffers": [
+            {
+              "host_buffer_bytes": 50455824,
+              "gpu_buffer_bytes": 50794504,
+              "gpu_allocated_bytes": 67895296
+            },
+            {
+              "host_buffer_bytes": 50455824,
+              "gpu_buffer_bytes": 50794504,
+              "gpu_allocated_bytes": 67895296
+            }
+          ]
+        },
+        "pyramid_separable_profile": {
+          "total_ms": {
+            "count": 6,
+            "median": 163.75700011849403,
+            "min": 161.97141585871577,
+            "max": 164.76758406497538,
+            "values": [
+              161.97141585871577,
+              164.6403328049928,
+              164.1050421167165,
+              162.46074996888638,
+              164.76758406497538,
+              163.40895812027156
+            ]
+          },
+          "proposal_ms": {
+            "count": 6,
+            "median": 124.6938540134579,
+            "min": 123.74308402650058,
+            "max": 125.21687499247491,
+            "values": [
+              124.02445799671113,
+              124.60108287632465,
+              124.78662515059114,
+              123.74308402650058,
+              125.18741702660918,
+              125.21687499247491
+            ]
+          },
+          "first_total_ms": [
+            180.36983301863074,
+            177.0379999652505
+          ],
+          "construct_ms": [
+            74.56237496808171,
+            70.57783310301602
+          ],
+          "peak_rss_bytes": [
+            278560768,
+            278085632
+          ],
+          "blocks": [
+            {
+              "block": 0,
+              "total_ms": 164.1050421167165,
+              "proposal_ms": 124.60108287632465
+            },
+            {
+              "block": 1,
+              "total_ms": 163.40895812027156,
+              "proposal_ms": 125.18741702660918
+            }
+          ],
+          "representative_median_proposal_call": {
+            "total_wall_ms": 164.6403328049928,
+            "proposal_wall_ms": 124.60108287632465,
+            "output_sha256": "99e5c641328f91728bffde4cedfcccb28a26a7b7d3328a7a65048b1ca9fdcc0c",
+            "core_wall_ms": 124.495334,
+            "api_wall_ms": 124.497625,
+            "exclusive_stages": {
+              "source_copy_invert_ms": {
+                "ms": 0.335209,
+                "fraction_of_core": 0.0026925426779448617,
+                "fraction_of_total": 0.0020360077891547765
+              },
+              "pyramid_ms": {
+                "ms": 1.817166,
+                "fraction_of_core": 0.014596257880636716,
+                "fraction_of_total": 0.011037186144128673
+              },
+              "coarse_rotation_ms": {
+                "ms": 0.47162400000000004,
+                "fraction_of_core": 0.003788286555382068,
+                "fraction_of_total": 0.002864571469000929
+              },
+              "coarse_ncc_ms": {
+                "ms": 6.483705000000001,
+                "fraction_of_core": 0.052079903653256605,
+                "fraction_of_total": 0.03938102462219622
+              },
+              "peak_selection_ms": {
+                "ms": 0.7507470000000224,
+                "fraction_of_core": 0.00603032238943206,
+                "fraction_of_total": 0.004559921540545232
+              },
+              "fine_rotation_ms": {
+                "ms": 58.73775299999989,
+                "fraction_of_core": 0.4718068630588187,
+                "fraction_of_total": 0.3567640565302516
+              },
+              "fine_ncc_ms": {
+                "ms": 55.5225729999995,
+                "fraction_of_core": 0.4459811562094327,
+                "fraction_of_total": 0.3372355488722369
+              },
+              "fine_control_ms": {
+                "ms": 0.3438429999999878,
+                "fraction_of_core": 0.0027618946747031323,
+                "fraction_of_total": 0.0020884493741108413
+              },
+              "nms_ms": {
+                "ms": 0.020458,
+                "fraction_of_core": 0.00016432744378998173,
+                "fraction_of_total": 0.00012425873813211584
+              },
+              "unclassified_ms": {
+                "ms": 0.01225600000000001,
+                "fraction_of_core": 9.844545659839757e-05,
+                "fraction_of_total": 7.444105457753509e-05
+              }
+            },
+            "ideal_zero_cost_stage_speed_bound": {
+              "pyramid_ms": 1.011160365171968,
+              "coarse_rotation_ms": 1.0028728008122438,
+              "fine_rotation_ms": 1.5546394913906585,
+              "fine_ncc_ms": 1.5088316796388148
+            },
+            "nested_metal": {
+              "values": {
+                "upload_ms": 0.020663000000000004,
+                "device_ms": 0.5216656718403101,
+                "wait_ms": 6.021375999999999,
+                "normalization_ms": 0.31570899999999996,
+                "ncc_ms": 6.480212000000001,
+                "command_buffers": 40
+              },
+              "shared_memcpy_fraction_of_total": 0.00012550387652868853,
+              "wait_fraction_of_total": 0.03657290955024963,
+              "device_fraction_of_total": 0.003168516869181707,
+              "wait_minus_device_ms": 5.499710328159689
+            },
+            "retained_coarse_buffers": {
+              "host_bytes": 529900,
+              "gpu_bytes": 28550396,
+              "workspace_bytes": 39672,
+              "source_buffer_bytes": 4488,
+              "template_buffer_bytes": 108
+            },
+            "execution_config": [
+              {
+                "version": 1,
+                "struct_bytes": 32,
+                "pyramid_mode": 2,
+                "batch_angles": 1,
+                "reserved0": 0,
+                "reserved1": 0
+              }
+            ],
+            "nested_execution": {
+              "values": {
+                "pyramid_wall_ms": 1.814875,
+                "pyramid_setup_ms": 0.0,
+                "pyramid_upload_ms": 0.288833,
+                "pyramid_encode_ms": 0.031583,
+                "pyramid_wait_ms": 1.4215,
+                "pyramid_device_ms": 0.7535000331699848,
+                "pyramid_copyout_ms": 0.071958,
+                "batch_encode_ms": 0.0
+              },
+              "pyramid_copy_fraction_of_total": 0.002191388913355372,
+              "pyramid_wait_fraction_of_total": 0.008633971857210024,
+              "pyramid_device_fraction_of_total": 0.004576643039603565,
+              "counters": {
+                "pyramid_command_buffers": 1,
+                "pyramid_levels": 6,
+                "batch_calls": 0,
+                "batch_maps": 0
+              },
+              "max_batch_maps": 0,
+              "buffer_breakdown": {
+                "pyramid_input_bytes": 12216864,
+                "pyramid_output_bytes": 4072400,
+                "pyramid_scratch_bytes": 12216864,
+                "pyramid_buffer_bytes": 28506128,
+                "batch_source_arena_bytes": 0,
+                "batch_source_upload_bytes": 0,
+                "batch_template_buffer_bytes": 108,
+                "batch_statistics_bytes": 39672
+              }
+            },
+            "truth_accuracy": null
+          },
+          "nominal_output_buffers": {
+            "source_copy_bytes": {
+              "count": 6,
+              "median": 12216864.0,
+              "min": 12216864,
+              "max": 12216864,
+              "values": [
+                12216864,
+                12216864,
+                12216864,
+                12216864,
+                12216864,
+                12216864
+              ]
+            },
+            "pyramid_generated_bytes": {
+              "count": 6,
+              "median": 4071784.0,
+              "min": 4071784,
+              "max": 4071784,
+              "values": [
+                4071784,
+                4071784,
+                4071784,
+                4071784,
+                4071784,
+                4071784
+              ]
+            },
+            "pyramid_live_bytes": {
+              "count": 6,
+              "median": 16288648.0,
+              "min": 16288648,
+              "max": 16288648,
+              "values": [
+                16288648,
+                16288648,
+                16288648,
+                16288648,
+                16288648,
+                16288648
+              ]
+            },
+            "coarse_rotation_total_bytes": {
+              "count": 6,
+              "median": 159576.0,
+              "min": 159576,
+              "max": 159576,
+              "values": [
+                159576,
+                159576,
+                159576,
+                159576,
+                159576,
+                159576
+              ]
+            },
+            "coarse_rotation_peak_bytes": {
+              "count": 6,
+              "median": 4488.0,
+              "min": 4488,
+              "max": 4488,
+              "values": [
+                4488,
+                4488,
+                4488,
+                4488,
+                4488,
+                4488
+              ]
+            },
+            "fine_roi_total_bytes": {
+              "count": 6,
+              "median": 21165960.0,
+              "min": 21165960,
+              "max": 21165960,
+              "values": [
+                21165960,
+                21165960,
+                21165960,
+                21165960,
+                21165960,
+                21165960
+              ]
+            },
+            "fine_roi_peak_bytes": {
+              "count": 6,
+              "median": 103329.0,
+              "min": 103329,
+              "max": 103329,
+              "values": [
+                103329,
+                103329,
+                103329,
+                103329,
+                103329,
+                103329
+              ]
+            },
+            "scoremap_peak_bytes": {
+              "count": 6,
+              "median": 26448.0,
+              "min": 26448,
+              "max": 26448,
+              "values": [
+                26448,
+                26448,
+                26448,
+                26448,
+                26448,
+                26448
+              ]
+            },
+            "scoremap_total_bytes": {
+              "count": 6,
+              "median": 1783736.0,
+              "min": 1783736,
+              "max": 1783736,
+              "values": [
+                1783736,
+                1783736,
+                1783736,
+                1783736,
+                1783736,
+                1783736
+              ]
+            },
+            "cpu_pyramid_horizontal_scratch_peak_proxy_bytes": 0
+          },
+          "execution_config": [
+            {
+              "version": 1,
+              "struct_bytes": 32,
+              "pyramid_mode": 2,
+              "batch_angles": 1,
+              "reserved0": 0,
+              "reserved1": 0
+            }
+          ],
+          "work_counters": {
+            "pyramid_levels": {
+              "count": 6,
+              "median": 7.0,
+              "min": 7,
+              "max": 7,
+              "values": [
+                7,
+                7,
+                7,
+                7,
+                7,
+                7
+              ]
+            },
+            "coarse_angles": {
+              "count": 6,
+              "median": 40.0,
+              "min": 40,
+              "max": 40,
+              "values": [
+                40,
+                40,
+                40,
+                40,
+                40,
+                40
+              ]
+            },
+            "coarse_maps": {
+              "count": 6,
+              "median": 40.0,
+              "min": 40,
+              "max": 40,
+              "values": [
+                40,
+                40,
+                40,
+                40,
+                40,
+                40
+              ]
+            },
+            "coarse_windows": {
+              "count": 6,
+              "median": 115216.0,
+              "min": 115216,
+              "max": 115216,
+              "values": [
+                115216,
+                115216,
+                115216,
+                115216,
+                115216,
+                115216
+              ]
+            },
+            "coarse_candidates": {
+              "count": 6,
+              "median": 337.0,
+              "min": 337,
+              "max": 337,
+              "values": [
+                337,
+                337,
+                337,
+                337,
+                337,
+                337
+              ]
+            },
+            "fine_layer_visits": {
+              "count": 6,
+              "median": 726.0,
+              "min": 726,
+              "max": 726,
+              "values": [
+                726,
+                726,
+                726,
+                726,
+                726,
+                726
+              ]
+            },
+            "fine_passes": {
+              "count": 6,
+              "median": 726.0,
+              "min": 726,
+              "max": 726,
+              "values": [
+                726,
+                726,
+                726,
+                726,
+                726,
+                726
+              ]
+            },
+            "fine_rotations": {
+              "count": 6,
+              "median": 2199.0,
+              "min": 2199,
+              "max": 2199,
+              "values": [
+                2199,
+                2199,
+                2199,
+                2199,
+                2199,
+                2199
+              ]
+            },
+            "fine_maps": {
+              "count": 6,
+              "median": 2199.0,
+              "min": 2199,
+              "max": 2199,
+              "values": [
+                2199,
+                2199,
+                2199,
+                2199,
+                2199,
+                2199
+              ]
+            },
+            "fine_windows": {
+              "count": 6,
+              "median": 107751.0,
+              "min": 107751,
+              "max": 107751,
+              "values": [
+                107751,
+                107751,
+                107751,
+                107751,
+                107751,
+                107751
+              ]
+            },
+            "refined_candidates": {
+              "count": 6,
+              "median": 24.0,
+              "min": 24,
+              "max": 24,
+              "values": [
+                24,
+                24,
+                24,
+                24,
+                24,
+                24
+              ]
+            },
+            "output_matches": {
+              "count": 6,
+              "median": 6.0,
+              "min": 6,
+              "max": 6,
+              "values": [
+                6,
+                6,
+                6,
+                6,
+                6,
+                6
+              ]
+            },
+            "timed_transitions": {
+              "count": 6,
+              "median": 13444.0,
+              "min": 13444,
+              "max": 13444,
+              "values": [
+                13444,
+                13444,
+                13444,
+                13444,
+                13444,
+                13444
+              ]
+            }
+          },
+          "owned_pose_buffers": [
+            {
+              "host_buffer_bytes": 50455824,
+              "gpu_buffer_bytes": 50794504,
+              "gpu_allocated_bytes": 80117760
+            },
+            {
+              "host_buffer_bytes": 50455824,
+              "gpu_buffer_bytes": 50794504,
+              "gpu_allocated_bytes": 80117760
+            }
+          ]
+        }
+      },
+      "performance": {
+        "whole_pipeline_regression": {},
+        "targeted_profiled_stage_improvement": {
+          "pyramid_direct": {
+            "pyramid_ms": {
+              "available": false,
+              "repeatable_improvement": null,
+              "reason": "profile comparison not measured"
+            }
+          },
+          "pyramid_separable": {
+            "pyramid_ms": {
+              "available": false,
+              "repeatable_improvement": null,
+              "reason": "profile comparison not measured"
+            }
+          }
+        }
+      },
+      "profile_overhead_percent_by_block": {}
+    },
+    {
+      "name": "8k_t256",
+      "workflow": "core_only",
+      "exact_all_outputs": true,
+      "truth_passed": true,
+      "profile_valid": true,
+      "methods": {
+        "pyramid_direct_profile": {
+          "total_ms": {
+            "count": 6,
+            "median": 11.388332932256162,
+            "min": 10.256374953314662,
+            "max": 13.369499938562512,
+            "values": [
+              11.255416087806225,
+              13.369499938562512,
+              13.152000028640032,
+              11.5212497767061,
+              10.256374953314662,
+              10.277916910126805
+            ]
+          },
+          "proposal_ms": {
+            "count": 6,
+            "median": 11.388332932256162,
+            "min": 10.256374953314662,
+            "max": 13.369499938562512,
+            "values": [
+              11.255416087806225,
+              13.369499938562512,
+              13.152000028640032,
+              11.5212497767061,
+              10.256374953314662,
+              10.277916910126805
+            ]
+          },
+          "first_total_ms": [
+            27.23708306439221,
+            36.38904192484915
+          ],
+          "construct_ms": [
+            174.76974986493587,
+            184.3034999910742
+          ],
+          "peak_rss_bytes": [
+            332398592,
+            333447168
+          ],
+          "blocks": [
+            {
+              "block": 0,
+              "total_ms": 13.152000028640032,
+              "proposal_ms": 13.152000028640032
+            },
+            {
+              "block": 1,
+              "total_ms": 10.277916910126805,
+              "proposal_ms": 10.277916910126805
+            }
+          ],
+          "representative_median_proposal_call": {
+            "total_wall_ms": 11.255416087806225,
+            "proposal_wall_ms": 11.255416087806225,
+            "output_sha256": "d80cd81dd25cc15969aa68e7f9ff0e7a1b25bea1cb5432d9904f4c905d8d3ee2",
+            "core_wall_ms": 11.206792,
+            "api_wall_ms": 11.207958,
+            "exclusive_stages": {
+              "source_copy_invert_ms": {
+                "ms": 1.351042,
+                "fraction_of_core": 0.12055564161447808,
+                "fraction_of_total": 0.120034833848895
+              },
+              "pyramid_ms": {
+                "ms": 7.205791,
+                "fraction_of_core": 0.6429842723948119,
+                "fraction_of_total": 0.6402065409031421
+              },
+              "coarse_rotation_ms": {
+                "ms": 0.694125,
+                "fraction_of_core": 0.061937885525135114,
+                "fraction_of_total": 0.06167031006094869
+              },
+              "coarse_ncc_ms": {
+                "ms": 1.051958,
+                "fraction_of_core": 0.09386789725373683,
+                "fraction_of_total": 0.09346238218058053
+              },
+              "peak_selection_ms": {
+                "ms": 0.18350199999999986,
+                "fraction_of_core": 0.016374177373863978,
+                "fraction_of_total": 0.016303439923362792
+              },
+              "fine_rotation_ms": {
+                "ms": 0.425749,
+                "fraction_of_core": 0.0379902651891817,
+                "fraction_of_total": 0.03782614491358018
+              },
+              "fine_ncc_ms": {
+                "ms": 0.285666,
+                "fraction_of_core": 0.02549043472922492,
+                "fraction_of_total": 0.0253803144878386
+              },
+              "fine_control_ms": {
+                "ms": 0.0055420000000000035,
+                "fraction_of_core": 0.0004945215365824585,
+                "fraction_of_total": 0.000492385173214879
+              },
+              "nms_ms": {
+                "ms": 0.00125,
+                "fraction_of_core": 0.00011153950211621666,
+                "fraction_of_total": 0.00011105764462623572
+              },
+              "unclassified_ms": {
+                "ms": 0.0021669999999999997,
+                "fraction_of_core": 0.00019336488086867318,
+                "fraction_of_total": 0.0001925295327240422
+              }
+            },
+            "ideal_zero_cost_stage_speed_bound": {
+              "pyramid_ms": 2.779372372444369,
+              "coarse_rotation_ms": 1.065723498597763,
+              "fine_rotation_ms": 1.0393132121743036,
+              "fine_ncc_ms": 1.0260412495921434
+            },
+            "nested_metal": {
+              "values": {
+                "upload_ms": 0.003833,
+                "device_ms": 0.4764581099152565,
+                "wait_ms": 0.634542,
+                "normalization_ms": 0.391709,
+                "ncc_ms": 1.051667,
+                "command_buffers": 1
+              },
+              "shared_memcpy_fraction_of_total": 0.0003405471614818892,
+              "wait_fraction_of_total": 0.056376591949136697,
+              "device_fraction_of_total": 0.04233145236020521,
+              "wait_minus_device_ms": 0.15808389008474355
+            },
+            "retained_coarse_buffers": {
+              "host_bytes": 87296,
+              "gpu_bytes": 92617612,
+              "workspace_bytes": 2964108,
+              "source_buffer_bytes": 262144,
+              "template_buffer_bytes": 256
+            },
+            "execution_config": [
+              {
+                "version": 1,
+                "struct_bytes": 32,
+                "pyramid_mode": 1,
+                "batch_angles": 1,
+                "reserved0": 0,
+                "reserved1": 0
+              }
+            ],
+            "nested_execution": {
+              "values": {
+                "pyramid_wall_ms": 7.200834,
+                "pyramid_setup_ms": 0.0,
+                "pyramid_upload_ms": 1.054917,
+                "pyramid_encode_ms": 0.01925,
+                "pyramid_wait_ms": 5.6275,
+                "pyramid_device_ms": 5.103833274915814,
+                "pyramid_copyout_ms": 0.498625,
+                "batch_encode_ms": 0.0
+              },
+              "pyramid_copy_fraction_of_total": 0.1380261722783452,
+              "pyramid_wait_fraction_of_total": 0.49998151610731323,
+              "pyramid_device_fraction_of_total": 0.45345576166172585,
+              "counters": {
+                "pyramid_command_buffers": 1,
+                "pyramid_levels": 4,
+                "batch_calls": 0,
+                "batch_maps": 0
+              },
+              "max_batch_maps": 0,
+              "buffer_breakdown": {
+                "pyramid_input_bytes": 67108864,
+                "pyramid_output_bytes": 22282240,
+                "pyramid_scratch_bytes": 0,
+                "pyramid_buffer_bytes": 89391104,
+                "batch_source_arena_bytes": 0,
+                "batch_source_upload_bytes": 0,
+                "batch_template_buffer_bytes": 256,
+                "batch_statistics_bytes": 2964108
+              }
+            },
+            "truth_accuracy": {
+              "localized": 6,
+              "pose_tp": 6,
+              "pose_fp": 0,
+              "pose_fn": 0,
+              "details": [
+                {
+                  "truth": {
+                    "pos_x": 640.0,
+                    "pos_y": 640.0,
+                    "angle": 0,
+                    "scale": 1
+                  },
+                  "result_index": 0,
+                  "localized": true,
+                  "pose_pass": true,
+                  "errors": {
+                    "position_px": 0.0,
+                    "angle_deg": 0.0,
+                    "relative_scale": 0.0
+                  }
+                },
+                {
+                  "truth": {
+                    "pos_x": 3968.0,
+                    "pos_y": 640.0,
+                    "angle": 0,
+                    "scale": 1
+                  },
+                  "result_index": 1,
+                  "localized": true,
+                  "pose_pass": true,
+                  "errors": {
+                    "position_px": 0.0,
+                    "angle_deg": 0.0,
+                    "relative_scale": 0.0
+                  }
+                },
+                {
+                  "truth": {
+                    "pos_x": 7168.0,
+                    "pos_y": 640.0,
+                    "angle": 0,
+                    "scale": 1
+                  },
+                  "result_index": 2,
+                  "localized": true,
+                  "pose_pass": true,
+                  "errors": {
+                    "position_px": 0.0,
+                    "angle_deg": 0.0,
+                    "relative_scale": 0.0
+                  }
+                },
+                {
+                  "truth": {
+                    "pos_x": 640.0,
+                    "pos_y": 6272.0,
+                    "angle": 0,
+                    "scale": 1
+                  },
+                  "result_index": 3,
+                  "localized": true,
+                  "pose_pass": true,
+                  "errors": {
+                    "position_px": 0.0,
+                    "angle_deg": 0.0,
+                    "relative_scale": 0.0
+                  }
+                },
+                {
+                  "truth": {
+                    "pos_x": 3968.0,
+                    "pos_y": 6272.0,
+                    "angle": 0,
+                    "scale": 1
+                  },
+                  "result_index": 4,
+                  "localized": true,
+                  "pose_pass": true,
+                  "errors": {
+                    "position_px": 0.0,
+                    "angle_deg": 0.0,
+                    "relative_scale": 0.0
+                  }
+                },
+                {
+                  "truth": {
+                    "pos_x": 7168.0,
+                    "pos_y": 6272.0,
+                    "angle": 0,
+                    "scale": 1
+                  },
+                  "result_index": 5,
+                  "localized": true,
+                  "pose_pass": true,
+                  "errors": {
+                    "position_px": 0.0,
+                    "angle_deg": 0.0,
+                    "relative_scale": 0.0
+                  }
+                }
+              ]
+            }
+          },
+          "nominal_output_buffers": {
+            "source_copy_bytes": {
+              "count": 6,
+              "median": 67108864.0,
+              "min": 67108864,
+              "max": 67108864,
+              "values": [
+                67108864,
+                67108864,
+                67108864,
+                67108864,
+                67108864,
+                67108864
+              ]
+            },
+            "pyramid_generated_bytes": {
+              "count": 6,
+              "median": 22282240.0,
+              "min": 22282240,
+              "max": 22282240,
+              "values": [
+                22282240,
+                22282240,
+                22282240,
+                22282240,
+                22282240,
+                22282240
+              ]
+            },
+            "pyramid_live_bytes": {
+              "count": 6,
+              "median": 89391104.0,
+              "min": 89391104,
+              "max": 89391104,
+              "values": [
+                89391104,
+                89391104,
+                89391104,
+                89391104,
+                89391104,
+                89391104
+              ]
+            },
+            "coarse_rotation_total_bytes": {
+              "count": 6,
+              "median": 262144.0,
+              "min": 262144,
+              "max": 262144,
+              "values": [
+                262144,
+                262144,
+                262144,
+                262144,
+                262144,
+                262144
+              ]
+            },
+            "coarse_rotation_peak_bytes": {
+              "count": 6,
+              "median": 262144.0,
+              "min": 262144,
+              "max": 262144,
+              "values": [
+                262144,
+                262144,
+                262144,
+                262144,
+                262144,
+                262144
+              ]
+            },
+            "fine_roi_total_bytes": {
+              "count": 6,
+              "median": 145800.0,
+              "min": 145800,
+              "max": 145800,
+              "values": [
+                145800,
+                145800,
+                145800,
+                145800,
+                145800,
+                145800
+              ]
+            },
+            "fine_roi_peak_bytes": {
+              "count": 6,
+              "median": 17956.0,
+              "min": 17956,
+              "max": 17956,
+              "values": [
+                17956,
+                17956,
+                17956,
+                17956,
+                17956,
+                17956
+              ]
+            },
+            "scoremap_peak_bytes": {
+              "count": 6,
+              "median": 1976072.0,
+              "min": 1976072,
+              "max": 1976072,
+              "values": [
+                1976072,
+                1976072,
+                1976072,
+                1976072,
+                1976072,
+                1976072
+              ]
+            },
+            "scoremap_total_bytes": {
+              "count": 6,
+              "median": 1983128.0,
+              "min": 1983128,
+              "max": 1983128,
+              "values": [
+                1983128,
+                1983128,
+                1983128,
+                1983128,
+                1983128,
+                1983128
+              ]
+            },
+            "cpu_pyramid_horizontal_scratch_peak_proxy_bytes": 0
+          },
+          "execution_config": [
+            {
+              "version": 1,
+              "struct_bytes": 32,
+              "pyramid_mode": 1,
+              "batch_angles": 1,
+              "reserved0": 0,
+              "reserved1": 0
+            }
+          ],
+          "work_counters": {
+            "pyramid_levels": {
+              "count": 6,
+              "median": 5.0,
+              "min": 5,
+              "max": 5,
+              "values": [
+                5,
+                5,
+                5,
+                5,
+                5,
+                5
+              ]
+            },
+            "coarse_angles": {
+              "count": 6,
+              "median": 1.0,
+              "min": 1,
+              "max": 1,
+              "values": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+              ]
+            },
+            "coarse_maps": {
+              "count": 6,
+              "median": 1.0,
+              "min": 1,
+              "max": 1,
+              "values": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+              ]
+            },
+            "coarse_windows": {
+              "count": 6,
+              "median": 247009.0,
+              "min": 247009,
+              "max": 247009,
+              "values": [
+                247009,
+                247009,
+                247009,
+                247009,
+                247009,
+                247009
+              ]
+            },
+            "coarse_candidates": {
+              "count": 6,
+              "median": 6.0,
+              "min": 6,
+              "max": 6,
+              "values": [
+                6,
+                6,
+                6,
+                6,
+                6,
+                6
+              ]
+            },
+            "fine_layer_visits": {
+              "count": 6,
+              "median": 18.0,
+              "min": 18,
+              "max": 18,
+              "values": [
+                18,
+                18,
+                18,
+                18,
+                18,
+                18
+              ]
+            },
+            "fine_passes": {
+              "count": 6,
+              "median": 18.0,
+              "min": 18,
+              "max": 18,
+              "values": [
+                18,
+                18,
+                18,
+                18,
+                18,
+                18
+              ]
+            },
+            "fine_rotations": {
+              "count": 6,
+              "median": 18.0,
+              "min": 18,
+              "max": 18,
+              "values": [
+                18,
+                18,
+                18,
+                18,
+                18,
+                18
+              ]
+            },
+            "fine_maps": {
+              "count": 6,
+              "median": 18.0,
+              "min": 18,
+              "max": 18,
+              "values": [
+                18,
+                18,
+                18,
+                18,
+                18,
+                18
+              ]
+            },
+            "fine_windows": {
+              "count": 6,
+              "median": 882.0,
+              "min": 882,
+              "max": 882,
+              "values": [
+                882,
+                882,
+                882,
+                882,
+                882,
+                882
+              ]
+            },
+            "refined_candidates": {
+              "count": 6,
+              "median": 6.0,
+              "min": 6,
+              "max": 6,
+              "values": [
+                6,
+                6,
+                6,
+                6,
+                6,
+                6
+              ]
+            },
+            "output_matches": {
+              "count": 6,
+              "median": 6.0,
+              "min": 6,
+              "max": 6,
+              "values": [
+                6,
+                6,
+                6,
+                6,
+                6,
+                6
+              ]
+            },
+            "timed_transitions": {
+              "count": 6,
+              "median": 124.0,
+              "min": 124,
+              "max": 124,
+              "values": [
+                124,
+                124,
+                124,
+                124,
+                124,
+                124
+              ]
+            }
+          },
+          "owned_pose_buffers": [
+            null,
+            null
+          ]
+        },
+        "pyramid_separable_profile": {
+          "total_ms": {
+            "count": 6,
+            "median": 9.473145939409733,
+            "min": 8.965416112914681,
+            "max": 9.621999925002456,
+            "values": [
+              9.445291943848133,
+              8.965416112914681,
+              9.621999925002456,
+              9.500999934971333,
+              9.555792203173041,
+              9.26204095594585
+            ]
+          },
+          "proposal_ms": {
+            "count": 6,
+            "median": 9.473145939409733,
+            "min": 8.965416112914681,
+            "max": 9.621999925002456,
+            "values": [
+              9.445291943848133,
+              8.965416112914681,
+              9.621999925002456,
+              9.500999934971333,
+              9.555792203173041,
+              9.26204095594585
+            ]
+          },
+          "first_total_ms": [
+            31.731000170111656,
+            27.7921250090003
+          ],
+          "construct_ms": [
+            174.74658298306167,
+            171.93499999120831
+          ],
+          "peak_rss_bytes": [
+            329105408,
+            332824576
+          ],
+          "blocks": [
+            {
+              "block": 0,
+              "total_ms": 9.445291943848133,
+              "proposal_ms": 9.445291943848133
+            },
+            {
+              "block": 1,
+              "total_ms": 9.500999934971333,
+              "proposal_ms": 9.500999934971333
+            }
+          ],
+          "representative_median_proposal_call": {
+            "total_wall_ms": 9.445291943848133,
+            "proposal_wall_ms": 9.445291943848133,
+            "output_sha256": "d80cd81dd25cc15969aa68e7f9ff0e7a1b25bea1cb5432d9904f4c905d8d3ee2",
+            "core_wall_ms": 9.418583,
+            "api_wall_ms": 9.419041,
+            "exclusive_stages": {
+              "source_copy_invert_ms": {
+                "ms": 1.315042,
+                "fraction_of_core": 0.1396220641682512,
+                "fraction_of_total": 0.1392272475872498
+              },
+              "pyramid_ms": {
+                "ms": 4.962083,
+                "fraction_of_core": 0.5268396530560914,
+                "fraction_of_total": 0.5253498811364833
+              },
+              "coarse_rotation_ms": {
+                "ms": 0.649334,
+                "fraction_of_core": 0.06894179304891192,
+                "fraction_of_total": 0.06874684275089256
+              },
+              "coarse_ncc_ms": {
+                "ms": 1.626041,
+                "fraction_of_core": 0.17264178698642885,
+                "fraction_of_total": 0.17215359881586997
+              },
+              "peak_selection_ms": {
+                "ms": 0.16812699999999992,
+                "fraction_of_core": 0.017850562021909232,
+                "fraction_of_total": 0.017800085058197027
+              },
+              "fine_rotation_ms": {
+                "ms": 0.408415,
+                "fraction_of_core": 0.04336267992754324,
+                "fraction_of_total": 0.04324006101960745
+              },
+              "fine_ncc_ms": {
+                "ms": 0.282626,
+                "fraction_of_core": 0.030007273917955598,
+                "fraction_of_total": 0.029922420787012172
+              },
+              "fine_control_ms": {
+                "ms": 0.004874000000000001,
+                "fraction_of_core": 0.0005174876093357143,
+                "fraction_of_total": 0.0005160242826770975
+              },
+              "nms_ms": {
+                "ms": 0.000958,
+                "fraction_of_core": 0.00010171381406311331,
+                "fraction_of_total": 0.00010142619261482547
+              },
+              "unclassified_ms": {
+                "ms": 0.001083,
+                "fraction_of_core": 0.00011498544950976171,
+                "fraction_of_total": 0.00011466029916686427
+              }
+            },
+            "ideal_zero_cost_stage_speed_bound": {
+              "pyramid_ms": 2.106815020702744,
+              "coarse_rotation_ms": 1.0738218627402762,
+              "fine_rotation_ms": 1.0451942637415272,
+              "fine_ncc_ms": 1.030845389511309
+            },
+            "nested_metal": {
+              "values": {
+                "upload_ms": 0.004583,
+                "device_ms": 0.47837477177381516,
+                "wait_ms": 1.150709,
+                "normalization_ms": 0.457,
+                "ncc_ms": 1.625875,
+                "command_buffers": 1
+              },
+              "shared_memcpy_fraction_of_total": 0.0004852152826239511,
+              "wait_fraction_of_total": 0.12182884413112025,
+              "device_fraction_of_total": 0.050646901611695355,
+              "wait_minus_device_ms": 0.6723342282261848
+            },
+            "retained_coarse_buffers": {
+              "host_bytes": 87296,
+              "gpu_bytes": 159726476,
+              "workspace_bytes": 2964108,
+              "source_buffer_bytes": 262144,
+              "template_buffer_bytes": 256
+            },
+            "execution_config": [
+              {
+                "version": 1,
+                "struct_bytes": 32,
+                "pyramid_mode": 2,
+                "batch_angles": 1,
+                "reserved0": 0,
+                "reserved1": 0
+              }
+            ],
+            "nested_execution": {
+              "values": {
+                "pyramid_wall_ms": 4.961375,
+                "pyramid_setup_ms": 0.0,
+                "pyramid_upload_ms": 1.06775,
+                "pyramid_encode_ms": 0.007625,
+                "pyramid_wait_ms": 3.463041,
+                "pyramid_device_ms": 2.8756665997207165,
+                "pyramid_copyout_ms": 0.422667,
+                "batch_encode_ms": 0.0
+              },
+              "pyramid_copy_fraction_of_total": 0.15779469907976024,
+              "pyramid_wait_fraction_of_total": 0.36664202870463236,
+              "pyramid_device_fraction_of_total": 0.3044550255107449,
+              "counters": {
+                "pyramid_command_buffers": 1,
+                "pyramid_levels": 4,
+                "batch_calls": 0,
+                "batch_maps": 0
+              },
+              "max_batch_maps": 0,
+              "buffer_breakdown": {
+                "pyramid_input_bytes": 67108864,
+                "pyramid_output_bytes": 22282240,
+                "pyramid_scratch_bytes": 67108864,
+                "pyramid_buffer_bytes": 156499968,
+                "batch_source_arena_bytes": 0,
+                "batch_source_upload_bytes": 0,
+                "batch_template_buffer_bytes": 256,
+                "batch_statistics_bytes": 2964108
+              }
+            },
+            "truth_accuracy": {
+              "localized": 6,
+              "pose_tp": 6,
+              "pose_fp": 0,
+              "pose_fn": 0,
+              "details": [
+                {
+                  "truth": {
+                    "pos_x": 640.0,
+                    "pos_y": 640.0,
+                    "angle": 0,
+                    "scale": 1
+                  },
+                  "result_index": 0,
+                  "localized": true,
+                  "pose_pass": true,
+                  "errors": {
+                    "position_px": 0.0,
+                    "angle_deg": 0.0,
+                    "relative_scale": 0.0
+                  }
+                },
+                {
+                  "truth": {
+                    "pos_x": 3968.0,
+                    "pos_y": 640.0,
+                    "angle": 0,
+                    "scale": 1
+                  },
+                  "result_index": 1,
+                  "localized": true,
+                  "pose_pass": true,
+                  "errors": {
+                    "position_px": 0.0,
+                    "angle_deg": 0.0,
+                    "relative_scale": 0.0
+                  }
+                },
+                {
+                  "truth": {
+                    "pos_x": 7168.0,
+                    "pos_y": 640.0,
+                    "angle": 0,
+                    "scale": 1
+                  },
+                  "result_index": 2,
+                  "localized": true,
+                  "pose_pass": true,
+                  "errors": {
+                    "position_px": 0.0,
+                    "angle_deg": 0.0,
+                    "relative_scale": 0.0
+                  }
+                },
+                {
+                  "truth": {
+                    "pos_x": 640.0,
+                    "pos_y": 6272.0,
+                    "angle": 0,
+                    "scale": 1
+                  },
+                  "result_index": 3,
+                  "localized": true,
+                  "pose_pass": true,
+                  "errors": {
+                    "position_px": 0.0,
+                    "angle_deg": 0.0,
+                    "relative_scale": 0.0
+                  }
+                },
+                {
+                  "truth": {
+                    "pos_x": 3968.0,
+                    "pos_y": 6272.0,
+                    "angle": 0,
+                    "scale": 1
+                  },
+                  "result_index": 4,
+                  "localized": true,
+                  "pose_pass": true,
+                  "errors": {
+                    "position_px": 0.0,
+                    "angle_deg": 0.0,
+                    "relative_scale": 0.0
+                  }
+                },
+                {
+                  "truth": {
+                    "pos_x": 7168.0,
+                    "pos_y": 6272.0,
+                    "angle": 0,
+                    "scale": 1
+                  },
+                  "result_index": 5,
+                  "localized": true,
+                  "pose_pass": true,
+                  "errors": {
+                    "position_px": 0.0,
+                    "angle_deg": 0.0,
+                    "relative_scale": 0.0
+                  }
+                }
+              ]
+            }
+          },
+          "nominal_output_buffers": {
+            "source_copy_bytes": {
+              "count": 6,
+              "median": 67108864.0,
+              "min": 67108864,
+              "max": 67108864,
+              "values": [
+                67108864,
+                67108864,
+                67108864,
+                67108864,
+                67108864,
+                67108864
+              ]
+            },
+            "pyramid_generated_bytes": {
+              "count": 6,
+              "median": 22282240.0,
+              "min": 22282240,
+              "max": 22282240,
+              "values": [
+                22282240,
+                22282240,
+                22282240,
+                22282240,
+                22282240,
+                22282240
+              ]
+            },
+            "pyramid_live_bytes": {
+              "count": 6,
+              "median": 89391104.0,
+              "min": 89391104,
+              "max": 89391104,
+              "values": [
+                89391104,
+                89391104,
+                89391104,
+                89391104,
+                89391104,
+                89391104
+              ]
+            },
+            "coarse_rotation_total_bytes": {
+              "count": 6,
+              "median": 262144.0,
+              "min": 262144,
+              "max": 262144,
+              "values": [
+                262144,
+                262144,
+                262144,
+                262144,
+                262144,
+                262144
+              ]
+            },
+            "coarse_rotation_peak_bytes": {
+              "count": 6,
+              "median": 262144.0,
+              "min": 262144,
+              "max": 262144,
+              "values": [
+                262144,
+                262144,
+                262144,
+                262144,
+                262144,
+                262144
+              ]
+            },
+            "fine_roi_total_bytes": {
+              "count": 6,
+              "median": 145800.0,
+              "min": 145800,
+              "max": 145800,
+              "values": [
+                145800,
+                145800,
+                145800,
+                145800,
+                145800,
+                145800
+              ]
+            },
+            "fine_roi_peak_bytes": {
+              "count": 6,
+              "median": 17956.0,
+              "min": 17956,
+              "max": 17956,
+              "values": [
+                17956,
+                17956,
+                17956,
+                17956,
+                17956,
+                17956
+              ]
+            },
+            "scoremap_peak_bytes": {
+              "count": 6,
+              "median": 1976072.0,
+              "min": 1976072,
+              "max": 1976072,
+              "values": [
+                1976072,
+                1976072,
+                1976072,
+                1976072,
+                1976072,
+                1976072
+              ]
+            },
+            "scoremap_total_bytes": {
+              "count": 6,
+              "median": 1983128.0,
+              "min": 1983128,
+              "max": 1983128,
+              "values": [
+                1983128,
+                1983128,
+                1983128,
+                1983128,
+                1983128,
+                1983128
+              ]
+            },
+            "cpu_pyramid_horizontal_scratch_peak_proxy_bytes": 0
+          },
+          "execution_config": [
+            {
+              "version": 1,
+              "struct_bytes": 32,
+              "pyramid_mode": 2,
+              "batch_angles": 1,
+              "reserved0": 0,
+              "reserved1": 0
+            }
+          ],
+          "work_counters": {
+            "pyramid_levels": {
+              "count": 6,
+              "median": 5.0,
+              "min": 5,
+              "max": 5,
+              "values": [
+                5,
+                5,
+                5,
+                5,
+                5,
+                5
+              ]
+            },
+            "coarse_angles": {
+              "count": 6,
+              "median": 1.0,
+              "min": 1,
+              "max": 1,
+              "values": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+              ]
+            },
+            "coarse_maps": {
+              "count": 6,
+              "median": 1.0,
+              "min": 1,
+              "max": 1,
+              "values": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+              ]
+            },
+            "coarse_windows": {
+              "count": 6,
+              "median": 247009.0,
+              "min": 247009,
+              "max": 247009,
+              "values": [
+                247009,
+                247009,
+                247009,
+                247009,
+                247009,
+                247009
+              ]
+            },
+            "coarse_candidates": {
+              "count": 6,
+              "median": 6.0,
+              "min": 6,
+              "max": 6,
+              "values": [
+                6,
+                6,
+                6,
+                6,
+                6,
+                6
+              ]
+            },
+            "fine_layer_visits": {
+              "count": 6,
+              "median": 18.0,
+              "min": 18,
+              "max": 18,
+              "values": [
+                18,
+                18,
+                18,
+                18,
+                18,
+                18
+              ]
+            },
+            "fine_passes": {
+              "count": 6,
+              "median": 18.0,
+              "min": 18,
+              "max": 18,
+              "values": [
+                18,
+                18,
+                18,
+                18,
+                18,
+                18
+              ]
+            },
+            "fine_rotations": {
+              "count": 6,
+              "median": 18.0,
+              "min": 18,
+              "max": 18,
+              "values": [
+                18,
+                18,
+                18,
+                18,
+                18,
+                18
+              ]
+            },
+            "fine_maps": {
+              "count": 6,
+              "median": 18.0,
+              "min": 18,
+              "max": 18,
+              "values": [
+                18,
+                18,
+                18,
+                18,
+                18,
+                18
+              ]
+            },
+            "fine_windows": {
+              "count": 6,
+              "median": 882.0,
+              "min": 882,
+              "max": 882,
+              "values": [
+                882,
+                882,
+                882,
+                882,
+                882,
+                882
+              ]
+            },
+            "refined_candidates": {
+              "count": 6,
+              "median": 6.0,
+              "min": 6,
+              "max": 6,
+              "values": [
+                6,
+                6,
+                6,
+                6,
+                6,
+                6
+              ]
+            },
+            "output_matches": {
+              "count": 6,
+              "median": 6.0,
+              "min": 6,
+              "max": 6,
+              "values": [
+                6,
+                6,
+                6,
+                6,
+                6,
+                6
+              ]
+            },
+            "timed_transitions": {
+              "count": 6,
+              "median": 124.0,
+              "min": 124,
+              "max": 124,
+              "values": [
+                124,
+                124,
+                124,
+                124,
+                124,
+                124
+              ]
+            }
+          },
+          "owned_pose_buffers": [
+            null,
+            null
+          ]
+        }
+      },
+      "performance": {
+        "whole_pipeline_regression": {},
+        "targeted_profiled_stage_improvement": {
+          "pyramid_direct": {
+            "pyramid_ms": {
+              "available": false,
+              "repeatable_improvement": null,
+              "reason": "profile comparison not measured"
+            }
+          },
+          "pyramid_separable": {
+            "pyramid_ms": {
+              "available": false,
+              "repeatable_improvement": null,
+              "reason": "profile comparison not measured"
+            }
+          }
+        }
+      },
+      "profile_overhead_percent_by_block": {}
+    }
+  ]
+}

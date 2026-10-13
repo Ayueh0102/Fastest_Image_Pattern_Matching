@@ -17,6 +17,7 @@
 - [Metal 傳輸、提交等待與底層並行瓶頸實測](docs/METAL_COST_ANALYSIS_zh-TW.md)
 - [Metal GPU 常駐求解、停止控制與新舊版比較](docs/METAL_RESIDENT_REFINEMENT_zh-TW.md)
 - [NCC 局部錯峰救援、8K／大量候選與 Metal 粗 NCC 比較](docs/NCC_RESCUE_AND_METAL_COARSE_zh-TW.md)
+- [搜尋階段計時、Metal 精確金字塔、角度批次與 8K 時間／記憶體比較](docs/PIPELINE_STAGES_AND_METAL_PYRAMID_zh-TW.md)
 
 GUI 的完整原始碼位於 `../macos-cli/mainwindow.{h,cpp}` 與 `main.cpp`，使用 Qt6。CLI 可選用 OpenCV 解碼圖片。Qt、OpenCV、C++ 標準函式庫本身並未複製進專案；比對核心沒有呼叫它們的影像演算法，也沒有依賴未提供源碼的 FPM DLL／SO。
 
