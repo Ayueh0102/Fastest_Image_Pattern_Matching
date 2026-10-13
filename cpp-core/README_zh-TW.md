@@ -14,6 +14,7 @@
 - [連續姿態精修、NCC 保守篩選與大量候選記憶體實測](docs/PERFORMANCE_ACCURACY_zh-TW.md)
 - [GPU 連續 NCC 精修、CPU／Metal 時間與記憶體比較](docs/GPU_REFINEMENT_zh-TW.md)
 - [CPU／Metal 自動分流、延遲初始化與效能交界曲線](docs/METAL_ROUTING_zh-TW.md)
+- [Metal 傳輸、提交等待與底層並行瓶頸實測](docs/METAL_COST_ANALYSIS_zh-TW.md)
 
 GUI 的完整原始碼位於 `../macos-cli/mainwindow.{h,cpp}` 與 `main.cpp`，使用 Qt6。CLI 可選用 OpenCV 解碼圖片。Qt、OpenCV、C++ 標準函式庫本身並未複製進專案；比對核心沒有呼叫它們的影像演算法，也沒有依賴未提供源碼的 FPM DLL／SO。
 
