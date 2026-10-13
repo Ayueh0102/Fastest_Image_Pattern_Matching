@@ -1,0 +1,135 @@
+{
+  "checked_at": "2026-10-13T10:36:54.360154+08:00",
+  "source_sha256": {
+    "cpp-core/experiments/CMakeLists.txt": "dd8126b03a64c76d76a0db4dc79da23969361f896b70617054dc2cb3e4070739",
+    "cpp-core/experiments/pose_ncc.cpp": "742b673e5c85cca4d709ca550d92e8ca8565e580ca93d898206c819a7d23e390",
+    "cpp-core/experiments/pose_ncc.h": "8ffac8183d18773cb44fe691618c081cc9ecc096e55f2b3168b129350bfdd220",
+    "cpp-core/experiments/pose_ncc.metal": "761f22efba16b41b47ddef7027d1abf3763fe5fe19e9defa31c9a2290997dd0a",
+    "cpp-core/experiments/pose_internal.hpp": "c4628cfbbfc7030f4044b6b8bcaf809dda58fa4a48bde7b70a5341f16c915d26",
+    "cpp-core/experiments/metal_source.hpp.in": "03d1afc69e4365c3d8e662ed0106b94f10d684485463b4d256bb175ba13a8409",
+    "cpp-core/experiments/pose_metal.mm": "e353846507c51bed5ccf1ba0b3c6f305f729bb9551e839408e93b69aeb4329df",
+    "cpp-core/tests/pose_experiment_test.cpp": "4c74775664e98fe61961f3df95cba8df7978d5b9bb33fa7dfc363852ba427488",
+    "cpp-core/tests/pose_auto_fallback_test.cpp": "a18199c09064788c3040da676f220b8403ecd4aea597bdae14b8617f4b05cd5c",
+    "cpp-core/tools/pose_experiment.py": "c616696c74cc7859dcd00594b08a03997f2f00581cbf3fe43dc7216599ee1c0d",
+    "cpp-core/tools/real_image_experiments.py": "d58672337a6cbc0671c3407714976d9707f7ec8d66726d17e3f2133da97f8f9f",
+    "cpp-core/tools/benchmark_pose_routing.py": "7fa9b02b894e9a66c5a75714123257e518bf5904ee05807e8c29e5a7d16ec896",
+    "cpp-core/tools/select_pose_routing_policy.py": "5448b2f87ec025aac11c781e0f7e57ad04b310e100a2ec77aba26ae125f74a6d",
+    "cpp-core/tools/report_pose_routing.py": "e399f3c94ff2af38acc32cad76d9f7b0fe5578e312a1893664c6704cb6be73bd"
+  },
+  "binary_sha256": {
+    "libfpm_pose_experiment.dylib": "a8fee695fab005e07005338082d37aa319492c84e730cca176d2fa710cb3cf60",
+    "libfpm_c.dylib": "e772ab0004591f63b4bbc711b5626355de81671386c5cc2c31600465a36eb3b4"
+  },
+  "tests": [
+    {
+      "command": "MTL_DEBUG_LAYER=1 ctest --test-dir build/fourier-gpu --output-on-failure",
+      "passed": 7,
+      "total": 7,
+      "log": "release-tests.txt"
+    },
+    {
+      "command": "ctest --test-dir build/fourier-gpu-sanitized --output-on-failure",
+      "passed": 5,
+      "total": 5,
+      "log": "sanitizer-tests.txt"
+    }
+  ],
+  "additional_tests": "Metal optimizer with API Validation, CPU-only compiled solver, Python syntax, and API structure sizes checked; targeted-validation.txt records agent checks. The controlled factory test is now committed and part of CTest.",
+  "log_note": "CTest logs copied with trailing whitespace stripped; content otherwise unchanged.",
+  "policy": {
+    "min_pose_samples": 131072,
+    "min_batch_samples": 0,
+    "min_iterations": 4,
+    "cpu_polish_iterations": 0
+  },
+  "calibration_jobs": 48,
+  "heldout_jobs": 36,
+  "edge_jobs": 24,
+  "boundary_repeat_jobs": 6,
+  "full_image_jobs": 15,
+  "precision": {
+    "calibration_per_method": "328/328 pose evaluations; shared seed prefixes across batch counts",
+    "heldout_per_method": "120/120 pose evaluations; shared seed prefixes across batch counts",
+    "edge_per_method": "96/96 labeled pose evaluations; 32 constant invalid cases",
+    "auto_local_exact_selected_forced": true
+  },
+  "full_image_checks": [
+    {
+      "case": "src7",
+      "selected_backend": 1,
+      "first_and_all_warm_matches_exact": true,
+      "cpu_route_without_gpu_buffers": false,
+      "accuracy": null
+    },
+    {
+      "case": "src5_45",
+      "selected_backend": 0,
+      "first_and_all_warm_matches_exact": true,
+      "cpu_route_without_gpu_buffers": true,
+      "accuracy": null
+    },
+    {
+      "case": "controlled_scale",
+      "selected_backend": 0,
+      "first_and_all_warm_matches_exact": true,
+      "cpu_route_without_gpu_buffers": true,
+      "accuracy": {
+        "pose_tp": 6,
+        "pose_fp": 0,
+        "pose_fn": 0
+      }
+    },
+    {
+      "case": "src3",
+      "selected_backend": 0,
+      "first_and_all_warm_matches_exact": true,
+      "cpu_route_without_gpu_buffers": true,
+      "accuracy": null
+    },
+    {
+      "case": "held_out_scale",
+      "selected_backend": 0,
+      "first_and_all_warm_matches_exact": true,
+      "cpu_route_without_gpu_buffers": true,
+      "accuracy": {
+        "pose_tp": 12,
+        "pose_fp": 0,
+        "pose_fn": 0
+      }
+    }
+  ],
+  "post_measurement_source_changes": {
+    "calibration": [
+      "cpp-core/experiments/CMakeLists.txt",
+      "cpp-core/experiments/pose_ncc.cpp",
+      "cpp-core/experiments/pose_ncc.h"
+    ],
+    "heldout": [
+      "cpp-core/experiments/CMakeLists.txt"
+    ],
+    "edge": [
+      "cpp-core/experiments/CMakeLists.txt"
+    ],
+    "boundary-repeat": [
+      "cpp-core/experiments/CMakeLists.txt"
+    ],
+    "full-image": [
+      "cpp-core/experiments/CMakeLists.txt"
+    ]
+  },
+  "provenance_note": "Calibration precedes default-threshold/header update. Heldout, edge, boundary repeat and full-image use the final library binary. Later CMake change only registers a portable factory-error test; no benchmark source or binary changed during measurement. Measurements were serial with no build/test workloads in parallel. Boundary repeat retains the initial report and changes warmup200ms to1000ms and repeats5 to9, without retuning policy.",
+  "artifacts_sha256": {
+    "edge.json": "023918cf3451d7693ab05981d57a3e1da5a70550be74b7e8bf4217fcab182b0b",
+    "calibration.json": "2f7b08112a67e9b5eeb57cc3f12f48bea028040e94733339c7c478ac6b8c79ea",
+    "heldout.png": "aa5c1c2557f20b6d03d83285121a5e100e97b746de6f0b466047814016d942c5",
+    "release-tests.txt": "da84eba90457c5a683f8937af2ac1d722a98a02e5631e315ae32351553e3b6c9",
+    "crossover.png": "f1f69d315a3bcc155a691e2aa0122bb0abbb5cb3cc5d2d8e7383cbd18e20982b",
+    "boundary-repeat.json": "78bff99f0ffe8343ae5d7b692b47fe72e40ce4ec5fc38de7ffaddf8b0236ea10",
+    "heldout.json": "48edc841948b367fdd42f0f087cc74c7b69e8b80b6c5e33b4f8dcd13241256b7",
+    "full-image.json": "c34c3606ba33846972d76e9ba023fd56be93a5a8f216316d1f174ba64c2f5c12",
+    "sanitizer-tests.txt": "2dc523f815a1d2190d46defa346f2367f3a7e6e8c81bda6f64adc8f81de28925",
+    "policy-selection.json": "345ab68690521460ac180f432cc5ee6bf021afdd7a6e633216ee59e2c257b601",
+    "full-image.png": "c7e1e3d99760fffa0dc71cd3e6b0917ded233f5d0f5e768746abe40358825ad5",
+    "targeted-validation.txt": "0bcf0ab3070c8cefcdde3938ee25df5a9cbe6533b8c764dc737a1449472c4c5b"
+  }
+}

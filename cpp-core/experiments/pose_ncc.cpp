@@ -284,9 +284,10 @@ struct Context {
     Data data;
     std::vector<PackedPose> packed;
     std::unique_ptr<Backend> backend; // destroyed before data
+    std::unique_ptr<Backend> lazyMetal;
     std::unique_ptr<Cpu> refiner;
     AcceleratedWorkspace accelerated;
-    int threads = 1;
+    int threads = 1, creationBackend = 0;
 };
 static void errorMessage(char* error, int cap, const char* message) {
     if (error && cap > 0) std::snprintf(error, size_t(cap), "%s", message);
@@ -313,14 +314,18 @@ struct DeviceTiming {
 // Returns false only if the backend has no derivative implementation. All
 // expensive device operations are batches; the CPU only solves small systems
 // between dispatches, then verifies and optionally polishes the final poses.
-static bool refineAccelerated(Context& ctx, const float* seeds, int count,
+static bool refineAccelerated(Context& ctx, Backend& backend, const float* seeds, int count,
     const FpmPoseRefineConfig& config, int polishIterations, float* output,
     float* scores, FpmPoseRefineStats* stats, double& deviceMilliseconds)
 {
-    if (!ctx.refiner) ctx.refiner = std::make_unique<Cpu>(ctx.data, ctx.threads);
+    auto* cpu = dynamic_cast<Cpu*>(ctx.backend.get());
+    if (!cpu) {
+        if (!ctx.refiner) ctx.refiner = std::make_unique<Cpu>(ctx.data, ctx.threads);
+        cpu = ctx.refiner.get();
+    }
     auto& w = ctx.accelerated;
     w.states.resize(size_t(count));
-    ctx.refiner->parallel(size_t(count), [&](size_t i) {
+    cpu->parallel(size_t(count), [&](size_t i) {
         auto& s = w.states[i]; s = {};
         for (int k = 0; k < 4; ++k) s.pose[k] = seeds[4*i+k];
         s.initialScore = scoreOne(ctx.data, pack(s.pose));
@@ -344,7 +349,7 @@ static bool refineAccelerated(Context& ctx, const float* seeds, int count,
         }
         if (w.active.empty()) break;
         FpmPoseMetrics derivativeMetrics{}; derivativeMetrics.device_ms = -1;
-        if (!ctx.backend->linearize(w.packed, config, w.linearizations, derivativeMetrics)) {
+        if (!backend.linearize(w.packed, config, w.linearizations, derivativeMetrics)) {
             if (iteration != 0) throw std::runtime_error("derivative backend became unavailable during refinement");
             return false;
         }
@@ -353,7 +358,7 @@ static bool refineAccelerated(Context& ctx, const float* seeds, int count,
         if (iteration == 0) {
             w.values.resize(w.active.size());
             FpmPoseMetrics scoreMetrics{}; scoreMetrics.device_ms = -1;
-            ctx.backend->score(w.packed, w.values.data(), scoreMetrics);
+            backend.score(w.packed, w.values.data(), scoreMetrics);
             timing.add(scoreMetrics);
             for (size_t j = 0; j < w.active.size(); ++j) {
                 auto& s = w.states[w.active[j]];
@@ -394,7 +399,7 @@ static bool refineAccelerated(Context& ctx, const float* seeds, int count,
             if (!w.owners.empty()) {
                 w.values.resize(w.owners.size());
                 FpmPoseMetrics scoreMetrics{}; scoreMetrics.device_ms = -1;
-                ctx.backend->score(w.packed, w.values.data(), scoreMetrics);
+                backend.score(w.packed, w.values.data(), scoreMetrics);
                 timing.add(scoreMetrics);
                 for (size_t j = 0; j < w.owners.size(); ++j) {
                     auto& s = w.states[w.active[w.owners[j]]];
@@ -416,7 +421,7 @@ static bool refineAccelerated(Context& ctx, const float* seeds, int count,
     }
     FpmPoseRefineConfig polishConfig = config;
     polishConfig.max_iterations = polishIterations;
-    ctx.refiner->parallel(size_t(count), [&](size_t i) {
+    cpu->parallel(size_t(count), [&](size_t i) {
         auto& s = w.states[i];
         float verified = scoreOne(ctx.data, pack(s.pose)); ++s.stats.evaluations;
         if (!std::isfinite(verified) || verified < s.initialScore) {
@@ -447,10 +452,11 @@ void* fpm_pose_create(int backend, int threads, const float* source, int sw, int
 {
     using namespace fpm_exp;
     try {
-        if (!source || !templ || threads < 1 || threads > 64 || (backend != 0 && backend != 1))
+        if (!source || !templ || threads < 1 || threads > 64 || (backend != 0 && backend != 1 && backend != 2))
             throw std::invalid_argument("invalid pointer/backend/thread count");
         auto ctx = std::make_unique<Context>();
         ctx->threads = threads;
+        ctx->creationBackend = backend;
         auto& d = ctx->data;
         d.sw = sw; d.sh = sh; d.tw = tw; d.th = th; d.channels = channels;
         d.source.assign(source, source+imageSize(sw, sh, channels));
@@ -474,7 +480,7 @@ void* fpm_pose_create(int backend, int threads, const float* source, int sw, int
             }
             d.templateEnergy += squares-d.templateSum[c]*d.templateSum[c]/(double(tw)*th);
         }
-        if (backend == 0) ctx->backend = std::make_unique<Cpu>(d, threads);
+        if (backend != 1) ctx->backend = std::make_unique<Cpu>(d, threads);
         else {
 #ifdef FPM_EXPERIMENT_METAL
             ctx->backend = makeMetal(d);
@@ -490,6 +496,10 @@ const char* fpm_pose_device(void* handle)
 {
     return handle ? static_cast<fpm_exp::Context*>(handle)->backend->name() : "invalid handle";
 }
+int fpm_pose_backend(void* handle)
+{
+    return handle ? static_cast<fpm_exp::Context*>(handle)->creationBackend : -1;
+}
 int fpm_pose_memory(void* handle, FpmPoseMetrics* metrics)
 {
     if (!handle || !metrics) return -1;
@@ -498,6 +508,12 @@ int fpm_pose_memory(void* handle, FpmPoseMetrics* metrics)
     metrics->host_buffer_bytes = (ctx.data.source.capacity()+ctx.data.templ.capacity())*sizeof(float)
         + ctx.packed.capacity()*sizeof(fpm_exp::PackedPose) + ctx.accelerated.bytes();
     ctx.backend->memory(*metrics);
+    if (ctx.lazyMetal) {
+        FpmPoseMetrics lazy{};
+        ctx.lazyMetal->memory(lazy);
+        metrics->gpu_buffer_bytes += lazy.gpu_buffer_bytes;
+        metrics->gpu_allocated_bytes = std::max(metrics->gpu_allocated_bytes, lazy.gpu_allocated_bytes);
+    }
     return 0;
 }
 int fpm_pose_score(void* handle, const float* poses, int count, float* scores,
@@ -520,6 +536,12 @@ int fpm_pose_score(void* handle, const float* poses, int count, float* scores,
             ctx.packed[i] = {p[0], p[1], float(scale*std::cos(theta)), float(scale*std::sin(theta))};
         }
         ctx.backend->score(ctx.packed, scores, *metrics);
+        if (ctx.lazyMetal) {
+            FpmPoseMetrics lazy{};
+            ctx.lazyMetal->memory(lazy);
+            metrics->gpu_buffer_bytes += lazy.gpu_buffer_bytes;
+            metrics->gpu_allocated_bytes = std::max(metrics->gpu_allocated_bytes, lazy.gpu_allocated_bytes);
+        }
         metrics->host_buffer_bytes = (ctx.data.source.capacity()+ctx.data.templ.capacity())*sizeof(float)
             + ctx.packed.capacity()*sizeof(PackedPose) + ctx.accelerated.bytes();
         metrics->wall_ms = std::chrono::duration<double, std::milli>(Clock::now()-begin).count();
@@ -605,7 +627,7 @@ int fpm_pose_refine_accelerated(void* handle, const float* seeds, int count,
             return fpm_pose_refine(handle, seeds, count, &options, refined, scores, stats, metrics, error, error_capacity);
         const auto begin = Clock::now();
         double deviceTime = -1;
-        if (!refineAccelerated(ctx, seeds, count, options, cpu_polish_iterations,
+        if (!refineAccelerated(ctx, *ctx.backend, seeds, count, options, cpu_polish_iterations,
             refined, scores, stats, deviceTime)) {
             const int result = fpm_pose_refine(handle, seeds, count, &options,
                 refined, scores, stats, metrics, error, error_capacity);
@@ -617,6 +639,110 @@ int fpm_pose_refine_accelerated(void* handle, const float* seeds, int count,
         metrics->wall_ms = std::chrono::duration<double, std::milli>(Clock::now()-begin).count();
         errorMessage(error, error_capacity, "");
         return 0;
+    } catch (const std::exception& e) { errorMessage(error, error_capacity, e.what()); return -1; }
+}
+void fpm_pose_auto_default_config(FpmPoseAutoConfig* config)
+{
+    if (config) *config = {131072, 0, 4, 0};
+}
+const char* fpm_pose_route_reason(int reason)
+{
+    switch (reason) {
+    case FPM_POSE_ROUTE_CPU_HANDLE: return "CPU handle";
+    case FPM_POSE_ROUTE_BELOW_POSE_WORK: return "below per-pose sample threshold";
+    case FPM_POSE_ROUTE_BELOW_BATCH_WORK: return "below batch sample threshold";
+    case FPM_POSE_ROUTE_BELOW_ITERATIONS: return "below iteration threshold";
+    case FPM_POSE_ROUTE_METAL_SELECTED: return "Metal workload thresholds met";
+    case FPM_POSE_ROUTE_METAL_UNAVAILABLE: return "Metal unavailable";
+    case FPM_POSE_ROUTE_CPU_NO_ACTIVE_PARAMETERS: return "no active parameters";
+    default: return "unknown routing reason";
+    }
+}
+int fpm_pose_refine_auto(void* handle, const float* seeds, int count,
+    const FpmPoseRefineConfig* config, const FpmPoseAutoConfig* auto_config,
+    float* refined, float* scores, FpmPoseRefineStats* stats, FpmPoseRoute* route,
+    FpmPoseMetrics* metrics, char* error, int error_capacity)
+{
+    using namespace fpm_exp;
+    const auto begin = Clock::now();
+    try {
+        if (!handle || !seeds || !refined || !scores || !route || !metrics || count < 1 || count > 65536)
+            throw std::invalid_argument("invalid auto refinement arguments (1 <= count <= 65536)");
+        *route = {}; route->selected_backend = -1; route->reason = -1;
+        FpmPoseRefineConfig options;
+        fpm_pose_refine_default_config(&options);
+        if (config) options = *config;
+        FpmPoseAutoConfig routing;
+        fpm_pose_auto_default_config(&routing);
+        if (auto_config) routing = *auto_config;
+        // Validate every input before considering lazy Metal initialization,
+        // including options that a selected CPU route will not otherwise use.
+        if (options.max_iterations < 1 || options.max_iterations > 200
+            || (options.optimize_scale != 0 && options.optimize_scale != 1)
+            || (options.optimize_angle != 0 && options.optimize_angle != 1)
+            || !std::isfinite(options.max_translation) || options.max_translation < 0 || options.max_translation > 1024
+            || !std::isfinite(options.max_angle_degrees) || options.max_angle_degrees < 0 || options.max_angle_degrees > 180
+            || !std::isfinite(options.max_log_scale) || options.max_log_scale < 0 || options.max_log_scale > 3)
+            throw std::invalid_argument("invalid refinement configuration");
+        if (routing.min_iterations < 1 || routing.min_iterations > 200
+            || routing.cpu_polish_iterations < 0 || routing.cpu_polish_iterations > 30)
+            throw std::invalid_argument("invalid auto routing configuration");
+        for (int i = 0; i < count; ++i) {
+            const float* p = seeds+size_t(i)*4;
+            for (int j = 0; j < 4; ++j) if (!std::isfinite(p[j])) throw std::invalid_argument("non-finite refinement seed");
+            if (std::abs(p[0]) > 1e6 || std::abs(p[1]) > 1e6 || std::abs(p[2]) > 36000 || std::abs(p[3]) > 3)
+                throw std::invalid_argument("refinement seed outside experiment limits");
+        }
+        auto& ctx = *static_cast<Context*>(handle);
+        route->pose_samples = uint64_t(ctx.data.tw)*uint64_t(ctx.data.th)*uint64_t(ctx.data.channels);
+        route->batch_samples = route->pose_samples*uint64_t(count);
+        route->selected_backend = 0;
+        const bool activeParameters = options.max_translation > 0
+            || (options.optimize_angle && options.max_angle_degrees > 0)
+            || (options.optimize_scale && options.max_log_scale > 0);
+        if (ctx.creationBackend == 0) route->reason = FPM_POSE_ROUTE_CPU_HANDLE;
+        else if (!activeParameters) route->reason = FPM_POSE_ROUTE_CPU_NO_ACTIVE_PARAMETERS;
+        else if (route->pose_samples < routing.min_pose_samples) route->reason = FPM_POSE_ROUTE_BELOW_POSE_WORK;
+        else if (route->batch_samples < routing.min_batch_samples) route->reason = FPM_POSE_ROUTE_BELOW_BATCH_WORK;
+        else if (options.max_iterations < routing.min_iterations) route->reason = FPM_POSE_ROUTE_BELOW_ITERATIONS;
+        else route->reason = FPM_POSE_ROUTE_METAL_SELECTED;
+
+        Backend* selected = nullptr;
+        if (route->reason == FPM_POSE_ROUTE_METAL_SELECTED) {
+            if (ctx.creationBackend == 1) selected = ctx.backend.get();
+            else {
+#ifdef FPM_EXPERIMENT_METAL
+                if (!ctx.lazyMetal) {
+                    const auto setupBegin = Clock::now();
+                    try { ctx.lazyMetal = makeMetal(ctx.data); }
+                    catch (const MetalUnavailable&) { route->reason = FPM_POSE_ROUTE_METAL_UNAVAILABLE; }
+                    // Only unavailable hardware is a fallback. Shader, memory,
+                    // queue or dispatch errors propagate to the outer handler.
+                    route->metal_setup_ms = std::chrono::duration<double, std::milli>(Clock::now()-setupBegin).count();
+                }
+                selected = ctx.lazyMetal.get();
+#else
+                route->reason = FPM_POSE_ROUTE_METAL_UNAVAILABLE;
+#endif
+            }
+        }
+        if (selected) {
+            double deviceTime = -1;
+            if (refineAccelerated(ctx, *selected, seeds, count, options,
+                routing.cpu_polish_iterations, refined, scores, stats, deviceTime)) {
+                route->selected_backend = 1;
+                fpm_pose_memory(handle, metrics);
+                metrics->device_ms = deviceTime;
+                metrics->wall_ms = std::chrono::duration<double, std::milli>(Clock::now()-begin).count();
+                errorMessage(error, error_capacity, "");
+                return 0;
+            }
+            route->reason = FPM_POSE_ROUTE_METAL_UNAVAILABLE;
+        }
+        const int result = fpm_pose_refine(handle, seeds, count, &options,
+            refined, scores, stats, metrics, error, error_capacity);
+        if (result == 0) metrics->wall_ms = std::chrono::duration<double, std::milli>(Clock::now()-begin).count();
+        return result;
     } catch (const std::exception& e) { errorMessage(error, error_capacity, e.what()); return -1; }
 }
 void fpm_pose_destroy(void* handle) { delete static_cast<fpm_exp::Context*>(handle); }

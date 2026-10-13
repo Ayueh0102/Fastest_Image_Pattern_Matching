@@ -2,6 +2,7 @@
 #include "pose_ncc.h"
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 #include <iostream>
 #include <limits>
 #include <stdexcept>
@@ -182,6 +183,169 @@ static void testNarrowRepresentableBounds(int backend)
         }
     }
 }
+
+static void testAutoRouting(int backend)
+{
+    const int w = 41, h = 39, channels = 3, count = 2;
+    std::vector<float> image(size_t(w)*h*channels);
+    for (size_t i = 0; i < image.size(); ++i)
+        image[i] = float(.4+.2*std::sin(.13*i)+.1*std::cos(.027*i));
+    char error[1024]{};
+    void* cpu = fpm_pose_create(0, 2, image.data(), w, h, image.data(), w, h,
+        channels, error, sizeof(error));
+    require(cpu, error);
+    struct Cleanup { void* h; ~Cleanup() { fpm_pose_destroy(h); } } cleanup{cpu};
+    void* automatic = fpm_pose_create(2, 2, image.data(), w, h, image.data(), w, h,
+        channels, error, sizeof(error));
+    require(automatic, error);
+    Cleanup automaticCleanup{automatic};
+    require(fpm_pose_backend(cpu) == 0 && fpm_pose_backend(automatic) == 2
+        && fpm_pose_backend(nullptr) == -1, "creation backend query");
+    FpmPoseMetrics metrics{};
+    require(fpm_pose_memory(automatic, &metrics) == 0 && metrics.gpu_buffer_bytes == 0
+        && metrics.gpu_allocated_bytes == 0, "auto handle initialized Metal eagerly");
+    const float seeds[count*4] = {.25f, -.5f, 2, .04f, -.4f, .6f, -1, .03f};
+    float reference[count*4]{}, output[count*4]{}, referenceScores[count]{}, scores[count]{};
+    FpmPoseRefineStats stats[count]{}, referenceStats[count]{};
+    FpmPoseRefineConfig config;
+    fpm_pose_refine_default_config(&config);
+    config.max_iterations = 4;
+    config.max_translation = 1;
+    config.max_angle_degrees = 3;
+    config.max_log_scale = .1;
+    FpmPoseAutoConfig routing;
+    fpm_pose_auto_default_config(&routing);
+    require(routing.min_pose_samples == 131072 && routing.min_batch_samples == 0
+        && routing.min_iterations == 4 && routing.cpu_polish_iterations == 0, "auto defaults");
+    FpmPoseRoute route{};
+    require(fpm_pose_refine(cpu, seeds, count, &config, reference, referenceScores,
+        referenceStats, &metrics, error, sizeof(error)) == 0, error);
+    const auto cpuEquivalent = [&] {
+        require(std::equal(output, output+count*4, reference)
+            && std::equal(scores, scores+count, referenceScores), "CPU auto route changed results");
+        for (int i = 0; i < count; ++i)
+            require(stats[i].iterations == referenceStats[i].iterations
+                && stats[i].evaluations == referenceStats[i].evaluations
+                && stats[i].status == referenceStats[i].status, "CPU auto route changed stats");
+    };
+    const auto runAuto = [&](void* handle, int expectedReason) {
+        require(fpm_pose_refine_auto(handle, seeds, count, &config, &routing, output, scores,
+            stats, &route, &metrics, error, sizeof(error)) == 0, error);
+        require(route.reason == expectedReason, "unexpected auto route reason");
+        require(route.pose_samples == uint64_t(w)*h*channels
+            && route.batch_samples == uint64_t(w)*h*channels*count, "auto sample accounting");
+        require(route.metal_setup_ms >= 0 && metrics.wall_ms >= route.metal_setup_ms, "auto setup/wall accounting");
+    };
+    runAuto(automatic, FPM_POSE_ROUTE_BELOW_POSE_WORK); cpuEquivalent();
+    require(route.selected_backend == 0 && route.metal_setup_ms == 0
+        && metrics.device_ms == -1 && metrics.gpu_buffer_bytes == 0, "small auto route allocated Metal");
+    routing.min_pose_samples = 0;
+    routing.min_batch_samples = uint64_t(w)*h*channels*count+1;
+    runAuto(automatic, FPM_POSE_ROUTE_BELOW_BATCH_WORK); cpuEquivalent();
+    routing.min_batch_samples = 0;
+    routing.min_iterations = config.max_iterations+1;
+    runAuto(automatic, FPM_POSE_ROUTE_BELOW_ITERATIONS); cpuEquivalent();
+    routing.min_iterations = 1;
+    runAuto(cpu, FPM_POSE_ROUTE_CPU_HANDLE); cpuEquivalent();
+    require(route.selected_backend == 0 && metrics.gpu_buffer_bytes == 0, "CPU handle auto initialized GPU");
+
+    const auto activeConfig = config;
+    config.max_translation = 0; config.optimize_angle = config.optimize_scale = 0;
+    runAuto(automatic, FPM_POSE_ROUTE_CPU_NO_ACTIVE_PARAMETERS);
+    require(std::equal(output, output+count*4, seeds) && route.selected_backend == 0
+        && metrics.gpu_buffer_bytes == 0, "frozen auto pose initialized Metal or moved");
+    config = activeConfig;
+    // Invalid inputs must be rejected before any eligible lazy Metal setup.
+    for (int minimum : {0, 201}) {
+        routing.min_iterations = minimum;
+        require(fpm_pose_refine_auto(automatic, seeds, count, &config, &routing, output, scores,
+            stats, &route, &metrics, error, sizeof(error)) != 0, "invalid auto minimum iterations accepted");
+    }
+    routing.min_iterations = 1;
+    for (int polish : {-1, 31}) {
+        routing.cpu_polish_iterations = polish;
+        require(fpm_pose_refine_auto(automatic, seeds, count, &config, &routing, output, scores,
+            stats, &route, &metrics, error, sizeof(error)) != 0, "invalid auto polish accepted");
+    }
+    routing.cpu_polish_iterations = 0;
+    config.max_iterations = 0;
+    require(fpm_pose_refine_auto(automatic, seeds, count, &config, &routing, output, scores,
+        stats, &route, &metrics, error, sizeof(error)) != 0, "invalid auto refinement config accepted");
+    config = activeConfig;
+    float invalidSeeds[count*4]; std::copy(seeds, seeds+count*4, invalidSeeds);
+    invalidSeeds[0] = std::numeric_limits<float>::quiet_NaN();
+    require(fpm_pose_refine_auto(automatic, invalidSeeds, count, &config, &routing, output, scores,
+        stats, &route, &metrics, error, sizeof(error)) != 0, "invalid auto seed accepted");
+    require(fpm_pose_refine_auto(automatic, seeds, 0, &config, &routing, output, scores,
+        stats, &route, &metrics, error, sizeof(error)) != 0, "empty auto batch accepted");
+    require(fpm_pose_refine_auto(automatic, seeds, count, &config, &routing, output, scores,
+        stats, nullptr, &metrics, error, sizeof(error)) != 0, "missing auto route output accepted");
+    require(fpm_pose_memory(automatic, &metrics) == 0 && metrics.gpu_buffer_bytes == 0,
+        "invalid auto input caused lazy allocation");
+    require(fpm_pose_refine_accelerated(automatic, seeds, count, &config, 2, output, scores,
+        stats, &metrics, error, sizeof(error)) == 0, error);
+    cpuEquivalent();
+    require(metrics.device_ms == -1 && metrics.gpu_buffer_bytes == 0, "accelerated auto handle initialized Metal");
+
+    if (backend == 1) {
+        void* metal = fpm_pose_create(1, 2, image.data(), w, h, image.data(), w, h,
+            channels, error, sizeof(error));
+        require(metal, error);
+        Cleanup metalCleanup{metal};
+        require(fpm_pose_backend(metal) == 1, "Metal creation backend query");
+        float metalPoses[count*4]{}, metalScores[count]{};
+        require(fpm_pose_refine_accelerated(metal, seeds, count, &config, 0, metalPoses, metalScores,
+            nullptr, &metrics, error, sizeof(error)) == 0, error);
+        runAuto(automatic, FPM_POSE_ROUTE_METAL_SELECTED);
+        require(route.selected_backend == 1 && route.metal_setup_ms > 0
+            && metrics.gpu_buffer_bytes > 0, "eligible auto route did not initialize Metal");
+        require(std::equal(output, output+count*4, metalPoses)
+            && std::equal(scores, scores+count, metalScores), "forced auto Metal differs from accelerated Metal");
+        for (int i = 0; i < count; ++i) {
+            require(std::abs(double(output[4*i])-seeds[4*i]) <= config.max_translation
+                && std::abs(double(output[4*i+1])-seeds[4*i+1]) <= config.max_translation
+                && std::abs(double(output[4*i+2])-seeds[4*i+2]) <= config.max_angle_degrees
+                && std::abs(double(output[4*i+3])-seeds[4*i+3]) <= config.max_log_scale, "auto Metal route escaped bounds");
+        }
+        runAuto(automatic, FPM_POSE_ROUTE_METAL_SELECTED);
+        require(route.metal_setup_ms == 0, "auto route failed to reuse Metal");
+        const uint64_t retainedBytes = metrics.gpu_buffer_bytes;
+        routing.min_pose_samples = std::numeric_limits<uint64_t>::max();
+        runAuto(automatic, FPM_POSE_ROUTE_BELOW_POSE_WORK); cpuEquivalent();
+        require(route.selected_backend == 0 && metrics.device_ms == -1
+            && metrics.gpu_buffer_bytes == retainedBytes, "CPU route dropped retained Metal accounting");
+        runAuto(metal, FPM_POSE_ROUTE_BELOW_POSE_WORK); cpuEquivalent();
+        require(route.selected_backend == 0 && metrics.device_ms == -1
+            && metrics.gpu_buffer_bytes > 0, "Metal handle CPU route changed GPU ownership");
+        require(fpm_pose_refine_accelerated(automatic, seeds, count, &config, 2, output, scores,
+            stats, &metrics, error, sizeof(error)) == 0, error);
+        cpuEquivalent();
+        require(metrics.device_ms == -1 && metrics.gpu_buffer_bytes == retainedBytes,
+            "accelerated() auto handle silently reused Metal");
+        require(fpm_pose_refine(automatic, seeds, count, &config, output, scores,
+            stats, &metrics, error, sizeof(error)) == 0, error);
+        cpuEquivalent();
+        require(metrics.device_ms == -1 && metrics.gpu_buffer_bytes == retainedBytes,
+            "refine() auto handle silently reused Metal");
+        require(std::strcmp(fpm_pose_device(automatic), fpm_pose_device(cpu)) == 0,
+            "auto device name stopped describing default score backend");
+        float cpuSeedScores[count]{};
+        require(fpm_pose_score(cpu, seeds, count, cpuSeedScores, &metrics, error, sizeof(error)) == 0, error);
+        require(fpm_pose_score(automatic, seeds, count, scores, &metrics, error, sizeof(error)) == 0, error);
+        require(std::equal(scores, scores+count, cpuSeedScores) && metrics.device_ms == -1
+            && metrics.gpu_buffer_bytes == retainedBytes, "auto score backend or memory accounting changed");
+    }
+#if !defined(__APPLE__) || defined(FPM_TEST_NO_METAL)
+    else {
+        runAuto(automatic, FPM_POSE_ROUTE_METAL_UNAVAILABLE); cpuEquivalent();
+        require(route.selected_backend == 0 && route.metal_setup_ms == 0
+            && metrics.device_ms == -1 && metrics.gpu_buffer_bytes == 0, "uncompiled Metal fallback");
+    }
+#endif
+    for (int reason = 0; reason <= 6; ++reason)
+        require(std::strlen(fpm_pose_route_reason(reason)) > 0, "missing route reason text");
+    require(std::strcmp(fpm_pose_route_reason(-1), "unknown routing reason") == 0, "unknown route reason");
+}
 int main(int argc, char**)
 {
     try {
@@ -210,6 +374,7 @@ int main(int argc, char**)
             require(fpm_pose_score(handle, poses.data(), 1, scores.data(), &metrics, error, sizeof(error)) == 0, "handle unusable after invalid pose");
         }
         testNarrowRepresentableBounds(backend);
+        testAutoRouting(backend);
         float x = 0;
         require(!fpm_pose_create(0, 0, &x, 1, 1, &x, 1, 1, 1, error, sizeof(error)), "zero threads accepted");
         require(!fpm_pose_create(0, 1, &x, 1, 1, &x, 1, 1, 2, error, sizeof(error)), "two channels accepted");

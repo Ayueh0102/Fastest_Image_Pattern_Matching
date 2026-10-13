@@ -24,7 +24,7 @@ import cv2
 import numpy as np
 
 from benchmark_pose_experiments import FourierProposal, peak_rss, summary
-from pose_experiment import Scorer, library_path
+from pose_experiment import AutoConfig, Scorer, library_path
 from research_ncc_fourier import bilinear
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -43,6 +43,7 @@ METHODS = {
     'continuous_direct_cpu': 'CPU coarse + continuous CPU LM (no extra proposal bank)',
     'accelerated_metal': 'CPU coarse + Metal proposals/statistics + CPU small-system solve',
     'accelerated_direct_metal': 'CPU coarse + Metal statistics + CPU small-system solve (no extra proposals)',
+    'adaptive_direct_auto': 'CPU coarse + automatic CPU/Metal continuous refinement (no extra proposals)',
 }
 
 
@@ -179,8 +180,9 @@ class Search:
         self.shape = self.template.shape
         self.source_float = None
         self.method = job['method']
+        self.automatic = self.method == 'adaptive_direct_auto'
         self.accelerated = self.method.startswith('accelerated')
-        self.continuous = self.method.startswith('continuous') or self.accelerated
+        self.continuous = self.method.startswith('continuous') or self.accelerated or self.automatic
         self.hybrid = self.method.startswith('hybrid') or self.method == 'fourier_metal' or self.continuous
         self.scales = [1.] if self.method == 'cpu_fixed' else case['scales']
         self.allow_scale = len(self.scales) > 1 and self.hybrid
@@ -205,7 +207,7 @@ class Search:
         if self.hybrid:
             self.source_float = self.source.astype(np.float32)/255
             self.scorer = Scorer(job['build'], self.source_float, self.template.astype(np.float32)/255,
-                                 'cpu' if self.method.endswith('_cpu') else 'metal', 8)
+                                 'auto' if self.automatic else 'cpu' if self.method.endswith('_cpu') else 'metal', 8)
         self.fourier_cache = {}
         if self.method == 'fourier_metal' and self.rotation:
             for scale in self.scales:
@@ -282,11 +284,12 @@ class Search:
             fft_ms = (time.perf_counter()-start)*1000
         start = time.perf_counter()
         solver_stats = []
+        route = None
         if self.continuous:
             # A broad, inexpensive orientation/scale proposal bank increases
             # the optimizer's basin. Keep original seeds too; truth is absent.
             initial = poses
-            if self.method not in ('continuous_direct_cpu', 'accelerated_direct_metal'):
+            if self.method not in ('continuous_direct_cpu', 'accelerated_direct_metal', 'adaptive_direct_auto'):
                 offsets = np.array(list(itertools.product((0,), (0,),
                     (-6., -3., 0., 3., 6.) if self.rotation else (0.,),
                     (-math.log(1.1), 0., math.log(1.1)) if self.allow_scale else (0.,))), np.float32)
@@ -297,10 +300,15 @@ class Search:
                 initial = np.concatenate((poses, best[different]))
             options = dict(optimize_scale=self.allow_scale, optimize_angle=self.rotation)
             solver = self.scorer.refine
-            if self.accelerated:
+            if self.automatic:
+                solver = self.scorer.refine_auto
+                options.update(self.job.get('routing_policy', {}))
+                options['cpu_polish_iterations'] = self.job.get('cpu_polish_iterations', 0)
+            elif self.accelerated:
                 solver = self.scorer.refine_accelerated
                 options['cpu_polish_iterations'] = self.job.get('cpu_polish_iterations', 2)
             poses, final_scores, solver_stats, metrics = solver(initial, **options)
+            route = metrics.get('route')
             self.ncc_ms += metrics['wall_ms']
             self.gpu_ms += max(0, metrics['device_ms'])
             self.evaluations += sum(s['evaluations'] for s in solver_stats)
@@ -313,7 +321,7 @@ class Search:
             output.append(dict(pos_x=center[0], pos_y=center[1], angle=angle, scale=scale,
                                score=float(score), corners=corners(center, angle, scale, self.shape)))
         return output, dict(fft_ms=fft_ms, fft_valid_proposals=fft_valid, fft_adopted_seeds=fft_adopted,
-                            solver_stats=solver_stats, refine_ms=(time.perf_counter()-start)*1000)
+                            solver_stats=solver_stats, route=route, refine_ms=(time.perf_counter()-start)*1000)
 
     def refine_grid(self, poses, origins):
         offsets = np.array(list(itertools.product((-1, 0, 1), (-1, 0, 1),
@@ -340,7 +348,7 @@ class Search:
         start = time.perf_counter()
         seeds = self.coarse()
         search_ms = (time.perf_counter()-start)*1000
-        stages = dict(fft_ms=0., fft_valid_proposals=0, fft_adopted_seeds=0, refine_ms=0.)
+        stages = dict(fft_ms=0., fft_valid_proposals=0, fft_adopted_seeds=0, refine_ms=0., route=None)
         matches = seeds
         if self.hybrid and seeds:
             matches, stages = self.refine(seeds)
@@ -382,13 +390,25 @@ def worker(job):
     cv2.setNumThreads(1)
     search = Search(job)
     try:
+        effective_policy = None
+        if search.automatic:
+            defaults = AutoConfig()
+            search.scorer.lib.fpm_pose_auto_default_config(C.byref(defaults))
+            effective_policy = {key: getattr(defaults, key) for key, _ in AutoConfig._fields_}
+            effective_policy.update(job.get('routing_policy', {}))
+            effective_policy['cpu_polish_iterations'] = job.get('cpu_polish_iterations', 0)
+        setup_memory = search.scorer.memory() if search.scorer else None
         first = search.run()
+        first_memory = search.scorer.memory() if search.scorer else None
         warmed = time.perf_counter()
         warmups = 1
         while time.perf_counter()-warmed < .2:
             search.run(); warmups += 1
         runs = [search.run() for _ in range(job['repeats'])]
         return dict(label=METHODS[job['method']], setup_ms=search.setup_ms, first_call=first,
+                    effective_routing_policy=effective_policy,
+                    cold_algorithm_plus_setup_ms=search.setup_ms+first['algorithm_ms'],
+                    setup_scorer_buffers=setup_memory, first_call_scorer_buffers=first_memory,
                     warmups=warmups, algorithm=summary([r['algorithm_ms'] for r in runs]), runs=runs,
                     memory=dict(process_peak_bytes=peak_rss(),
                                 pose_scorer_buffers=search.scorer.memory() if search.scorer else None),
@@ -427,7 +447,11 @@ def main():
     parser.add_argument('--cases', nargs='+')
     parser.add_argument('--held-out', action='store_true')
     parser.add_argument('--prune', action='store_true')
-    parser.add_argument('--cpu-polish-iterations', type=int, default=2)
+    parser.add_argument('--cpu-polish-iterations', type=int,
+                        help='Default: auto uses 0, forced accelerated Metal uses 2')
+    parser.add_argument('--min-pose-samples', type=int)
+    parser.add_argument('--min-batch-samples', type=int)
+    parser.add_argument('--min-iterations', type=int)
     args = parser.parse_args()
     if args.worker:
         job = json.loads(args.worker.read_text())
@@ -435,8 +459,13 @@ def main():
         return
     if args.repeats < 1:
         parser.error('repeats must be positive')
-    if not 0 <= args.cpu_polish_iterations <= 30:
+    if args.cpu_polish_iterations is not None and not 0 <= args.cpu_polish_iterations <= 30:
         parser.error('cpu polish iterations must be in [0, 30]')
+    routing_policy = {key: getattr(args, key) for key in ('min_pose_samples', 'min_batch_samples', 'min_iterations')
+                      if getattr(args, key) is not None}
+    if any(value < (1 if key == 'min_iterations' else 0) or value > (200 if key == 'min_iterations' else 2**64-1)
+           for key, value in routing_policy.items()):
+        parser.error('routing samples must be uint64; min-iterations must be 1..200')
     args.assets.mkdir(parents=True, exist_ok=True)
     controlled = args.assets/'controlled-real-texture.png'
     truth = controlled_scene(controlled)
@@ -467,7 +496,9 @@ def main():
             methods.append('cpu_grid')
         methods = args.methods or methods
         tasks.extend(dict(case=case, method=method, build=str(args.build.resolve()), repeats=args.repeats,
-                          prune=args.prune, cpu_polish_iterations=args.cpu_polish_iterations) for method in methods)
+                          prune=args.prune, routing_policy=routing_policy,
+                          cpu_polish_iterations=args.cpu_polish_iterations if args.cpu_polish_iterations is not None
+                          else (0 if method == 'adaptive_direct_auto' else 2)) for method in methods)
     np.random.default_rng(27).shuffle(tasks)
     files = [Path(__file__).resolve(), ROOT/'cpp-core/tools/pose_experiment.py',
              ROOT/'cpp-core/tools/benchmark_pose_experiments.py', ROOT/'cpp-core/tools/research_ncc_fourier.py',
@@ -488,6 +519,8 @@ def main():
                                 continuous_direct='Ablation: identical CPU coarse seeds straight to LM without the additional proposal bank',
                                 accelerated='Same seed policy; Metal analytic derivative statistics and NCC proposals, CPU 4x4 solve and exact final score verification/polish',
                                 cpu_polish_iterations=args.cpu_polish_iterations,
+                                automatic='Lazy Metal initialization, explicit workload thresholds; default polish=0 for auto and 2 for forced Metal. Every run records selected backend and reason.',
+                                routing_policy=routing_policy,
                                 coarse_pruning=args.prune,
                                 fourier='local ROI proposal after CPU coarse search; CPU NumPy FFT; retain seed when proposal invalid or scores worse',
                                 raster='OpenCV used for image decoding and independent controlled-scene generation, not matching',

@@ -101,7 +101,7 @@ public:
     explicit Metal(const Data& d) {
         @autoreleasepool {
             device_ = MTLCreateSystemDefaultDevice();
-            if (!device_) throw std::runtime_error("No Metal GPU available");
+            if (!device_) throw MetalUnavailable("No Metal GPU available");
             name_ = [device_.name UTF8String];
             queue_ = [device_ newCommandQueue];
             if (!queue_) throw std::runtime_error("Could not create Metal command queue");

@@ -3,10 +3,16 @@
 #include "pose_ncc.h"
 #include <array>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
 namespace fpm_exp {
+// Absence is a supported auto-routing fallback. Compilation, allocation and
+// dispatch errors remain ordinary failures rather than silently selecting CPU.
+struct MetalUnavailable : std::runtime_error {
+    using std::runtime_error::runtime_error;
+};
 struct PackedPose { float tx, ty, cs, sn; };
 struct Data {
     int sw, sh, tw, th, channels;
