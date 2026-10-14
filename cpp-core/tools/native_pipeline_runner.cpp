@@ -61,6 +61,15 @@ QJsonObject record(const Result& r,bool outputs) {
             {"async_maps",double(c.submitted_maps)},{"async_fallback_maps",double(c.fallback_maps)},{"async_max_pending",double(c.max_pending)},
             {"async_device_ms",c.device_ms},{"async_wait_ms",c.finish_wait_ms},{"async_copy_ms",c.copy_ms}});
     }o["work"]=work;
+    if(r.sparseEnabled) {
+        const auto& s=r.sparse;
+        o["sparse"]=QJsonObject{{"enabled",true},{"source_levels",1},{"feature_count",s.featureCount},
+            {"angle_count",s.angleCount},{"candidate_count",double(r.proposals.size())},
+            {"source_prepare_ms",s.sourcePrepareMs},{"search_ms",s.searchMs},{"select_ms",s.selectMs},
+            {"template_bytes",double(s.templateBytes)},{"source_bytes",double(s.sourceBytes)},
+            {"working_bytes",double(s.workingBytes)},{"windows",double(s.windows)},
+            {"feature_evaluations",double(s.featureEvaluations)},{"threshold_survivors",double(s.thresholdSurvivors)}};
+    }
     if(outputs) {o["matches"]=matches(r.matches,r.scales);o["proposals"]=matches(r.proposals,r.proposalScales);}
     return o;
 }
@@ -80,6 +89,17 @@ int main(int argc,char** argv) {
         settings.backend=j["backend"].toInt(1);settings.minReducedArea=j["min_area"].toInt(256);settings.scales.clear();
         for(auto s:j["scales"].toArray()) settings.scales.push_back(s.toDouble());
         if(settings.scales.empty()) settings.scales={1.};
+        const auto method=j["proposal_method"].toString("pyramid");
+        if(method!="pyramid" && method!="sparse_orientation") throw std::invalid_argument("Unknown proposal method");
+        settings.sparseOrientation=method=="sparse_orientation";
+        settings.sparse.featureCount=j["sparse_features"].toInt(128);
+        settings.sparse.positionStride=j["sparse_stride"].toInt(4);
+        settings.sparse.angleStepDegrees=j["sparse_angle_step"].toDouble(6.);
+        settings.sparse.spreadRadius=j["sparse_spread"].toInt(2);
+        settings.sparse.minGradient=j["sparse_min_gradient"].toDouble(8.);
+        settings.sparse.minScore=j["sparse_threshold"].toDouble(.75);
+        settings.sparse.candidateCap=j["sparse_candidate_limit"].toInt(256);
+        settings.cpuThreads=j["cpu_threads"].toInt(8);settings.sparse.cpuThreads=settings.cpuThreads;
         Options o;o.nccMode=j["ncc_mode"].toInt();o.overlap=j["overlap_enabled"].toBool();o.refine=j["refine"].toBool(true);
         o.match.maxTargets=j["limit"].toInt(70);o.match.minScore=j["score"].toDouble(.8);o.match.maxOverlap=j["overlap"].toDouble(.2);o.match.toleranceAngle=j["angle"].toDouble(180);
         o.match.stopLayer=j["stop_layer"].toInt(1);o.match.subpixel=j["subpixel"].toBool();o.match.invertSource=j["invert_source"].toBool();

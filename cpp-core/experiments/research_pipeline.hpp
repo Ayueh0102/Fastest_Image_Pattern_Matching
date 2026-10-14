@@ -3,6 +3,7 @@
 #include "fpm/matcher.hpp"
 #include "coarse_ncc.h"
 #include "pose_ncc.h"
+#include "sparse_orientation.hpp"
 #include <memory>
 
 namespace fpm::research {
@@ -13,6 +14,10 @@ struct Settings {
     int minReducedArea = 256;
     std::vector<double> scales{1.}; // proposal bank, not final refinement bounds
     int cpuThreads = 8;
+    // Experimental fixed-scale full-image proposals. No reduced image levels
+    // or dense NCC maps are constructed; final acceptance still uses full NCC.
+    bool sparseOrientation = false;
+    SparseOrientationSettings sparse;
 };
 struct Options {
     MatchConfig match;
@@ -28,6 +33,8 @@ struct Result {
     FpmFrameMetricsV1 frame{};
     FpmPoseMetrics pose{};
     FpmPoseRescueMetrics rescue{};
+    bool sparseEnabled = false;
+    SparseOrientationMetrics sparse{};
     std::vector<FpmCoarseMetrics> coarse;
     std::vector<FpmFineMetricsV1> fine;
     std::vector<FpmCoarseOverlapMetricsV1> overlapMetrics;

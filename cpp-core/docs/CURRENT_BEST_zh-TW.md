@@ -31,6 +31,8 @@ GUI 原生化已完成本輪驗證，但記憶體並非全面優於 Python：8K�
 
 **實拍裁模板、只旋轉且不變尺度：** 可先用`scales=[1]`保留金字塔，精修與救援會鎖尺度。第15輪比較同一執行期的無金字塔路徑：四個合成GT場景兩路都零FP／FN，但Metal無金字塔慢6.9～17.1倍，中圖RSS36.70→98.70 MiB；本輪不改預設。完整[實測與限制](FIXED_SCALE_SEARCH_zh-TW.md)、[旋轉模板／稀疏提案／FFT研究方向](FIXED_SCALE_SEARCH_DESIGN_zh-TW.md)已保存。
 
+**固定尺度的新增研究選項：** 第16輪已實作完整C++原圖稀疏方向提案，再接CPU／Metal完整NCC精修。32程序、96正式次；本機128物件241.65→22.48ms，peak RSS65.98→64.37MiB，最終128/128、零FP／FN。小圖全角Metal23.87→5.27ms，CPU41.27→1.74ms；但細線慢約31%，128提案捕獲鄰域只127/128，靠後段精修才找齊。因此不改通用預設、不自動接入GUI；完整[結果、來源與失敗gate](SPARSE_ORIENTATION_zh-TW.md)保留。下一個成本集中在來源方向圖準備與粗種子的精修，值得研究分塊／Metal建圖及CPU／GPU精修分界。
+
 原生 GUI 的使用、組合模式比較與有界持續運行結果見 [第14輪整合報告](GUI_INTEGRATION_AND_STABILITY_zh-TW.md)。
 
-人工 review 請從 [15 階段實驗總索引](EXPERIMENT_REVIEW_zh-TW.md) 開始：每一輪都保留原始資料、比較版本、失敗與採用決定。API 使用例在該索引開頭；完整建置與 GUI 說明見 [README](../README_zh-TW.md)。
+人工 review 請從 [16 階段實驗總索引](EXPERIMENT_REVIEW_zh-TW.md) 開始：每一輪都保留原始資料、比較版本、失敗與採用決定。API 使用例在該索引開頭；完整建置與 GUI 說明見 [README](../README_zh-TW.md)。

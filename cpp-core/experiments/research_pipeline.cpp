@@ -107,10 +107,19 @@ struct Session::Impl {
     std::vector<std::unique_ptr<fpm_coarse_handle,decltype(&fpm_coarse_destroy)>> patterns;
     std::unique_ptr<fpm_frame_handle,decltype(&fpm_frame_destroy)> frame{nullptr,fpm_frame_destroy};
     std::unique_ptr<void,decltype(&fpm_pose_destroy)> pose{nullptr,fpm_pose_destroy};
+    std::unique_ptr<SparseOrientationPattern> sparse;
     bool poseInvert=false;
     Impl(ImageView src,ImageView tmp,const Settings& s):source(src),templ(tmp),settings(s) {
         if(s.backend<0 || s.backend>1 || s.minReducedArea<1 || s.cpuThreads<1 || s.cpuThreads>256 || s.scales.empty() || s.scales.size()>64)
             throw std::invalid_argument("Invalid backend, reduced area, threads or scale bank");
+        if(s.sparseOrientation) {
+            if(s.scales.size()!=1 || s.scales.front()!=1.)
+                throw std::invalid_argument("Sparse orientation requires fixed scale {1}");
+            if(s.sparse.candidateCap>65536)
+                throw std::invalid_argument("Sparse orientation refinement budget exceeds 65536 proposals");
+            sparse=std::make_unique<SparseOrientationPattern>(templ.view(),s.sparse);
+            return;
+        }
         char error[1024]{};
         for(double scale:s.scales) {
             auto resized=scaledTemplate(templ.view(),scale);fpm_coarse_handle* p=nullptr;FpmCoarseMetrics metrics{};
@@ -141,29 +150,42 @@ Session::Session(ImageView source,ImageView templ,const Settings& settings) {
 Session::~Session()=default;
 Result Session::run(const Options& o) {
     auto& s=*impl_;validateOptions(o,s.settings.backend);Result r;char error[1024]{};const auto start=Clock::now();
-    if(s.settings.backend) {
-        FpmCoarseOptimizationConfigV1 opt{1,sizeof(opt),1,o.nccMode,0,0};
-        check(fpm_frame_set_coarse_optimization(s.frame.get(),&opt,sizeof(opt),error,sizeof(error)),error);
-        FpmCoarseOverlapConfigV1 optOverlap{1,sizeof(optOverlap),int(o.overlap),0,0,0};
-        check(fpm_frame_set_coarse_overlap(s.frame.get(),&optOverlap,sizeof(optOverlap),error,sizeof(error)),error);
-    }
-    std::vector<fpm_coarse_handle*> models;for(auto& p:s.patterns) models.push_back(p.get());
-    const auto prepare=Clock::now();
-    check(fpm_frame_prepare(s.frame.get(),view(s.source.view()),models.data(),models.size(),o.match.invertSource,&r.frame,error,sizeof(error)),error);
-    r.prepareMs=ms(prepare);
-    fpm_config c{};c.max_targets=o.match.maxTargets;c.min_score=o.refine?std::min(o.proposalScore,o.match.minScore):o.match.minScore;
-    c.max_overlap=o.match.maxOverlap;c.tolerance_angle=o.match.toleranceAngle;c.subpixel=o.match.subpixel;
-    c.invert_source=o.match.invertSource;c.scalar=o.match.backend==Backend::Scalar;c.stop_layer=o.match.stopLayer;
-    std::vector<fpm_angle_range> ranges;for(auto a:o.match.angleRanges) ranges.push_back({a.min,a.max});c.ranges=ranges.data();c.range_count=ranges.size();
-    std::vector<fpm_result> output(size_t(c.max_targets));
-    for(size_t i=0;i<models.size();++i) {
-        size_t count=0;FpmCoarseMetrics coarse{};FpmFineMetricsV1 fine{};FpmCoarseExecutionMetricsV1 execution{};FpmCoarseOverlapMetricsV1 overlapMetrics{};
-        check(fpm_frame_match(s.frame.get(),models[i],&c,output.data(),output.size(),&count,&coarse,nullptr,0,&execution,sizeof(execution),&fine,sizeof(fine),error,sizeof(error)),error);
-        check(fpm_frame_coarse_overlap_metrics(s.frame.get(),&overlapMetrics,sizeof(overlapMetrics),error,sizeof(error)),error);
-        r.coarse.push_back(coarse);r.fine.push_back(fine);r.overlapMetrics.push_back(overlapMetrics);
-        for(size_t j=0;j<count;++j) {
-            const auto& m=output[j];double scale=s.settings.scales[i];
-            r.proposals.push_back(makeMatch({m.center.x,m.center.y},m.angle,scale,s.templ.width(),s.templ.height(),m.score));r.proposalScales.push_back(scale);
+    std::vector<fpm_angle_range> ranges;for(auto a:o.match.angleRanges) ranges.push_back({a.min,a.max});
+    if(s.sparse) {
+        // Orientation similarity is not NCC and cannot be used as a final
+        // confidence. Keep all raw proposals visible for recall auditing.
+        if(!o.refine || o.match.stopLayer!=0 || o.nccMode || o.overlap)
+            throw std::invalid_argument("Sparse orientation requires full NCC refinement, stopLayer=0, nccMode=0 and overlap scheduling off");
+        auto result=s.sparse->search(s.source.view(),o.match);
+        r.sparseEnabled=true;r.sparse=result.metrics;
+        r.proposals=std::move(result.proposals);
+        r.proposalScales.assign(r.proposals.size(),1.);
+        r.prepareMs=r.sparse.sourcePrepareMs;
+    } else {
+        if(s.settings.backend) {
+            FpmCoarseOptimizationConfigV1 opt{1,sizeof(opt),1,o.nccMode,0,0};
+            check(fpm_frame_set_coarse_optimization(s.frame.get(),&opt,sizeof(opt),error,sizeof(error)),error);
+            FpmCoarseOverlapConfigV1 optOverlap{1,sizeof(optOverlap),int(o.overlap),0,0,0};
+            check(fpm_frame_set_coarse_overlap(s.frame.get(),&optOverlap,sizeof(optOverlap),error,sizeof(error)),error);
+        }
+        std::vector<fpm_coarse_handle*> models;for(auto& p:s.patterns) models.push_back(p.get());
+        const auto prepare=Clock::now();
+        check(fpm_frame_prepare(s.frame.get(),view(s.source.view()),models.data(),models.size(),o.match.invertSource,&r.frame,error,sizeof(error)),error);
+        r.prepareMs=ms(prepare);
+        fpm_config c{};c.max_targets=o.match.maxTargets;c.min_score=o.refine?std::min(o.proposalScore,o.match.minScore):o.match.minScore;
+        c.max_overlap=o.match.maxOverlap;c.tolerance_angle=o.match.toleranceAngle;c.subpixel=o.match.subpixel;
+        c.invert_source=o.match.invertSource;c.scalar=o.match.backend==Backend::Scalar;c.stop_layer=o.match.stopLayer;
+        c.ranges=ranges.data();c.range_count=ranges.size();
+        std::vector<fpm_result> output(size_t(c.max_targets));
+        for(size_t i=0;i<models.size();++i) {
+            size_t count=0;FpmCoarseMetrics coarse{};FpmFineMetricsV1 fine{};FpmCoarseExecutionMetricsV1 execution{};FpmCoarseOverlapMetricsV1 overlapMetrics{};
+            check(fpm_frame_match(s.frame.get(),models[i],&c,output.data(),output.size(),&count,&coarse,nullptr,0,&execution,sizeof(execution),&fine,sizeof(fine),error,sizeof(error)),error);
+            check(fpm_frame_coarse_overlap_metrics(s.frame.get(),&overlapMetrics,sizeof(overlapMetrics),error,sizeof(error)),error);
+            r.coarse.push_back(coarse);r.fine.push_back(fine);r.overlapMetrics.push_back(overlapMetrics);
+            for(size_t j=0;j<count;++j) {
+                const auto& m=output[j];double scale=s.settings.scales[i];
+                r.proposals.push_back(makeMatch({m.center.x,m.center.y},m.angle,scale,s.templ.width(),s.templ.height(),m.score));r.proposalScales.push_back(scale);
+            }
         }
     }
     r.proposalMs=ms(start);
@@ -203,7 +225,7 @@ Result Session::run(const Options& o) {
     }
     r.nmsMs=ms(nms);
     FpmCoarseExecutionMetricsV1 prepareMetrics{};
-    check(fpm_frame_get_metrics(s.frame.get(),&r.frame,sizeof(r.frame),&prepareMetrics,sizeof(prepareMetrics),error,sizeof(error)),error);
+    if(s.frame) check(fpm_frame_get_metrics(s.frame.get(),&r.frame,sizeof(r.frame),&prepareMetrics,sizeof(prepareMetrics),error,sizeof(error)),error);
     if(s.pose) {
         FpmPoseMetrics memory{};
         if(fpm_pose_memory(s.pose.get(),&memory)) throw std::runtime_error("Cannot query pose memory");

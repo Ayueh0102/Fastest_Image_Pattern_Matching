@@ -1,6 +1,6 @@
 # Template Matching 研究總索引與人工審查指南
 
-整理日期：2026-10-14。前12階段整理 repository 已保存的報告、protocol 與結果；第13階段為 NCC tiling 正式量測，第14階段接入原生尺度 GUI 並驗證組合模式與持續運行，第15階段比較固定尺度的金字塔與原解析度搜尋。各數字是各輪的證據快照，不是同一輪連續量測；不要將不同輪次的加速比相乘。快速設定摘要見 [目前建議方案](CURRENT_BEST_zh-TW.md)，整體完成範圍與待辦見 [專案狀態](PROJECT_STATUS_zh-TW.md)。
+整理日期：2026-10-14。前12階段整理 repository 已保存的報告、protocol 與結果；第13階段為 NCC tiling 正式量測，第14階段接入原生尺度 GUI 並驗證組合模式與持續運行，第15階段比較固定尺度的金字塔與原解析度搜尋，第16階段實作稀疏方向全圖提案並比較128物件。各數字是各輪的證據快照，不是同一輪連續量測；不要將不同輪次的加速比相乘。快速設定摘要見 [目前建議方案](CURRENT_BEST_zh-TW.md)，整體完成範圍與待辦見 [專案狀態](PROJECT_STATUS_zh-TW.md)。
 
 ## 目前推薦方案
 
@@ -224,6 +224,18 @@ Metal Shader Validation另發現導數kernel插裝後共享記憶體超過32KiB�
 **決定：固定尺度保留金字塔作實用基準；無金字塔保留研究。** 所有原解析度速度gate失敗，中圖兩個block與低對比一個block另超RSS門檻。小圖粗角度52→202、粗視窗182,416→11,186,978，減少金字塔準備成本不足以抵銷增加的全圖搜尋。後續優先原圖稀疏方向提案＋完整NCC精修，遮罩FFT／張量模板另作數學研究；尚未實作新提案器或GPU FFT。新契約測試2/2通過，來源／輸入hash及離線摘要重播通過；不宣稱已驗證新相機資料或8K全角無金字塔。
 
 來源：[完整報告與框選結果](FIXED_SCALE_SEARCH_zh-TW.md)・[數學與改善方向](FIXED_SCALE_SEARCH_DESIGN_zh-TW.md)・[事前protocol](fixed-scale/protocol.json)・[正式摘要](fixed-scale/results.json)・[原始封存](fixed-scale/raw-results.tar.gz)・[驗證](fixed-scale/validation.json)。
+
+### 16. 原圖稀疏方向提案＋完整 NCC 精修（2026-10-14）
+
+**目的／實作：** 固定尺度1、原圖全範圍旋轉搜尋；C++分散強梯度點、8方向鄰域回應、CPU按角度平行、稀疏分數提前排除、選峰／分區候選，接既有CPU或Metal常駐NCC精修。不建立金字塔、不旋轉來源整圖、不傳真值ROI；完整自有源碼保留，GUI未新增此研究選項。
+
+**資料／時間／記憶體／精度：** 7場景、32新程序、96正式次，金字塔舊binary保持第15輪SHA，新來源／binary／輸入事前凍結。兩路最終上限統一256；128場景保留至正式測試。Metal金字塔→稀疏：小圖23.87→5.27ms，六物件18.78→11.07ms，低對比12.49→10.49ms，128物件241.65→22.48ms、RSS65.98→64.37MiB。五正常GT場景138個不同合成姿態，兩路均零FP／FN；小圖CPU41.27→1.74ms。Src4均24個但無GT，尺度+4%負控制仍失敗。
+
+**保留的失敗：** 細線6.51→8.51ms，兩block慢31.74%／31.48%，效能gate失敗。128提案事前6px／6°鄰域僅127/128；一個角度誤差6.129°的候選靠後段精修才恢復，不能事後放寬提案gate。128候選已達256上限，簡單背景的成功不代表複雜背景不漏檢。
+
+**決定：保留有效研究選項，不改通用預設。** 新128流程來源準備9.45ms、稀疏掃描3.02ms、精修9.58ms；下一步先研究方向圖建置與CPU／GPU精修分界，仍需更多實拍／背景與候選壓力驗證。Release30/30；ASan／UBSan受影響4/4加最後量化修正後2/2（未啟用LeakSanitizer）；Python5/5。Metal API／Shader Validation確認啟用，128首呼叫／重複輸出通過。完整封存含試跑、源碼、原始worker與失敗，SHA及換目錄摘要重播通過。
+
+來源：[完整報告與實際框選](SPARSE_ORIENTATION_zh-TW.md)・[事前protocol](sparse-orientation/protocol.json)・[正式摘要](sparse-orientation/results.json)・[原始資料／源碼封存](sparse-orientation/raw-results.tar.gz)・[驗證](sparse-orientation/validation.json)・[封存SHA](sparse-orientation/artifact-sha256.json)。
 
 ## 人工審查時應保留的限制
 
