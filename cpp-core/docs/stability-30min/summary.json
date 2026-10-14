@@ -1,0 +1,114 @@
+{
+  "case": "many512_pose",
+  "duration_seconds": 1802.2628412909999,
+  "calls": 534,
+  "contexts_recreated": 5,
+  "all_outputs_exact": true,
+  "all_async_batches_drained": true,
+  "all_frame_generations_valid": true,
+  "all_logical_work_constant": true,
+  "all_retained_capacities_constant": true,
+  "current_rss_bytes": {
+    "min": 647266304,
+    "max": 881737728,
+    "first_fifth_median": 652754944.0,
+    "last_fifth_median": 665370624.0,
+    "median_delta": 12615680.0,
+    "allowed_delta": 65275494.400000006
+  },
+  "process_peak_rss_bytes": 881737728,
+  "retained_capacities_bytes": {
+    "frame_host_bytes": 44695552,
+    "frame_coarse_gpu_bytes": 95905160,
+    "frame_fine_gpu_bytes": 4160256,
+    "pose_host_bytes": 134366780,
+    "pose_gpu_bytes": 137388528
+  },
+  "logical_work_per_call": [
+    {
+      "maps": 46,
+      "windows": 40824782,
+      "fine_maps": 213920
+    },
+    {
+      "maps": 58,
+      "windows": 51290836,
+      "fine_maps": 240652
+    },
+    {
+      "maps": 36,
+      "windows": 7845260,
+      "fine_maps": 204804
+    }
+  ],
+  "timing_ms": {
+    "all_median": 3367.8020415,
+    "all_min": 3275.317084,
+    "all_max": 4835.125292,
+    "all_p95": 3437.4879023,
+    "first_fifth_median": 3353.706375,
+    "last_fifth_median": 3379.9065625,
+    "excluding_context_first_median": 3367.66525
+  },
+  "initial_setup_ms": 30.239375,
+  "initial_first_call_ms": 3561.0015,
+  "recreated_setup_ms": [
+    7.689166,
+    8.751709,
+    7.5575,
+    7.778958,
+    9.658208
+  ],
+  "five_minute_windows": [
+    {
+      "start_seconds": 0,
+      "end_seconds": 300,
+      "calls": 89,
+      "median_ms": 3331.860333,
+      "current_rss_median": 652754944
+    },
+    {
+      "start_seconds": 300,
+      "end_seconds": 600,
+      "calls": 88,
+      "median_ms": 3392.9316875000004,
+      "current_rss_median": 655851520.0
+    },
+    {
+      "start_seconds": 600,
+      "end_seconds": 900,
+      "calls": 89,
+      "median_ms": 3339.538292,
+      "current_rss_median": 655212544
+    },
+    {
+      "start_seconds": 900,
+      "end_seconds": 1200,
+      "calls": 90,
+      "median_ms": 3347.7748540000002,
+      "current_rss_median": 665583616.0
+    },
+    {
+      "start_seconds": 1200,
+      "end_seconds": 1500,
+      "calls": 88,
+      "median_ms": 3414.0003545,
+      "current_rss_median": 665616384.0
+    },
+    {
+      "start_seconds": 1500,
+      "end_seconds": 1800,
+      "calls": 89,
+      "median_ms": 3376.713583,
+      "current_rss_median": 665354240
+    }
+  ],
+  "passed": true,
+  "note": "Agreed30-minute fixed-image stability check.512 separated instances of one template. Timing is descriptive, not a new paired speed benchmark. Native Session checks full ordered outputs; stream stores flags to keep memory bounded.",
+  "input_record_sha256": {
+    "soak512.json": "ed01ee4b657abde6e7edb3f2c0642a8a769a48b78e91342242ce008f3afb9265",
+    "soak512.raw.json": "483e15f2fa0d218eac380afe2b9474d2224c271a5599fedfdc112962f5fdbfd3",
+    "soak512.job.json": "3d47b6764f1880b93960c2fa3d84d7da1e90d285055078c0a2bd0ee17e386a86",
+    "soak512.jsonl": "3a9cc5e3daf69ce70890194e74a76b65abeb1760d1fecd16d206ac1bd7d501cc"
+  }
+}

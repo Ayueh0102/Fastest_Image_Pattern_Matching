@@ -2,7 +2,7 @@
 
 這個版本把比對演算法整理成 **C++17、無第三方依賴的核心函式庫**。GUI、CLI、C ABI 共用同一核心；金字塔、旋轉插值、NCC、SIMD、BlockMax、矩形交集、次像素求解的原始碼都在此目錄。
 
-人工 review 建議先讀 [目前推薦方案](docs/CURRENT_BEST_zh-TW.md)，再看 [歷次實驗總索引與採用／不採用理由](docs/EXPERIMENT_REVIEW_zh-TW.md)。各輪原始報告與失敗紀錄均保留，不把不同輪次的加速比相乘。
+完成範圍與待辦見 [專案狀態](docs/PROJECT_STATUS_zh-TW.md)。人工 review 建議先讀 [目前推薦方案](docs/CURRENT_BEST_zh-TW.md)，再看 [歷次實驗總索引與採用／不採用理由](docs/EXPERIMENT_REVIEW_zh-TW.md)。各輪原始報告與失敗紀錄均保留，不把不同輪次的加速比相乘。
 
 - [歷史版本與移植稽核](docs/AUDIT_zh-TW.md)
 - [演算法契約與移植順序](docs/PORTING_zh-TW.md)
@@ -27,6 +27,7 @@
 - [NCC 記憶體分塊與 FlashAttention 原理分析](docs/NCC_TILING_AND_OVERLAP_RESEARCH_zh-TW.md)
 - [NCC 暫存器分塊與共用記憶體實作比較](docs/TILE_NCC_zh-TW.md)
 - [原生 C++ 尺度 GUI、組合模式與持續運行驗證](docs/GUI_INTEGRATION_AND_STABILITY_zh-TW.md)
+- [512 物件30分鐘穩定性與資源重建驗證](docs/STABILITY_30MIN_zh-TW.md)
 
 GUI 的完整原始碼位於 `../macos-cli/mainwindow.{h,cpp}` 與 `main.cpp`，使用 Qt6。CLI 可選用 OpenCV 解碼圖片。Qt、OpenCV、C++ 標準函式庫本身並未複製進專案；比對核心沒有呼叫它們的影像演算法，也沒有依賴未提供源碼的 FPM DLL／SO。
 

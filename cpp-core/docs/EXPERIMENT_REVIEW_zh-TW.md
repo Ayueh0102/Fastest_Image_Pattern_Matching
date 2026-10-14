@@ -1,6 +1,6 @@
 # Template Matching 研究總索引與人工審查指南
 
-整理日期：2026-10-14。前12階段整理 repository 已保存的報告、protocol 與結果；第13階段為 NCC tiling 正式量測，第14階段接入原生尺度 GUI 並驗證組合模式與持續運行。各數字是各輪的證據快照，不是同一輪連續量測；不要將不同輪次的加速比相乘。快速設定摘要見 [目前建議方案](CURRENT_BEST_zh-TW.md)。
+整理日期：2026-10-14。前12階段整理 repository 已保存的報告、protocol 與結果；第13階段為 NCC tiling 正式量測，第14階段接入原生尺度 GUI 並驗證組合模式與持續運行。各數字是各輪的證據快照，不是同一輪連續量測；不要將不同輪次的加速比相乘。快速設定摘要見 [目前建議方案](CURRENT_BEST_zh-TW.md)，整體完成範圍與待辦見 [專案狀態](PROJECT_STATUS_zh-TW.md)。
 
 ## 目前推薦方案
 
@@ -207,9 +207,11 @@ with SourceFrame(build, backend='metal', pyramid_mode=1,
 
 Metal Shader Validation另發現導數kernel插裝後共享記憶體超過32KiB；修正為64共享槽＋下半lanes暫存器，保持原128-lane數值合併順序，修正前後輸出通過。Release全套26/26後重跑受影響8/8；ASan/UBSan全套24/24後重跑4/4；CPU-only GUI3/3；Python工具19/19。失敗診斷與成功重跑皆封存。
 
-**有界持續測試：** 128場景600.40秒、523次／5次重建，RSS起末中位數337.12→338.27 MiB；6場景兩分鐘、1723次／17次重建，53.12→52.14 MiB。2246次輸出、generation、工作量、buffer容量及async drain皆通過。這不是24小時或持續新相機影格的驗收。
+**有界持續測試：** 128場景600.40秒、523次／5次重建，RSS起末中位數337.12→338.27 MiB；6場景兩分鐘、1723次／17次重建，53.12→52.14 MiB。2246次輸出、generation、工作量、buffer容量及async drain皆通過。這是固定圖測試，尚未覆蓋持續新相機影格。
 
-**決定：原生灰階 GUI 可使用；大場景可選mode2，重疊仍選配。** 新的C++ NMS在512場景由Python123.835降至0.604 ms，但不是GPU收益。下一個主要時間成本仍是proposal／fine搜尋；大圖來源副本與Qt解碼配置需另拆量。Fourier與完整RGB全圖GUI、CUDA／跨平台實測、24小時／相機串流仍未完成。
+**同版本30分鐘追加驗證：** 依本輪約定對512場景執行1802.26秒、534次／5次重建；RSS起末中位數622.52→634.55 MiB，增加12.03 MiB，低於62.25 MiB事前門檻。完整輸出、async drain、generation、工作量、buffer容量與來源／binary／輸入hash均通過。本輪沒有修改演算法或重新做效能比較，沒有再追加24小時門檻。見 [30分鐘報告](STABILITY_30MIN_zh-TW.md)、[事前規則](stability-30min/protocol.json)、[摘要](stability-30min/summary.json)與[完整封存](stability-30min/raw-results.tar.gz)。
+
+**決定：原生灰階 GUI 可使用；大場景可選mode2，重疊仍選配。** 新的C++ NMS在512場景由Python123.835降至0.604 ms，但不是GPU收益。下一個主要時間成本仍是proposal／fine搜尋；大圖來源副本與Qt解碼配置需另拆量。Fourier與完整RGB全圖GUI、CUDA／跨平台實測、新相機影格串流仍未完成。
 
 來源：[整合與完整報告](GUI_INTEGRATION_AND_STABILITY_zh-TW.md)・[事前protocol](gui-integration/protocol.json)・[六路正式結果](gui-integration/results.json)・[粗搜尋等待診斷](gui-integration/diagnostics.json)・[驗證紀錄](gui-integration/validation.json)・[完整封存](gui-integration/raw-results.tar.gz)・[封存SHA](gui-integration/artifact-sha256.json)。
 
@@ -220,6 +222,6 @@ Metal Shader Validation另發現導數kernel插裝後共享記憶體超過32KiB�
 3. **RSS與buffer不相加。** shared memory有重疊；16MiB通常只指局部輔助workspace，不包含source、template、score map、Python、driver或擴容瞬時副本。某些早期階段沒有標準化RSS比較，本頁不補推估。
 4. **效能 gate 與正確性 flag 分開。** `integrity_passed`、`detection_all_passed`均true不代表效能全過；overlap512就是反例。通過 `max(10%,2ms)`容忍也可能實際變慢。保留profile干擾、block波動與慢樣本。
 5. **版本必須查hash。** 早期JSON的`git_head`可能只是當時未提交修改的基底，需一起核對`source_sha256`、library SHA與build provenance；不能僅用HEAD聲稱重現同binary。封存中absolute paths是歷史來源，離線replay需明確指定解壓後worker root。
-6. **仍缺的覆蓋。** 多物件目前只有單模板、多個分離實例；遮擋、透視、真實相機尺度、跨類別模板庫、長時間串流、功耗與跨硬體交叉點未全面驗證；第14輪僅補10分鐘／2分鐘固定圖有界穩定性。RGB證據主要是已知候選局部評分／精修，沒有本頁可證明的完整RGB全圖GUI。
+6. **仍缺的覆蓋。** 多物件目前只有單模板、多個分離實例；遮擋、透視、真實相機尺度、跨類別模板庫、長時間串流、功耗與跨硬體交叉點未全面驗證；第14輪補10分鐘／2分鐘固定圖測試，同版本再完成512場景30分鐘驗證，仍不等同新影格串流覆蓋。RGB證據主要是已知候選局部評分／精修，沒有本頁可證明的完整RGB全圖GUI。
 
 閱讀時先看每階段報告的「比較方法／限制」，再查相鄰JSON與protocol。所有實驗源碼入口在 [tools](../tools)、[C++／Metal實驗庫](../experiments)、[核心](../src)與[測試](../tests)；GUI及原核心的建置與授權見 [README](../README_zh-TW.md)。
