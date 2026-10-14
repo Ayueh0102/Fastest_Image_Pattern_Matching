@@ -48,7 +48,7 @@
 - **跨平台：** 本輪以 Apple Silicon／Metal 實測；沒有 CUDA 實機結果，也沒有本輪 Windows／Linux GUI 實機驗收。
 - **新影格串流與多模板庫：** 相同圖片重複跑與不同新影格的資源更新是兩種測試，後者尚未被本輪固定圖持續測試覆蓋。
 
-研究原型未成為主路徑，不一定是缺少程式；也可能是目前的速度／精度實驗尚不支持採用。詳見 [16階段研究總索引](EXPERIMENT_REVIEW_zh-TW.md) 與 [目前建議方案](CURRENT_BEST_zh-TW.md)。
+研究原型未成為主路徑，不一定是缺少程式；也可能是目前的速度／精度實驗尚不支持採用。詳見 [17階段研究總索引](EXPERIMENT_REVIEW_zh-TW.md) 與 [目前建議方案](CURRENT_BEST_zh-TW.md)。
 
 新增需求「裁切模板、整張圖搜尋、固定尺度但允許旋轉」已完成首輪[金字塔／原解析度比較](FIXED_SCALE_SEARCH_zh-TW.md)：28個程序、84次正式量測；固定尺度GT與路徑契約通過，直接移除金字塔的效能門檻全部失敗，因此保留研究選項，不改GUI預設。其後第16輪已實作[原圖稀疏方向提案＋完整NCC精修](SPARSE_ORIENTATION_zh-TW.md)：128物件241.65→22.48ms，最終零FP／FN；細線慢約31%，128提案鄰域覆蓋127/128，因此保留C++研究選項、不改GUI預設。新提案在CPU、精修可選Metal，尚未全GPU化。遮罩FFT／旋轉基底仍屬[後續設計](FIXED_SCALE_SEARCH_DESIGN_zh-TW.md)。
 
@@ -59,3 +59,5 @@
 **已完成並通過：1802.26 秒、534 次比對、5 次重建。** 全部輸出與非同步完成檢查通過；起末各106次的 RSS 中位數622.52→634.55 MiB（增加12.03 MiB，門檻62.25 MiB）。受測程式與輸入 SHA 不變；本輪沒有演算法改動。完整數據與界線見 [30分鐘報告](STABILITY_30MIN_zh-TW.md)。
 
 [事前測試規則](stability-30min/protocol.json)會與原始資料一併保存。本輪結果不改寫上一輪的速度失敗或較高記憶體紀錄。
+
+第17輪已完成[稀疏回應等價壓縮](SPARSE_COMPACT_zh-TW.md)，完整C++來源與mode0／1保留。4096²峰值RSS約511→383MiB、時間158→145ms，有序結果與工作量一致；小圖不保證更快，尚未新增GPU compact kernel或GUI選項。後續[數學與GPU邊界建議](SPARSE_NEXT_STEPS_MATH_zh-TW.md)已整理。

@@ -1,0 +1,21 @@
+{
+  "workers": 54,
+  "expected_workers": 54,
+  "measured_calls": 162,
+  "all_workers_succeeded": true,
+  "exact_frozen_all": true,
+  "route_integrity_all": true,
+  "fixed_scale_gt_all": true,
+  "fixed_scale_proposal_coverage_all": false,
+  "source_binary_input_hashes_unchanged": true,
+  "validation_logs": {
+    "tests-targeted.log": "2a205f9bb969aa792911fbdf885b0caf414239c188d73fd9f69de1aef53ce1b7",
+    "tests-release.log": "c3ae5cce637f5a14de57521e0bdc76aefa60432570abf81a145af03e19378371",
+    "tests-asan.log": "33066c12fcfa3597c4728693b6f2aef48493f3b2c44e353ae0abb5474abb4787",
+    "tests-python.log": "f4055683419adadb8b37272e5bfeb165fe4f37e32948c276d637b3205c18bf9d",
+    "metal-validation-job.json": "dcfc3bf4438ba7f3d51192348aef342c97c8b7e87adcc3e5444237c11577587b",
+    "metal-validation-output.json": "e8c13430dfee7ef4c453b6a8d550f090c194d1c0417e3f2b2c1a3b878633f9ab",
+    "metal-validation-summary.json": "33c15d48770637e17fe23242906837411203bb6fd2a4746b8dc773e2311c12f8",
+    "metal-validation.log": "0d455400158c88eb838ab0293bf377b0de0eda7ff4a0e33a5092190bcda98cff"
+  }
+}

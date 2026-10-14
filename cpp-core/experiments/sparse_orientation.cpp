@@ -12,6 +12,7 @@
 #include <numeric>
 #include <stdexcept>
 #include <thread>
+#include <type_traits>
 #include <utility>
 
 namespace fpm::research {
@@ -34,7 +35,7 @@ void validateSettings(const SparseOrientationSettings& s) {
     if (s.featureCount < 1 || s.featureCount > 4096 || s.positionStride < 1 ||
         s.positionStride > 64 || s.spreadRadius < 0 || s.spreadRadius > 16 ||
         s.candidateCap < 1 || s.candidateCap > 1000000 || s.cpuThreads < 1 ||
-        s.cpuThreads > 64 || !std::isfinite(s.angleStepDegrees) ||
+        s.cpuThreads > 64 || s.responseMode < 0 || s.responseMode > 1 || !std::isfinite(s.angleStepDegrees) ||
         s.angleStepDegrees < .1 || s.angleStepDegrees > 180 ||
         !std::isfinite(s.minGradient) || s.minGradient <= 0 ||
         !std::isfinite(s.minScore) || s.minScore <= 0 || s.minScore > 1)
@@ -130,7 +131,20 @@ std::vector<Feature> learnFeatures(ImageView image,const SparseOrientationSettin
 // A bit mask records the nearest unsigned orientation at each strong-gradient
 // pixel. OR-spreading is exactly equivalent to taking the maximum response over
 // each square neighborhood for the quantized orientation response table.
-std::vector<std::uint8_t> responseMaps(ImageView source,const SparseOrientationSettings& s) {
+using ResponseLookup = std::array<std::array<std::uint8_t,256>,orientationBins>;
+const ResponseLookup& responseLookup() {
+    static const ResponseLookup tables=[] {
+        ResponseLookup result{};
+        for (int bin=0;bin<orientationBins;++bin)
+            for (int bits=1;bits<256;++bits) for (int sourceBin=0;sourceBin<orientationBins;++sourceBin)
+                if (bits&(1<<sourceBin)) result[bin][bits]=std::max(result[bin][bits],
+                    std::uint8_t(std::lround(255*std::abs(std::cos((bin-sourceBin)*pi/orientationBins)))));
+        return result;
+    }();
+    return tables;
+}
+std::vector<std::uint8_t> responseMaps(ImageView source,const SparseOrientationSettings& s,
+    std::uint64_t& prepareBytes) {
     const std::size_t count=std::size_t(source.width)*source.height;
     std::vector<std::uint8_t> mask(count),horizontal(count),spread(count);
     for (int y=1;y<source.height-1;++y) for (int x=1;x<source.width-1;++x) {
@@ -150,12 +164,13 @@ std::vector<std::uint8_t> responseMaps(ImageView source,const SparseOrientationS
             bits|=horizontal[std::size_t(y+dy)*source.width+x];
         spread[std::size_t(y)*source.width+x]=bits;
     }
+    prepareBytes=mask.capacity()+horizontal.capacity()+spread.capacity();
+    if (s.responseMode==1) return spread;
     std::vector<std::uint8_t> maps(count*orientationBins);
+    prepareBytes+=maps.capacity();
+    const auto& tables=responseLookup();
     for (int bin=0;bin<orientationBins;++bin) {
-        std::array<std::uint8_t,256> table{};
-        for (int bits=1;bits<256;++bits) for (int sourceBin=0;sourceBin<orientationBins;++sourceBin)
-            if (bits&(1<<sourceBin)) table[bits]=std::max(table[bits],
-                std::uint8_t(std::lround(255*std::abs(std::cos((bin-sourceBin)*pi/orientationBins)))));
+        const auto& table=tables[bin];
         auto* response=maps.data()+std::size_t(bin)*count;
         for (std::size_t i=0;i<count;++i) response[i]=table[spread[i]];
     }
@@ -228,13 +243,19 @@ SparseOrientationResult SparseOrientationPattern::search(ImageView source,const 
     const auto angles=makeAngles(config,settings.angleStepDegrees);
     SparseOrientationResult result;auto& metrics=result.metrics;
     metrics.templateBytes=templateBytes();metrics.featureCount=featureCount();metrics.angleCount=int(angles.size());
+    metrics.responseMode=settings.responseMode;
     if (model.features.empty()) return result;
     auto start=Clock::now();
-    const auto maps=responseMaps(source,settings);
+    const auto& lookup=responseLookup();
+    metrics.lookupBytes=sizeof(lookup);
+    std::uint64_t prepareBytes=0;
+    const auto maps=responseMaps(source,settings,prepareBytes);
     const std::size_t imageSize=std::size_t(source.width)*source.height;
     metrics.sourceBytes=maps.capacity();
-    // Response construction holds three additional one-byte orientation planes.
-    metrics.workingBytes=metrics.sourceBytes+3*imageSize;
+    // Compact mode retains the spread mask from the three construction planes;
+    // reference mode additionally materializes all eight response planes. The
+    // immutable lookup table is shared across calls and model instances.
+    metrics.workingBytes=prepareBytes+metrics.lookupBytes;
     metrics.sourcePrepareMs=milliseconds(start);
     start=Clock::now();
     std::vector<AngleResult> angleResults(angles.size());
@@ -244,7 +265,8 @@ SparseOrientationResult SparseOrientationPattern::search(ImageView source,const 
     const int tileSize=std::max(32,std::max(model.width,model.height));
     const int totalScore=255*int(model.features.size());
     const auto requiredScore=std::uint32_t(std::ceil(settings.minScore*totalScore));
-    auto scanAngle=[&](std::size_t index) {
+    auto scanAngle=[&](std::size_t index,auto compactTag) {
+        constexpr bool compact=decltype(compactTag)::value;
         auto& out=angleResults[index];
         const double angle=angles[index],radians=angle*pi/180,c=std::cos(radians),s=std::sin(radians);
         // Rectangle extents are geometric width/height, with inclusive touching
@@ -266,7 +288,9 @@ SparseOrientationResult SparseOrientationPattern::search(ImageView source,const 
         for (const auto& f : model.features) {
             const int x=int(std::lround(c*f.x+s*f.y)),y=int(std::lround(-s*f.x+c*f.y));
             const int bin=orientationBin(f.direction-radians);
-            features.push_back({std::ptrdiff_t(y)*source.width+x+std::ptrdiff_t(bin)*std::ptrdiff_t(imageSize),bin});
+            auto offset=std::ptrdiff_t(y)*source.width+x;
+            if constexpr (!compact) offset+=std::ptrdiff_t(bin)*std::ptrdiff_t(imageSize);
+            features.push_back({offset,bin});
         }
         out.windows=scores.size();
         out.workingBytes=scores.capacity()*sizeof(std::uint32_t)+features.capacity()*sizeof(RotatedFeature)+
@@ -276,7 +300,9 @@ SparseOrientationResult SparseOrientationPattern::search(ImageView source,const 
             std::uint32_t score=0;
             std::size_t j=0;
             for (;j<features.size();++j) {
-                score+=maps[std::size_t(origin+features[j].offset)];
+                const auto response=maps[std::size_t(origin+features[j].offset)];
+                if constexpr (compact) score+=lookup[features[j].bin][response];
+                else score+=response;
                 ++out.evaluations;
                 // Exact bound for this quantized sparse score only. It does not
                 // imply anything about the full-template NCC score.
@@ -301,9 +327,17 @@ SparseOrientationResult SparseOrientationPattern::search(ImageView source,const 
         out.candidates=diverseLimit(std::move(out.candidates),std::size_t(settings.candidateCap)*2,
             source.width,source.height,tileSize);
     };
+    auto scanAngles=[&](auto compactTag) {
+        for (;;) {
+            const auto index=nextAngle.fetch_add(1);
+            if(index>=angles.size()) break;
+            scanAngle(index,compactTag);
+        }
+    };
     auto worker=[&] {
         try {
-            for (;;) { const auto index=nextAngle.fetch_add(1);if(index>=angles.size()) break;scanAngle(index); }
+            if (settings.responseMode==1) scanAngles(std::true_type{});
+            else scanAngles(std::false_type{});
         } catch (...) { std::lock_guard<std::mutex> lock(failureMutex);if(!failure) failure=std::current_exception(); }
     };
     std::vector<std::thread> threads;
@@ -322,7 +356,7 @@ SparseOrientationResult SparseOrientationPattern::search(ImageView source,const 
     // Accounted allocation estimate, not an allocator peak or OS RSS bound.
     // Temporary selection indices and nested vector spare capacities are not
     // completely accounted here; benchmark process RSS must be measured too.
-    metrics.workingBytes=std::max(metrics.workingBytes,metrics.sourceBytes+maxWorkerBytes*workers+
+    metrics.workingBytes=std::max(metrics.workingBytes,metrics.lookupBytes+metrics.sourceBytes+maxWorkerBytes*workers+
         candidateBytes+candidates.capacity()*sizeof(Candidate));
     metrics.searchMs=milliseconds(start);start=Clock::now();
     std::sort(candidates.begin(),candidates.end(),better);
@@ -348,7 +382,7 @@ SparseOrientationResult SparseOrientationPattern::search(ImageView source,const 
     const auto selected=diverseLimit(std::move(distinct),settings.candidateCap,source.width,source.height,tileSize);
     result.proposals.reserve(selected.size());
     for (const auto& p : selected) result.proposals.push_back(makeMatch(p,model.width,model.height));
-    metrics.workingBytes=std::max(metrics.workingBytes,metrics.sourceBytes+candidateBytes+
+    metrics.workingBytes=std::max(metrics.workingBytes,metrics.lookupBytes+metrics.sourceBytes+candidateBytes+
         candidates.capacity()*sizeof(Candidate)*2+cells.capacity()*sizeof(std::vector<std::size_t>)+
         candidates.size()*sizeof(std::size_t)+result.proposals.capacity()*sizeof(Match));
     metrics.selectMs=milliseconds(start);

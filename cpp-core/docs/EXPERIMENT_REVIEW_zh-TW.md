@@ -1,6 +1,6 @@
 # Template Matching 研究總索引與人工審查指南
 
-整理日期：2026-10-14。前12階段整理 repository 已保存的報告、protocol 與結果；第13階段為 NCC tiling 正式量測，第14階段接入原生尺度 GUI 並驗證組合模式與持續運行，第15階段比較固定尺度的金字塔與原解析度搜尋，第16階段實作稀疏方向全圖提案並比較128物件。各數字是各輪的證據快照，不是同一輪連續量測；不要將不同輪次的加速比相乘。快速設定摘要見 [目前建議方案](CURRENT_BEST_zh-TW.md)，整體完成範圍與待辦見 [專案狀態](PROJECT_STATUS_zh-TW.md)。
+整理日期：2026-10-14。前12階段整理 repository 已保存的報告、protocol 與結果；第13階段為 NCC tiling 正式量測，第14階段接入原生尺度 GUI 並驗證組合模式與持續運行，第15階段比較固定尺度的金字塔與原解析度搜尋，第16階段實作稀疏方向全圖提案並比較128物件，第17階段驗證等價回應壓縮。各數字是各輪的證據快照，不是同一輪連續量測；不要將不同輪次的加速比相乘。快速設定摘要見 [目前建議方案](CURRENT_BEST_zh-TW.md)，整體完成範圍與待辦見 [專案狀態](PROJECT_STATUS_zh-TW.md)。
 
 ## 目前推薦方案
 
@@ -236,6 +236,16 @@ Metal Shader Validation另發現導數kernel插裝後共享記憶體超過32KiB�
 **決定：保留有效研究選項，不改通用預設。** 新128流程來源準備9.45ms、稀疏掃描3.02ms、精修9.58ms；下一步先研究方向圖建置與CPU／GPU精修分界，仍需更多實拍／背景與候選壓力驗證。Release30/30；ASan／UBSan受影響4/4加最後量化修正後2/2（未啟用LeakSanitizer）；Python5/5。Metal API／Shader Validation確認啟用，128首呼叫／重複輸出通過。完整封存含試跑、源碼、原始worker與失敗，SHA及換目錄摘要重播通過。
 
 來源：[完整報告與實際框選](SPARSE_ORIENTATION_zh-TW.md)・[事前protocol](sparse-orientation/protocol.json)・[正式摘要](sparse-orientation/results.json)・[原始資料／源碼封存](sparse-orientation/raw-results.tar.gz)・[驗證](sparse-orientation/validation.json)・[封存SHA](sparse-orientation/artifact-sha256.json)。
+
+### 17. 稀疏方向回應的等價壓縮（2026-10-14）
+
+**目的／實作：** 將八張方向回應圖改成一張8-bit鄰域方向集合＋共用2048-byte LUT。新增`responseMode=1`，保留0作參考；C++17編譯期分支保持特徵順序與剪枝界，沒有新增GPU kernel或改候選策略。源碼完整。
+
+**資料／時間／記憶體／精度：** 凍結70727a8、新建置八圖、新建置compact三路，8場景、54新程序、162正式次。所有有序JSON候選／最終數值、工作量相同；144正常合成姿態最終零FP／FN，128提案127/128與+4%尺度負控制失敗不變。4096²同建置八圖→compact157.52→144.95ms、RSS510.74→382.73MiB；128物件22.17→21.58ms、63.14→55.85MiB。4096²建圖94.14→67.49ms，但掃描45.08→58.89ms，額外依賴查表並非免費。
+
+**決定：省記憶體研究選項，不全面替換。** 全部速度／記憶體容忍gate通過，但小圖5.19→5.64ms、細線8.09→8.78ms反而較慢。來源表示8N→N，不能說速度快8倍；GUI／金字塔預設不變。Release31/31、ASan／UBSan受影響3/3、Python稽核5/5；新測試85組提案／工作量精確一致，Metal插裝128通過。完整source／binary／input與snapshot SHA、封存換目錄重播通過，初次測試fixture失敗日誌保留。
+
+來源：[實測報告](SPARSE_COMPACT_zh-TW.md)・[數學／agent建議](SPARSE_NEXT_STEPS_MATH_zh-TW.md)・[protocol](sparse-compact/protocol.json)・[結果](sparse-compact/results.json)・[完整源碼與原始封存](sparse-compact/raw-results.tar.gz)。
 
 ## 人工審查時應保留的限制
 

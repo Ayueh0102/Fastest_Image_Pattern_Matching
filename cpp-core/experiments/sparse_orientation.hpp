@@ -21,6 +21,7 @@ struct SparseOrientationSettings {
     double minScore = .75;
     int candidateCap = 256;
     int cpuThreads = 8;
+    int responseMode = 0; // 0: eight response planes; 1: exact mask + shared lookup.
 };
 
 struct SparseOrientationMetrics {
@@ -28,13 +29,15 @@ struct SparseOrientationMetrics {
     double searchMs = 0;
     double selectMs = 0;
     std::uint64_t templateBytes = 0;
-    std::uint64_t sourceBytes = 0; // Transient original-resolution response planes.
-    std::uint64_t workingBytes = 0; // Accounted allocation estimate, not peak RSS.
+    std::uint64_t sourceBytes = 0; // Retained original-resolution response buffer.
+    std::uint64_t lookupBytes = 0; // Shared read-only table, counted once per process.
+    std::uint64_t workingBytes = 0; // Includes shared lookup; estimate, not peak RSS.
     std::uint64_t windows = 0;
     std::uint64_t featureEvaluations = 0;
     std::uint64_t thresholdSurvivors = 0;
     int featureCount = 0;
     int angleCount = 0;
+    int responseMode = 0;
 };
 
 struct SparseOrientationResult {
