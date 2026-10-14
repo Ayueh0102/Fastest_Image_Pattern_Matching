@@ -227,8 +227,8 @@ int fpm_frame_set_coarse_optimization(fpm_frame_handle* frame,
     try {
         if (!frame || !config || bytes != sizeof(*config) || config->version != 1 ||
             config->struct_bytes != sizeof(*config) || config->reserved0 || config->reserved1 ||
-            config->peak_mode < 0 || config->peak_mode > 1 || config->ncc_mode < 0 || config->ncc_mode > 1)
-            throw std::invalid_argument("valid coarse optimization v1, exact size and modes 0..1 are required");
+            config->peak_mode < 0 || config->peak_mode > 1 || config->ncc_mode < 0 || config->ncc_mode > 3)
+            throw std::invalid_argument("valid coarse optimization v1, exact size, peak mode 0..1 and NCC mode 0..3 are required");
         if (frame->backend) frame->backend->setCoarseOptimization(config->peak_mode, config->ncc_mode);
         else if (config->peak_mode || config->ncc_mode)
             throw std::invalid_argument("coarse optimization frame requires Metal backend");

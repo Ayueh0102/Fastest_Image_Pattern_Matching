@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "frozen_before_formal": true,
+  "baseline": "d60ec04c0d78ce10df6e021da7f0969f37a12d95",
+  "change": "Only coarse NCC integer-statistics kernels: mode2 four horizontal outputs/thread with register-strip source reuse; mode3 8x8 output threadgroup, <=16x16 template tiles and <=23x23 source-union staging. Original mode0 preserved. Same CPU double normalization/order, peaks, thresholds, candidates, rescue and fine search.",
+  "methods": "previous_peak (frozen d60); current_peak (newmode0); tile_direct (mode2); tile_shared (mode3); separate current/direct/shared profile workers. All peak_mode1, pyramid_mode1, batch4, fine512, overlap off.",
+  "cases": "controlled6,heldout12,8k_t256_angle180_3scales,small_fullres,many128_pose,many512_pose",
+  "timing": "Fresh serial worker/case/method/block; forward/reverse2blocks,5measured after>=1s warmup. Setup/first separate; prepare included per call. Pilot is not formal evidence. No concurrent builds or other GPU experiments during formal measurements.",
+  "accuracy": "GT absent from workers; ordered proposals/matches/scores and coarse/fine work counts must equal frozen mode0; independent strict2px1degree2percent maximum-cardinality assignment after process exits. Preserve failures.",
+  "memory": "Process peak RSS, existing retained GPU/source/statistics/frame capacities, no adding overlapping unified-memory counters. Shader mode2 has 3 four-lane accumulator vectors/thread; mode3 declares785B threadgroup tiles, plus64 threads' accumulators. Static allocation checked against device limit; no claimed physical register/cache residency or measured DRAM traffic.",
+  "probe_cases": "(source;template):64x64;3x3,512x512;13x17,256x256;32x32,256x256;64x64,256x256;128x128,273x271;257x257,273x272;257x258,1537x1001;3x3,20x1024;3x5",
+  "probe_timing": "Independent C++single-map workers for modes0,2,3 in2forward/reverseblocks;10measuredafter>=1swarmup. CPU scalar reference afterRSSsampling; first map retained to check every warmup/measured map bitwise outside timing. Record setup,first,device,upload,wait,normalization,commands,RSS,capacities. This is not end-to-end speed or CPU-vs-GPU timing evidence.",
+  "gate": "All output/lifecycle/capacity correctness checks required. Each block total <=reference+max10percent or2ms. Gate tolerance is not speedup; report every method including slower cases. Default remains mode0 until full evidence is reviewed; no automatic platform-wide winner claim."
+}

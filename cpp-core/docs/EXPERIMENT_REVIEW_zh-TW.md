@@ -1,0 +1,193 @@
+# Template Matching 研究總索引與人工審查指南
+
+整理日期：2026-10-14。前12階段整理 repository 已保存的報告、protocol 與結果；第13階段加入本輪新完成的 NCC tiling 正式量測。各數字是各輪的證據快照，不是同一輪連續量測；不要將不同輪次的加速比相乘。快速設定摘要見 [目前建議方案](CURRENT_BEST_zh-TW.md)。
+
+## 目前推薦方案
+
+在本機 Metal 研究流程，以**共享來源金字塔＋批次細搜尋＋精確選峰樹**作為下一次比較的基準：
+
+| 設定／階段 | 建議值 | 適用界線 |
+|---|---|---|
+| 來源 frame | 同張新圖 `prepare` 一次，各尺度共用 | 新影像必須重算；每張 prepare 包含在總時間 |
+| 金字塔 | `pyramid_mode=1` | 精確整數直接版；mode2 可分離版另外付出較大暫存 |
+| 粗搜尋角度批次 | `batch_angles=4` | 上限與尾批仍按容量拆分 |
+| 金字塔細搜尋 | `fine_batch_size=512` | Metal guarded warp＋整數 NCC；CPU repair／double normalization／搜尋控制仍存在 |
+| 粗選峰 | `peak_mode=1` | CPU 精確 tournament tree，保留原峰值順序 |
+| 粗 NCC | 通用基準 `ncc_mode=0`；大場景可選mode2 | mode2本輪8K／128／512有收益，6／12無收益；mode1不推薦，mode3保留對照 |
+| CPU／GPU coarse overlap | 關閉，`enabled=False` | 完整實作已可用，但 512 物件效能混合且記憶體增加 |
+| 後段連續姿態 | resident refinement＋既有有預算 rescue | 使用 CPU 最終驗分；低分救援觸發上限配合實際接受門檻 |
+
+這是**已測研究組合的基準設定**，不是所有工作負載都最快的結論，也不是 Qt GUI 已自動啟用的設定。小型局部精修有 CPU 勝過 Metal 的實測；歷史 auto routing 的門檻針對當時混合精修校準，未證實可直接套用至最新整條流程。
+
+已有 `models`（各尺度 `CoarsePattern`）、`source_view` 與 `config` 時，前段設定如下；跨尺度合併、pose 座標轉換、精修與最後 NMS 由研究排程完成：
+
+```python
+from coarse_experiment import SourceFrame
+
+with SourceFrame(build, backend='metal', pyramid_mode=1,
+                 batch_angles=4, fine_batch_size=512) as frame:
+    frame.set_coarse_optimization(peak_mode=1, ncc_mode=0)
+    frame.set_coarse_overlap(enabled=False)
+    frame.prepare(source_view, models)
+    proposals_by_scale = [frame.match(model, config) for model in models]
+```
+
+後段既有接口是 `Scorer.refine_rescue(seeds, resident=True, **policy)`，其中 `policy = rescue_policy_for_threshold(minimum_score=實際最終門檻)`；它包含原 resident 精修與必要的多起點，不必先重複呼叫一次 resident。保留預設每次最多 4 個救援 seeds 與原工作預算，不能為了比較速度暗中減少候選。完整座標／尺度／生命週期範例見 [共享 frame 使用方式](SHARED_FRAME_AND_FINE_METAL_zh-TW.md)、[rescue API](NCC_RESCUE_AND_METAL_COARSE_zh-TW.md)、[研究排程](../tools/real_image_experiments.py)。
+
+## 先辨認比較的是哪一層
+
+| 名稱 | 目前含義 | 不包含的保證 |
+|---|---|---|
+| 原 MFC C++ | `MatchTool/` 上游歷史版本，Git 源碼稽核 | 本機未執行 Windows MFC binary |
+| 舊 macOS C++ | 保留的 OpenCV／DOTPROD 移植，比較工具的執行期歷史參考 | 不等同直接在 Windows 跑最早版 |
+| 新 portable CPU | `fpm_core` 的完整自有灰階、固定尺度 NCC／旋轉／金字塔／subpixel | 不是預設原生全圖尺度／RGB 搜尋 |
+| pose scorer／refiner | float32 幾何、灰階或 RGB、連續平移／角度／log-scale，C++／Metal 核心 | 只給 seeds 的測試不是全圖偵測召回率 |
+| 全圖研究 pipeline | 各尺度模板搜尋＋後段 pose 精修／rescue／NMS，Python 排程 | 尚未整體接入 GUI，不是全 C++ Fourier 或全 GPU 流程 |
+| 金字塔 fine search | 每層局部 ROI 的離散角度與位置搜尋 | 與最後四參數 resident LM 是不同階段 |
+
+目前跨階段的大部分效能證據來自 Apple M4 Pro、12 CPU／16 GPU cores、48 GiB、macOS 26.6.2、Release；早期稽核另記 AppleClang 21、Qt 6.10.2、OpenCV 4.13.0。CPU 實驗多使用 8 threads，但 portable core 的 NEON 搜尋不可因此稱作八核心搜尋。CUDA、Windows／Linux 實機性能並無本頁可引用的完成證據。
+
+## 逐階段目的、證據與決定
+
+### 1. 原版稽核、完整 CPU 核心與 GUI（2026-10-08）
+
+**目的／實作：** 核對最早有程式的 Git `f521243`、上游 MFC `d8edabb`、舊 macOS／Python 移植。補齊自有金字塔、旋轉插值、NCC、SIMD、選峰、矩形交集、次像素求解與 Qt GUI 連接；不冒稱逐位重現 OpenCV。Python 原有 top-k、提前停止與 NMS 定義差異保留稽核證據。
+
+**資料／時間／記憶體／精度：** 17 組 repository 圖片。初輪 Src7 舊 macOS／新 CPU 為 63.75／134.23 ms；Src10 100 個結果為 14.85／58.67 ms，此輪新核心較慢。另一次統一六目標設定的 mode 比較為舊 C++ 177.600 ms、新 NEON 344.348 ms、FastMode 134.198 ms、Subpixel 3188.826 ms，精度模式不同不能混比。此階段沒有可引用的標準化 peak RSS 表。合成旋轉在 minArea256 下改善後最大位置 0.0051 px、角度 0.0217°；Src7 低分三物件約 0.64–0.65，不能透過任意提高分數門檻保留。
+
+**決定：採用作可移植正確性基準；未證實比舊 OpenCV C++ 快。** FastMode 犧牲解析度，subpixel 追加精度有明顯時間代價。
+
+來源：[稽核](AUDIT_zh-TW.md)・[17 組結果](validation.json)・[模式對照](mode-benchmark.json)・[旋轉／subpixel](rotation-search-validation.json)・[旋轉來源或模板診斷](rotation-direction-validation.json)・[移植契約](PORTING_zh-TW.md)。
+
+### 2. Fourier／旋轉尺度／RGB 提案與批次評分（2026-10-08～12）
+
+**目的／實作：** 以 Fourier magnitude、log-polar、phase correlation 提案旋轉／尺度，再由 NCC 驗證；C++ 多執行緒與 Metal 實作固定姿態取樣＋RGB joint NCC。FFT 仍是 CPU NumPy，沒有 GPU FFT、CUDA 或全 C++ Fourier 管線；全圖版本仍先跑既有角度枚舉。
+
+**資料／時間／記憶體／精度：** 111 組早期實驗、解析紋理／裁切／stress、固定姿態與後續實圖。常駐評分 128² RGB／512 poses：CPU8 6.805 ms、Metal 1.182 ms；64² 灰階單 pose：CPU1 0.011 ms、Metal 0.095 ms。ROI 搜尋灰階平均 grid Metal 14.004 ms、Fourier Metal 36.725 ms；八個案例最大 RSS 69.6／145.6 MiB。裁切 Fourier 0/2、guarded fallback 2/2；stress guarded 仍有 2 FP／4 FN。實圖 Src7 加 Fourier 提案由 175.809 增至 341.470 ms；受控六物件幾何通過僅從 3/6 到 4/6。
+
+**決定：採用可獨立重用的批次 scorer；Fourier 提案保留研究，不作目前推薦主路徑。** RGB 三通道不保證 GPU 更快；裁切／背景會破壞整體配準假設。
+
+來源：[數學與原始文獻](RESEARCH_FOURIER_SCALE_RGB_zh-TW.md)・[方法](EXPERIMENTS_zh-TW.md)・[111 組結果](EXPERIMENT_RESULTS_zh-TW.md)・[原始 benchmark](pose-experiment-benchmark.json)・[數值驗證](pose-experiment-validation.json)・[原型驗證](fourier-ncc-research-validation.json)・[實圖比較](REAL_IMAGE_RESULTS_zh-TW.md)・[實圖原始資料](real-image-experiments.json)。
+
+### 3. CPU 連續姿態精修與保守 NCC 剪枝（2026-10-12）
+
+**目的／實作：** 自有解析 Jacobian、四參數 LM 求解修正粗種子；Cauchy–Schwarz／投影上界只排除不可能達門檻的粗 NCC。並將 Metal 評分 workspace 分批。
+
+**資料／時間／記憶體／精度：** 48 組局部 seeds 的嚴格門檻由舊網格 12/48 到 LM 48/48；全圖六／十二物件由 3/6、7/12 到 6/6、12/12，總時間約 221.65→217.28、541.05→537.35 ms。此時 `continuous_metal` 的 LM 仍在 CPU。4K RGB／256²／8192 poses 固定評分 CPU8 500.92 ms、Metal 74.56 ms，Metal workspace 16.00 MiB、RSS 382.66 MiB，CPU RSS 275.27 MiB。NCC 剪枝隨機128²模板的單張 map 約 2.92×；沒有同倍數全圖加速證據。
+
+**決定：採用連續精修作後續基礎；剪枝保留選配。** 精度提升包含擴大可達位置／角度範圍，不能當同搜尋範圍的求解器競速；額外角度／尺度候選庫的消融未顯示必要。
+
+來源：[報告](PERFORMANCE_ACCURACY_zh-TW.md)・[全圖](performance-accuracy/full-image.json)・[候選庫消融](performance-accuracy/ablation.json)・[壓力測試](performance-accuracy/stress.json)・[剪枝](performance-accuracy/ncc-pruning.json)・[驗證](performance-accuracy/validation.json)。
+
+### 4. GPU 導數、CPU 求解的混合精修（2026-10-12）
+
+**目的／實作：** Metal 累加取樣／Jacobian／穩定統計，CPU 解 4×4 阻尼系統及末端驗分；每輪仍往返，可另加 CPU polish。
+
+**資料／時間／記憶體／精度：** 大模板局部測試，768² RGB／32 seeds CPU 373.59 ms、無 polish GPU 144.51 ms；小模板跨案例中位數 CPU 約 1.12 ms、GPU 6.85 ms。完整 Src7 254.26→201.37 ms，但十二物件 513.60→547.55 ms。1024² RGB／32 完整支撐，GPU workspace4.50 MiB、Metal buffers64.50 MiB、RSS225.9 MiB，CPU RSS153.7 MiB，32/32 通過；先前被來源邊界裁切版本只有2/32，仍保留失敗。
+
+**決定：大型局部工作有效，作後續 resident 的對照；不全面強制 GPU，不以更換裁切 fixture 宣稱解決遮擋。**
+
+來源：[報告](GPU_REFINEMENT_zh-TW.md)・[局部資料](gpu-refinement/local-refinement.json)・[大型資料選取視圖](gpu-refinement/large-workloads.json)・[裁切失敗](gpu-refinement/large-workloads-clipped.json)・[無 polish 全圖](gpu-refinement/full-image-no-polish.json)・[驗證](gpu-refinement/validation.json)。
+
+### 5. CPU／Metal routing 與成本診斷（2026-10-13）
+
+**目的／實作：** 24 案例校準後固定面積×通道門檻、12 案例保留測試，使用 lazy Metal 初始化；另以隔離診斷 build 量 submit／wait／資料複製，未更改算法。
+
+**資料／時間／記憶體／精度：** routing 保留集各方法120/120通過；Src7 CPU244.90、強制Metal197.56、Auto198.06 ms。四個小模板全圖選CPU；Src3 RSS Auto92.47／強制Metal112.09 MiB。不是每次都選最快：384²灰階8 seeds 校準反例選Metal8.33 ms而CPU7.20 ms。診斷 Src7 精修 wall61.641 ms、commit/wait56.269 ms、GPU區間45.725 ms；小 pose複製與結果／矩陣讀回合計0.0223 ms，不能把等待全部稱為傳輸。
+
+**決定：routing 已實作但只是當時混合精修的本機暖機政策；診斷支持減少往返，未證明已達算力／頻寬極限。** 512²RGB診斷插入計時造成約20.9%擾動；沒有硬體 counter，不能由這份報告推論 cache miss 或純 transfer 占比。
+
+來源：[routing](METAL_ROUTING_zh-TW.md)・[policy](pose-routing/policy-selection.json)・[held-out](pose-routing/heldout.json)・[全圖](pose-routing/full-image.json)・[成本診斷](METAL_COST_ANALYSIS_zh-TW.md)・[事件與 trace 索引](metal-cost-profile/report.json)・[診斷驗證](metal-cost-profile/validation.json)。
+
+### 6. GPU resident 求解與停止（2026-10-13）
+
+**目的／實作：** LM 矩陣組裝、求解、阻尼、接受與停止留在GPU；每批一次提交／等待；可保留CPU末端驗分，沒有CPU polish。
+
+**資料／時間／記憶體／精度：** 凍結 `4144ffc`，46案例×4方法；五組大型局部純GPU比原混合約減時23–29%，含CPU驗分仍減時5–14%。Src7整圖原混合200.631→resident含驗分178.854 ms，RSS281.67→282.02 MiB，額外retained buffer2560 B。局部真值所有方法均325/326：`heldout_16`共同停在約0.304假峰，而真值約0.999969；因此本輪絕對精度驗收 `acceptance_passed=false`。
+
+**決定：常駐控制實作有效、保留作後續基礎；該輪不能稱全面驗收成功。** GPU-only與CPU驗分有不同保證，且小模板仍可能CPU更快。
+
+來源：[報告](METAL_RESIDENT_REFINEMENT_zh-TW.md)・[完整紀錄](resident-refinement/report.json.gz)・[數值表](resident-refinement/table.json)・[驗收](resident-refinement/validation.json)・[共同錯峰診斷](resident-refinement/basin-diagnosis.json)・[補充稽核](resident-refinement/audit-summary.json)。
+
+### 7. 有預算多起點 rescue 與首版 Metal coarse NCC（2026-10-13）
+
+**目的／實作：** 對低分候選以固定16個Halton起點短跑、最多4個seeds、有限工作額度重新找吸引域；另將頂層NCC整數統計搬到Metal，CPU double正規化保持。
+
+**資料／時間／記憶體／精度：** 凍結 `958ab79`，90案例×4方法；納入局部驗收的6182 seeds由6181到6182。已知錯峰4 seeds整批CPU2.229→3.777 ms、Metal3.635→7.246 ms，3/4→4/4；GPU額外約18.9 KiB。首輪11個比較超速度門檻；修正呼叫端救援觸發上限為 `min(.8,實際接受門檻)` 後，另輪全圖Src7／6／12通過原門檻，未覆寫首輪失敗。8K RGB已知32候選局部精修Metal16.38 ms，但setup192.68 ms、RSS1188.95 MiB；這不是8K全圖搜尋。首版8192²灰階0°全圖CPU101.648／Metal104.128 ms，Metal約多12.13 MiB RSS，找齊6個。
+
+**決定：採用有預算 rescue＋匹配實際分數門檻；首版粗NCC單獨搬移不足以加速大圖。** 高分週期假峰約0.999992但位置錯8 px仍不觸發，未解決所有共同失敗。
+
+來源：[報告](NCC_RESCUE_AND_METAL_COARSE_zh-TW.md)・[原protocol](ncc-rescue/protocol.json)・[首輪摘要與失敗](ncc-rescue/summary.json)・[跟進protocol](ncc-rescue/protocol-v2.json)・[跟進結果](ncc-rescue/dispatch-summary.json)・[粗搜尋](ncc-rescue/coarse-summary.json)・[saved-data稽核](ncc-rescue/saved-audit.json)。
+
+### 8. 分段量測、Metal 精確金字塔、角度 batch4（2026-10-13）
+
+**目的／實作：** 先辨識大圖CPU金字塔成本，再以整數直接濾波保持像素精確；粗角度最多4張一起提交。來源跨模型當時尚未共用。
+
+**資料／時間／記憶體／精度：** 凍結 `91842dd`、六場景、正反兩block各5次；8192²／256²／0°舊Metal105.28→新12.32 ms，RSS400.81→317.03 MiB；十二物件509.45→490.78 ms，RSS116.27→125.89 MiB。全部完整輸出一致；五有GT場景零FP/FN。mode2可分離版tuning比直接版更快，但金字塔buffer85.25→149.25 MiB，因此正式採mode1。
+
+**決定：採用精確直接金字塔＋batch4作研究組合；中型場景仍由fine主導。** 8K零度只有一張粗map，不能將它的收益歸因角度批次；其六個植入物件為正向scale1，不是任意旋轉真值。
+
+來源：[報告](PIPELINE_STAGES_AND_METAL_PYRAMID_zh-TW.md)・[protocol](pipeline-stages/protocol.json)・[選擇前探針](pipeline-stages/decision-probe.json)・[正式摘要](pipeline-stages/formal-summary.json)・[金字塔tuning](pipeline-stages/pyramid-tuning-summary.json)・[驗證](pipeline-stages/validation.json)・[完整封存](pipeline-stages/raw-results.tar.gz)。
+
+### 9. 同圖跨尺度共享金字塔、Metal fine512（2026-10-13）
+
+**目的／實作：** `SourceFrame` 每圖準備一次；同層ROI角度請求批次GPU旋轉與NCC，Q28 guard／CPU double repair保持原採樣。與resident pose精修是兩個獨立階段。
+
+**資料／時間／記憶體／精度：** 凍結 `2c28ffb`，十場景、160個新process、800次正式計時。六物件舊Metal201.59→96.57 ms；十二476.32→243.80 ms。8K三尺度0°28.75→13.47 ms，RSS500.2→331.5 MiB；8K三尺度全角度306.72→330.81 ms確實退步，但各block仍在10%／2ms容忍內。完整有序輸出均與凍結CPU相同；Release19/19、ASan/UBSan17/17。
+
+**決定：採用共享frame＋fine512作後續基準；不是全面加速或全GPU常駐。** warp後CPU repair、NCC後CPU normalization／選峰仍各有等待；新圖金字塔不能預編譯成固定像素。
+
+來源：[報告](SHARED_FRAME_AND_FINE_METAL_zh-TW.md)・[protocol](shared-fine/protocol.json)・[正式摘要](shared-fine/formal-summary.json)・[驗證](shared-fine/validation.json)・[完整封存](shared-fine/raw-results.tar.gz)。
+
+### 10. 精確 peak tree 與失敗的 coarse SIMD 協作（2026-10-13～14）
+
+**目的／實作：** 32×32 tile winner＋tournament tree只重掃失去最大值的tile；獨立實驗將每個coarse視窗交給一整個SIMD group。
+
+**資料／時間／記憶體／精度：** 凍結 `010c898`，十場景、180個新process、900次正式。僅peak：六物件90.54→81.02 ms，十二248.04→156.96 ms，十二RSS121.6→121.2 MiB；所有輸出精確相同。SIMD-only六物件106.34 ms、十二286.29 ms、8K全角度三尺度634.29 ms，皆比原路徑慢。六物件GPUdevice3.62→16.12 ms、copy仍約0.10 ms，退步不是新增傳輸。Release22/22、ASan/UBSan20/20，289張coarse maps逐值相等。
+
+**決定：採用 `peak_mode=1`；不推薦 `ncc_mode=1`，保留失敗實驗。** 8K512模板凍結baseline兩block10.41／24.59 ms存在明顯波動，新build全關10.53與peak10.50 ms幾乎相同，不把pooled差額當選峰收益。
+
+來源：[報告](COARSE_SELECTION_AND_PARALLEL_zh-TW.md)・[protocol](coarse-next/protocol.json)・[正式摘要](coarse-next/formal-summary.json)・[驗證與不採用門檻](coarse-next/validation.json)・[完整封存](coarse-next/raw-results.tar.gz)。
+
+### 11. 超過100物件模擬（2026-10-14）
+
+**目的／實作：** 不改matcher／rescue，增加固定種子場景與事後最大一對一精度配對，檢查候選膨脹。current為 `4092754`，baseline為 `010c898`。
+
+**資料／時間／記憶體／精度：** Dst3真實紋理102×140，同模板的分離副本，±180°、尺度0.72–1.28、光度／噪聲；4096²的64／128／256與8192×4096的512，另128正向控制。新選峰128／256／512分別1237.46／1804.66／3711.11 ms，RSS396.7／406.4／720.1 MiB，TP全數、FP=FN=0；與baseline有序輸出完全相同。512最大位置0.128 px、角度0.100°、相對尺度0.275%。
+
+**決定：目前組合可處理此類128～512實例，未證明廣泛密集／遮擋場景。** 512同時加大畫布與maxTargets，不是純物件數曲線；也不是512個不同模板。512約108220個粗候選，profile fine旋轉804 ms＋fineNCC1576 ms主導，不能照十二物件的36.7%加速外推。
+
+來源：[報告與實際框選](MANY_OBJECT_STUDY_zh-TW.md)・[固定protocol](many-objects/protocol.json)・[正式results](many-objects/results.json)・[完整封存](many-objects/raw-results.tar.gz)・[封存SHA](many-objects/artifact-sha256.json)。
+
+### 12. CPU／GPU coarse 雙槽重疊與512混合結果（2026-10-14）
+
+**目的／實作：** CPU生成下一批旋轉、Metal計算當前批、CPU消費上一批正規化與峰值；兩槽獨立資源與嚴格生命週期，按原角度序收回。
+
+**資料／時間／記憶體／精度：** 凍結 `4092754`＋同新build同步控制，六場景正反兩block。同步→重疊：六物件82.31→75.09 ms、RSS96.2→97.4 MiB；十二161.01→145.86 ms、RSS120.8→124.0 MiB；128物件1260.06→1227.50 ms、RSS395.3→440.9 MiB；512物件3691.49→3823.28 ms、RSS720.3→770.6 MiB。所有有序輸出、工作量與GT通過。
+
+**決定：功能完成，保持預設關閉。** 512首輪整體慢3.6%，第二block慢12.43%，未過固定性能門檻。另一次相同配置複測同步3664.41→重疊3635.46 ms，僅快0.8%而多47.3 MiB；複測沒有取代正式失敗，不足以支持穩定加速。其他五場景通過效能容忍門檻，亦不等於普遍更快。
+
+六物件host wait9.189→0.474 ms、device4.079→4.221 ms、copy約0.10 ms，支持減少主機空等；**未擷取硬體timeline，尚未量出CPU/GPU實際相交毫秒數，pending不等於GPU kernel彼此並行**。Release23/23、ASan/UBSan21/21；未聲稱LeakSanitizer通過。
+
+來源：[報告](COARSE_OVERLAP_zh-TW.md)・[事先protocol](coarse-overlap/protocol.json)・[正式results](coarse-overlap/results.json)・[正式封存](coarse-overlap/raw-results.tar.gz)・[512獨立複測](coarse-overlap/recheck-512/results.json)・[複測封存](coarse-overlap/recheck-512/raw-results.tar.gz)。
+
+### 13. NCC 空間分塊與相鄰輸出重用（2026-10-14）
+
+**目的／實作：** mode2每thread算四個水平輸出並滑動四像素暫存值；mode3由64threads合作載入最多16×16模板＋23×23來源，計算8×8輸出。整數統計／CPU double正規化不變，支援batch、切段、非同步生命週期，完整C++／Metal源碼保留。
+
+**資料／時間／記憶體／精度：** 凍結 `d60ec04`＋同build mode0，六場景84workers、420正式次；另九形狀單map探針54workers、540正式次。全流程mode0→2：8K291.86→276.74 ms、RSS368.1→369.2 MiB；128物件1239.20→1203.43 ms、397.2→401.8 MiB；512物件3767.99→3635.22 ms、721.0→721.0 MiB。12物件155.93→161.51 ms確實退步。所有完整輸出／工作量相同、GT零FP／FN，既有GPU buffer容量未增加。512 coarse device196.97→120.72 ms、copy2.33→2.42 ms；fine仍主導。單map13×17模板mode2 device2.18×、wall1.29×；257×258且少輸出面反而更慢，mode3也非普遍更快。
+
+**決定：mode0保留通用基準；mode2作本機大圖／大量同模板實例的選項；mode3保留研究。** 兩block所有全流程效能容忍門檻通過，不等於全部變快。小fullres profile最大偏移+69.46%，全流程只引用未profile數據。未做自動選型、硬體cache／DRAM counters或tile＋overlap的效能組合，不能宣稱固定放入L1或套用FlashAttention倍數。Release24項最終皆通過、ASan／UBSan22/22、Metal API／Shader Validation確認啟用，795張map逐位相等；Python harness9/9。
+
+來源：[本輪實作與正式結果](TILE_NCC_zh-TW.md)・[數學與原始文獻](NCC_TILING_AND_OVERLAP_RESEARCH_zh-TW.md)・[事前protocol](coarse-tiling/protocol.json)・[review數據](coarse-tiling/results.json)・[全流程封存](coarse-tiling/raw-results.tar.gz)・[單map數據](coarse-tiling/probe/results.json)・[單map封存](coarse-tiling/probe/raw-results.tar.gz)。
+
+## 人工審查時應保留的限制
+
+1. **時間範圍先對齊。** 固定姿態score、局部refine、全圖proposal、含rescue全流程、setup／first各不相同；多數暖機表排除解碼與一次學習，但shared frame每次prepare已計入。原CPU／GPU勝負只能在同輪、同工作量列內比較。
+2. **精確一致不是絕對準確。** coarse/fine整數路徑能逐值相同；pose FP32與CPU參考容許誤差並由GT驗證。325/326共同錯峰、高分週期錯峰、裁切2/32必須與成功並存。實圖沒有校準GT時不能把數量相同稱準確率100%。
+3. **RSS與buffer不相加。** shared memory有重疊；16MiB通常只指局部輔助workspace，不包含source、template、score map、Python、driver或擴容瞬時副本。某些早期階段沒有標準化RSS比較，本頁不補推估。
+4. **效能 gate 與正確性 flag 分開。** `integrity_passed`、`detection_all_passed`均true不代表效能全過；overlap512就是反例。通過 `max(10%,2ms)`容忍也可能實際變慢。保留profile干擾、block波動與慢樣本。
+5. **版本必須查hash。** 早期JSON的`git_head`可能只是當時未提交修改的基底，需一起核對`source_sha256`、library SHA與build provenance；不能僅用HEAD聲稱重現同binary。封存中absolute paths是歷史來源，離線replay需明確指定解壓後worker root。
+6. **仍缺的覆蓋。** 多物件目前只有單模板、多個分離實例；遮擋、透視、真實相機尺度、跨類別模板庫、長時間串流、功耗與跨硬體交叉點未全面驗證。RGB證據主要是已知候選局部評分／精修，沒有本頁可證明的完整RGB全圖GUI。
+
+閱讀時先看每階段報告的「比較方法／限制」，再查相鄰JSON與protocol。所有實驗源碼入口在 [tools](../tools)、[C++／Metal實驗庫](../experiments)、[核心](../src)與[測試](../tests)；GUI及原核心的建置與授權見 [README](../README_zh-TW.md)。

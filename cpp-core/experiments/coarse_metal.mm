@@ -58,6 +58,7 @@ class MetalBackend final : public Backend {
     id<MTLLibrary> library_;
     id<MTLComputePipelineState> stats32_, stats64_;
     id<MTLComputePipelineState> parallelStats32_, parallelStats64_;
+    id<MTLComputePipelineState> stripStats32_, stripStats64_, stagedStats32_, stagedStats64_;
     int coarsePeakMode_ = 0, coarseNccMode_ = 0;
     id<MTLComputePipelineState> pyramidDirect_, pyramidHorizontal_, pyramidVertical_;
     id<MTLComputePipelineState> fineWarp_, fineStats32_, fineStats64_;
@@ -142,9 +143,30 @@ class MetalBackend final : public Backend {
                 fineMetrics_.device_ms += 1000 * (command.GPUEndTime - command.GPUStartTime);
         } else fineMetrics_.device_ms = -1;
     }
+    id<MTLComputePipelineState> coarsePipeline(bool use32) const {
+        if (coarseNccMode_ == 1) return use32 ? parallelStats32_ : parallelStats64_;
+        if (coarseNccMode_ == 2) return use32 ? stripStats32_ : stripStats64_;
+        if (coarseNccMode_ == 3) return use32 ? stagedStats32_ : stagedStats64_;
+        return use32 ? stats32_ : stats64_;
+    }
     void dispatchCoarse(id<MTLComputeCommandEncoder> encoder,
-        id<MTLComputePipelineState> pipeline, size_t windows) const
+        id<MTLComputePipelineState> pipeline, const Config& config) const
     {
+        const size_t windows = config.count;
+        if (coarseNccMode_ >= 2) {
+            const uint64_t firstRow = config.firstWindow / config.outputWidth;
+            const uint64_t lastRow = (config.firstWindow + windows - 1) / config.outputWidth;
+            const size_t rows = size_t(lastRow - firstRow + 1);
+            if (coarseNccMode_ == 2) {
+                [encoder dispatchThreads:MTLSizeMake((size_t(config.outputWidth) + 3) / 4, rows, 1)
+                    threadsPerThreadgroup:MTLSizeMake(32, 2, 1)];
+            } else {
+                // Full groups are required: no edge thread may skip a barrier.
+                [encoder dispatchThreadgroups:MTLSizeMake((size_t(config.outputWidth) + 7) / 8,
+                    (rows + 7) / 8, 1) threadsPerThreadgroup:MTLSizeMake(8, 8, 1)];
+            }
+            return;
+        }
         if (coarseNccMode_ == 0) {
             const NSUInteger threads = std::min<NSUInteger>(256, pipeline.maxTotalThreadsPerThreadgroup);
             [encoder dispatchThreads:MTLSizeMake(windows, 1, 1)
@@ -219,8 +241,8 @@ public:
     }
     void setCoarseOptimization(int peakMode, int nccMode) override {
         requireCoarseIdle();
-        if (peakMode < 0 || peakMode > 1 || nccMode < 0 || nccMode > 1)
-            throw std::invalid_argument("coarse optimization modes must be 0 or 1");
+        if (peakMode < 0 || peakMode > 1 || nccMode < 0 || nccMode > 3)
+            throw std::invalid_argument("coarse peak mode must be 0..1 and NCC mode 0..3");
         if (nccMode == 1 && !parallelStats32_) {
             @autoreleasepool {
                 NSError* error = nil;
@@ -231,6 +253,26 @@ public:
                     [library_ newFunctionWithName:@"coarse_parallel_stats64"] error:&error];
                 if (!stats64) throw metalError("coarse parallel uint64 pipeline", error);
                 parallelStats32_ = stats32; parallelStats64_ = stats64;
+            }
+        }
+        if (nccMode >= 2 && !(nccMode == 2 ? stripStats32_ : stagedStats32_)) {
+            @autoreleasepool {
+                NSError* error = nil;
+                NSString* name32 = nccMode == 2 ? @"coarse_strip4_32" : @"coarse_staged8_32";
+                NSString* name64 = nccMode == 2 ? @"coarse_strip4_64" : @"coarse_staged8_64";
+                id<MTLComputePipelineState> p32 = [device_ newComputePipelineStateWithFunction:
+                    [library_ newFunctionWithName:name32] error:&error];
+                if (!p32) throw metalError("coarse tiled uint32 pipeline", error);
+                id<MTLComputePipelineState> p64 = [device_ newComputePipelineStateWithFunction:
+                    [library_ newFunctionWithName:name64] error:&error];
+                if (!p64) throw metalError("coarse tiled uint64 pipeline", error);
+                for (id<MTLComputePipelineState> pipeline : {p32, p64}) {
+                    if (pipeline.maxTotalThreadsPerThreadgroup < 64 ||
+                        pipeline.staticThreadgroupMemoryLength > device_.maxThreadgroupMemoryLength)
+                        throw std::runtime_error("coarse tiled NCC exceeds device threadgroup limits");
+                }
+                if (nccMode == 2) { stripStats32_ = p32; stripStats64_ = p64; }
+                else { stagedStats32_ = p32; stagedStats64_ = p64; }
             }
         }
         coarsePeakMode_ = peakMode; coarseNccMode_ = nccMode;
@@ -671,8 +713,7 @@ public:
             slot.normalizationTemplate.mean = templ.mean; slot.normalizationTemplate.norm = templ.norm;
             slot.area = double(area); slot.use32 = use32; slot.items = std::move(items);
             const auto encode = Clock::now();
-            const id<MTLComputePipelineState> pipeline = coarseNccMode_ == 1 ?
-                (use32 ? parallelStats32_ : parallelStats64_) : (use32 ? stats32_ : stats64_);
+            const id<MTLComputePipelineState> pipeline = coarsePipeline(use32);
             id<MTLCommandBuffer> command = [queue_ commandBuffer];
             if (!command) throw std::runtime_error("Metal asynchronous NCC command buffer creation failed");
             id<MTLComputeCommandEncoder> encoder = [command computeCommandEncoder];
@@ -686,7 +727,7 @@ public:
                 [encoder setBuffer:slot.source offset:sourceOffsets[i] atIndex:0];
                 [encoder setBuffer:slot.statistics offset:item.statisticsOffset atIndex:2];
                 [encoder setBytes:&config length:sizeof(config) atIndex:3];
-                dispatchCoarse(encoder, pipeline, item.windows);
+                dispatchCoarse(encoder, pipeline, config);
             }
             [encoder endEncoding];
             const double encodeMs = elapsed(encode);
@@ -803,8 +844,7 @@ public:
                 uploadedTemplate_ = &templ;
             }
             metrics_.upload_ms += elapsed(upload);
-            const id<MTLComputePipelineState> pipeline = coarseNccMode_ == 1 ?
-                (use32 ? parallelStats32_ : parallelStats64_) : (use32 ? stats32_ : stats64_);
+            const id<MTLComputePipelineState> pipeline = coarsePipeline(use32);
             for (size_t first = 0; first < windows; first += batch) {
                 const size_t count = std::min(batch, windows - first);
                 const Config config{uint32_t(source.width), uint32_t(tw), uint32_t(th),
@@ -818,7 +858,7 @@ public:
                 [encoder setBuffer:template_ offset:0 atIndex:1];
                 [encoder setBuffer:workspace_ offset:0 atIndex:2];
                 [encoder setBytes:&config length:sizeof(config) atIndex:3];
-                dispatchCoarse(encoder, pipeline, count);
+                dispatchCoarse(encoder, pipeline, config);
                 [encoder endEncoding];
                 const auto wait = Clock::now();
                 [command commit]; [command waitUntilCompleted];
@@ -926,8 +966,7 @@ public:
                 }
                 metrics_.upload_ms += elapsed(upload);
                 const auto encode = Clock::now();
-                const id<MTLComputePipelineState> pipeline = coarseNccMode_ == 1 ?
-                    (use32 ? parallelStats32_ : parallelStats64_) : (use32 ? stats32_ : stats64_);
+                const id<MTLComputePipelineState> pipeline = coarsePipeline(use32);
                 id<MTLCommandBuffer> command = [queue_ commandBuffer];
                 if (!command) throw std::runtime_error("Metal batched NCC command buffer creation failed");
                 id<MTLComputeCommandEncoder> encoder = [command computeCommandEncoder];
@@ -942,7 +981,7 @@ public:
                     [encoder setBuffer:batchSource_ offset:sourceOffsets[i] atIndex:0];
                     [encoder setBuffer:workspace_ offset:statisticsOffsets[i] atIndex:2];
                     [encoder setBytes:&config length:sizeof(config) atIndex:3];
-                    dispatchCoarse(encoder, pipeline, item.windows);
+                    dispatchCoarse(encoder, pipeline, config);
                 }
                 [encoder endEncoding];
                 executionMetrics_.batch_encode_ms += elapsed(encode);

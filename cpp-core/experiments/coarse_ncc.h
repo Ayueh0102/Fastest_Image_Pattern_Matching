@@ -123,9 +123,11 @@ typedef struct FpmFrameMetricsV1 {
     uint64_t generation, models_matched, pyramid_levels, host_pyramid_bytes;
     uint64_t coarse_gpu_bytes, fine_gpu_bytes;
 } FpmFrameMetricsV1;
-/* Optional coarse execution changes; 0 preserves legacy behavior, 1 selects
- * exact tile-tournament peaks or SIMD-group NCC respectively. Existing frame
- * and execution v1 structures keep their original layout/reserved semantics. */
+/* Optional coarse execution changes. peak_mode: 0 legacy, 1 exact tile tree.
+ * ncc_mode: 0 scalar-window, 1 SIMD-group/window, 2 four adjacent outputs with
+ * register strip reuse, 3 8x8 outputs with 16x16 template/source staging.
+ * All NCC modes retain exact integer statistics and CPU double normalization.
+ * Explicit opt-in; existing layouts/reserved fields and defaults unchanged. */
 typedef struct FpmCoarseOptimizationConfigV1 {
     uint32_t version, struct_bytes;
     int32_t peak_mode, ncc_mode;

@@ -105,6 +105,120 @@ kernel void coarse_stats64(device const uchar* source [[buffer(0)]],
     output[gid] = {s, q, p};
 }
 
+// Four horizontally adjacent outputs per thread. The source window advances
+// through a four-byte register strip: after the first pixel, only ONE new
+// source byte is loaded per template column. Template values serve all four
+// outputs. There is no explicit threadgroup staging or floating arithmetic.
+template<typename Accum4, typename Stats>
+inline void coarse_strip4(device const uchar* source, device const uchar* templ,
+    device Stats* output, constant CoarseConfig& cfg, uint2 gid)
+{
+    const ulong x = ulong(gid.x) * 4;
+    const ulong y = cfg.first_window / cfg.output_width + gid.y;
+    const ulong end = cfg.first_window + cfg.count;
+    if (x >= cfg.output_width || y > (end - 1) / cfg.output_width) return;
+    Accum4 sum(0), square(0), product(0);
+    for (uint ty = 0; ty < cfg.th; ++ty) {
+        const ulong row = (y + ty) * cfg.sw;
+        // Clamp only inactive right-edge lanes; valid NCC windows never need
+        // padding. This also supports a source narrower than four pixels.
+        uint4 values(source[row + x], source[row + min(x + 1, ulong(cfg.sw - 1))],
+            source[row + min(x + 2, ulong(cfg.sw - 1))],
+            source[row + min(x + 3, ulong(cfg.sw - 1))]);
+        for (uint tx = 0; tx < cfg.tw; ++tx) {
+            if (tx) values = uint4(values.y, values.z, values.w,
+                source[row + min(x + tx + 3, ulong(cfg.sw - 1))]);
+            const uint t = templ[ulong(ty) * cfg.tw + tx];
+            sum += Accum4(values);
+            square += Accum4(values * values);
+            product += Accum4(values * t);
+        }
+    }
+    for (uint lane = 0; lane < 4; ++lane) {
+        const ulong index = y * cfg.output_width + x + lane;
+        // Chunk boundaries can split a row or a strip. Only the exact original
+        // [first_window, first_window + count) range may write this workspace.
+        if (x + lane < cfg.output_width && index >= cfg.first_window && index < end)
+            output[index - cfg.first_window] = {sum[lane], square[lane], product[lane]};
+    }
+}
+
+kernel void coarse_strip4_32(device const uchar* source [[buffer(0)]],
+    device const uchar* templ [[buffer(1)]], device Coarse32* output [[buffer(2)]],
+    constant CoarseConfig& cfg [[buffer(3)]], uint2 gid [[thread_position_in_grid]])
+{
+    coarse_strip4<uint4, Coarse32>(source, templ, output, cfg, gid);
+}
+kernel void coarse_strip4_64(device const uchar* source [[buffer(0)]],
+    device const uchar* templ [[buffer(1)]], device Coarse64* output [[buffer(2)]],
+    constant CoarseConfig& cfg [[buffer(3)]], uint2 gid [[thread_position_in_grid]])
+{
+    coarse_strip4<ulong4, Coarse64>(source, templ, output, cfg, gid);
+}
+
+// A full 8x8 threadgroup owns an 8x8 output tile. For every <=16x16
+// template tile, cooperatively load its <=23x23 source union and template.
+// All 64 threads take both barriers, including inactive image/chunk edges.
+template<typename Accum, typename Stats>
+inline void coarse_staged8(device const uchar* source, device const uchar* templ,
+    device Stats* output, constant CoarseConfig& cfg, uint2 group, uint tid,
+    threadgroup uchar* sourceTile, threadgroup uchar* templateTile)
+{
+    const ulong baseX = ulong(group.x) * 8;
+    const ulong baseY = cfg.first_window / cfg.output_width + ulong(group.y) * 8;
+    const uint lx = tid % 8, ly = tid / 8;
+    const ulong x = baseX + lx, y = baseY + ly;
+    const ulong end = cfg.first_window + cfg.count;
+    const ulong lastRow = (end - 1) / cfg.output_width;
+    const ulong index = y * cfg.output_width + x;
+    const bool active = x < cfg.output_width && y <= lastRow &&
+        index >= cfg.first_window && index < end;
+    Accum sum = 0, square = 0, product = 0;
+    for (uint ty = 0; ty < cfg.th; ty += 16) {
+        const uint kh = min(16u, cfg.th - ty);
+        for (uint tx = 0; tx < cfg.tw; tx += 16) {
+            const uint kw = min(16u, cfg.tw - tx), sw = kw + 7, sh = kh + 7;
+            for (uint j = tid; j < sw * sh; j += 64) {
+                const ulong sx = baseX + tx + j % sw, sy = baseY + ty + j / sw;
+                // lastRow+th is at most the real source height. Zero-fill the
+                // unused halo without reading outside the source or next row.
+                sourceTile[j] = sx < cfg.sw && sy < lastRow + cfg.th ?
+                    source[sy * cfg.sw + sx] : uchar(0);
+            }
+            for (uint j = tid; j < kw * kh; j += 64)
+                templateTile[j] = templ[ulong(ty + j / kw) * cfg.tw + tx + j % kw];
+            threadgroup_barrier(mem_flags::mem_threadgroup);
+            if (active) {
+                for (uint ky = 0; ky < kh; ++ky) for (uint kx = 0; kx < kw; ++kx) {
+                    const uint v = sourceTile[(ly + ky) * sw + lx + kx];
+                    const uint t = templateTile[ky * kw + kx];
+                    sum += v; square += v * v; product += v * t;
+                }
+            }
+            // Prevent the next tile overwriting bytes still read by peers.
+            threadgroup_barrier(mem_flags::mem_threadgroup);
+        }
+    }
+    if (active) output[index - cfg.first_window] = {sum, square, product};
+}
+
+kernel void coarse_staged8_32(device const uchar* source [[buffer(0)]],
+    device const uchar* templ [[buffer(1)]], device Coarse32* output [[buffer(2)]],
+    constant CoarseConfig& cfg [[buffer(3)]], uint2 group [[threadgroup_position_in_grid]],
+    uint tid [[thread_index_in_threadgroup]])
+{
+    threadgroup uchar sourceTile[23 * 23], templateTile[16 * 16];
+    coarse_staged8<uint, Coarse32>(source, templ, output, cfg, group, tid, sourceTile, templateTile);
+}
+kernel void coarse_staged8_64(device const uchar* source [[buffer(0)]],
+    device const uchar* templ [[buffer(1)]], device Coarse64* output [[buffer(2)]],
+    constant CoarseConfig& cfg [[buffer(3)]], uint2 group [[threadgroup_position_in_grid]],
+    uint tid [[thread_index_in_threadgroup]])
+{
+    threadgroup uchar sourceTile[23 * 23], templateTile[16 * 16];
+    coarse_staged8<ulong, Coarse64>(source, templ, output, cfg, group, tid, sourceTile, templateTile);
+}
+
 struct FineWarpDescriptor {
     long anchor_x, anchor_y, cosine, sine;
     ulong rounding_guard;

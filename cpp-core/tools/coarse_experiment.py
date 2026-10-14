@@ -368,8 +368,9 @@ class SourceFrame:
     def set_coarse_optimization(self, *, peak_mode=0, ncc_mode=0):
         if not self.handle:
             raise ValueError('frame is closed')
-        if any(not isinstance(x, int) or x not in (0, 1) for x in (peak_mode, ncc_mode)):
-            raise ValueError('coarse optimization modes must be integers 0 or 1')
+        if (not isinstance(peak_mode, int) or peak_mode not in (0, 1) or
+                not isinstance(ncc_mode, int) or ncc_mode not in (0, 1, 2, 3)):
+            raise ValueError('coarse peak mode must be integer 0..1 and NCC mode integer 0..3')
         if not hasattr(self.dll, 'fpm_frame_set_coarse_optimization'):
             raise RuntimeError('Coarse optimization API unavailable; rebuild experimental library')
         function = self.dll.fpm_frame_set_coarse_optimization

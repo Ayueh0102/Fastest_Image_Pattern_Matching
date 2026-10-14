@@ -1,0 +1,39 @@
+{
+  "complete": true,
+  "integrity_passed": true,
+  "detection_all_passed": true,
+  "worker_count": 84,
+  "first_calls": 84,
+  "measured_calls": 420,
+  "warmup_calls": 1909,
+  "all_sources_libraries_inputs_hashes_valid": true,
+  "all_jobs_workers_hashes_valid": true,
+  "all_measured_frame_capacities_equal_first": true,
+  "warmup_digests_match_first": true,
+  "formal_workers_have_no_truth": true,
+  "archive_files": 386,
+  "archive_sha256": "0ce0216f1b4b3caa3c1118a17872246f8690ad7e547d0f721345925ab50f4384",
+  "archive_bytes": 41558269,
+  "manifest_sha256": "f989f82a833bc4eb733a54789b02b109aa944516116be71725598210eea360ee",
+  "replayed_summary_sha256": "368e436a2123283a2d6d88e20877e65d87b208141c61b1029266b508eb3044fc",
+  "relocated_summary_byte_identical": true,
+  "review_file_sha256": {
+    "results.json": "1c12f614a49d47b29432ff78c25cfb7e78416dd4d45c01fb4be8d99f0eb79358",
+    "performance.png": "62d5b68b2044beb59e1b959042af056b5ace67d86844a63766e9a70566439bbb",
+    "probe.png": "9bff12fb9250819e04483d194adf1f224d8e643c084a0180b06c450bf1bf56fc",
+    "protocol.json": "82ac2581b018e2f3e5e7e6ce8e08dc05b6f2dbd549024f1c41156ed8d86f1767"
+  },
+  "validation": {
+    "release_tests_final_passed": 24,
+    "initial_missing_test_executable_preserved": true,
+    "asan_ubsan_tests_passed": 22,
+    "leak_detection_enabled": false,
+    "metal_api_and_shader_validation_enabled": true,
+    "metal_validation_report_to_stderr": true,
+    "metal_validation_violations": 0,
+    "new_exact_map_comparisons": 795,
+    "python_harness_tests_passed": 9,
+    "all_per_block_performance_tolerances_passed": true,
+    "new_ncc_default_enabled": false
+  }
+}
