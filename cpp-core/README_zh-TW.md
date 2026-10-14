@@ -28,6 +28,8 @@
 - [NCC 暫存器分塊與共用記憶體實作比較](docs/TILE_NCC_zh-TW.md)
 - [原生 C++ 尺度 GUI、組合模式與持續運行驗證](docs/GUI_INTEGRATION_AND_STABILITY_zh-TW.md)
 - [512 物件30分鐘穩定性與資源重建驗證](docs/STABILITY_30MIN_zh-TW.md)
+- [固定尺度、全圖旋轉：金字塔／無金字塔實測](docs/FIXED_SCALE_SEARCH_zh-TW.md)
+- [固定尺度新架構、遮罩FFT與改善方向](docs/FIXED_SCALE_SEARCH_DESIGN_zh-TW.md)
 
 GUI 的完整原始碼位於 `../macos-cli/mainwindow.{h,cpp}` 與 `main.cpp`，使用 Qt6。CLI 可選用 OpenCV 解碼圖片。Qt、OpenCV、C++ 標準函式庫本身並未複製進專案；比對核心沒有呼叫它們的影像演算法，也沒有依賴未提供源碼的 FPM DLL／SO。
 

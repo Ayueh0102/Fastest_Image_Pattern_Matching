@@ -1,6 +1,6 @@
 # Template Matching 研究總索引與人工審查指南
 
-整理日期：2026-10-14。前12階段整理 repository 已保存的報告、protocol 與結果；第13階段為 NCC tiling 正式量測，第14階段接入原生尺度 GUI 並驗證組合模式與持續運行。各數字是各輪的證據快照，不是同一輪連續量測；不要將不同輪次的加速比相乘。快速設定摘要見 [目前建議方案](CURRENT_BEST_zh-TW.md)，整體完成範圍與待辦見 [專案狀態](PROJECT_STATUS_zh-TW.md)。
+整理日期：2026-10-14。前12階段整理 repository 已保存的報告、protocol 與結果；第13階段為 NCC tiling 正式量測，第14階段接入原生尺度 GUI 並驗證組合模式與持續運行，第15階段比較固定尺度的金字塔與原解析度搜尋。各數字是各輪的證據快照，不是同一輪連續量測；不要將不同輪次的加速比相乘。快速設定摘要見 [目前建議方案](CURRENT_BEST_zh-TW.md)，整體完成範圍與待辦見 [專案狀態](PROJECT_STATUS_zh-TW.md)。
 
 ## 目前推薦方案
 
@@ -214,6 +214,16 @@ Metal Shader Validation另發現導數kernel插裝後共享記憶體超過32KiB�
 **決定：原生灰階 GUI 可使用；大場景可選mode2，重疊仍選配。** 新的C++ NMS在512場景由Python123.835降至0.604 ms，但不是GPU收益。下一個主要時間成本仍是proposal／fine搜尋；大圖來源副本與Qt解碼配置需另拆量。Fourier與完整RGB全圖GUI、CUDA／跨平台實測、新相機影格串流仍未完成。
 
 來源：[整合與完整報告](GUI_INTEGRATION_AND_STABILITY_zh-TW.md)・[事前protocol](gui-integration/protocol.json)・[六路正式結果](gui-integration/results.json)・[粗搜尋等待診斷](gui-integration/diagnostics.json)・[驗證紀錄](gui-integration/validation.json)・[完整封存](gui-integration/raw-results.tar.gz)・[封存SHA](gui-integration/artifact-sha256.json)。
+
+### 15. 固定尺度、全圖旋轉與無金字塔對照（2026-10-14）
+
+**目的／實作：** 使用實拍原生像素裁切模板，在整張圖找固定尺度物件；比較`scales=[1]`的金字塔與只保留level0的原解析度路徑。新增獨立實驗工具與CPU／Metal契約測試，無runtime或GUI改動；runner／兩個動態庫與前輪binary SHA相同。預先固定相同分數、角域、maxTargets、subpixel及常駐精修；不供位置ROI或GT。
+
+**資料／時間／記憶體／精度：** 六場景、28新程序、84正式次。Metal金字塔→原解析度：小圖全角21.61→370.45ms、RSS28.75→37.11MiB；中圖六物件19.54→331.16ms、36.70→98.70MiB；低對比12.22→150.97ms；細線6.20→42.86ms。四個正常GT場景共有10個合成姿態，兩路均零FP／FN，Metal最大位置0.12120／0.12020px、角度0.25096／0.23759°；沒有召回率收益。小圖CPU42.21→1326.42ms；原repo Src4均24個結果，沒有GT不報準確率。尺度+4%負控制雖高分約0.94473，仍尺度錯3.85%，保留失敗。
+
+**決定：固定尺度保留金字塔作實用基準；無金字塔保留研究。** 所有原解析度速度gate失敗，中圖兩個block與低對比一個block另超RSS門檻。小圖粗角度52→202、粗視窗182,416→11,186,978，減少金字塔準備成本不足以抵銷增加的全圖搜尋。後續優先原圖稀疏方向提案＋完整NCC精修，遮罩FFT／張量模板另作數學研究；尚未實作新提案器或GPU FFT。新契約測試2/2通過，來源／輸入hash及離線摘要重播通過；不宣稱已驗證新相機資料或8K全角無金字塔。
+
+來源：[完整報告與框選結果](FIXED_SCALE_SEARCH_zh-TW.md)・[數學與改善方向](FIXED_SCALE_SEARCH_DESIGN_zh-TW.md)・[事前protocol](fixed-scale/protocol.json)・[正式摘要](fixed-scale/results.json)・[原始封存](fixed-scale/raw-results.tar.gz)・[驗證](fixed-scale/validation.json)。
 
 ## 人工審查時應保留的限制
 

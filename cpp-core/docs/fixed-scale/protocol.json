@@ -1,0 +1,715 @@
+{
+  "version": 1,
+  "created_utc": "2026-10-14T15:03:42.175797+00:00",
+  "baseline_commit": "a4d9e14076e10ac107f7208f830a462c11ec5341",
+  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "build": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/gui-integration",
+  "cases": [
+    {
+      "name": "crop_small360",
+      "source": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/fixed-scale-study/formal/inputs/crop_small360.png",
+      "template": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/fixed-scale-study/formal/inputs/src3_native_crop.png",
+      "metadata": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/fixed-scale-study/formal/inputs/crop_small360.json",
+      "scene_shape": [
+        256,
+        256
+      ],
+      "template_shape": [
+        48,
+        64
+      ],
+      "angle": 180.0,
+      "truth": [
+        {
+          "index": 0,
+          "pos_x": 127.35,
+          "pos_y": 129.65,
+          "angle": 37.3,
+          "scale": 1.0,
+          "gain": 1.0,
+          "bias": 0.0,
+          "corners": [
+            [
+              87.35112700626627,
+              129.95026526798526
+            ],
+            [
+              138.2614297809796,
+              91.16700765097976
+            ],
+            [
+              167.34887299373372,
+              129.34973473201475
+            ],
+            [
+              116.43857021902039,
+              168.13299234902024
+            ]
+          ],
+          "warp_roi": [
+            85,
+            89,
+            170,
+            171
+          ]
+        }
+      ],
+      "validity": "fixed_scale_gt",
+      "backends": [
+        0,
+        1
+      ],
+      "work_bound": {
+        "angle_step_deg": 1.7899106082460694,
+        "angle_count_upper": 203,
+        "rotated_canvas_pixels_upper": 249001,
+        "dense_pixel_products_upper": 155281007616
+      }
+    },
+    {
+      "name": "crop_medium20",
+      "source": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/fixed-scale-study/formal/inputs/crop_medium20.png",
+      "template": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/fixed-scale-study/formal/inputs/src3_native_crop.png",
+      "metadata": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/fixed-scale-study/formal/inputs/crop_medium20.json",
+      "scene_shape": [
+        512,
+        768
+      ],
+      "template_shape": [
+        48,
+        64
+      ],
+      "angle": 20.0,
+      "truth": [
+        {
+          "index": 0,
+          "pos_x": 128.35,
+          "pos_y": 128.65,
+          "angle": -17.3,
+          "scale": 1.0,
+          "gain": 1.0,
+          "bias": 0.0,
+          "corners": [
+            [
+              104.93465139377734,
+              96.21974484144371
+            ],
+            [
+              166.03934256195637,
+              115.25173678242201
+            ],
+            [
+              151.76534860622266,
+              161.0802551585563
+            ],
+            [
+              90.66065743804361,
+              142.04826321757798
+            ]
+          ],
+          "warp_roi": [
+            88,
+            94,
+            169,
+            164
+          ]
+        },
+        {
+          "index": 1,
+          "pos_x": 384.35,
+          "pos_y": 128.65,
+          "angle": 9.7,
+          "scale": 1.0,
+          "gain": 1.0,
+          "bias": 0.0,
+          "corners": [
+            [
+              348.76374387959663,
+              110.3847768879476
+            ],
+            [
+              411.8487659012833,
+              99.60145659578744
+            ],
+            [
+              419.9362561204034,
+              146.91522311205242
+            ],
+            [
+              356.85123409871676,
+              157.69854340421256
+            ]
+          ],
+          "warp_roi": [
+            346,
+            97,
+            422,
+            160
+          ]
+        },
+        {
+          "index": 2,
+          "pos_x": 640.35,
+          "pos_y": 128.65,
+          "angle": -3.4,
+          "scale": 1.0,
+          "gain": 1.0,
+          "bias": 0.0,
+          "corners": [
+            [
+              609.8296784722626,
+              102.79444017539886
+            ],
+            [
+              673.7170274593836,
+              106.59004808426042
+            ],
+            [
+              670.8703215277375,
+              154.50555982460114
+            ],
+            [
+              606.9829725406164,
+              150.7099519157396
+            ]
+          ],
+          "warp_roi": [
+            604,
+            100,
+            676,
+            157
+          ]
+        },
+        {
+          "index": 3,
+          "pos_x": 128.35,
+          "pos_y": 384.65,
+          "angle": 14.6,
+          "scale": 1.0,
+          "gain": 1.0,
+          "bias": 0.0,
+          "corners": [
+            [
+              91.33364194674218,
+              369.4911993722123
+            ],
+            [
+              153.26702885758834,
+              353.35876044465306
+            ],
+            [
+              165.3663580532578,
+              399.80880062778766
+            ],
+            [
+              103.43297114241165,
+              415.9412395553469
+            ]
+          ],
+          "warp_roi": [
+            89,
+            351,
+            168,
+            418
+          ]
+        },
+        {
+          "index": 4,
+          "pos_x": 384.35,
+          "pos_y": 384.65,
+          "angle": -11.8,
+          "scale": 1.0,
+          "gain": 1.0,
+          "bias": 0.0,
+          "corners": [
+            [
+              357.9341488038291,
+              354.61330901078225
+            ],
+            [
+              420.5816616845769,
+              367.7010563286568
+            ],
+            [
+              410.76585119617096,
+              414.6866909892177
+            ],
+            [
+              348.11833831542316,
+              401.59894367134314
+            ]
+          ],
+          "warp_roi": [
+            346,
+            352,
+            423,
+            417
+          ]
+        },
+        {
+          "index": 5,
+          "pos_x": 640.35,
+          "pos_y": 384.65,
+          "angle": 2.3,
+          "scale": 1.0,
+          "gain": 1.0,
+          "bias": 0.0,
+          "corners": [
+            [
+              607.4126163355563,
+              361.9535518782952
+            ],
+            [
+              671.3610576228808,
+              359.3851171562114
+            ],
+            [
+              673.2873836644437,
+              407.3464481217048
+            ],
+            [
+              609.3389423771192,
+              409.9148828437886
+            ]
+          ],
+          "warp_roi": [
+            605,
+            357,
+            676,
+            412
+          ]
+        }
+      ],
+      "validity": "fixed_scale_gt",
+      "backends": [
+        1
+      ],
+      "work_bound": {
+        "angle_step_deg": 1.7899106082460694,
+        "angle_count_upper": 25,
+        "rotated_canvas_pixels_upper": 1123600,
+        "dense_pixel_products_upper": 86292480000
+      }
+    },
+    {
+      "name": "crop_lowcontrast20",
+      "source": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/fixed-scale-study/formal/inputs/crop_lowcontrast20.png",
+      "template": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/fixed-scale-study/formal/inputs/src3_native_crop.png",
+      "metadata": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/fixed-scale-study/formal/inputs/crop_lowcontrast20.json",
+      "scene_shape": [
+        384,
+        512
+      ],
+      "template_shape": [
+        48,
+        64
+      ],
+      "angle": 20.0,
+      "truth": [
+        {
+          "index": 0,
+          "pos_x": 128.35,
+          "pos_y": 128.65,
+          "angle": -14.7,
+          "scale": 1.0,
+          "gain": 0.3,
+          "bias": 89.6,
+          "corners": [
+            [
+              103.48762258120726,
+              97.31531970666518
+            ],
+            [
+              165.39275875886338,
+              113.55582816009274
+            ],
+            [
+              153.21237741879273,
+              159.98468029333483
+            ],
+            [
+              91.30724124113661,
+              143.74417183990727
+            ]
+          ],
+          "warp_roi": [
+            89,
+            95,
+            168,
+            162
+          ]
+        },
+        {
+          "index": 1,
+          "pos_x": 384.35,
+          "pos_y": 256.65,
+          "angle": 11.3,
+          "scale": 1.0,
+          "gain": 0.3,
+          "bias": 89.6,
+          "corners": [
+            [
+              348.267623464688,
+              239.38552481064184
+            ],
+            [
+              411.0269616116712,
+              226.8449715791207
+            ],
+            [
+              420.4323765353121,
+              273.91447518935814
+            ],
+            [
+              357.67303838832885,
+              286.4550284208793
+            ]
+          ],
+          "warp_roi": [
+            346,
+            224,
+            423,
+            289
+          ]
+        }
+      ],
+      "validity": "fixed_scale_gt",
+      "backends": [
+        1
+      ],
+      "work_bound": {
+        "angle_step_deg": 1.7899106082460694,
+        "angle_count_upper": 25,
+        "rotated_canvas_pixels_upper": 602176,
+        "dense_pixel_products_upper": 46247116800
+      }
+    },
+    {
+      "name": "thin_detail20",
+      "source": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/fixed-scale-study/formal/inputs/thin_detail20.png",
+      "template": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/fixed-scale-study/formal/inputs/thin_detail_template.png",
+      "metadata": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/fixed-scale-study/formal/inputs/thin_detail20.json",
+      "scene_shape": [
+        256,
+        256
+      ],
+      "template_shape": [
+        48,
+        64
+      ],
+      "angle": 20.0,
+      "truth": [
+        {
+          "index": 0,
+          "pos_x": 128.35,
+          "pos_y": 127.65,
+          "angle": 7.3,
+          "scale": 1.0,
+          "gain": 1.0,
+          "bias": 0.0,
+          "corners": [
+            [
+              93.55982723068664,
+              107.91060085308251
+            ],
+            [
+              157.04107155644854,
+              99.77846590259608
+            ],
+            [
+              163.14017276931335,
+              147.3893991469175
+            ],
+            [
+              99.65892844355146,
+              155.52153409740393
+            ]
+          ],
+          "warp_roi": [
+            91,
+            97,
+            166,
+            158
+          ]
+        }
+      ],
+      "validity": "fixed_scale_gt",
+      "backends": [
+        1
+      ],
+      "work_bound": {
+        "angle_step_deg": 1.7899106082460694,
+        "angle_count_upper": 25,
+        "rotated_canvas_pixels_upper": 249001,
+        "dense_pixel_products_upper": 19123276800
+      }
+    },
+    {
+      "name": "scale_violation20",
+      "source": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/fixed-scale-study/formal/inputs/scale_violation20.png",
+      "template": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/fixed-scale-study/formal/inputs/src3_native_crop.png",
+      "metadata": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/fixed-scale-study/formal/inputs/scale_violation20.json",
+      "scene_shape": [
+        256,
+        256
+      ],
+      "template_shape": [
+        48,
+        64
+      ],
+      "angle": 20.0,
+      "truth": [
+        {
+          "index": 0,
+          "pos_x": 127.35,
+          "pos_y": 129.65,
+          "angle": -12.7,
+          "scale": 1.04,
+          "gain": 1.0,
+          "bias": 0.0,
+          "corners": [
+            [
+              100.37157163812871,
+              97.984176102249
+            ],
+            [
+              165.30315088316493,
+              112.61713946397386
+            ],
+            [
+              154.3284283618713,
+              161.31582389775102
+            ],
+            [
+              89.39684911683506,
+              146.68286053602617
+            ]
+          ],
+          "warp_roi": [
+            87,
+            95,
+            168,
+            164
+          ]
+        }
+      ],
+      "validity": "assumption_violation",
+      "backends": [
+        1
+      ],
+      "work_bound": {
+        "angle_step_deg": 1.7899106082460694,
+        "angle_count_upper": 25,
+        "rotated_canvas_pixels_upper": 249001,
+        "dense_pixel_products_upper": 19123276800
+      }
+    },
+    {
+      "name": "repo_src4",
+      "source": "/Users/Ayueh/Fastest_Image_Pattern_Matching/Test Images/Src4.bmp",
+      "template": "/Users/Ayueh/Fastest_Image_Pattern_Matching/Test Images/Dst4.bmp",
+      "metadata": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/fixed-scale-study/formal/inputs/repo_src4.json",
+      "scene_shape": [
+        260,
+        260
+      ],
+      "template_shape": [
+        17,
+        33
+      ],
+      "angle": 180.0,
+      "truth": null,
+      "validity": "unlabelled_real",
+      "backends": [
+        1
+      ],
+      "work_bound": {
+        "angle_step_deg": 3.4682292589171477,
+        "angle_count_upper": 105,
+        "rotated_canvas_pixels_upper": 195364,
+        "dense_pixel_products_upper": 11507916420
+      }
+    }
+  ],
+  "pilot": false,
+  "blocks": 2,
+  "repeats": 3,
+  "warmup_seconds": 1.0,
+  "timeout_seconds": 120.0,
+  "dense_pixel_products_limit": 200000000000,
+  "methods": {
+    "pyramid": "min_area=256",
+    "full_resolution": "min_area=ceil(sqrt(template_area))^2; one level"
+  },
+  "shared_settings": {
+    "scales": [
+      1.0
+    ],
+    "optimize_scale": false,
+    "stop_layer": 0,
+    "refine": true,
+    "subpixel": true,
+    "score": 0.8,
+    "proposal_score": 0.5,
+    "overlap": 0.2,
+    "limit": 64,
+    "ncc_mode": 0,
+    "overlap_enabled": false
+  },
+  "timing": "Fresh serial child processes, forward/reverse block order; construction and first call separate; prepare included in total_ms; JSON and input decoding excluded.",
+  "memory": "Peak/current process RSS separately from retained frame/pose capacities; never add overlapping counters.",
+  "geometry": "Per method, independent one-to-one GT matching at <=2px, <=1deg, and scale ratio 0.98..1.02; raw poses retained. No cross-method exactness requirement.",
+  "gates": {
+    "correctness": "All fixed_scale_gt cases must have TP=truth_count, FP=FN=0 independently. Negative control is descriptive.",
+    "performance": "Full-resolution per-block median <= pyramid median + max(2ms,10%); no claim if timeout/skip/error.",
+    "memory": "Full-resolution peak RSS <= pyramid peak RSS + max(32MiB,10%) for each paired block.",
+    "scheduling": "Skip an entire case/backend pair if the conservative dense work bound exceeds the limit; timeout retained as failure, no silent retry."
+  },
+  "scope": "Original-resolution FULL IMAGE search; template cropping defines what to find, not where to search. No automatic segmentation, ROI hints, or scale-bank search.",
+  "limitations": [
+    "Fixed-scale synthetic studies and one unlabelled repository photo do not establish general real-camera accuracy.",
+    "Single-level route retains local original-resolution refinement; it removes image/template downsampling, not all coarse-to-fine ideas.",
+    "Template/source rotations follow the existing runtime; this experiment adds no rotated-template kernel."
+  ],
+  "source_sha256": {
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/benchmark_fixed_scale.py": "b2c6da9cae3a9f8502647a0678bf20a311c01f999304b136af7f3eb1930b3e0a",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/many_object_scenes.py": "86fa55ac2b532bc689d595dfd4d1afdcb4695ee6641d4ed0cc483f63c54d0c0a",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/many_object_accuracy.py": "9cbd1ed980f5de50268ade77a2114496784c33141030fbe48bd5b4f5054e378b",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/native_pipeline_runner.cpp": "460b5b9d94566243adb12c24347437ecabe1653bca129a64fe01332f35866675",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/src/geometry.cpp": "32bada1da89ce119a2ae9e99a9e05fc5cbbbedde73f13ab2a79be63283e7bfd0",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/src/image.cpp": "a8253cb1ebd4aacf803c7603f439f7230afdcbed3594ebdc64ec4d274b785516",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/src/ncc.cpp": "afa17939c75ccb2adcfcc8fb262856b488fd9e602950e57d0ddb724d0b66e080",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/src/matcher.cpp": "5aefb4b40c03b452e92f5b4c3016a926b4c4e6009dcd16609cb6818137a40b40",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/src/internal.hpp": "e0b3053ebaed5b5d4d2a9dbc2fa597a566ee72e17d94ce818035026f715237ee",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/src/c_api.cpp": "261a5aa419779b4db2770b8d9a454b881f520820fa14e4ef710a57fa3a4778e3",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/src/subpixel.cpp": "66ade96b9b3ee201eb59f4034dbfd1ae1339964410f261d44a73b04dd95c53a6",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/include/fpm/c_api.h": "e7c60b447614b1cbe95b92656530d776b85d9e79661a35a08b6274dd5ff5df1e",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/include/fpm/matcher.hpp": "cabcf162e11d05c2f774dc81c6ed39ae19163d9a907240be94c76a2ad1bca88d",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/experiments/coarse_metal.mm": "535307080f02372870b87284816e551088f8ac227e942a6e6e04847a31a7a041",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/experiments/coarse_ncc.metal": "aef0509f410cc03169a962f04f6497b8a22b67936950c8c3802c0c5026cbd07b",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/experiments/CMakeLists.txt": "950e268cbe813964230a41e037047cdf1cf7f4d855faa2b1c01613190b50387c",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/experiments/coarse_ncc.cpp": "7ce3aa77245e0283c3e2c6d68c1c40a52f2d2048b0861c8be66a375ac0910083",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/experiments/coarse_metal_source.hpp.in": "b7e9bca08f8c0abe3bd8ba7edca044f67a8b3a8a19c00123f3a4695369e710d4",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/experiments/research_pipeline.hpp": "63c185321c796378443ce5f5dcc51f7b2e44b7fbb77b15ada942cde834f253ce",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/experiments/pose_ncc.cpp": "3a0ca7a867456d5e5c5f02eceb45c64a2c8ffccd64a4c389e9e0f578a7e4eb70",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/experiments/pose_ncc.h": "09c88799f880840c28f089ebaf84e8acadc4bb672a3314b68d7ce6d9728bfe13",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/experiments/pose_ncc.metal": "1e475aa57768ab2d2474ba5e2420372191b3028c3e843858ef952f603885cf81",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/experiments/pose_internal.hpp": "ad76bbe472857d2484694526288008d69764feafca935398f742c6796b017af1",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/experiments/coarse_ncc.h": "fcd9a1d55b75c83c6bfa5084b91450506c6381066f6a7046c0ae5283ebd569d5",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/experiments/resident_metal_source.hpp.in": "4ad9ae4d33212cfda2f65f8d2e1877c1299813b7cefa041f19a37dd86a054a40",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/experiments/pose_resident.metal": "43bd7b74f87c426abdf90b5464b1bc807fc80a9fae859f2e7b18e300c2dae6c6",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/experiments/coarse_internal.hpp": "480708bfd5712818b7c92abb75426848ba14a773ae04b545e5d02bee99497d58",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/experiments/metal_source.hpp.in": "03d1afc69e4365c3d8e662ed0106b94f10d684485463b4d256bb175ba13a8409",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/experiments/fine_sampling.hpp": "8ca639bd3fc8fde831d788abb11d98cff9fe5f6c8d6ba79267367763f96882c7",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/experiments/pose_metal.mm": "bdf9c3f2e89c798c65b0d9c90c13e6a57ecfd471931c7324b9d24e9fd55957ee",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/experiments/research_pipeline.cpp": "7fccd4e2cb7540c27aadaa36d0301ce8f225c95a83545ebdcec8d2d27f618f82",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tests/gui_test.cpp": "da475ac345f4e2f1b2a69c220d3e3a0e53d5754b4a30dbc5fd5c815c3679a476",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tests/fine_metal_test.cpp": "4591457c830475aa26b6589598d8ae9ea437d82cbe2cad1bfe2f46916c3cff12",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tests/coarse_execution_test.cpp": "0f0a5e8fec91ad3e0475e681985758f98e8d7343e11c040895f2aca89f0d37b7",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tests/pose_experiment_test.cpp": "4c74775664e98fe61961f3df95cba8df7978d5b9bb33fa7dfc363852ba427488",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tests/test_many_object_scenes.py": "6ac10ba599d07e6604fb0b94f33c1fd926dfac66b577c8ff9743111f34351acd",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tests/c_api_test.c": "cd2353e706994b5e46963d775f09054696382caf6e6c8612a402f0334426a905",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tests/shared_frame_test.cpp": "8351b7be062a7d858814dffb9d1c80c3a9b05ab3e9a7677e0c6a3b197476876b",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tests/test_coarse_tiling_harness.py": "6e8331b912970dedb3af9cfd7960574d99e6e94eea894c8f8436855b73f6afce",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tests/legacy_reference.cpp": "8fd407e814baea613f9bd8dc4ff594906a188628f16cf1b062507fb672838f89",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tests/fine_scheduler_test.cpp": "92214dea3efe5b8fce71933e4a3664c8b34ddc7948ce1a96deb4f61ff7f0595d",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tests/test_coarse_next_harness.py": "9cf8a17fa0ed277d55f889e3aa9f94c4aafdf52e2530f95c1484560ef003afbb",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tests/test_shared_fine_harness.py": "294361cffe3a31a23245730f2532bb842beac3e9feab853e0441a709884085f8",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tests/coarse_tiling_test.cpp": "835d0424738cc9c3432a097f715ea79dc12ded0daf80cb3f2ecd16c5476e6777",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tests/pose_resident_test.cpp": "85ac6567a62786b402d37ed81e9f7154e44dd6ff88274266fc9108ef5fdcac77",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tests/peak_selection_test.cpp": "6206e6a078f67b111d0338ca106ed7daeb2852c64d9d7582b8d97cab0262aa98",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tests/research_pipeline_test.cpp": "530ddaa153bc208dd449b63d129f4dec679b207c4fcad96e460dda0fcf047bf1",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tests/coarse_ncc_test.cpp": "6387d353836e10abb85baa147fbd7a8f3e2ed65c3db226654bf7b68a8eef0f8b",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tests/coarse_parallel_test.cpp": "a0ca38aee4457ba379e07dac1fdbb4a0e232acdc6cf2a3044787a95bab88137b",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tests/coarse_profile_test.cpp": "b1d4860ce01a723dafed3b739f2cc0472cdbe45faa812ff5a7590a99cb6eef38",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tests/test_native_pipeline_harness.py": "3c1b6ab5fa4960b1b5e5563e40ec199150876c0966e819f57a4072589132d938",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tests/pose_auto_fallback_test.cpp": "9561b01ba741a8c8a3502d6774c1218b1a3f9ca8f40fc08de34f25784f2c763d",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tests/core_test.cpp": "8925fa9e107563f4b10930190d4477e4d8ec97d5f538cd2cca4893e3344607f0",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tests/test_pipeline_stages.py": "38abfa20fc56e60e4f2ac83d0cfecb316929dc9c0d985c1f20189f4a1a9a5d6e",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tests/fixed_scale_contract_test.cpp": "bf44fe33dfde374756e916529624639fb6ff3e3336bf621ed59dadfa84fc6d35",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tests/pose_rescue_test.cpp": "46b451137dff8cb1dd9ca9e1ae09f8dd000c8739fc40466f399335d81c611d15",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tests/test_many_object_accuracy.py": "4ddfa7d1409097f7d736603fa080ab795dd86410e1f3f66734e8aae2041605b9",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tests/test_coarse_overlap_harness.py": "9b2cf0777827a9d81a603e2d8929ac4937f95f7c077eaf00fb8fd778b4bc56de",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tests/opencv_test.cpp": "9845aecd1046e155d1921878c37aae6d8addda4a58efe1baa5462f18456b0f39",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tests/pose_linearization_test.cpp": "5ae6e41112b0e42aedfb0a5e34499b3cffc54f5c01c5228328d65f8d87ff372b",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tests/coarse_async_test.cpp": "2bdaa669a6e5b2c7c8cb64cb27fa6e5e66602e096a4cca7b5a5172b099839b8d",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tests/test_many_objects_harness.py": "41df1492b3152be2a9a52576da413ef6998831a38ccbe058572a5daaf6858b9b",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/benchmark_ncc_rescue.py": "0f8490cf979e8c6012e3d7cebcc23c87c7c9ee324b8f3cd4995eb5adbef70a8e",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/benchmark_pose_routing.py": "7fa9b02b894e9a66c5a75714123257e518bf5904ee05807e8c29e5a7d16ec896",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/plot_many_objects.py": "548352be8e3e7e7db73d312c451aad4a1ec4b376a6e71b28ca52eb59be27a20b",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/summarize_pipeline_stages.py": "db67e167b16bbc8e46c66481530578cedd87496495eb2a511c721a32f4f068ec",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/report_real_image_experiments.py": "eed62fb0de3b2eb952fdb75595910653e7e793f9da3de70d63c1d1a6acda2c48",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/rescue_policy.py": "c6c61ff2269eb362d6d77eadf960793559aebc8eeeac941909efc01ed02b5fc4",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/benchmark_modes.py": "4da572c943ef52456ee9bc16a9b4b1bee0b245936d08099e7ecdba483ba581af",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/benchmark_coarse_tiling.py": "94fd47726822be351a5256e2fb6519cab94b546d3c5d2135150fe524ad3c6f37",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/report_resident_refinement.py": "75a8b810ebd51c2997685d435e85b2bae59a6abda23c922d7a3acba6b448ac31",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/coarse_experiment.py": "130e880ad6bc0174d9a03eb2f9ff0f51761e3e46a915cd9d1a7624c874529157",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/benchmark_coarse_next.py": "e11e665e2ca45a09d39662e5385526e11cbd11ecf0ddcf72312339b4b1dac5c1",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/benchmark_rgb_batches.py": "53d963000482d4f548f968af1119516fc63a86ac6b286473c4b3be39dcb37ab8",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/audit_ncc_rescue.py": "6c6003dcbceb53d75d80eb3506f38431476f7bb69c05698eb46ddb791e61db8f",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/plot_coarse_next.py": "d29327142b055c73ac3807ef21784d10ccbb345f728f20895affbbed2c1f518b",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/audit_resident_refinement.py": "4b7fbdd622aad2a09eb38a06baa075ca8dd98e9419e2d2379e72f9c8903d2d9e",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/select_pose_routing_policy.py": "5448b2f87ec025aac11c781e0f7e57ad04b310e100a2ec77aba26ae125f74a6d",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/report_pose_routing.py": "e399f3c94ff2af38acc32cad76d9f7b0fe5578e312a1893664c6704cb6be73bd",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/report_metal_costs.py": "2ee17ad4d9ca81ead279f1cf2c3ad25f23fe280dbbe2358ab82ca870c1ef5b4b",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/plot_coarse_overlap.py": "04cdb00345f9760be4c8b1e6f38f72b1de434758a06497823ef6f182474520d8",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/benchmark_pipeline_stages.py": "ef06c55b826f71ea1eb18d684a5e9a26de8f393e44c77c264689634e6fa1ed78",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/plot_pipeline_stages.py": "62fc491a6dcc306e6e9fea9514402c65fdda4d5cd2fad7de398f69fdbad4c778",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/real_image_experiments.py": "8ddbfef6d6dc41576808d66be51ee0655feecdb715ca1f1478bcca59425d146b",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/benchmark_hybrid_refinement.py": "5826ad3119d97934d88614d78b7babbf0d151a4c297598f4d22c2efdc28946aa",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/profile_metal_costs.py": "a20545057c72781bd6c9ee70509723b896ad7e2de05492cb3e0c15eb9ba05005",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/validate_pose_experiment.py": "32f9eca614dbf7f0313a1ddedc551150910d3a1d286d752cdf8aa575eefdec59",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/audit_rotation_direction.py": "6cbce437edf24d68f21be8f22159e161aa8cd21799d4e7a2d756507fb8a87d34",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/validate_real_image_experiments.py": "63200b2087a80f15adaa604d01ecad0c0bd712d08917bdd8c328bc0789d26366",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/pose_experiment.py": "18fc580686a2be1fe4d68060d50601edf8b615fc9d940762af23f89f4addf839",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/benchmark_tile_probe.py": "891ff950f154035a35949bb045e29d0c6dae26d4d4d9184f48db9379232f2280",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/research_ncc_fourier.py": "788fdaf0d01cf2f81be7036255f911c906049c26ab2b6290de2df3cc1350c142",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/benchmark_native_pipeline.py": "fa8f074de71e67f4b5d0fe5d8b24c9cad40f3621b9cee41aaba0419bd4adf875",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/report_ncc_rescue.py": "649a4bf63d7a465ea0ebe30d2fabab934ed38b911bf710e2b63ee81a7b138940",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/benchmark_coarse_ncc.py": "b8891f8cdc128f160abce7326a70c2ddb24cbe53b765922617d07d3f56c692a1",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/diagnose_resident_basin.py": "c2962e0a6d3d8f80203fd3a4c83f8a6ea69bf739409c3cd8fd96c759a3ac193f",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/benchmark_pose_stress.py": "9a7b535a4ae02f97b7093ff9c63638b2ff2408634031a548a825f1ca2e8c632e",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/benchmark_resident_refinement.py": "114843973015a175ebd8cc632aed3ee556ff9d4a2769c107af932fa62b83eac7",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/benchmark_rescue_dispatch.py": "02429703b8976cd3f5d3cbb3d4c443da8bf9259c762e2cf9d5c40c3c6742aeae",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/compare_versions.py": "21ab8c2542b890d1ee13f4512ce1704b4dabdb2d9a908c355c7f1533c9323931",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/report_performance_accuracy.py": "9c5bfdd6caed79c835eed9f024dad78b5d1e536a4aa5e2b661518e190895cb0e",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/soak_native_pipeline.py": "58f8f122b1bebfab1a6d645d9bab30303a94dd53595df777e8494c62b63a63a2",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/benchmark_coarse_rescue.py": "5d0a5c4261decd5ad646fde0ee676d8192ed253a2aeb7dcc65c40bbc89e786ae",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/report_gpu_refinement.py": "2e0e7ea50ff0c5fe63dc0ad24fd7728fc1aa646a3ac112fbe8aaf78e825014d3",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/plot_coarse_tiling.py": "6ae197d90b35c831b24de103038267f66ef01fa261d2134ef23616e8d276b50e",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/benchmark_pose_experiments.py": "1cb7566436d0bbb8d3ccff816330916ef170d77ef5bbeb2b6161c67248fb5520",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/benchmark_shared_fine.py": "33aed3f5e466677c095eebe7f7474cbada9e449ff9cf8ebde91b5da22ed4b35c",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/plot_shared_fine.py": "cab018f1c7e6e04a431791b6ac436b67340c04d8723fad45e2631d6e55628c8f",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/report_pose_experiments.py": "7defd9202322fa5a9c043de265e8e29b94c3bc5d676db329d7720526f6e6c19c",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/probe_ncc_rescue.py": "6953add7398d5cf07bc33171e02d07a195ab4ee4b9345ef1e2b3f12373339d87",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/benchmark_coarse_overlap.py": "6188c54da561004403d9630257ab1088b7067b84e7442fcd182ca587e28b9eba",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/diagnose_rotor.py": "531c79230c5c5fc7a6ee542870826d03733356ae6f6d74d38ceddb98508d34b9",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/benchmark_many_objects.py": "54d27925c0b211ea30e23e0971b3de683ca6467cb2daa7388d0a45c3038a14c2",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/audit_rotation_search.py": "4921dc7053acfb67b305158768e4185add73ea6cd9ac790dac55bba975a0fa15",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/CMakeLists.txt": "d00880a4891e98abd1c2c280db555ca48be92f11ca76e3678f5a9ea6ff8c2e15",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/macos-cli/mainwindow.cpp": "9241c65286bc81d6f13c22a63bdc26138a6adb8530d716d32c04050995cc7665",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/macos-cli/mainwindow.h": "3ba7d5bb31c2f3470f0ad674a0e65718e2eadc67056d92134453b9af62ed0b9b"
+  },
+  "binary_sha256": {
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/gui-integration/experiments/fpm_native_pipeline_runner": "a20f2cebc48f576d5ca03c3a1e71177dc81b62c865d24daf776e77de4129b7e2",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/gui-integration/experiments/libfpm_coarse_experiment.dylib": "9384e66d7c5ff84706cb2b2e6dda150690dac577f3bf8d24890f767c83fe43c0",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/gui-integration/experiments/libfpm_pose_experiment.dylib": "4ddf77053aaaf24a9e59d9d03307166ffea50e5934f4cda7a5d6b5628541a297"
+  },
+  "input_sha256": {
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/fixed-scale-study/formal/inputs/crop_small360.png": "fa76dc6073f9e5f44fb5026d07c0deb3ff053a3a36ed6d5056e46549befe5fec",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/fixed-scale-study/formal/inputs/src3_native_crop.png": "57fc0e4b2f3f755c56249d8273cca249cbed08d750c64efa0e1f3651a99e5c19",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/fixed-scale-study/formal/inputs/crop_small360.json": "db1b1a02cb8f653354cf1ec95416bd9d6b16ceedfd5db3d329f2b8e01bd260c6",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/fixed-scale-study/formal/inputs/crop_medium20.png": "208668cb5612d9bf9c7acdaf8690d467f021938ec17a5bb0f5e0689a92fdc819",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/fixed-scale-study/formal/inputs/crop_medium20.json": "474f8592c76f9de90f6bcf26212c0df3fd81b870408765866310fdf69c40bd9c",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/fixed-scale-study/formal/inputs/crop_lowcontrast20.png": "3d1006e52349d67ffb1b91013b9ed41abde474bfc75cc7283e8f2802c5879f5a",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/fixed-scale-study/formal/inputs/crop_lowcontrast20.json": "ad89f05a49bd313f616575ca6626da88b2d3692b604b38eb48be301ae7ae0eaa",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/fixed-scale-study/formal/inputs/thin_detail20.png": "8725c4af6f8677e3ba1963ed8028cf3497114f86f87a14abc2dc7b8acc9a37c8",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/fixed-scale-study/formal/inputs/thin_detail_template.png": "86d1c1e25368a9e951bf838e7a786c3cbe764c21aace7a3f7f3e9907b436cc6e",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/fixed-scale-study/formal/inputs/thin_detail20.json": "4d7d63a6db9582e16d81907fce79617e6e95087b1d1d94c0ee47183b1d8aaeb3",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/fixed-scale-study/formal/inputs/scale_violation20.png": "6728485c058ae25ad7be3100be4e2876907dff735b1c6b96ca6d961c37dcabba",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/fixed-scale-study/formal/inputs/scale_violation20.json": "801260994a301a0d53f07a07c0af2d143b58729cb8e6cd5901e3eb4f2bcff912",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/Test Images/Src4.bmp": "d5dd66230d37b7b5291315e136c01420859636058abecc55b698eeb4f3eabdd6",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/Test Images/Dst4.bmp": "0af30487f7f2c04607bb098c92f24c4e8db217732b819b178ddd1c1c87b98667",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/fixed-scale-study/formal/inputs/repo_src4.json": "f84021f290fa3422b71533d15637d76024ef9ef7cab6d7b0243c67148606d954"
+  }
+}

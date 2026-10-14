@@ -1,0 +1,17 @@
+{
+  "release_contract_tests": "2/2 passed: CPU and Metal",
+  "test_log_sha256": "3236660d2e0635789ea5ec024cbfc1bac5fb4e99a17f208ea3a69e935cfb6db2",
+  "native_runtime_binaries_equal_previous_gui_study": true,
+  "source_binary_input_hashes_unchanged": true,
+  "workers": 28,
+  "measured_calls": 84,
+  "all_workers_succeeded": true,
+  "route_integrity_passed": true,
+  "fixed_scale_gt_all_passed": true,
+  "all_full_resolution_performance_gates_passed": false,
+  "limitations": [
+    "No new runtime or GUI feature implementation in this study.",
+    "New contract tests do not constitute rerunning the complete historical test suite.",
+    "Synthetic GT is not independent-camera accuracy."
+  ]
+}
