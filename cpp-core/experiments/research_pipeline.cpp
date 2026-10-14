@@ -1,0 +1,214 @@
+// SPDX-License-Identifier: BSD-2-Clause
+#include "research_pipeline.hpp"
+#include <algorithm>
+#include <chrono>
+#include <cmath>
+#include <limits>
+#include <numeric>
+#include <stdexcept>
+
+namespace fpm::research {
+namespace {
+using Clock = std::chrono::steady_clock;
+constexpr double pi = 3.141592653589793238462643383279502884;
+double ms(Clock::time_point t) { return std::chrono::duration<double,std::milli>(Clock::now()-t).count(); }
+fpm_image view(ImageView v) { return {v.data,v.width,v.height,v.stride}; }
+void check(int status, const char* error) {
+    if (status != FPM_OK) throw std::runtime_error(*error ? error : "Research pipeline API failed");
+}
+void validateImage(ImageView v) {
+    if (!v.data || v.width<1 || v.height<1 || v.stride<size_t(v.width) ||
+        v.stride>std::numeric_limits<size_t>::max()/size_t(v.height))
+        throw std::invalid_argument("Invalid image dimensions, pixels or stride");
+}
+int roundedDimension(double value) {
+    if (!std::isfinite(value) || value<.5 || value>32768)
+        throw std::invalid_argument("Scaled template dimensions must be 1..32768");
+    double lower=std::floor(value), part=value-lower;
+    const int n=int(lower);
+    const int rounded=n+(part>.5 || (part==.5 && (n&1)));
+    if (!rounded) throw std::invalid_argument("Scale rounds template dimension to zero");
+    return rounded;
+}
+double cross(Point a,Point b,Point p) { return (b.x-a.x)*(p.y-a.y)-(b.y-a.y)*(p.x-a.x); }
+double area(const std::vector<Point>& p) {
+    double sum=0; for(size_t i=1;i+1<p.size();++i) sum+=cross(p[0],p[i],p[i+1]);
+    return std::abs(sum)/2;
+}
+double overlap(const Match& a,const Match& b) {
+    auto bounds=[](const Match& m) {
+        std::array<double,4> box{m.corners[0].x,m.corners[0].y,m.corners[0].x,m.corners[0].y};
+        for(auto p:m.corners) { box[0]=std::min(box[0],p.x);box[1]=std::min(box[1],p.y);box[2]=std::max(box[2],p.x);box[3]=std::max(box[3],p.y); }
+        return box;
+    };
+    auto aa=bounds(a),bb=bounds(b);
+    if (aa[2]<=bb[0] || bb[2]<=aa[0] || aa[3]<=bb[1] || bb[3]<=aa[1]) return 0;
+    std::vector<Point> p(a.corners.begin(),a.corners.end()),q(b.corners.begin(),b.corners.end());
+    const double denominator=std::min(area(p),area(q));
+    if (denominator<=0) return 0;
+    for(int i=0;i<4 && !p.empty();++i) {
+        std::vector<Point> next;const auto v=q[i],w=q[(i+1)%4];auto previous=p.back();double ps=cross(v,w,previous);
+        for(auto current:p) {
+            double side=cross(v,w,current);
+            if((side>=0)!=(ps>=0)) { double t=ps/(ps-side);next.push_back({previous.x+t*(current.x-previous.x),previous.y+t*(current.y-previous.y)}); }
+            if(side>=0) next.push_back(current);
+            previous=current;ps=side;
+        }
+        p=std::move(next);
+    }
+    return std::clamp(area(p)/denominator,0.,1.);
+}
+Match makeMatch(Point center,double angle,double scale,int w,int h,double score) {
+    Match m;m.center=center;m.angle=angle;m.score=score;
+    double c=scale*std::cos(angle*pi/180),s=scale*std::sin(angle*pi/180);
+    std::array<Point,4> local{{{-w/2.,-h/2.},{w/2.,-h/2.},{w/2.,h/2.},{-w/2.,h/2.}}};
+    for(int k=0;k<4;++k) m.corners[k]={c*local[k].x+s*local[k].y+center.x,-s*local[k].x+c*local[k].y+center.y};
+    return m;
+}
+bool allowed(double a,const MatchConfig& c) {
+    // Equivalent +/-180 representations are the same physical angle.
+    if(c.angleRanges.empty()) return std::abs(a)<=c.toleranceAngle+1e-5;
+    for(auto r:c.angleRanges) for(double shift:{-360.,0.,360.})
+        if(a+shift>=r.min-1e-5 && a+shift<=r.max+1e-5) return true;
+    return false;
+}
+void validateOptions(const Options& o,int backend) {
+    const auto& c=o.match;
+    if(c.maxTargets<1 || c.maxTargets>10000 || !std::isfinite(c.minScore) || c.minScore<0 || c.minScore>1 ||
+       !std::isfinite(c.maxOverlap) || c.maxOverlap<0 || c.maxOverlap>1 ||
+       !std::isfinite(c.toleranceAngle) || c.toleranceAngle<0 || c.toleranceAngle>180 ||
+       (c.stopLayer!=0 && c.stopLayer!=1) || !std::isfinite(o.proposalScore) || o.proposalScore<0 || o.proposalScore>1 ||
+       o.nccMode<0 || o.nccMode>3 || (backend==0 && (o.nccMode || o.overlap)))
+        throw std::invalid_argument("Invalid matching options or GPU option selected for CPU");
+    if(c.coarseNccPruning) throw std::invalid_argument("Research frame does not support coarse pruning");
+    for(auto r:c.angleRanges) if(!std::isfinite(r.min) || !std::isfinite(r.max) || r.min>r.max || r.min< -180 || r.max>180)
+        throw std::invalid_argument("Angle range must be ordered within -180..180");
+}
+}
+Image scaledTemplate(ImageView source,double scale) {
+    validateImage(source);
+    if(!std::isfinite(scale) || scale<=0) throw std::invalid_argument("Scale must be finite and positive");
+    const int w=roundedDimension(source.width*scale),h=roundedDimension(source.height*scale);
+    if(uint64_t(w)*h>64ull*1024*1024) throw std::invalid_argument("Scaled template exceeds 64M pixels");
+    if(scale==1) return Image(source);
+    Image out(w,h);
+    for(int y=0;y<h;++y) for(int x=0;x<w;++x) {
+        double sx=source.width/2.+(x-w/2.)/scale,sy=source.height/2.+(y-h/2.)/scale;
+        int ix=int(std::floor(sx)),iy=int(std::floor(sy));double dx=sx-ix,dy=sy-iy,value=0;
+        for(int oy=0;oy<2;++oy) for(int ox=0;ox<2;++ox) if(ix+ox>=0 && ix+ox<source.width && iy+oy>=0 && iy+oy<source.height)
+            value+=source.data[size_t(iy+oy)*source.stride+ix+ox]*((ox?dx:1-dx)*(oy?dy:1-dy));
+        out.row(y)[x]=uint8_t(std::clamp(std::floor(value+.5),0.,255.));
+    }
+    return out;
+}
+struct Session::Impl {
+    Image source,templ;
+    Settings settings;
+    std::vector<std::unique_ptr<fpm_coarse_handle,decltype(&fpm_coarse_destroy)>> patterns;
+    std::unique_ptr<fpm_frame_handle,decltype(&fpm_frame_destroy)> frame{nullptr,fpm_frame_destroy};
+    std::unique_ptr<void,decltype(&fpm_pose_destroy)> pose{nullptr,fpm_pose_destroy};
+    bool poseInvert=false;
+    Impl(ImageView src,ImageView tmp,const Settings& s):source(src),templ(tmp),settings(s) {
+        if(s.backend<0 || s.backend>1 || s.minReducedArea<1 || s.cpuThreads<1 || s.cpuThreads>256 || s.scales.empty() || s.scales.size()>64)
+            throw std::invalid_argument("Invalid backend, reduced area, threads or scale bank");
+        char error[1024]{};
+        for(double scale:s.scales) {
+            auto resized=scaledTemplate(templ.view(),scale);fpm_coarse_handle* p=nullptr;FpmCoarseMetrics metrics{};
+            // Models only learn CPU pixels. The shared frame owns the sole GPU backend.
+            check(fpm_coarse_create_backend(view(resized.view()),s.minReducedArea,0,&p,&metrics,error,sizeof(error)),error);
+            patterns.emplace_back(p,fpm_coarse_destroy);
+        }
+        FpmFrameConfigV1 config{};fpm_frame_default_config(&config);config.backend=s.backend;
+        config.pyramid_mode=s.backend?1:0;config.batch_angles=s.backend?4:1;config.fine_batch_size=s.backend?512:0;
+        fpm_frame_handle* f=nullptr;check(fpm_frame_create(&config,sizeof(config),&f,error,sizeof(error)),error);frame.reset(f);
+    }
+    void ensurePose(bool invert) {
+        if(pose && poseInvert==invert) return;
+        // Release old GPU image before replacement, also after previous errors.
+        pose.reset();
+        std::vector<float> src(size_t(source.width())*source.height()),tmp(size_t(templ.width())*templ.height());
+        for(int y=0;y<source.height();++y) for(int x=0;x<source.width();++x) src[size_t(y)*source.width()+x]=(invert?255-source.row(y)[x]:source.row(y)[x])/255.f;
+        for(int y=0;y<templ.height();++y) for(int x=0;x<templ.width();++x) tmp[size_t(y)*templ.width()+x]=templ.row(y)[x]/255.f;
+        char error[1024]{};
+        pose.reset(fpm_pose_create(settings.backend,settings.cpuThreads,src.data(),source.width(),source.height(),tmp.data(),templ.width(),templ.height(),1,error,sizeof(error)));
+        if(!pose) throw std::runtime_error(error);
+        poseInvert=invert;
+    }
+};
+Session::Session(ImageView source,ImageView templ,const Settings& settings) {
+    validateImage(source);validateImage(templ);impl_=std::make_unique<Impl>(source,templ,settings);
+}
+Session::~Session()=default;
+Result Session::run(const Options& o) {
+    auto& s=*impl_;validateOptions(o,s.settings.backend);Result r;char error[1024]{};const auto start=Clock::now();
+    if(s.settings.backend) {
+        FpmCoarseOptimizationConfigV1 opt{1,sizeof(opt),1,o.nccMode,0,0};
+        check(fpm_frame_set_coarse_optimization(s.frame.get(),&opt,sizeof(opt),error,sizeof(error)),error);
+        FpmCoarseOverlapConfigV1 optOverlap{1,sizeof(optOverlap),int(o.overlap),0,0,0};
+        check(fpm_frame_set_coarse_overlap(s.frame.get(),&optOverlap,sizeof(optOverlap),error,sizeof(error)),error);
+    }
+    std::vector<fpm_coarse_handle*> models;for(auto& p:s.patterns) models.push_back(p.get());
+    const auto prepare=Clock::now();
+    check(fpm_frame_prepare(s.frame.get(),view(s.source.view()),models.data(),models.size(),o.match.invertSource,&r.frame,error,sizeof(error)),error);
+    r.prepareMs=ms(prepare);
+    fpm_config c{};c.max_targets=o.match.maxTargets;c.min_score=o.refine?std::min(o.proposalScore,o.match.minScore):o.match.minScore;
+    c.max_overlap=o.match.maxOverlap;c.tolerance_angle=o.match.toleranceAngle;c.subpixel=o.match.subpixel;
+    c.invert_source=o.match.invertSource;c.scalar=o.match.backend==Backend::Scalar;c.stop_layer=o.match.stopLayer;
+    std::vector<fpm_angle_range> ranges;for(auto a:o.match.angleRanges) ranges.push_back({a.min,a.max});c.ranges=ranges.data();c.range_count=ranges.size();
+    std::vector<fpm_result> output(size_t(c.max_targets));
+    for(size_t i=0;i<models.size();++i) {
+        size_t count=0;FpmCoarseMetrics coarse{};FpmFineMetricsV1 fine{};FpmCoarseExecutionMetricsV1 execution{};FpmCoarseOverlapMetricsV1 overlapMetrics{};
+        check(fpm_frame_match(s.frame.get(),models[i],&c,output.data(),output.size(),&count,&coarse,nullptr,0,&execution,sizeof(execution),&fine,sizeof(fine),error,sizeof(error)),error);
+        check(fpm_frame_coarse_overlap_metrics(s.frame.get(),&overlapMetrics,sizeof(overlapMetrics),error,sizeof(error)),error);
+        r.coarse.push_back(coarse);r.fine.push_back(fine);r.overlapMetrics.push_back(overlapMetrics);
+        for(size_t j=0;j<count;++j) {
+            const auto& m=output[j];double scale=s.settings.scales[i];
+            r.proposals.push_back(makeMatch({m.center.x,m.center.y},m.angle,scale,s.templ.width(),s.templ.height(),m.score));r.proposalScales.push_back(scale);
+        }
+    }
+    r.proposalMs=ms(start);
+    auto candidates=r.proposals;auto scales=r.proposalScales;
+    if(o.refine && !candidates.empty()) {
+        const auto t=Clock::now();s.ensurePose(o.match.invertSource);
+        const size_t n=candidates.size();
+        if(n>65536) throw std::invalid_argument("Refinement accepts at most 65536 proposals; reduce scale bank or target count");
+        std::vector<float> seeds(n*4),refined(n*4),scores(n);
+        for(size_t i=0;i<n;++i) {
+            seeds[4*i]=float(candidates[i].center.x-s.source.width()/2.);seeds[4*i+1]=float(s.source.height()/2.-candidates[i].center.y);
+            seeds[4*i+2]=float(candidates[i].angle);seeds[4*i+3]=float(std::log(scales[i]));
+        }
+        FpmPoseRefineConfig config{};fpm_pose_refine_default_config(&config);
+        config.optimize_scale=s.settings.scales.size()>1;config.optimize_angle=o.match.toleranceAngle!=0 || !ranges.empty();
+        FpmPoseRescueConfig rescue{};fpm_pose_rescue_default_config(&rescue);rescue.backend=s.settings.backend;
+        rescue.trigger_score=std::min(rescue.trigger_score,o.match.minScore);rescue.trigger_min_score=std::min(rescue.trigger_min_score,rescue.trigger_score);
+        if(fpm_pose_refine_rescue(s.pose.get(),seeds.data(),int(n),&config,&rescue,refined.data(),scores.data(),nullptr,&r.rescue,&r.pose,error,sizeof(error))) throw std::runtime_error(error);
+        for(size_t i=0;i<n;++i) {
+            // Match NumPy float32 pose + weak Python scalar arithmetic before conversion to double.
+            const float cx=refined[4*i]+float(s.source.width()/2.),cy=float(s.source.height()/2.)-refined[4*i+1];
+            float a=std::fmod(refined[4*i+2]+180.f,360.f);if(a<0) a+=360.f;a-=180.f;
+            scales[i]=std::exp(double(refined[4*i+3]));candidates[i]=makeMatch({cx,cy},a,scales[i],s.templ.width(),s.templ.height(),scores[i]);
+        }
+        r.refineMs=ms(t);
+    }
+    const auto nms=Clock::now();std::vector<size_t> order(candidates.size());std::iota(order.begin(),order.end(),0);
+    std::stable_sort(order.begin(),order.end(),[&](size_t i,size_t j) {
+        const auto& a=candidates[i];const auto& b=candidates[j];
+        if(a.score!=b.score) return a.score>b.score;if(a.center.y!=b.center.y) return a.center.y<b.center.y;
+        if(a.center.x!=b.center.x) return a.center.x<b.center.x;return a.angle<b.angle;
+    });
+    for(size_t i:order) {
+        const auto& m=candidates[i];if(m.score<o.match.minScore || !allowed(m.angle,o.match)) continue;
+        bool accept=true;for(auto& previous:r.matches) if(overlap(previous,m)>o.match.maxOverlap+1e-10) {accept=false;break;}
+        if(accept) { r.matches.push_back(m);r.scales.push_back(scales[i]);if(r.matches.size()>=size_t(o.match.maxTargets)) break; }
+    }
+    r.nmsMs=ms(nms);
+    FpmCoarseExecutionMetricsV1 prepareMetrics{};
+    check(fpm_frame_get_metrics(s.frame.get(),&r.frame,sizeof(r.frame),&prepareMetrics,sizeof(prepareMetrics),error,sizeof(error)),error);
+    if(s.pose) {
+        FpmPoseMetrics memory{};
+        if(fpm_pose_memory(s.pose.get(),&memory)) throw std::runtime_error("Cannot query pose memory");
+        r.pose.host_buffer_bytes=memory.host_buffer_bytes;r.pose.gpu_buffer_bytes=memory.gpu_buffer_bytes;r.pose.gpu_allocated_bytes=memory.gpu_allocated_bytes;
+    }
+    r.totalMs=ms(start);return r;
+}
+} // namespace fpm::research

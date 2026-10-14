@@ -1,0 +1,3641 @@
+{
+  "cases": [
+    {
+      "name": "controlled6",
+      "methods": {
+        "python_frozen": {
+          "total_ms": {
+            "median": 76.3566669775173,
+            "min": 73.1358751654625,
+            "max": 80.00837499275804,
+            "values": [
+              80.00837499275804,
+              78.88920791447163,
+              79.1918330360204,
+              77.46629207395017,
+              79.4876660220325,
+              75.24704188108444,
+              74.47375007905066,
+              73.1358751654625,
+              73.34825000725687,
+              74.82095900923014
+            ]
+          },
+          "rss_bytes": [
+            100499456,
+            102219776
+          ],
+          "blocks": [
+            {
+              "block": 0,
+              "total_ms": 79.1918330360204
+            },
+            {
+              "block": 1,
+              "total_ms": 74.47375007905066
+            }
+          ],
+          "ordered_parity_within_1e_minus5": true,
+          "native_routes_exact": true,
+          "work_equal": true,
+          "route_valid": true,
+          "repeat_exact": true,
+          "all_strict_gt": true,
+          "truth_count": 6,
+          "max_errors": {
+            "position_px": 0.022762758554983418,
+            "angle_deg": 0.0270538330078125,
+            "relative_scale": 0.0019094709532277987
+          },
+          "construct_ms": [
+            42.7844999358058,
+            50.68254214711487
+          ],
+          "first_ms": [
+            125.68895798176527,
+            92.84824994392693
+          ],
+          "stage_medians": {
+            "prepare_ms": 0.3999170148745179,
+            "proposal_ms": 60.56447955779731,
+            "refine_ms": 16.022271011024714,
+            "nms_ms": 0.05329155828803778
+          },
+          "frame_capacities": [
+            {
+              "frame_host_bytes": 1084452,
+              "frame_coarse_gpu_bytes": 2091081,
+              "frame_fine_gpu_bytes": 4160256
+            },
+            {
+              "frame_host_bytes": 1084452,
+              "frame_coarse_gpu_bytes": 2091081,
+              "frame_fine_gpu_bytes": 4160256
+            }
+          ]
+        },
+        "python_reference": {
+          "total_ms": {
+            "median": 77.18489598482847,
+            "min": 75.92208404093981,
+            "max": 78.41641688719392,
+            "values": [
+              77.8333330526948,
+              76.12316613085568,
+              77.10112491622567,
+              75.92208404093981,
+              77.39949994720519,
+              76.07795810326934,
+              77.30345893651247,
+              77.26866705343127,
+              78.41641688719392,
+              76.257708016783
+            ]
+          },
+          "rss_bytes": [
+            100843520,
+            101564416
+          ],
+          "blocks": [
+            {
+              "block": 0,
+              "total_ms": 77.10112491622567
+            },
+            {
+              "block": 1,
+              "total_ms": 77.26866705343127
+            }
+          ],
+          "ordered_parity_within_1e_minus5": true,
+          "native_routes_exact": true,
+          "work_equal": true,
+          "route_valid": true,
+          "repeat_exact": true,
+          "all_strict_gt": true,
+          "truth_count": 6,
+          "max_errors": {
+            "position_px": 0.022762758554983418,
+            "angle_deg": 0.0270538330078125,
+            "relative_scale": 0.0019094709532277987
+          },
+          "construct_ms": [
+            42.42804180830717,
+            43.21658308617771
+          ],
+          "first_ms": [
+            88.80400005728006,
+            98.91441697254777
+          ],
+          "stage_medians": {
+            "prepare_ms": 0.39343745447695255,
+            "proposal_ms": 61.26781250350177,
+            "refine_ms": 15.364291961304843,
+            "nms_ms": 0.050416565500199795
+          },
+          "frame_capacities": [
+            {
+              "frame_host_bytes": 1084452,
+              "frame_coarse_gpu_bytes": 2091081,
+              "frame_fine_gpu_bytes": 4160256
+            },
+            {
+              "frame_host_bytes": 1084452,
+              "frame_coarse_gpu_bytes": 2091081,
+              "frame_fine_gpu_bytes": 4160256
+            }
+          ]
+        },
+        "native_original": {
+          "total_ms": {
+            "median": 76.4503335,
+            "min": 75.017,
+            "max": 77.658709,
+            "values": [
+              75.017,
+              77.1965,
+              75.899,
+              76.862792,
+              76.960167,
+              76.302042,
+              76.342209,
+              76.558458,
+              77.658709,
+              76.066667
+            ]
+          },
+          "rss_bytes": [
+            51314688,
+            52215808
+          ],
+          "blocks": [
+            {
+              "block": 0,
+              "total_ms": 76.862792
+            },
+            {
+              "block": 1,
+              "total_ms": 76.342209
+            }
+          ],
+          "ordered_parity_within_1e_minus5": true,
+          "native_routes_exact": true,
+          "work_equal": true,
+          "route_valid": true,
+          "repeat_exact": true,
+          "all_strict_gt": true,
+          "truth_count": 6,
+          "max_errors": {
+            "position_px": 0.022762758554983418,
+            "angle_deg": 0.0270538330078125,
+            "relative_scale": 0.0019094709532277987
+          },
+          "construct_ms": [
+            22.781959,
+            22.532417
+          ],
+          "first_ms": [
+            95.65275,
+            95.62775
+          ],
+          "stage_medians": {
+            "prepare_ms": 0.24897950000000002,
+            "proposal_ms": 61.129833500000004,
+            "refine_ms": 15.425479,
+            "nms_ms": 0.0033125000000000003
+          },
+          "frame_capacities": [
+            {
+              "frame_host_bytes": 1084452,
+              "frame_coarse_gpu_bytes": 2091081,
+              "frame_fine_gpu_bytes": 4160256
+            },
+            {
+              "frame_host_bytes": 1084452,
+              "frame_coarse_gpu_bytes": 2091081,
+              "frame_fine_gpu_bytes": 4160256
+            }
+          ]
+        },
+        "native_tile": {
+          "total_ms": {
+            "median": 76.0548955,
+            "min": 71.688916,
+            "max": 77.031291,
+            "values": [
+              76.485583,
+              77.031291,
+              74.923417,
+              75.973167,
+              76.104958,
+              71.688916,
+              76.004833,
+              75.613167,
+              76.479166,
+              76.882041
+            ]
+          },
+          "rss_bytes": [
+            51380224,
+            51838976
+          ],
+          "blocks": [
+            {
+              "block": 0,
+              "total_ms": 76.104958
+            },
+            {
+              "block": 1,
+              "total_ms": 76.004833
+            }
+          ],
+          "ordered_parity_within_1e_minus5": true,
+          "native_routes_exact": true,
+          "work_equal": true,
+          "route_valid": true,
+          "repeat_exact": true,
+          "all_strict_gt": true,
+          "truth_count": 6,
+          "max_errors": {
+            "position_px": 0.022762758554983418,
+            "angle_deg": 0.0270538330078125,
+            "relative_scale": 0.0019094709532277987
+          },
+          "construct_ms": [
+            21.966167,
+            22.066333
+          ],
+          "first_ms": [
+            84.127542,
+            85.774375
+          ],
+          "stage_medians": {
+            "prepare_ms": 0.2405,
+            "proposal_ms": 60.4629165,
+            "refine_ms": 15.547166,
+            "nms_ms": 0.004021
+          },
+          "frame_capacities": [
+            {
+              "frame_host_bytes": 1084452,
+              "frame_coarse_gpu_bytes": 2091081,
+              "frame_fine_gpu_bytes": 4160256
+            },
+            {
+              "frame_host_bytes": 1084452,
+              "frame_coarse_gpu_bytes": 2091081,
+              "frame_fine_gpu_bytes": 4160256
+            }
+          ]
+        },
+        "native_overlap": {
+          "total_ms": {
+            "median": 70.3515625,
+            "min": 68.190917,
+            "max": 70.845833,
+            "values": [
+              70.40375,
+              70.299375,
+              69.606,
+              70.571375,
+              69.890292,
+              70.15525,
+              70.845833,
+              70.581291,
+              70.414208,
+              68.190917
+            ]
+          },
+          "rss_bytes": [
+            52641792,
+            51888128
+          ],
+          "blocks": [
+            {
+              "block": 0,
+              "total_ms": 70.299375
+            },
+            {
+              "block": 1,
+              "total_ms": 70.414208
+            }
+          ],
+          "ordered_parity_within_1e_minus5": true,
+          "native_routes_exact": true,
+          "work_equal": true,
+          "route_valid": true,
+          "repeat_exact": true,
+          "all_strict_gt": true,
+          "truth_count": 6,
+          "max_errors": {
+            "position_px": 0.022762758554983418,
+            "angle_deg": 0.0270538330078125,
+            "relative_scale": 0.0019094709532277987
+          },
+          "construct_ms": [
+            21.659042,
+            22.344417
+          ],
+          "first_ms": [
+            91.172833,
+            77.998667
+          ],
+          "stage_medians": {
+            "prepare_ms": 0.26487499999999997,
+            "proposal_ms": 54.683875,
+            "refine_ms": 15.645271000000001,
+            "nms_ms": 0.0031875000000000002
+          },
+          "frame_capacities": [
+            {
+              "frame_host_bytes": 1084452,
+              "frame_coarse_gpu_bytes": 3082783,
+              "frame_fine_gpu_bytes": 4160256
+            },
+            {
+              "frame_host_bytes": 1084452,
+              "frame_coarse_gpu_bytes": 3082783,
+              "frame_fine_gpu_bytes": 4160256
+            }
+          ]
+        },
+        "native_combined": {
+          "total_ms": {
+            "median": 69.291417,
+            "min": 66.662291,
+            "max": 70.199417,
+            "values": [
+              67.90775,
+              66.662291,
+              68.743125,
+              69.683959,
+              69.764333,
+              70.199417,
+              69.700666,
+              69.911209,
+              68.898875,
+              68.529333
+            ]
+          },
+          "rss_bytes": [
+            52363264,
+            52969472
+          ],
+          "blocks": [
+            {
+              "block": 0,
+              "total_ms": 68.743125
+            },
+            {
+              "block": 1,
+              "total_ms": 69.700666
+            }
+          ],
+          "ordered_parity_within_1e_minus5": true,
+          "native_routes_exact": true,
+          "work_equal": true,
+          "route_valid": true,
+          "repeat_exact": true,
+          "all_strict_gt": true,
+          "truth_count": 6,
+          "max_errors": {
+            "position_px": 0.022762758554983418,
+            "angle_deg": 0.0270538330078125,
+            "relative_scale": 0.0019094709532277987
+          },
+          "construct_ms": [
+            22.872417,
+            22.740458
+          ],
+          "first_ms": [
+            76.004667,
+            79.791709
+          ],
+          "stage_medians": {
+            "prepare_ms": 0.24654150000000002,
+            "proposal_ms": 53.836854,
+            "refine_ms": 15.3029165,
+            "nms_ms": 0.003708
+          },
+          "frame_capacities": [
+            {
+              "frame_host_bytes": 1084452,
+              "frame_coarse_gpu_bytes": 3082783,
+              "frame_fine_gpu_bytes": 4160256
+            },
+            {
+              "frame_host_bytes": 1084452,
+              "frame_coarse_gpu_bytes": 3082783,
+              "frame_fine_gpu_bytes": 4160256
+            }
+          ]
+        }
+      },
+      "performance": {
+        "native_original": {
+          "python_frozen": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -2.9410116507355477,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": 2.508882551188907,
+                "passed": true
+              }
+            ]
+          },
+          "python_reference": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -0.30911730079766775,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -1.1990087169364894,
+                "passed": true
+              }
+            ]
+          }
+        },
+        "native_tile": {
+          "python_frozen": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -3.89797144184848,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": 2.0558692416108526,
+                "passed": true
+              }
+            ]
+          },
+          "python_reference": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -1.2920264358114886,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -1.635635894375309,
+                "passed": true
+              }
+            ]
+          },
+          "native_original": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -0.9859568983650813,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -0.4419259075932547,
+                "passed": true
+              }
+            ]
+          }
+        },
+        "native_overlap": {
+          "python_frozen": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -11.229008971134268,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -5.450970408689814,
+                "passed": true
+              }
+            ]
+          },
+          "python_reference": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -8.821855613152374,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -8.870942537020099,
+                "passed": true
+              }
+            ]
+          },
+          "native_original": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -8.539134253671143,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -7.765037294113397,
+                "passed": true
+              }
+            ]
+          }
+        },
+        "native_combined": {
+          "python_frozen": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -13.194173736662718,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -6.409082494146245,
+                "passed": true
+              }
+            ]
+          },
+          "python_reference": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -10.840308653482111,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -9.794398353213474,
+                "passed": true
+              }
+            ]
+          },
+          "native_original": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -10.563846028387825,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -8.699699795168359,
+                "passed": true
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "heldout12",
+      "methods": {
+        "python_frozen": {
+          "total_ms": {
+            "median": 154.6476250514388,
+            "min": 152.84558408893645,
+            "max": 155.6486668996513,
+            "values": [
+              154.2645408771932,
+              152.84558408893645,
+              154.35520885512233,
+              154.4569581747055,
+              154.32375017553568,
+              154.8382919281721,
+              155.14212497510016,
+              154.97704199515283,
+              155.00225010327995,
+              155.6486668996513
+            ]
+          },
+          "rss_bytes": [
+            126402560,
+            126173184
+          ],
+          "blocks": [
+            {
+              "block": 0,
+              "total_ms": 154.32375017553568
+            },
+            {
+              "block": 1,
+              "total_ms": 155.00225010327995
+            }
+          ],
+          "ordered_parity_within_1e_minus5": true,
+          "native_routes_exact": true,
+          "work_equal": true,
+          "route_valid": true,
+          "repeat_exact": true,
+          "all_strict_gt": true,
+          "truth_count": 12,
+          "max_errors": {
+            "position_px": 0.09024940753950134,
+            "angle_deg": 0.05026388549362082,
+            "relative_scale": 0.0024967771473467515
+          },
+          "construct_ms": [
+            57.94020812027156,
+            55.900416104122996
+          ],
+          "first_ms": [
+            164.5375001244247,
+            169.39958301372826
+          ],
+          "stage_medians": {
+            "prepare_ms": 0.6001244764775038,
+            "proposal_ms": 137.1744794305414,
+            "refine_ms": 17.290250048972666,
+            "nms_ms": 0.11285394430160522
+          },
+          "frame_capacities": [
+            {
+              "frame_host_bytes": 2877225,
+              "frame_coarse_gpu_bytes": 5860493,
+              "frame_fine_gpu_bytes": 4160256
+            },
+            {
+              "frame_host_bytes": 2877225,
+              "frame_coarse_gpu_bytes": 5860493,
+              "frame_fine_gpu_bytes": 4160256
+            }
+          ]
+        },
+        "python_reference": {
+          "total_ms": {
+            "median": 151.32860408630222,
+            "min": 150.00825002789497,
+            "max": 153.49591709673405,
+            "values": [
+              150.26074997149408,
+              151.26645797863603,
+              150.00825002789497,
+              151.92916709929705,
+              150.69687506183982,
+              151.8845830578357,
+              151.39075019396842,
+              150.59779211878777,
+              153.01562496460974,
+              153.49591709673405
+            ]
+          },
+          "rss_bytes": [
+            124485632,
+            127680512
+          ],
+          "blocks": [
+            {
+              "block": 0,
+              "total_ms": 150.69687506183982
+            },
+            {
+              "block": 1,
+              "total_ms": 151.8845830578357
+            }
+          ],
+          "ordered_parity_within_1e_minus5": true,
+          "native_routes_exact": true,
+          "work_equal": true,
+          "route_valid": true,
+          "repeat_exact": true,
+          "all_strict_gt": true,
+          "truth_count": 12,
+          "max_errors": {
+            "position_px": 0.09024940753950134,
+            "angle_deg": 0.05026388549362082,
+            "relative_scale": 0.0024967771473467515
+          },
+          "construct_ms": [
+            54.162124870345,
+            56.14112503826618
+          ],
+          "first_ms": [
+            163.62975002266467,
+            165.91562516987324
+          ],
+          "stage_medians": {
+            "prepare_ms": 0.5805206019431353,
+            "proposal_ms": 136.07672904618084,
+            "refine_ms": 15.220374916680157,
+            "nms_ms": 0.11254148557782173
+          },
+          "frame_capacities": [
+            {
+              "frame_host_bytes": 2877225,
+              "frame_coarse_gpu_bytes": 5860493,
+              "frame_fine_gpu_bytes": 4160256
+            },
+            {
+              "frame_host_bytes": 2877225,
+              "frame_coarse_gpu_bytes": 5860493,
+              "frame_fine_gpu_bytes": 4160256
+            }
+          ]
+        },
+        "native_original": {
+          "total_ms": {
+            "median": 148.35918750000002,
+            "min": 145.111834,
+            "max": 151.893292,
+            "values": [
+              150.073208,
+              149.622667,
+              148.791417,
+              147.926958,
+              148.805541,
+              145.111834,
+              146.202083,
+              145.386334,
+              145.965541,
+              151.893292
+            ]
+          },
+          "rss_bytes": [
+            83247104,
+            83099648
+          ],
+          "blocks": [
+            {
+              "block": 0,
+              "total_ms": 148.805541
+            },
+            {
+              "block": 1,
+              "total_ms": 145.965541
+            }
+          ],
+          "ordered_parity_within_1e_minus5": true,
+          "native_routes_exact": true,
+          "work_equal": true,
+          "route_valid": true,
+          "repeat_exact": true,
+          "all_strict_gt": true,
+          "truth_count": 12,
+          "max_errors": {
+            "position_px": 0.09024940753950134,
+            "angle_deg": 0.05026388549362082,
+            "relative_scale": 0.0024967771473467515
+          },
+          "construct_ms": [
+            24.236667,
+            32.473208
+          ],
+          "first_ms": [
+            177.40075,
+            165.573375
+          ],
+          "stage_medians": {
+            "prepare_ms": 0.396104,
+            "proposal_ms": 133.367333,
+            "refine_ms": 14.869375000000002,
+            "nms_ms": 0.0066040000000000005
+          },
+          "frame_capacities": [
+            {
+              "frame_host_bytes": 2877225,
+              "frame_coarse_gpu_bytes": 5860493,
+              "frame_fine_gpu_bytes": 4160256
+            },
+            {
+              "frame_host_bytes": 2877225,
+              "frame_coarse_gpu_bytes": 5860493,
+              "frame_fine_gpu_bytes": 4160256
+            }
+          ]
+        },
+        "native_tile": {
+          "total_ms": {
+            "median": 146.9376875,
+            "min": 144.227833,
+            "max": 153.0475,
+            "values": [
+              144.227833,
+              145.972666,
+              145.010541,
+              147.543,
+              148.4125,
+              145.609083,
+              146.535458,
+              147.339917,
+              147.79775,
+              153.0475
+            ]
+          },
+          "rss_bytes": [
+            82870272,
+            83165184
+          ],
+          "blocks": [
+            {
+              "block": 0,
+              "total_ms": 145.972666
+            },
+            {
+              "block": 1,
+              "total_ms": 147.339917
+            }
+          ],
+          "ordered_parity_within_1e_minus5": true,
+          "native_routes_exact": true,
+          "work_equal": true,
+          "route_valid": true,
+          "repeat_exact": true,
+          "all_strict_gt": true,
+          "truth_count": 12,
+          "max_errors": {
+            "position_px": 0.09024940753950134,
+            "angle_deg": 0.05026388549362082,
+            "relative_scale": 0.0024967771473467515
+          },
+          "construct_ms": [
+            23.580958,
+            23.225292
+          ],
+          "first_ms": [
+            160.213542,
+            157.160416
+          ],
+          "stage_medians": {
+            "prepare_ms": 0.4036665,
+            "proposal_ms": 131.742771,
+            "refine_ms": 14.904021,
+            "nms_ms": 0.0076665
+          },
+          "frame_capacities": [
+            {
+              "frame_host_bytes": 2877225,
+              "frame_coarse_gpu_bytes": 5860493,
+              "frame_fine_gpu_bytes": 4160256
+            },
+            {
+              "frame_host_bytes": 2877225,
+              "frame_coarse_gpu_bytes": 5860493,
+              "frame_fine_gpu_bytes": 4160256
+            }
+          ]
+        },
+        "native_overlap": {
+          "total_ms": {
+            "median": 137.0562915,
+            "min": 133.567291,
+            "max": 140.399333,
+            "values": [
+              134.635125,
+              133.778292,
+              133.567291,
+              133.7545,
+              137.672125,
+              140.399333,
+              140.170833,
+              139.22275,
+              136.440458,
+              139.252708
+            ]
+          },
+          "rss_bytes": [
+            86179840,
+            86556672
+          ],
+          "blocks": [
+            {
+              "block": 0,
+              "total_ms": 133.778292
+            },
+            {
+              "block": 1,
+              "total_ms": 139.252708
+            }
+          ],
+          "ordered_parity_within_1e_minus5": true,
+          "native_routes_exact": true,
+          "work_equal": true,
+          "route_valid": true,
+          "repeat_exact": true,
+          "all_strict_gt": true,
+          "truth_count": 12,
+          "max_errors": {
+            "position_px": 0.09024940753950134,
+            "angle_deg": 0.05026388549362082,
+            "relative_scale": 0.0024967771473467515
+          },
+          "construct_ms": [
+            24.20975,
+            27.219459
+          ],
+          "first_ms": [
+            198.257459,
+            149.084584
+          ],
+          "stage_medians": {
+            "prepare_ms": 0.3903955,
+            "proposal_ms": 122.662458,
+            "refine_ms": 14.440979,
+            "nms_ms": 0.006771
+          },
+          "frame_capacities": [
+            {
+              "frame_host_bytes": 2877225,
+              "frame_coarse_gpu_bytes": 8811539,
+              "frame_fine_gpu_bytes": 4160256
+            },
+            {
+              "frame_host_bytes": 2877225,
+              "frame_coarse_gpu_bytes": 8811539,
+              "frame_fine_gpu_bytes": 4160256
+            }
+          ]
+        },
+        "native_combined": {
+          "total_ms": {
+            "median": 137.7738335,
+            "min": 134.036042,
+            "max": 139.412,
+            "values": [
+              138.394542,
+              137.719292,
+              138.710083,
+              138.109458,
+              137.828375,
+              139.412,
+              134.762625,
+              134.036042,
+              135.724542,
+              137.390542
+            ]
+          },
+          "rss_bytes": [
+            86179840,
+            85884928
+          ],
+          "blocks": [
+            {
+              "block": 0,
+              "total_ms": 138.109458
+            },
+            {
+              "block": 1,
+              "total_ms": 135.724542
+            }
+          ],
+          "ordered_parity_within_1e_minus5": true,
+          "native_routes_exact": true,
+          "work_equal": true,
+          "route_valid": true,
+          "repeat_exact": true,
+          "all_strict_gt": true,
+          "truth_count": 12,
+          "max_errors": {
+            "position_px": 0.09024940753950134,
+            "angle_deg": 0.05026388549362082,
+            "relative_scale": 0.0024967771473467515
+          },
+          "construct_ms": [
+            22.738,
+            22.858916
+          ],
+          "first_ms": [
+            160.196667,
+            164.022666
+          ],
+          "stage_medians": {
+            "prepare_ms": 0.40275,
+            "proposal_ms": 123.1021245,
+            "refine_ms": 14.443271,
+            "nms_ms": 0.0067085
+          },
+          "frame_capacities": [
+            {
+              "frame_host_bytes": 2877225,
+              "frame_coarse_gpu_bytes": 8811539,
+              "frame_fine_gpu_bytes": 4160256
+            },
+            {
+              "frame_host_bytes": 2877225,
+              "frame_coarse_gpu_bytes": 8811539,
+              "frame_fine_gpu_bytes": 4160256
+            }
+          ]
+        }
+      },
+      "performance": {
+        "native_original": {
+          "python_frozen": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -3.5757355360137244,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -5.830050271695198,
+                "passed": true
+              }
+            ]
+          },
+          "python_reference": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -1.255058581051327,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -3.897065744705508,
+                "passed": true
+              }
+            ]
+          }
+        },
+        "native_tile": {
+          "python_frozen": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -5.411405675430214,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -4.943368949918103,
+                "passed": true
+              }
+            ]
+          },
+          "python_reference": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -3.134908444452611,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -2.9921839111907267,
+                "passed": true
+              }
+            ]
+          },
+          "native_original": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -1.9037429526901795,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": 0.9415756558597721,
+                "passed": true
+              }
+            ]
+          }
+        },
+        "native_overlap": {
+          "python_frozen": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -13.313218575991215,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -10.16084740239952,
+                "passed": true
+              }
+            ]
+          },
+          "python_reference": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -11.22689707725999,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -8.31675921513748,
+                "passed": true
+              }
+            ]
+          },
+          "native_original": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -10.098581611285573,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -4.598916260653596,
+                "passed": true
+              }
+            ]
+          }
+        },
+        "native_combined": {
+          "python_frozen": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -10.506673248344944,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -12.437050488257395,
+                "passed": true
+              }
+            ]
+          },
+          "python_reference": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -8.352805628301496,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -10.639684905795965,
+                "passed": true
+              }
+            ]
+          },
+          "native_original": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -7.187960158015905,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -7.016038806035729,
+                "passed": true
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "8k_t256_angle180_3scales",
+      "methods": {
+        "python_frozen": {
+          "total_ms": {
+            "median": 275.10677103418857,
+            "min": 272.46666699647903,
+            "max": 279.77070794440806,
+            "values": [
+              275.10295808315277,
+              275.11058398522437,
+              279.77070794440806,
+              276.34070883505046,
+              277.2546249907464,
+              274.29600013419986,
+              273.9682081155479,
+              274.749374948442,
+              272.46666699647903,
+              279.5411669649184
+            ]
+          },
+          "rss_bytes": [
+            383205376,
+            385335296
+          ],
+          "blocks": [
+            {
+              "block": 0,
+              "total_ms": 276.34070883505046
+            },
+            {
+              "block": 1,
+              "total_ms": 274.29600013419986
+            }
+          ],
+          "ordered_parity_within_1e_minus5": true,
+          "native_routes_exact": true,
+          "work_equal": true,
+          "route_valid": true,
+          "repeat_exact": true,
+          "all_strict_gt": true,
+          "truth_count": 6,
+          "max_errors": {
+            "position_px": 0.0,
+            "angle_deg": 0.0,
+            "relative_scale": 0.0
+          },
+          "construct_ms": [
+            199.98504198156297,
+            195.30487502925098
+          ],
+          "first_ms": [
+            301.6945419367403,
+            302.01291712000966
+          ],
+          "stage_medians": {
+            "prepare_ms": 7.841499987989664,
+            "proposal_ms": 275.0858125509694,
+            "refine_ms": 0.0,
+            "nms_ms": 0.01839559990912676
+          },
+          "frame_capacities": [
+            {
+              "frame_host_bytes": 89456640,
+              "frame_coarse_gpu_bytes": 108077260,
+              "frame_fine_gpu_bytes": 1383464
+            },
+            {
+              "frame_host_bytes": 89456640,
+              "frame_coarse_gpu_bytes": 108077260,
+              "frame_fine_gpu_bytes": 1383464
+            }
+          ]
+        },
+        "python_reference": {
+          "total_ms": {
+            "median": 273.07002036832273,
+            "min": 271.0122079588473,
+            "max": 282.4289998970926,
+            "values": [
+              276.0308750439435,
+              276.1033328715712,
+              277.8173750266433,
+              282.4289998970926,
+              273.64049991592765,
+              271.0122079588473,
+              272.01333409175277,
+              272.4995408207178,
+              271.5558330528438,
+              272.1870420500636
+            ]
+          },
+          "rss_bytes": [
+            383516672,
+            383893504
+          ],
+          "blocks": [
+            {
+              "block": 0,
+              "total_ms": 276.1033328715712
+            },
+            {
+              "block": 1,
+              "total_ms": 272.01333409175277
+            }
+          ],
+          "ordered_parity_within_1e_minus5": true,
+          "native_routes_exact": true,
+          "work_equal": true,
+          "route_valid": true,
+          "repeat_exact": true,
+          "all_strict_gt": true,
+          "truth_count": 6,
+          "max_errors": {
+            "position_px": 0.0,
+            "angle_deg": 0.0,
+            "relative_scale": 0.0
+          },
+          "construct_ms": [
+            155.15816607512534,
+            180.03616598434746
+          ],
+          "first_ms": [
+            299.8277088627219,
+            302.8888329863548
+          ],
+          "stage_medians": {
+            "prepare_ms": 7.792521500959992,
+            "proposal_ms": 273.0504784267396,
+            "refine_ms": 0.0,
+            "nms_ms": 0.01837499439716339
+          },
+          "frame_capacities": [
+            {
+              "frame_host_bytes": 89456640,
+              "frame_coarse_gpu_bytes": 108077260,
+              "frame_fine_gpu_bytes": 1383464
+            },
+            {
+              "frame_host_bytes": 89456640,
+              "frame_coarse_gpu_bytes": 108077260,
+              "frame_fine_gpu_bytes": 1383464
+            }
+          ]
+        },
+        "native_original": {
+          "total_ms": {
+            "median": 273.4611875,
+            "min": 268.856042,
+            "max": 277.342791,
+            "values": [
+              274.840375,
+              276.015084,
+              275.624834,
+              273.832833,
+              273.089542,
+              270.197167,
+              268.856042,
+              277.342791,
+              270.127583,
+              272.483166
+            ]
+          },
+          "rss_bytes": [
+            590315520,
+            589889536
+          ],
+          "blocks": [
+            {
+              "block": 0,
+              "total_ms": 274.840375
+            },
+            {
+              "block": 1,
+              "total_ms": 270.197167
+            }
+          ],
+          "ordered_parity_within_1e_minus5": true,
+          "native_routes_exact": true,
+          "work_equal": true,
+          "route_valid": true,
+          "repeat_exact": true,
+          "all_strict_gt": true,
+          "truth_count": 6,
+          "max_errors": {
+            "position_px": 0.0,
+            "angle_deg": 0.0,
+            "relative_scale": 0.0
+          },
+          "construct_ms": [
+            29.523542,
+            28.843917
+          ],
+          "first_ms": [
+            302.701084,
+            299.615
+          ],
+          "stage_medians": {
+            "prepare_ms": 7.6578125,
+            "proposal_ms": 273.4591255,
+            "refine_ms": 0.0,
+            "nms_ms": 0.0014995
+          },
+          "frame_capacities": [
+            {
+              "frame_host_bytes": 89456640,
+              "frame_coarse_gpu_bytes": 108077260,
+              "frame_fine_gpu_bytes": 1383464
+            },
+            {
+              "frame_host_bytes": 89456640,
+              "frame_coarse_gpu_bytes": 108077260,
+              "frame_fine_gpu_bytes": 1383464
+            }
+          ]
+        },
+        "native_tile": {
+          "total_ms": {
+            "median": 259.43739600000004,
+            "min": 247.611041,
+            "max": 270.8245,
+            "values": [
+              264.980792,
+              270.8245,
+              259.963792,
+              264.252209,
+              261.938042,
+              247.611041,
+              253.448583,
+              258.911,
+              257.5935,
+              256.1195
+            ]
+          },
+          "rss_bytes": [
+            594411520,
+            590561280
+          ],
+          "blocks": [
+            {
+              "block": 0,
+              "total_ms": 264.252209
+            },
+            {
+              "block": 1,
+              "total_ms": 256.1195
+            }
+          ],
+          "ordered_parity_within_1e_minus5": true,
+          "native_routes_exact": true,
+          "work_equal": true,
+          "route_valid": true,
+          "repeat_exact": true,
+          "all_strict_gt": true,
+          "truth_count": 6,
+          "max_errors": {
+            "position_px": 0.0,
+            "angle_deg": 0.0,
+            "relative_scale": 0.0
+          },
+          "construct_ms": [
+            29.263667,
+            32.8345
+          ],
+          "first_ms": [
+            276.704917,
+            274.219459
+          ],
+          "stage_medians": {
+            "prepare_ms": 7.6629165,
+            "proposal_ms": 259.4322715,
+            "refine_ms": 0.0,
+            "nms_ms": 0.0018335
+          },
+          "frame_capacities": [
+            {
+              "frame_host_bytes": 89456640,
+              "frame_coarse_gpu_bytes": 108077260,
+              "frame_fine_gpu_bytes": 1383464
+            },
+            {
+              "frame_host_bytes": 89456640,
+              "frame_coarse_gpu_bytes": 108077260,
+              "frame_fine_gpu_bytes": 1383464
+            }
+          ]
+        },
+        "native_overlap": {
+          "total_ms": {
+            "median": 257.3785835,
+            "min": 255.004083,
+            "max": 262.091708,
+            "values": [
+              257.904917,
+              255.004083,
+              258.746542,
+              262.091708,
+              260.263416,
+              256.85225,
+              256.691708,
+              255.561042,
+              255.864792,
+              258.787042
+            ]
+          },
+          "rss_bytes": [
+            646578176,
+            646070272
+          ],
+          "blocks": [
+            {
+              "block": 0,
+              "total_ms": 258.746542
+            },
+            {
+              "block": 1,
+              "total_ms": 256.691708
+            }
+          ],
+          "ordered_parity_within_1e_minus5": true,
+          "native_routes_exact": true,
+          "work_equal": true,
+          "route_valid": true,
+          "repeat_exact": true,
+          "all_strict_gt": true,
+          "truth_count": 6,
+          "max_errors": {
+            "position_px": 0.0,
+            "angle_deg": 0.0,
+            "relative_scale": 0.0
+          },
+          "construct_ms": [
+            28.831917,
+            28.458791
+          ],
+          "first_ms": [
+            289.3395,
+            286.866292
+          ],
+          "stage_medians": {
+            "prepare_ms": 9.931000000000001,
+            "proposal_ms": 257.37652049999997,
+            "refine_ms": 0.0,
+            "nms_ms": 0.001729
+          },
+          "frame_capacities": [
+            {
+              "frame_host_bytes": 89456640,
+              "frame_coarse_gpu_bytes": 143132292,
+              "frame_fine_gpu_bytes": 1383464
+            },
+            {
+              "frame_host_bytes": 89456640,
+              "frame_coarse_gpu_bytes": 143132292,
+              "frame_fine_gpu_bytes": 1383464
+            }
+          ]
+        },
+        "native_combined": {
+          "total_ms": {
+            "median": 248.0787085,
+            "min": 243.328625,
+            "max": 257.021125,
+            "values": [
+              244.954375,
+              246.510083,
+              250.894625,
+              249.802416,
+              249.521625,
+              246.635792,
+              243.328625,
+              257.021125,
+              243.822708,
+              254.254625
+            ]
+          },
+          "rss_bytes": [
+            646676480,
+            651001856
+          ],
+          "blocks": [
+            {
+              "block": 0,
+              "total_ms": 249.521625
+            },
+            {
+              "block": 1,
+              "total_ms": 246.635792
+            }
+          ],
+          "ordered_parity_within_1e_minus5": true,
+          "native_routes_exact": true,
+          "work_equal": true,
+          "route_valid": true,
+          "repeat_exact": true,
+          "all_strict_gt": true,
+          "truth_count": 6,
+          "max_errors": {
+            "position_px": 0.0,
+            "angle_deg": 0.0,
+            "relative_scale": 0.0
+          },
+          "construct_ms": [
+            29.046625,
+            29.565084
+          ],
+          "first_ms": [
+            276.814833,
+            283.021667
+          ],
+          "stage_medians": {
+            "prepare_ms": 11.7905625,
+            "proposal_ms": 248.074625,
+            "refine_ms": 0.0,
+            "nms_ms": 0.001938
+          },
+          "frame_capacities": [
+            {
+              "frame_host_bytes": 89456640,
+              "frame_coarse_gpu_bytes": 143132292,
+              "frame_fine_gpu_bytes": 1383464
+            },
+            {
+              "frame_host_bytes": 89456640,
+              "frame_coarse_gpu_bytes": 143132292,
+              "frame_fine_gpu_bytes": 1383464
+            }
+          ]
+        }
+      },
+      "performance": {
+        "native_original": {
+          "python_frozen": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -0.5429289956500827,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -1.4943102094797323,
+                "passed": true
+              }
+            ]
+          },
+          "python_reference": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -0.4574221753993246,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -0.6676757585494575,
+                "passed": true
+              }
+            ]
+          }
+        },
+        "native_tile": {
+          "python_frozen": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -4.374491143925585,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -6.6266005064991695,
+                "passed": true
+              }
+            ]
+          },
+          "python_reference": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -4.292278455430198,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -5.843034917689593,
+                "passed": true
+              }
+            ]
+          },
+          "native_original": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -3.852478370399548,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -5.210146041242525,
+                "passed": true
+              }
+            ]
+          }
+        },
+        "native_overlap": {
+          "python_frozen": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -6.366838570119093,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -6.417990829464126,
+                "passed": true
+              }
+            ]
+          },
+          "python_reference": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -6.286338774347455,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -5.632674641819079,
+                "passed": true
+              }
+            ]
+          },
+          "native_original": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -5.855701877862751,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -4.998371800101065,
+                "passed": true
+              }
+            ]
+          }
+        },
+        "native_combined": {
+          "python_frozen": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -9.705078903542564,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -10.084072724599347,
+                "passed": true
+              }
+            ]
+          },
+          "python_reference": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -9.627449113023056,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -9.329521354711478,
+                "passed": true
+              }
+            ]
+          },
+          "native_original": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -9.212165425112662,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -8.720067372134944,
+                "passed": true
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "small_fullres",
+      "methods": {
+        "python_frozen": {
+          "total_ms": {
+            "median": 8.56945849955082,
+            "min": 8.255625143647194,
+            "max": 8.773749927058816,
+            "values": [
+              8.678874932229519,
+              8.680458180606365,
+              8.536666864529252,
+              8.694624993950129,
+              8.602250134572387,
+              8.278375025838614,
+              8.773749927058816,
+              8.465541992336512,
+              8.350250078365207,
+              8.255625143647194
+            ]
+          },
+          "rss_bytes": [
+            79560704,
+            79462400
+          ],
+          "blocks": [
+            {
+              "block": 0,
+              "total_ms": 8.678874932229519
+            },
+            {
+              "block": 1,
+              "total_ms": 8.350250078365207
+            }
+          ],
+          "ordered_parity_within_1e_minus5": true,
+          "native_routes_exact": true,
+          "work_equal": true,
+          "route_valid": true,
+          "repeat_exact": true,
+          "all_strict_gt": true,
+          "truth_count": 2,
+          "max_errors": {
+            "position_px": 2.8541271670128925e-05,
+            "angle_deg": 0.0,
+            "relative_scale": 0.0
+          },
+          "construct_ms": [
+            35.74145818129182,
+            35.38320795632899
+          ],
+          "first_ms": [
+            18.57295911759138,
+            19.543000031262636
+          ],
+          "stage_medians": {
+            "prepare_ms": 0.22422894835472107,
+            "proposal_ms": 8.566750562749803,
+            "refine_ms": 0.0,
+            "nms_ms": 0.002291402779519558
+          },
+          "frame_capacities": [
+            {
+              "frame_host_bytes": 435200,
+              "frame_coarse_gpu_bytes": 781324,
+              "frame_fine_gpu_bytes": 114320
+            },
+            {
+              "frame_host_bytes": 435200,
+              "frame_coarse_gpu_bytes": 781324,
+              "frame_fine_gpu_bytes": 114320
+            }
+          ]
+        },
+        "python_reference": {
+          "total_ms": {
+            "median": 8.570395992137492,
+            "min": 8.360916981473565,
+            "max": 8.799875155091286,
+            "values": [
+              8.503791876137257,
+              8.485000114887953,
+              8.543042000383139,
+              8.516666945070028,
+              8.360916981473565,
+              8.724874816834927,
+              8.729916997253895,
+              8.751499932259321,
+              8.799875155091286,
+              8.597749983891845
+            ]
+          },
+          "rss_bytes": [
+            79052800,
+            79495168
+          ],
+          "blocks": [
+            {
+              "block": 0,
+              "total_ms": 8.503791876137257
+            },
+            {
+              "block": 1,
+              "total_ms": 8.729916997253895
+            }
+          ],
+          "ordered_parity_within_1e_minus5": true,
+          "native_routes_exact": true,
+          "work_equal": true,
+          "route_valid": true,
+          "repeat_exact": true,
+          "all_strict_gt": true,
+          "truth_count": 2,
+          "max_errors": {
+            "position_px": 2.8541271670128925e-05,
+            "angle_deg": 0.0,
+            "relative_scale": 0.0
+          },
+          "construct_ms": [
+            34.665208077058196,
+            35.289708990603685
+          ],
+          "first_ms": [
+            23.4674159437418,
+            22.119417088106275
+          ],
+          "stage_medians": {
+            "prepare_ms": 0.22704154253005981,
+            "proposal_ms": 8.567833108827472,
+            "refine_ms": 0.0,
+            "nms_ms": 0.0021455343812704086
+          },
+          "frame_capacities": [
+            {
+              "frame_host_bytes": 435200,
+              "frame_coarse_gpu_bytes": 781324,
+              "frame_fine_gpu_bytes": 114320
+            },
+            {
+              "frame_host_bytes": 435200,
+              "frame_coarse_gpu_bytes": 781324,
+              "frame_fine_gpu_bytes": 114320
+            }
+          ]
+        },
+        "native_original": {
+          "total_ms": {
+            "median": 7.6285,
+            "min": 6.811792,
+            "max": 8.60475,
+            "values": [
+              8.60475,
+              8.252625,
+              8.489667,
+              8.472042,
+              8.296459,
+              6.817916,
+              6.895625,
+              6.909375,
+              7.004375,
+              6.811792
+            ]
+          },
+          "rss_bytes": [
+            27967488,
+            28557312
+          ],
+          "blocks": [
+            {
+              "block": 0,
+              "total_ms": 8.472042
+            },
+            {
+              "block": 1,
+              "total_ms": 6.895625
+            }
+          ],
+          "ordered_parity_within_1e_minus5": true,
+          "native_routes_exact": true,
+          "work_equal": true,
+          "route_valid": true,
+          "repeat_exact": true,
+          "all_strict_gt": true,
+          "truth_count": 2,
+          "max_errors": {
+            "position_px": 2.8541271670128925e-05,
+            "angle_deg": 0.0,
+            "relative_scale": 0.0
+          },
+          "construct_ms": [
+            22.473084,
+            22.726208
+          ],
+          "first_ms": [
+            20.391083,
+            19.052042
+          ],
+          "stage_medians": {
+            "prepare_ms": 0.14820850000000002,
+            "proposal_ms": 7.6281455,
+            "refine_ms": 0.0,
+            "nms_ms": 0.0002295
+          },
+          "frame_capacities": [
+            {
+              "frame_host_bytes": 435200,
+              "frame_coarse_gpu_bytes": 781324,
+              "frame_fine_gpu_bytes": 114320
+            },
+            {
+              "frame_host_bytes": 435200,
+              "frame_coarse_gpu_bytes": 781324,
+              "frame_fine_gpu_bytes": 114320
+            }
+          ]
+        },
+        "native_tile": {
+          "total_ms": {
+            "median": 6.9921875,
+            "min": 6.777,
+            "max": 7.162459,
+            "values": [
+              6.978375,
+              7.141875,
+              7.006,
+              6.969292,
+              7.162459,
+              7.031125,
+              6.906792,
+              7.032792,
+              6.782667,
+              6.777
+            ]
+          },
+          "rss_bytes": [
+            28409856,
+            28049408
+          ],
+          "blocks": [
+            {
+              "block": 0,
+              "total_ms": 7.006
+            },
+            {
+              "block": 1,
+              "total_ms": 6.906792
+            }
+          ],
+          "ordered_parity_within_1e_minus5": true,
+          "native_routes_exact": true,
+          "work_equal": true,
+          "route_valid": true,
+          "repeat_exact": true,
+          "all_strict_gt": true,
+          "truth_count": 2,
+          "max_errors": {
+            "position_px": 2.8541271670128925e-05,
+            "angle_deg": 0.0,
+            "relative_scale": 0.0
+          },
+          "construct_ms": [
+            22.629333,
+            22.329167
+          ],
+          "first_ms": [
+            18.278042,
+            16.927042
+          ],
+          "stage_medians": {
+            "prepare_ms": 0.1357085,
+            "proposal_ms": 6.9916665,
+            "refine_ms": 0.0,
+            "nms_ms": 0.00025
+          },
+          "frame_capacities": [
+            {
+              "frame_host_bytes": 435200,
+              "frame_coarse_gpu_bytes": 781324,
+              "frame_fine_gpu_bytes": 114320
+            },
+            {
+              "frame_host_bytes": 435200,
+              "frame_coarse_gpu_bytes": 781324,
+              "frame_fine_gpu_bytes": 114320
+            }
+          ]
+        },
+        "native_overlap": {
+          "total_ms": {
+            "median": 5.795354,
+            "min": 5.632,
+            "max": 6.373417,
+            "values": [
+              6.160958,
+              5.7855,
+              5.799708,
+              5.822708,
+              5.738,
+              5.632,
+              6.373417,
+              6.130875,
+              5.791,
+              5.756375
+            ]
+          },
+          "rss_bytes": [
+            28590080,
+            28606464
+          ],
+          "blocks": [
+            {
+              "block": 0,
+              "total_ms": 5.799708
+            },
+            {
+              "block": 1,
+              "total_ms": 5.791
+            }
+          ],
+          "ordered_parity_within_1e_minus5": true,
+          "native_routes_exact": true,
+          "work_equal": true,
+          "route_valid": true,
+          "repeat_exact": true,
+          "all_strict_gt": true,
+          "truth_count": 2,
+          "max_errors": {
+            "position_px": 2.8541271670128925e-05,
+            "angle_deg": 0.0,
+            "relative_scale": 0.0
+          },
+          "construct_ms": [
+            23.491792,
+            23.406125
+          ],
+          "first_ms": [
+            17.831917,
+            17.060083
+          ],
+          "stage_medians": {
+            "prepare_ms": 0.1398125,
+            "proposal_ms": 5.795083,
+            "refine_ms": 0.0,
+            "nms_ms": 0.0001875
+          },
+          "frame_capacities": [
+            {
+              "frame_host_bytes": 435200,
+              "frame_coarse_gpu_bytes": 1127448,
+              "frame_fine_gpu_bytes": 114320
+            },
+            {
+              "frame_host_bytes": 435200,
+              "frame_coarse_gpu_bytes": 1127448,
+              "frame_fine_gpu_bytes": 114320
+            }
+          ]
+        },
+        "native_combined": {
+          "total_ms": {
+            "median": 6.517875500000001,
+            "min": 6.074292,
+            "max": 11.074084,
+            "values": [
+              6.074292,
+              6.282333,
+              6.284833,
+              6.254917,
+              6.406709,
+              6.629042,
+              11.074084,
+              9.949333,
+              8.184417,
+              9.233458
+            ]
+          },
+          "rss_bytes": [
+            29032448,
+            28737536
+          ],
+          "blocks": [
+            {
+              "block": 0,
+              "total_ms": 6.282333
+            },
+            {
+              "block": 1,
+              "total_ms": 9.233458
+            }
+          ],
+          "ordered_parity_within_1e_minus5": true,
+          "native_routes_exact": true,
+          "work_equal": true,
+          "route_valid": true,
+          "repeat_exact": true,
+          "all_strict_gt": true,
+          "truth_count": 2,
+          "max_errors": {
+            "position_px": 2.8541271670128925e-05,
+            "angle_deg": 0.0,
+            "relative_scale": 0.0
+          },
+          "construct_ms": [
+            22.357,
+            22.748917
+          ],
+          "first_ms": [
+            17.112375,
+            15.100417
+          ],
+          "stage_medians": {
+            "prepare_ms": 0.16670849999999998,
+            "proposal_ms": 6.517417,
+            "refine_ms": 0.0,
+            "nms_ms": 0.0003955
+          },
+          "frame_capacities": [
+            {
+              "frame_host_bytes": 435200,
+              "frame_coarse_gpu_bytes": 1127448,
+              "frame_fine_gpu_bytes": 114320
+            },
+            {
+              "frame_host_bytes": 435200,
+              "frame_coarse_gpu_bytes": 1127448,
+              "frame_fine_gpu_bytes": 114320
+            }
+          ]
+        }
+      },
+      "performance": {
+        "native_original": {
+          "python_frozen": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -2.3831767809146864,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -17.42013789663639,
+                "passed": true
+              }
+            ]
+          },
+          "python_reference": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -0.37336139688872727,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -21.01156285713707,
+                "passed": true
+              }
+            ]
+          }
+        },
+        "native_tile": {
+          "python_frozen": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -19.27525105837391,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -17.286405374913073,
+                "passed": true
+              }
+            ]
+          },
+          "python_reference": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -17.6132235825321,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -20.883646406115673,
+                "passed": true
+              }
+            ]
+          },
+          "native_original": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -17.304470398045712,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": 0.16194326112572988,
+                "passed": true
+              }
+            ]
+          }
+        },
+        "native_overlap": {
+          "python_frozen": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -33.17442588713384,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -30.64878362141521,
+                "passed": true
+              }
+            ]
+          },
+          "python_reference": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -31.798566045874978,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -33.6648904929837,
+                "passed": true
+              }
+            ]
+          },
+          "native_original": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -31.54297393709805,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -16.01921508202664,
+                "passed": true
+              }
+            ]
+          }
+        },
+        "native_combined": {
+          "python_frozen": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -27.613509250257973,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": 10.577023602240509,
+                "passed": true
+              }
+            ]
+          },
+          "python_reference": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -26.123156686971114,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": 5.767993016480011,
+                "passed": true
+              }
+            ]
+          },
+          "native_original": {
+            "passed": false,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -25.846295379555485,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": 33.90313423366267,
+                "passed": false
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "many128_pose",
+      "methods": {
+        "python_frozen": {
+          "total_ms": {
+            "median": 1228.3317705150694,
+            "min": 1193.0992919951677,
+            "max": 1237.0912909973413,
+            "values": [
+              1225.6156669463962,
+              1226.620125118643,
+              1228.3868750091642,
+              1193.0992919951677,
+              1224.1081669926643,
+              1230.6023749988526,
+              1228.2766660209745,
+              1237.0912909973413,
+              1230.2199159748852,
+              1235.655541997403
+            ]
+          },
+          "rss_bytes": [
+            411713536,
+            412073984
+          ],
+          "blocks": [
+            {
+              "block": 0,
+              "total_ms": 1225.6156669463962
+            },
+            {
+              "block": 1,
+              "total_ms": 1230.6023749988526
+            }
+          ],
+          "ordered_parity_within_1e_minus5": true,
+          "native_routes_exact": true,
+          "work_equal": true,
+          "route_valid": true,
+          "repeat_exact": true,
+          "all_strict_gt": true,
+          "truth_count": 128,
+          "max_errors": {
+            "position_px": 0.10597630053137005,
+            "angle_deg": 0.09061128803688234,
+            "relative_scale": 0.0027015188679357927
+          },
+          "construct_ms": [
+            168.2002500165254,
+            166.78845789283514
+          ],
+          "first_ms": [
+            1248.933833092451,
+            1226.0820418596268
+          ],
+          "stage_medians": {
+            "prepare_ms": 2.618229016661644,
+            "proposal_ms": 1136.858458048664,
+            "refine_ms": 83.29335448797792,
+            "nms_ms": 7.881854544393718
+          },
+          "frame_capacities": [
+            {
+              "frame_host_bytes": 22347776,
+              "frame_coarse_gpu_bytes": 40893858,
+              "frame_fine_gpu_bytes": 4160256
+            },
+            {
+              "frame_host_bytes": 22347776,
+              "frame_coarse_gpu_bytes": 40893858,
+              "frame_fine_gpu_bytes": 4160256
+            }
+          ]
+        },
+        "python_reference": {
+          "total_ms": {
+            "median": 1200.5504998378456,
+            "min": 1166.5811671409756,
+            "max": 1205.407166853547,
+            "values": [
+              1197.188250022009,
+              1203.9097910746932,
+              1166.5811671409756,
+              1195.8052918780595,
+              1198.2920828741044,
+              1205.407166853547,
+              1202.1992499940097,
+              1201.0238748043776,
+              1202.251125127077,
+              1200.0771248713136
+            ]
+          },
+          "rss_bytes": [
+            413401088,
+            414498816
+          ],
+          "blocks": [
+            {
+              "block": 0,
+              "total_ms": 1197.188250022009
+            },
+            {
+              "block": 1,
+              "total_ms": 1202.1992499940097
+            }
+          ],
+          "ordered_parity_within_1e_minus5": true,
+          "native_routes_exact": true,
+          "work_equal": true,
+          "route_valid": true,
+          "repeat_exact": true,
+          "all_strict_gt": true,
+          "truth_count": 128,
+          "max_errors": {
+            "position_px": 0.10597630053137005,
+            "angle_deg": 0.09061128803688234,
+            "relative_scale": 0.0027015188679357927
+          },
+          "construct_ms": [
+            165.26604117825627,
+            168.76029199920595
+          ],
+          "first_ms": [
+            1226.1833329685032,
+            1238.9824581332505
+          ],
+          "stage_medians": {
+            "prepare_ms": 2.6858955388888717,
+            "proposal_ms": 1123.6742084147409,
+            "refine_ms": 68.15033359453082,
+            "nms_ms": 7.926875026896596
+          },
+          "frame_capacities": [
+            {
+              "frame_host_bytes": 22347776,
+              "frame_coarse_gpu_bytes": 40893858,
+              "frame_fine_gpu_bytes": 4160256
+            },
+            {
+              "frame_host_bytes": 22347776,
+              "frame_coarse_gpu_bytes": 40893858,
+              "frame_fine_gpu_bytes": 4160256
+            }
+          ]
+        },
+        "native_original": {
+          "total_ms": {
+            "median": 1189.7892495,
+            "min": 1162.34425,
+            "max": 1193.158375,
+            "values": [
+              1189.782458,
+              1192.951416,
+              1184.450417,
+              1189.796041,
+              1185.328083,
+              1183.721459,
+              1193.032708,
+              1193.158375,
+              1190.837375,
+              1162.34425
+            ]
+          },
+          "rss_bytes": [
+            428146688,
+            426622976
+          ],
+          "blocks": [
+            {
+              "block": 0,
+              "total_ms": 1189.782458
+            },
+            {
+              "block": 1,
+              "total_ms": 1190.837375
+            }
+          ],
+          "ordered_parity_within_1e_minus5": true,
+          "native_routes_exact": true,
+          "work_equal": true,
+          "route_valid": true,
+          "repeat_exact": true,
+          "all_strict_gt": true,
+          "truth_count": 128,
+          "max_errors": {
+            "position_px": 0.10597630053137005,
+            "angle_deg": 0.09061128803688234,
+            "relative_scale": 0.0027015188679357927
+          },
+          "construct_ms": [
+            25.00525,
+            26.495209
+          ],
+          "first_ms": [
+            1250.780667,
+            1234.137417
+          ],
+          "stage_medians": {
+            "prepare_ms": 2.3428955,
+            "proposal_ms": 1123.7409585,
+            "refine_ms": 66.456625,
+            "nms_ms": 0.0619585
+          },
+          "frame_capacities": [
+            {
+              "frame_host_bytes": 22347776,
+              "frame_coarse_gpu_bytes": 40893858,
+              "frame_fine_gpu_bytes": 4160256
+            },
+            {
+              "frame_host_bytes": 22347776,
+              "frame_coarse_gpu_bytes": 40893858,
+              "frame_fine_gpu_bytes": 4160256
+            }
+          ]
+        },
+        "native_tile": {
+          "total_ms": {
+            "median": 1149.740333,
+            "min": 1139.474416,
+            "max": 1158.676958,
+            "values": [
+              1158.676958,
+              1156.437666,
+              1146.970708,
+              1147.578042,
+              1155.647459,
+              1140.339,
+              1139.474416,
+              1151.031916,
+              1154.472667,
+              1148.44875
+            ]
+          },
+          "rss_bytes": [
+            428146688,
+            432259072
+          ],
+          "blocks": [
+            {
+              "block": 0,
+              "total_ms": 1155.647459
+            },
+            {
+              "block": 1,
+              "total_ms": 1148.44875
+            }
+          ],
+          "ordered_parity_within_1e_minus5": true,
+          "native_routes_exact": true,
+          "work_equal": true,
+          "route_valid": true,
+          "repeat_exact": true,
+          "all_strict_gt": true,
+          "truth_count": 128,
+          "max_errors": {
+            "position_px": 0.10597630053137005,
+            "angle_deg": 0.09061128803688234,
+            "relative_scale": 0.0027015188679357927
+          },
+          "construct_ms": [
+            24.790583,
+            24.855333
+          ],
+          "first_ms": [
+            1200.080375,
+            1241.065958
+          ],
+          "stage_medians": {
+            "prepare_ms": 2.359146,
+            "proposal_ms": 1084.064146,
+            "refine_ms": 66.541542,
+            "nms_ms": 0.0619375
+          },
+          "frame_capacities": [
+            {
+              "frame_host_bytes": 22347776,
+              "frame_coarse_gpu_bytes": 40893858,
+              "frame_fine_gpu_bytes": 4160256
+            },
+            {
+              "frame_host_bytes": 22347776,
+              "frame_coarse_gpu_bytes": 40893858,
+              "frame_fine_gpu_bytes": 4160256
+            }
+          ]
+        },
+        "native_overlap": {
+          "total_ms": {
+            "median": 1163.3845625,
+            "min": 1143.070708,
+            "max": 1169.666375,
+            "values": [
+              1162.111916,
+              1164.418916,
+              1169.666375,
+              1169.576375,
+              1169.186334,
+              1155.585916,
+              1162.350209,
+              1165.376667,
+              1155.880542,
+              1143.070708
+            ]
+          },
+          "rss_bytes": [
+            469467136,
+            468992000
+          ],
+          "blocks": [
+            {
+              "block": 0,
+              "total_ms": 1169.186334
+            },
+            {
+              "block": 1,
+              "total_ms": 1155.880542
+            }
+          ],
+          "ordered_parity_within_1e_minus5": true,
+          "native_routes_exact": true,
+          "work_equal": true,
+          "route_valid": true,
+          "repeat_exact": true,
+          "all_strict_gt": true,
+          "truth_count": 128,
+          "max_errors": {
+            "position_px": 0.10597630053137005,
+            "angle_deg": 0.09061128803688234,
+            "relative_scale": 0.0027015188679357927
+          },
+          "construct_ms": [
+            25.046292,
+            24.88375
+          ],
+          "first_ms": [
+            1218.991958,
+            1232.677958
+          ],
+          "stage_medians": {
+            "prepare_ms": 2.331396,
+            "proposal_ms": 1096.6061875,
+            "refine_ms": 66.6514165,
+            "nms_ms": 0.0645625
+          },
+          "frame_capacities": [
+            {
+              "frame_host_bytes": 22347776,
+              "frame_coarse_gpu_bytes": 74847698,
+              "frame_fine_gpu_bytes": 4160256
+            },
+            {
+              "frame_host_bytes": 22347776,
+              "frame_coarse_gpu_bytes": 74847698,
+              "frame_fine_gpu_bytes": 4160256
+            }
+          ]
+        },
+        "native_combined": {
+          "total_ms": {
+            "median": 1138.9879375,
+            "min": 1108.760917,
+            "max": 1144.72975,
+            "values": [
+              1144.72975,
+              1143.349041,
+              1143.476958,
+              1116.926333,
+              1126.905167,
+              1144.275625,
+              1139.766958,
+              1108.760917,
+              1131.707375,
+              1138.208917
+            ]
+          },
+          "rss_bytes": [
+            467681280,
+            473481216
+          ],
+          "blocks": [
+            {
+              "block": 0,
+              "total_ms": 1143.349041
+            },
+            {
+              "block": 1,
+              "total_ms": 1138.208917
+            }
+          ],
+          "ordered_parity_within_1e_minus5": true,
+          "native_routes_exact": true,
+          "work_equal": true,
+          "route_valid": true,
+          "repeat_exact": true,
+          "all_strict_gt": true,
+          "truth_count": 128,
+          "max_errors": {
+            "position_px": 0.10597630053137005,
+            "angle_deg": 0.09061128803688234,
+            "relative_scale": 0.0027015188679357927
+          },
+          "construct_ms": [
+            24.721417,
+            25.542958
+          ],
+          "first_ms": [
+            1182.940042,
+            1163.04125
+          ],
+          "stage_medians": {
+            "prepare_ms": 2.3568125,
+            "proposal_ms": 1072.365771,
+            "refine_ms": 66.4168545,
+            "nms_ms": 0.0602915
+          },
+          "frame_capacities": [
+            {
+              "frame_host_bytes": 22347776,
+              "frame_coarse_gpu_bytes": 74847698,
+              "frame_fine_gpu_bytes": 4160256
+            },
+            {
+              "frame_host_bytes": 22347776,
+              "frame_coarse_gpu_bytes": 74847698,
+              "frame_fine_gpu_bytes": 4160256
+            }
+          ]
+        }
+      },
+      "performance": {
+        "native_original": {
+          "python_frozen": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -2.923690510229382,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -3.231344324269614,
+                "passed": true
+              }
+            ]
+          },
+          "python_reference": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -0.6185987894446021,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -0.9450908403133895,
+                "passed": true
+              }
+            ]
+          }
+        },
+        "native_tile": {
+          "python_frozen": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -5.708821275165398,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -6.67588708326109,
+                "passed": true
+              }
+            ]
+          },
+          "python_reference": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -3.4698629076292176,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -4.471014267749506,
+                "passed": true
+              }
+            ]
+          },
+          "native_original": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -2.8690117903889867,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -3.5595645459145953,
+                "passed": true
+              }
+            ]
+          }
+        },
+        "native_overlap": {
+          "python_frozen": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -4.60416217483488,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -6.071972110318913,
+                "passed": true
+              }
+            ]
+          },
+          "python_reference": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -2.3389735090946884,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -3.8528312169750945,
+                "passed": true
+              }
+            ]
+          },
+          "native_original": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -1.7310831792411552,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -2.9354833610256814,
+                "passed": true
+              }
+            ]
+          }
+        },
+        "native_combined": {
+          "python_frozen": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -6.712269446698771,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -7.507986322465765,
+                "passed": true
+              }
+            ]
+          },
+          "python_reference": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -4.497138108482046,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -5.32277265971749,
+                "passed": true
+              }
+            ]
+          },
+          "native_original": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -3.9026812580556625,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -4.419449633078587,
+                "passed": true
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "many512_pose",
+      "methods": {
+        "python_frozen": {
+          "total_ms": {
+            "median": 3729.0304789785296,
+            "min": 3622.422084212303,
+            "max": 3859.9342501256615,
+            "values": [
+              3673.05654194206,
+              3666.2021668162197,
+              3859.9342501256615,
+              3759.9983331747353,
+              3727.8382079675794,
+              3622.422084212303,
+              3741.169292014092,
+              3631.314749829471,
+              3730.272667016834,
+              3730.22274998948
+            ]
+          },
+          "rss_bytes": [
+            757481472,
+            752762880
+          ],
+          "blocks": [
+            {
+              "block": 0,
+              "total_ms": 3727.8382079675794
+            },
+            {
+              "block": 1,
+              "total_ms": 3730.22274998948
+            }
+          ],
+          "ordered_parity_within_1e_minus5": true,
+          "native_routes_exact": true,
+          "work_equal": true,
+          "route_valid": true,
+          "repeat_exact": true,
+          "all_strict_gt": true,
+          "truth_count": 512,
+          "max_errors": {
+            "position_px": 0.12809542327516896,
+            "angle_deg": 0.09951369303348656,
+            "relative_scale": 0.0027443297876431627
+          },
+          "construct_ms": [
+            294.2110828589648,
+            297.51733411103487
+          ],
+          "first_ms": [
+            3696.977499872446,
+            3745.112166972831
+          ],
+          "stage_medians": {
+            "prepare_ms": 6.856937427073717,
+            "proposal_ms": 3330.454396083951,
+            "refine_ms": 272.3498960258439,
+            "nms_ms": 122.8944999165833
+          },
+          "frame_capacities": [
+            {
+              "frame_host_bytes": 44695552,
+              "frame_coarse_gpu_bytes": 63469910,
+              "frame_fine_gpu_bytes": 4160256
+            },
+            {
+              "frame_host_bytes": 44695552,
+              "frame_coarse_gpu_bytes": 63469910,
+              "frame_fine_gpu_bytes": 4160256
+            }
+          ]
+        },
+        "python_reference": {
+          "total_ms": {
+            "median": 3584.3636670615524,
+            "min": 3494.1872500348836,
+            "max": 3672.946499893442,
+            "values": [
+              3643.907665973529,
+              3626.4860827941447,
+              3608.5918340831995,
+              3672.946499893442,
+              3616.846499964595,
+              3502.5032500270754,
+              3494.1872500348836,
+              3539.6770408842713,
+              3560.1355000399053,
+              3498.846375150606
+            ]
+          },
+          "rss_bytes": [
+            751239168,
+            751566848
+          ],
+          "blocks": [
+            {
+              "block": 0,
+              "total_ms": 3626.4860827941447
+            },
+            {
+              "block": 1,
+              "total_ms": 3502.5032500270754
+            }
+          ],
+          "ordered_parity_within_1e_minus5": true,
+          "native_routes_exact": true,
+          "work_equal": true,
+          "route_valid": true,
+          "repeat_exact": true,
+          "all_strict_gt": true,
+          "truth_count": 512,
+          "max_errors": {
+            "position_px": 0.12809542327516896,
+            "angle_deg": 0.09951369303348656,
+            "relative_scale": 0.0027443297876431627
+          },
+          "construct_ms": [
+            308.8162080384791,
+            303.04337479174137
+          ],
+          "first_ms": [
+            3678.586541907862,
+            3589.143624994904
+          ],
+          "stage_medians": {
+            "prepare_ms": 9.579750010743737,
+            "proposal_ms": 3248.7005004659295,
+            "refine_ms": 212.32299937400967,
+            "nms_ms": 123.83491650689393
+          },
+          "frame_capacities": [
+            {
+              "frame_host_bytes": 44695552,
+              "frame_coarse_gpu_bytes": 63469910,
+              "frame_fine_gpu_bytes": 4160256
+            },
+            {
+              "frame_host_bytes": 44695552,
+              "frame_coarse_gpu_bytes": 63469910,
+              "frame_fine_gpu_bytes": 4160256
+            }
+          ]
+        },
+        "native_original": {
+          "total_ms": {
+            "median": 3426.3707080000004,
+            "min": 3348.023667,
+            "max": 3455.123125,
+            "values": [
+              3394.44775,
+              3437.819166,
+              3430.304833,
+              3435.58775,
+              3432.683334,
+              3422.436583,
+              3455.123125,
+              3408.270875,
+              3365.873916,
+              3348.023667
+            ]
+          },
+          "rss_bytes": [
+            830423040,
+            827179008
+          ],
+          "blocks": [
+            {
+              "block": 0,
+              "total_ms": 3432.683334
+            },
+            {
+              "block": 1,
+              "total_ms": 3408.270875
+            }
+          ],
+          "ordered_parity_within_1e_minus5": true,
+          "native_routes_exact": true,
+          "work_equal": true,
+          "route_valid": true,
+          "repeat_exact": true,
+          "all_strict_gt": true,
+          "truth_count": 512,
+          "max_errors": {
+            "position_px": 0.12809542327516896,
+            "angle_deg": 0.09951369303348656,
+            "relative_scale": 0.0027443297876431627
+          },
+          "construct_ms": [
+            26.303042,
+            26.205041
+          ],
+          "first_ms": [
+            3571.786458,
+            3571.275166
+          ],
+          "stage_medians": {
+            "prepare_ms": 4.227271,
+            "proposal_ms": 3218.5337915,
+            "refine_ms": 206.495771,
+            "nms_ms": 0.6038749999999999
+          },
+          "frame_capacities": [
+            {
+              "frame_host_bytes": 44695552,
+              "frame_coarse_gpu_bytes": 63469910,
+              "frame_fine_gpu_bytes": 4160256
+            },
+            {
+              "frame_host_bytes": 44695552,
+              "frame_coarse_gpu_bytes": 63469910,
+              "frame_fine_gpu_bytes": 4160256
+            }
+          ]
+        },
+        "native_tile": {
+          "total_ms": {
+            "median": 3350.3889584999997,
+            "min": 3327.351958,
+            "max": 3396.824125,
+            "values": [
+              3352.576,
+              3337.119458,
+              3341.592708,
+              3327.351958,
+              3371.3285,
+              3334.886417,
+              3382.961209,
+              3396.824125,
+              3348.201917,
+              3357.455833
+            ]
+          },
+          "rss_bytes": [
+            824606720,
+            831815680
+          ],
+          "blocks": [
+            {
+              "block": 0,
+              "total_ms": 3341.592708
+            },
+            {
+              "block": 1,
+              "total_ms": 3357.455833
+            }
+          ],
+          "ordered_parity_within_1e_minus5": true,
+          "native_routes_exact": true,
+          "work_equal": true,
+          "route_valid": true,
+          "repeat_exact": true,
+          "all_strict_gt": true,
+          "truth_count": 512,
+          "max_errors": {
+            "position_px": 0.12809542327516896,
+            "angle_deg": 0.09951369303348656,
+            "relative_scale": 0.0027443297876431627
+          },
+          "construct_ms": [
+            26.61475,
+            26.019083
+          ],
+          "first_ms": [
+            3866.503,
+            3527.280542
+          ],
+          "stage_medians": {
+            "prepare_ms": 4.2455415,
+            "proposal_ms": 3143.1105835,
+            "refine_ms": 206.8794165,
+            "nms_ms": 0.6061460000000001
+          },
+          "frame_capacities": [
+            {
+              "frame_host_bytes": 44695552,
+              "frame_coarse_gpu_bytes": 63469910,
+              "frame_fine_gpu_bytes": 4160256
+            },
+            {
+              "frame_host_bytes": 44695552,
+              "frame_coarse_gpu_bytes": 63469910,
+              "frame_fine_gpu_bytes": 4160256
+            }
+          ]
+        },
+        "native_overlap": {
+          "total_ms": {
+            "median": 3408.8883335,
+            "min": 3348.076125,
+            "max": 3465.950458,
+            "values": [
+              3389.182,
+              3423.330792,
+              3426.164875,
+              3430.855417,
+              3348.076125,
+              3386.19375,
+              3380.470375,
+              3429.715834,
+              3394.445875,
+              3465.950458
+            ]
+          },
+          "rss_bytes": [
+            885276672,
+            883802112
+          ],
+          "blocks": [
+            {
+              "block": 0,
+              "total_ms": 3423.330792
+            },
+            {
+              "block": 1,
+              "total_ms": 3394.445875
+            }
+          ],
+          "ordered_parity_within_1e_minus5": true,
+          "native_routes_exact": true,
+          "work_equal": true,
+          "route_valid": true,
+          "repeat_exact": true,
+          "all_strict_gt": true,
+          "truth_count": 512,
+          "max_errors": {
+            "position_px": 0.12809542327516896,
+            "angle_deg": 0.09951369303348656,
+            "relative_scale": 0.0027443297876431627
+          },
+          "construct_ms": [
+            27.820958,
+            29.115834
+          ],
+          "first_ms": [
+            3591.581166,
+            3515.906
+          ],
+          "stage_medians": {
+            "prepare_ms": 4.2055625,
+            "proposal_ms": 3200.9723955,
+            "refine_ms": 207.3345,
+            "nms_ms": 0.606792
+          },
+          "frame_capacities": [
+            {
+              "frame_host_bytes": 44695552,
+              "frame_coarse_gpu_bytes": 95905160,
+              "frame_fine_gpu_bytes": 4160256
+            },
+            {
+              "frame_host_bytes": 44695552,
+              "frame_coarse_gpu_bytes": 95905160,
+              "frame_fine_gpu_bytes": 4160256
+            }
+          ]
+        },
+        "native_combined": {
+          "total_ms": {
+            "median": 3352.1414995,
+            "min": 3331.407209,
+            "max": 3387.237708,
+            "values": [
+              3343.776958,
+              3387.237708,
+              3334.819916,
+              3377.596167,
+              3343.516875,
+              3342.310167,
+              3331.407209,
+              3360.506041,
+              3366.447625,
+              3381.808417
+            ]
+          },
+          "rss_bytes": [
+            882229248,
+            883261440
+          ],
+          "blocks": [
+            {
+              "block": 0,
+              "total_ms": 3343.776958
+            },
+            {
+              "block": 1,
+              "total_ms": 3360.506041
+            }
+          ],
+          "ordered_parity_within_1e_minus5": true,
+          "native_routes_exact": true,
+          "work_equal": true,
+          "route_valid": true,
+          "repeat_exact": true,
+          "all_strict_gt": true,
+          "truth_count": 512,
+          "max_errors": {
+            "position_px": 0.12809542327516896,
+            "angle_deg": 0.09951369303348656,
+            "relative_scale": 0.0027443297876431627
+          },
+          "construct_ms": [
+            26.503166,
+            26.949334
+          ],
+          "first_ms": [
+            3539.675875,
+            3464.427625
+          ],
+          "stage_medians": {
+            "prepare_ms": 4.1962085,
+            "proposal_ms": 3144.487583,
+            "refine_ms": 206.9816455,
+            "nms_ms": 0.6047290000000001
+          },
+          "frame_capacities": [
+            {
+              "frame_host_bytes": 44695552,
+              "frame_coarse_gpu_bytes": 95905160,
+              "frame_fine_gpu_bytes": 4160256
+            },
+            {
+              "frame_host_bytes": 44695552,
+              "frame_coarse_gpu_bytes": 95905160,
+              "frame_fine_gpu_bytes": 4160256
+            }
+          ]
+        }
+      },
+      "performance": {
+        "native_original": {
+          "python_frozen": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -7.917588089975025,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -8.630902135546403,
+                "passed": true
+              }
+            ]
+          },
+          "python_reference": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -5.34409189417937,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -2.6904293386836087,
+                "passed": true
+              }
+            ]
+          }
+        },
+        "native_tile": {
+          "python_frozen": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -10.36111221624505,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -9.993154349576871,
+                "passed": true
+              }
+            ]
+          },
+          "python_reference": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -7.855907021009145,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -4.141250033842347,
+                "passed": true
+              }
+            ]
+          },
+          "native_original": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -2.6536274143835636,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -1.4909331993748887,
+                "passed": true
+              }
+            ]
+          }
+        },
+        "native_overlap": {
+          "python_frozen": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -8.168471885843909,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -9.001523434235315,
+                "passed": true
+              }
+            ]
+          },
+          "python_reference": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -5.601987327567981,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -3.085147030948232,
+                "passed": true
+              }
+            ]
+          },
+          "native_original": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -0.27245571729161977,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -0.40563090514337263,
+                "passed": true
+              }
+            ]
+          }
+        },
+        "native_combined": {
+          "python_frozen": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -10.30251927636554,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -9.91138421936123,
+                "passed": true
+              }
+            ]
+          },
+          "python_reference": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -7.7956765403142665,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -4.054163519362264,
+                "passed": true
+              }
+            ]
+          },
+          "native_original": {
+            "passed": true,
+            "blocks": [
+              {
+                "block": 0,
+                "delta_percent": -2.5899964357155025,
+                "passed": true
+              },
+              {
+                "block": 1,
+                "delta_percent": -1.4014389041187902,
+                "passed": true
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "correctness_passed": true
+}

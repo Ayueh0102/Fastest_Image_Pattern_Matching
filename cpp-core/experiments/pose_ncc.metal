@@ -119,7 +119,7 @@ inline void merge_derivatives(thread DerivativePartial& a,
     a.count = total;
 }
 
-// A 128-thread group uses 18,432 bytes of threadgroup storage. Each thread
+// A 128-thread group uses 9,216 bytes of threadgroup storage. Each thread
 // consumes up to eight pixels of a 1024-pixel tile, fusing warp, derivatives and
 // multivariate Welford updates. No warped image or per-pixel Jacobian is stored.
 kernel void pose_derivative_partials(device const float* source [[buffer(0)]],
@@ -127,7 +127,7 @@ kernel void pose_derivative_partials(device const float* source [[buffer(0)]],
     device DerivativePartial* partials [[buffer(3)]], constant Config& k [[buffer(4)]],
     uint lane [[thread_index_in_threadgroup]], uint2 group [[threadgroup_position_in_grid]])
 {
-    threadgroup DerivativePartial states[128];
+    threadgroup DerivativePartial states[64];
     DerivativePartial state = {};
     const float4 p = poses[group.y];
     for (uint pixel = group.x*1024+lane; pixel < min((group.x+1)*1024, k.tw*k.th); pixel += 128) {
@@ -162,9 +162,20 @@ kernel void pose_derivative_partials(device const float* source [[buffer(0)]],
                 state.covariance[entry++] += delta[i]*(values[j]-state.mean[c][j]);
         }
     }
-    states[lane] = state;
+    // Keep the original 128-lane accumulation and exact reduction order.
+    // Upper lanes publish their state; lower lanes retain theirs in registers.
+    // This performs the old step=64 merge with half the shared storage and
+    // leaves room for Shader Validation instrumentation on 32 KiB devices.
+    if (lane >= 64) states[lane-64] = state;
     threadgroup_barrier(mem_flags::mem_threadgroup);
-    for (uint step = 64; step > 0; step >>= 1) {
+    if (lane < 64) {
+        const DerivativePartial right = states[lane];
+        merge_derivatives(state, right, k.channels);
+    }
+    threadgroup_barrier(mem_flags::mem_threadgroup);
+    if (lane < 64) states[lane] = state;
+    threadgroup_barrier(mem_flags::mem_threadgroup);
+    for (uint step = 32; step > 0; step >>= 1) {
         if (lane < step) {
             DerivativePartial left = states[lane], right = states[lane+step];
             merge_derivatives(left, right, k.channels);

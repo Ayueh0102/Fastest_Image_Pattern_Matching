@@ -1,0 +1,194 @@
+{
+  "controlled6": {
+    "native_original": {
+      "device_ms": 3.7114997394382954,
+      "wait_ms": 8.355291000000001,
+      "copy_ms": 0.11360300000000001,
+      "normalization_ms": 3.6447724999999997,
+      "async_device_ms": 0.0,
+      "async_wait_ms": 0.0,
+      "async_maps": 0.0,
+      "async_fallback_maps": 0.0
+    },
+    "native_tile": {
+      "device_ms": 3.142166300676763,
+      "wait_ms": 7.722125499999999,
+      "copy_ms": 0.10875099999999999,
+      "normalization_ms": 3.6414370000000007,
+      "async_device_ms": 0.0,
+      "async_wait_ms": 0.0,
+      "async_maps": 0.0,
+      "async_fallback_maps": 0.0
+    },
+    "native_combined": {
+      "device_ms": 2.961771679110825,
+      "wait_ms": 0.29831299999999994,
+      "copy_ms": 0.10743650000000002,
+      "normalization_ms": 4.32146,
+      "async_device_ms": 2.961771679110825,
+      "async_wait_ms": 0.29831299999999994,
+      "async_maps": 140.0,
+      "async_fallback_maps": 0.0
+    }
+  },
+  "heldout12": {
+    "native_original": {
+      "device_ms": 8.502625511027873,
+      "wait_ms": 13.079352499999999,
+      "copy_ms": 0.20364400000000002,
+      "normalization_ms": 10.564269,
+      "async_device_ms": 0.0,
+      "async_wait_ms": 0.0,
+      "async_maps": 0.0,
+      "async_fallback_maps": 0.0
+    },
+    "native_tile": {
+      "device_ms": 5.22095849737525,
+      "wait_ms": 9.828814000000001,
+      "copy_ms": 0.22841450000000002,
+      "normalization_ms": 10.5404175,
+      "async_device_ms": 0.0,
+      "async_wait_ms": 0.0,
+      "async_maps": 0.0,
+      "async_fallback_maps": 0.0
+    },
+    "native_combined": {
+      "device_ms": 5.004729493521154,
+      "wait_ms": 0.0220835,
+      "copy_ms": 0.20191750000000003,
+      "normalization_ms": 12.156266500000001,
+      "async_device_ms": 5.004729493521154,
+      "async_wait_ms": 0.0220835,
+      "async_maps": 140.0,
+      "async_fallback_maps": 0.0
+    }
+  },
+  "8k_t256_angle180_3scales": {
+    "native_original": {
+      "device_ms": 60.20562571939081,
+      "wait_ms": 88.4422885,
+      "copy_ms": 0.9837275000000001,
+      "normalization_ms": 63.045396,
+      "async_device_ms": 0.0,
+      "async_wait_ms": 0.0,
+      "async_maps": 0.0,
+      "async_fallback_maps": 0.0
+    },
+    "native_tile": {
+      "device_ms": 44.08260399941355,
+      "wait_ms": 70.81777349999999,
+      "copy_ms": 0.9570190000000001,
+      "normalization_ms": 64.06302000000001,
+      "async_device_ms": 0.0,
+      "async_wait_ms": 0.0,
+      "async_maps": 0.0,
+      "async_fallback_maps": 0.0
+    },
+    "native_combined": {
+      "device_ms": 51.40462575946003,
+      "wait_ms": 54.1257925,
+      "copy_ms": 0.918539,
+      "normalization_ms": 64.608462,
+      "async_device_ms": 14.520416734740138,
+      "async_wait_ms": 1.349167,
+      "async_maps": 60.0,
+      "async_fallback_maps": 64.0
+    }
+  },
+  "small_fullres": {
+    "native_original": {
+      "device_ms": 0.4623123677447438,
+      "wait_ms": 1.5358755,
+      "copy_ms": 0.017833500000000002,
+      "normalization_ms": 0.4863345,
+      "async_device_ms": 0.0,
+      "async_wait_ms": 0.0,
+      "async_maps": 0.0,
+      "async_fallback_maps": 0.0
+    },
+    "native_tile": {
+      "device_ms": 0.467979465611279,
+      "wait_ms": 1.3506035,
+      "copy_ms": 0.0180195,
+      "normalization_ms": 0.48337549999999996,
+      "async_device_ms": 0.0,
+      "async_wait_ms": 0.0,
+      "async_maps": 0.0,
+      "async_fallback_maps": 0.0
+    },
+    "native_combined": {
+      "device_ms": 0.5573751404881477,
+      "wait_ms": 0.1376255,
+      "copy_ms": 0.018791000000000002,
+      "normalization_ms": 0.5488744999999999,
+      "async_device_ms": 0.5573751404881477,
+      "async_wait_ms": 0.1376255,
+      "async_maps": 40.0,
+      "async_fallback_maps": 0.0
+    }
+  },
+  "many128_pose": {
+    "native_original": {
+      "device_ms": 63.5906457901001,
+      "wait_ms": 96.29328950000001,
+      "copy_ms": 1.0268145,
+      "normalization_ms": 86.295207,
+      "async_device_ms": 0.0,
+      "async_wait_ms": 0.0,
+      "async_maps": 0.0,
+      "async_fallback_maps": 0.0
+    },
+    "native_tile": {
+      "device_ms": 29.798375559039414,
+      "wait_ms": 62.270394499999995,
+      "copy_ms": 1.033918,
+      "normalization_ms": 86.32710750000001,
+      "async_device_ms": 0.0,
+      "async_wait_ms": 0.0,
+      "async_maps": 0.0,
+      "async_fallback_maps": 0.0
+    },
+    "native_combined": {
+      "device_ms": 29.51720787677914,
+      "wait_ms": 42.698165,
+      "copy_ms": 1.0268125000000001,
+      "normalization_ms": 89.19104,
+      "async_device_ms": 8.32487503066659,
+      "async_wait_ms": 0.0012699999999999999,
+      "async_maps": 68.0,
+      "async_fallback_maps": 72.0
+    }
+  },
+  "many512_pose": {
+    "native_original": {
+      "device_ms": 145.30727115925401,
+      "wait_ms": 205.61262450000004,
+      "copy_ms": 2.2855820000000002,
+      "normalization_ms": 199.545543,
+      "async_device_ms": 0.0,
+      "async_wait_ms": 0.0,
+      "async_maps": 0.0,
+      "async_fallback_maps": 0.0
+    },
+    "native_tile": {
+      "device_ms": 87.19289652071893,
+      "wait_ms": 145.34720649999997,
+      "copy_ms": 2.2529975,
+      "normalization_ms": 199.8074395,
+      "async_device_ms": 0.0,
+      "async_wait_ms": 0.0,
+      "async_maps": 0.0,
+      "async_fallback_maps": 0.0
+    },
+    "native_combined": {
+      "device_ms": 86.69435454066843,
+      "wait_ms": 135.06078250000002,
+      "copy_ms": 2.3348950000000004,
+      "normalization_ms": 202.9994575,
+      "async_device_ms": 4.498354392126203,
+      "async_wait_ms": 0.0012699999999999999,
+      "async_maps": 40.0,
+      "async_fallback_maps": 100.0
+    }
+  }
+}

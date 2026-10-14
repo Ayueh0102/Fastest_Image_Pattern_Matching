@@ -1,6 +1,6 @@
 # Template Matching 研究總索引與人工審查指南
 
-整理日期：2026-10-14。前12階段整理 repository 已保存的報告、protocol 與結果；第13階段加入本輪新完成的 NCC tiling 正式量測。各數字是各輪的證據快照，不是同一輪連續量測；不要將不同輪次的加速比相乘。快速設定摘要見 [目前建議方案](CURRENT_BEST_zh-TW.md)。
+整理日期：2026-10-14。前12階段整理 repository 已保存的報告、protocol 與結果；第13階段為 NCC tiling 正式量測，第14階段接入原生尺度 GUI 並驗證組合模式與持續運行。各數字是各輪的證據快照，不是同一輪連續量測；不要將不同輪次的加速比相乘。快速設定摘要見 [目前建議方案](CURRENT_BEST_zh-TW.md)。
 
 ## 目前推薦方案
 
@@ -13,11 +13,29 @@
 | 粗搜尋角度批次 | `batch_angles=4` | 上限與尾批仍按容量拆分 |
 | 金字塔細搜尋 | `fine_batch_size=512` | Metal guarded warp＋整數 NCC；CPU repair／double normalization／搜尋控制仍存在 |
 | 粗選峰 | `peak_mode=1` | CPU 精確 tournament tree，保留原峰值順序 |
-| 粗 NCC | 通用基準 `ncc_mode=0`；大場景可選mode2 | mode2本輪8K／128／512有收益，6／12無收益；mode1不推薦，mode3保留對照 |
+| 粗 NCC | 通用基準 `ncc_mode=0`；大場景可選mode2 | mode2大場景有收益；小圖／重疊組合依第14輪結果判斷，mode1不推薦，mode3保留對照 |
 | CPU／GPU coarse overlap | 關閉，`enabled=False` | 完整實作已可用，但 512 物件效能混合且記憶體增加 |
 | 後段連續姿態 | resident refinement＋既有有預算 rescue | 使用 CPU 最終驗分；低分救援觸發上限配合實際接受門檻 |
 
-這是**已測研究組合的基準設定**，不是所有工作負載都最快的結論，也不是 Qt GUI 已自動啟用的設定。小型局部精修有 CPU 勝過 Metal 的實測；歷史 auto routing 的門檻針對當時混合精修校準，未證實可直接套用至最新整條流程。
+這是**已測研究組合的基準設定**，不是所有工作負載都最快的結論，Qt GUI 已能選用此原生尺度流程，但預設仍為 CPU 原有流程。小型局部精修有 CPU 勝過 Metal 的實測；歷史 auto routing 的門檻針對當時混合精修校準，未證實可直接套用至最新整條流程。
+
+GUI 與原生程式現可直接使用以下 C++ 排程；來源／模板為 `fpm::ImageView`，Session 自行持有像素、模型與 GPU 資源，一次只供一個呼叫者使用：
+
+```cpp
+#include "research_pipeline.hpp"
+fpm::research::Settings settings;
+settings.backend = 1; // Metal；CPU 為 0
+settings.scales = {.75, 1., 1.25};
+fpm::research::Session session(sourceView, templateView, settings);
+fpm::research::Options options;
+options.match.minScore = .8;
+options.match.maxTargets = 70;
+options.nccMode = 0;
+options.overlap = false;
+auto result = session.run(options); // 包含共享 frame、refine/rescue 與跨尺度 NMS
+```
+
+CMake 啟用實驗庫並連結 `fpm_research_pipeline`。完整建置及 GUI 操作見 [README](../README_zh-TW.md#原生尺度搜尋與-metal-gui)；舊 Python 排程繼續保留研究對照。
 
 已有 `models`（各尺度 `CoarsePattern`）、`source_view` 與 `config` 時，前段設定如下；跨尺度合併、pose 座標轉換、精修與最後 NMS 由研究排程完成：
 
@@ -42,7 +60,7 @@ with SourceFrame(build, backend='metal', pyramid_mode=1,
 | 舊 macOS C++ | 保留的 OpenCV／DOTPROD 移植，比較工具的執行期歷史參考 | 不等同直接在 Windows 跑最早版 |
 | 新 portable CPU | `fpm_core` 的完整自有灰階、固定尺度 NCC／旋轉／金字塔／subpixel | 不是預設原生全圖尺度／RGB 搜尋 |
 | pose scorer／refiner | float32 幾何、灰階或 RGB、連續平移／角度／log-scale，C++／Metal 核心 | 只給 seeds 的測試不是全圖偵測召回率 |
-| 全圖研究 pipeline | 各尺度模板搜尋＋後段 pose 精修／rescue／NMS，Python 排程 | 尚未整體接入 GUI，不是全 C++ Fourier 或全 GPU 流程 |
+| 全圖研究 pipeline | 各尺度模板搜尋＋後段 pose 精修／rescue／NMS；原生 C++ 已接入選配 GUI，Python 保留對照 | 灰階尺度流程已原生化，仍不是全 C++ Fourier 或全 GPU 流程 |
 | 金字塔 fine search | 每層局部 ROI 的離散角度與位置搜尋 | 與最後四參數 resident LM 是不同階段 |
 
 目前跨階段的大部分效能證據來自 Apple M4 Pro、12 CPU／16 GPU cores、48 GiB、macOS 26.6.2、Release；早期稽核另記 AppleClang 21、Qt 6.10.2、OpenCV 4.13.0。CPU 實驗多使用 8 threads，但 portable core 的 NEON 搜尋不可因此稱作八核心搜尋。CUDA、Windows／Linux 實機性能並無本頁可引用的完成證據。
@@ -181,6 +199,20 @@ with SourceFrame(build, backend='metal', pyramid_mode=1,
 
 來源：[本輪實作與正式結果](TILE_NCC_zh-TW.md)・[數學與原始文獻](NCC_TILING_AND_OVERLAP_RESEARCH_zh-TW.md)・[事前protocol](coarse-tiling/protocol.json)・[review數據](coarse-tiling/results.json)・[全流程封存](coarse-tiling/raw-results.tar.gz)・[單map數據](coarse-tiling/probe/results.json)・[單map封存](coarse-tiling/probe/raw-results.tar.gz)。
 
+### 14. 原生尺度 GUI、分塊＋重疊組合與有界穩定性（2026-10-14）
+
+**目的／實作：** 將灰階尺度 bank、共享 frame、resident/refine/rescue、座標轉換與跨尺度 NMS 整理成原生 C++ Session，接入 Qt GUI。GUI 新增 CPU／Metal 尺度搜尋、mode2／3、重疊開關、尺度結果與完整執行設定匯出；不需要 Python 子程序。預設保留 CPU 原有流程，Metal mode0、重疊關閉。
+
+**資料／時間／記憶體／精度：** 六場景、六路、72workers、360正式次，凍結 `1cba464` 與 current Python 都使用 Metal，再比較 native mode0／mode2／overlap／combined。Native original→mode2：8K273.46→259.44 ms、128物件1189.79→1149.74 ms、512物件3426.37→3350.39 ms。512再加overlap3352.14 ms，peak RSS789.84→841.85 MiB，沒有額外時間收益。全部有序結果及GT通過，native模式逐值一致；512最大位置0.1281 px、角度0.0995°、尺度0.2744%。小圖combined第2block9.233 ms對original6.896 ms，慢33.90%，效能gate失敗；保留正式失敗。8K原生基準RSS562.77 MiB高於Python current365.93 MiB，原生化並非全面省記憶體。
+
+Metal Shader Validation另發現導數kernel插裝後共享記憶體超過32KiB；修正為64共享槽＋下半lanes暫存器，保持原128-lane數值合併順序，修正前後輸出通過。Release全套26/26後重跑受影響8/8；ASan/UBSan全套24/24後重跑4/4；CPU-only GUI3/3；Python工具19/19。失敗診斷與成功重跑皆封存。
+
+**有界持續測試：** 128場景600.40秒、523次／5次重建，RSS起末中位數337.12→338.27 MiB；6場景兩分鐘、1723次／17次重建，53.12→52.14 MiB。2246次輸出、generation、工作量、buffer容量及async drain皆通過。這不是24小時或持續新相機影格的驗收。
+
+**決定：原生灰階 GUI 可使用；大場景可選mode2，重疊仍選配。** 新的C++ NMS在512場景由Python123.835降至0.604 ms，但不是GPU收益。下一個主要時間成本仍是proposal／fine搜尋；大圖來源副本與Qt解碼配置需另拆量。Fourier與完整RGB全圖GUI、CUDA／跨平台實測、24小時／相機串流仍未完成。
+
+來源：[整合與完整報告](GUI_INTEGRATION_AND_STABILITY_zh-TW.md)・[事前protocol](gui-integration/protocol.json)・[六路正式結果](gui-integration/results.json)・[粗搜尋等待診斷](gui-integration/diagnostics.json)・[驗證紀錄](gui-integration/validation.json)・[完整封存](gui-integration/raw-results.tar.gz)・[封存SHA](gui-integration/artifact-sha256.json)。
+
 ## 人工審查時應保留的限制
 
 1. **時間範圍先對齊。** 固定姿態score、局部refine、全圖proposal、含rescue全流程、setup／first各不相同；多數暖機表排除解碼與一次學習，但shared frame每次prepare已計入。原CPU／GPU勝負只能在同輪、同工作量列內比較。
@@ -188,6 +220,6 @@ with SourceFrame(build, backend='metal', pyramid_mode=1,
 3. **RSS與buffer不相加。** shared memory有重疊；16MiB通常只指局部輔助workspace，不包含source、template、score map、Python、driver或擴容瞬時副本。某些早期階段沒有標準化RSS比較，本頁不補推估。
 4. **效能 gate 與正確性 flag 分開。** `integrity_passed`、`detection_all_passed`均true不代表效能全過；overlap512就是反例。通過 `max(10%,2ms)`容忍也可能實際變慢。保留profile干擾、block波動與慢樣本。
 5. **版本必須查hash。** 早期JSON的`git_head`可能只是當時未提交修改的基底，需一起核對`source_sha256`、library SHA與build provenance；不能僅用HEAD聲稱重現同binary。封存中absolute paths是歷史來源，離線replay需明確指定解壓後worker root。
-6. **仍缺的覆蓋。** 多物件目前只有單模板、多個分離實例；遮擋、透視、真實相機尺度、跨類別模板庫、長時間串流、功耗與跨硬體交叉點未全面驗證。RGB證據主要是已知候選局部評分／精修，沒有本頁可證明的完整RGB全圖GUI。
+6. **仍缺的覆蓋。** 多物件目前只有單模板、多個分離實例；遮擋、透視、真實相機尺度、跨類別模板庫、長時間串流、功耗與跨硬體交叉點未全面驗證；第14輪僅補10分鐘／2分鐘固定圖有界穩定性。RGB證據主要是已知候選局部評分／精修，沒有本頁可證明的完整RGB全圖GUI。
 
 閱讀時先看每階段報告的「比較方法／限制」，再查相鄰JSON與protocol。所有實驗源碼入口在 [tools](../tools)、[C++／Metal實驗庫](../experiments)、[核心](../src)與[測試](../tests)；GUI及原核心的建置與授權見 [README](../README_zh-TW.md)。

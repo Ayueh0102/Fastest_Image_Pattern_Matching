@@ -26,6 +26,7 @@
 - [CPU／GPU 粗搜尋重疊](docs/COARSE_OVERLAP_zh-TW.md)
 - [NCC 記憶體分塊與 FlashAttention 原理分析](docs/NCC_TILING_AND_OVERLAP_RESEARCH_zh-TW.md)
 - [NCC 暫存器分塊與共用記憶體實作比較](docs/TILE_NCC_zh-TW.md)
+- [原生 C++ 尺度 GUI、組合模式與持續運行驗證](docs/GUI_INTEGRATION_AND_STABILITY_zh-TW.md)
 
 GUI 的完整原始碼位於 `../macos-cli/mainwindow.{h,cpp}` 與 `main.cpp`，使用 Qt6。CLI 可選用 OpenCV 解碼圖片。Qt、OpenCV、C++ 標準函式庫本身並未複製進專案；比對核心沒有呼叫它們的影像演算法，也沒有依賴未提供源碼的 FPM DLL／SO。
 
@@ -69,6 +70,24 @@ GUI 提供繁中／簡中／英文、來源與模板載入／拖放、縮放、�
 
 GUI 用 Qt 解碼與繪圖，**可把 `FPM_WITH_OPENCV` 設為 OFF**；此時 GUI 仍可開啟 Qt 支援的圖片，CLI 僅支援 PGM。GUI 和一般圖片 CLI 共用明確的 RGB 灰階轉換，忽略 alpha 與 EXIF 自動旋轉。
 
+## 原生尺度搜尋與 Metal GUI
+
+同時啟用 `FPM_BUILD_GUI=ON` 與 `FPM_BUILD_EXPERIMENTS=ON`，會把已驗證的灰階研究排程連接至 GUI；不啟動 Python 子程序。macOS 範例：
+
+```sh
+cmake -S cpp-core -B build/research-gui -DCMAKE_BUILD_TYPE=Release \
+  -DFPM_BUILD_GUI=ON -DFPM_BUILD_EXPERIMENTS=ON -DFPM_WITH_OPENCV=OFF
+cmake --build build/research-gui -j
+ctest --test-dir build/research-gui --output-on-failure
+build/research-gui/fpm_gui.app/Contents/MacOS/fpm_gui --gui
+```
+
+在「運算方式」選 CPU 尺度搜尋或 Metal 尺度搜尋，設定尺度起點／終點／間距；例如 0.75～1.25、間距 0.25。最多 64 個提案尺度；連續精修可以微調尺度，因此這個區間是起始候選庫，不是最終尺度的硬邊界。「連續姿態精修」包含有預算的低分救援；它和原有「次像素位置與角度精修」是不同階段。
+
+Metal 額外提供原版 NCC、相鄰輸出重用、共享記憶體實驗，以及 CPU／GPU 粗搜尋重疊選項。預設保留 CPU 原有流程；Metal 預設原版 NCC、重疊關閉。請依 [本輪比較與限制](docs/GUI_INTEGRATION_AND_STABILITY_zh-TW.md) 選擇，不保證所有組合更快。結果表新增尺度；JSON 匯出包含完成該次工作時的參數、各階段時間及結果，改動下一次參數不會改寫舊結果的紀錄。
+
+原生排程介面見 `experiments/research_pipeline.hpp`：`Session` 複製並持有來源／模板，一次只允許一個呼叫者。每次 `run` 重新準備同張來源的共用金字塔，尺度模型與 GPU 資源可以重用；新影像建立新 Session。尺度重採樣、跨尺度整併、姿態座標轉換與 NMS 都保留 C++ 源碼。既有穩定 C ABI 不變；這個實驗 C++ 排程尚未額外包成穩定 C ABI。
+
 ## CLI
 
 ```sh
@@ -102,7 +121,7 @@ build/portable/fpm_cli --src "Test Images/Src7.bmp" \
 
 ## 模式、速度與 Subpixel
 
-旋轉、尺度、FFT、RGB 與 CPU／GPU 分工的數學推導及研究原型，見 [研究文件](docs/RESEARCH_FOURIER_SCALE_RGB_zh-TW.md)。正式核心目前仍是固定尺度灰階比對；研究原型未接入 GUI。
+旋轉、尺度、FFT、RGB 與 CPU／GPU 分工的數學推導及研究原型，見 [研究文件](docs/RESEARCH_FOURIER_SCALE_RGB_zh-TW.md)。穩定核心仍是固定尺度灰階比對；灰階多尺度＋連續精修研究流程已透過原生 C++ 接入選配 GUI。Fourier 提案與完整 RGB 全圖搜尋尚未接入 GUI。
 
 `codex/ncc-fourier-gpu-experiments` 已提供可實跑的 C++ 多核與 Metal 浮點／RGB 姿態評分器，透過 `FPM_BUILD_EXPERIMENTS=ON` 額外編譯。實測區分常駐資料的評分時間、含 CPU 提案與同步的 ROI 管線時間、初始化與記憶體；[結果](docs/EXPERIMENT_RESULTS_zh-TW.md) 同時保留小批次 GPU 較慢、Fourier 裁切失敗及回退後仍不夠精確的案例。NumPy FFT 仍在 CPU，CUDA 是尚待實作的對應設計。
 

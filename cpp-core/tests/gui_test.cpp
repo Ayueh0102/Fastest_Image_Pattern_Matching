@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include <QCheckBox>
+#include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QFile>
 #include <QJsonDocument>
@@ -12,6 +13,7 @@
 #include <QTableWidget>
 #include <QTemporaryDir>
 #include <QTimer>
+#include <QThreadPool>
 #include <QtTest>
 #include <cmath>
 
@@ -60,6 +62,56 @@ private slots:
 			}
 		}
 	}
+
+#ifdef FPM_GUI_RESEARCH
+	void nativeScaleWorkflow()
+	{
+		QTemporaryDir dir;QVERIFY(dir.isValid());
+		QImage templ(32,24,QImage::Format_Grayscale8),source(256,192,QImage::Format_Grayscale8);source.fill(20);
+		for(int y=0;y<24;++y) for(int x=0;x<32;++x) templ.scanLine(y)[x]=uchar((x*23+y*47+x*y*11)%256);
+		auto small=fpm::research::scaledTemplate({templ.constBits(),32,24,size_t(templ.bytesPerLine())},.75);
+		for(int y=0;y<24;++y) for(int x=0;x<32;++x) source.scanLine(30+y)[40+x]=templ.scanLine(y)[x];
+		for(int y=0;y<small.height();++y) for(int x=0;x<small.width();++x) source.scanLine(110+y)[160+x]=small.row(y)[x];
+		const auto sp=dir.filePath("source.png"),tp=dir.filePath("template.png"),out=dir.filePath("out.json");QVERIFY(source.save(sp));QVERIFY(templ.save(tp));
+		MainWindow window;window.show();QVERIFY(window.loadSource(sp));QVERIFY(window.loadTemplate(tp));
+		auto engine=window.findChild<QComboBox*>("engine");auto mode=window.findChild<QComboBox*>("nccMode");
+		auto lo=window.findChild<QDoubleSpinBox*>("scaleMin");auto hi=window.findChild<QDoubleSpinBox*>("scaleMax");
+		auto overlap=window.findChild<QCheckBox*>("coarseOverlap");auto refine=window.findChild<QCheckBox*>("continuousRefinement");
+		auto button=window.findChild<QPushButton*>("execute");auto table=window.findChild<QTableWidget*>("results");
+		QSignalSpy finished(&window,&MainWindow::matchingFinished);
+		window.findChild<QDoubleSpinBox*>("score")->setValue(.9);window.findChild<QDoubleSpinBox*>("overlap")->setValue(.2);
+		window.findChild<QSpinBox*>("minArea")->setValue(10000);window.findChild<QDoubleSpinBox*>("angle")->setValue(180);
+		lo->setValue(.75);hi->setValue(1);refine->setChecked(false);
+		auto run=[&]() {button->click();return finished.wait(30000) && finished.takeFirst()[0].toBool();};
+		for(int route=1;route<engine->count();++route) {
+			engine->setCurrentIndex(route);mode->setCurrentIndex(1);overlap->setChecked(true);
+			QVERIFY(run());QCOMPARE(table->rowCount(),2);QVERIFY(window.exportResults(out));
+			QFile file(out);QVERIFY(file.open(QIODevice::ReadOnly));auto data=QJsonDocument::fromJson(file.readAll()).object();
+			QCOMPARE(data["schema_version"].toInt(),2);auto config=data["run"].toObject();QCOMPARE(config["ncc_mode"].toInt(),route==2?2:0);
+			QCOMPARE(config["coarse_overlap"].toBool(),route==2);QCOMPARE(config["frame_generation"].toInt(),1);
+			bool one=false,scaled=false;for(auto m:data["matches"].toArray()) {double scale=m.toObject()["scale"].toDouble();one|=scale==1.;scaled|=scale==.75;}QVERIFY(one && scaled);
+			QVERIFY(run());QVERIFY(window.exportResults(out));file.close();QVERIFY(file.open(QIODevice::ReadOnly));
+			QCOMPARE(QJsonDocument::fromJson(file.readAll()).object()["run"].toObject()["frame_generation"].toInt(),2);
+			if(route==engine->count()-1 && !qEnvironmentVariable("FPM_GUI_SCREENSHOT").isEmpty()) { QCoreApplication::processEvents();QVERIFY(window.grab().save(qEnvironmentVariable("FPM_GUI_SCREENSHOT"))); }
+			refine->setChecked(true);QVERIFY(run());QVERIFY(table->rowCount()>=1);QVERIFY(window.exportResults(out));
+			file.close();QVERIFY(file.open(QIODevice::ReadOnly));QCOMPARE(QJsonDocument::fromJson(file.readAll()).object()["run"].toObject()["refinement_backend"].toInt(),route==2?1:0);
+			refine->setChecked(false);
+		}
+		// Invalid scale is a recoverable immediate failure, and clears old output.
+		lo->setValue(1.5);hi->setValue(1);button->click();QVERIFY(!finished.isEmpty());QVERIFY(!finished.takeFirst()[0].toBool());QCOMPARE(table->rowCount(),0);QVERIFY(!window.exportResults(out));
+		lo->setValue(.75);QVERIFY(run());
+		// Export provenance belongs to the completed job even after controls change.
+		hi->setValue(1.25);QVERIFY(window.exportResults(out));
+		QFile snapshot(out);QVERIFY(snapshot.open(QIODevice::ReadOnly));QCOMPARE(QJsonDocument::fromJson(snapshot.readAll()).object()["run"].toObject()["proposal_scales"].toArray().last().toDouble(),1.);hi->setValue(1);
+		// Changing the image invalidates the source snapshot, even at same size.
+		source.fill(20);QVERIFY(source.save(sp));QVERIFY(window.loadSource(sp));QVERIFY(run());QCOMPARE(table->rowCount(),0);QVERIFY(window.exportResults(out));
+		QFile empty(out);QVERIFY(empty.open(QIODevice::ReadOnly));auto e=QJsonDocument::fromJson(empty.readAll()).object();QCOMPARE(e["run"].toObject()["frame_generation"].toInt(),1);QCOMPARE(e["matches"].toArray().size(),0);
+		// Closing a busy window must leave the worker with owned image/session snapshots.
+		auto closing=std::make_unique<MainWindow>();QVERIFY(closing->loadSource(sp));QVERIFY(closing->loadTemplate(tp));
+		closing->findChild<QComboBox*>("engine")->setCurrentIndex(engine->count()-1);
+		closing->findChild<QPushButton*>("execute")->click();closing.reset();QVERIFY(QThreadPool::globalInstance()->waitForDone(30000));
+	}
+#endif
 	void workflow()
 	{
 		QTemporaryDir dir; QVERIFY(dir.isValid());

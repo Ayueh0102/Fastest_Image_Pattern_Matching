@@ -1,0 +1,49 @@
+// SPDX-License-Identifier: BSD-2-Clause
+#pragma once
+#include "fpm/matcher.hpp"
+#include "coarse_ncc.h"
+#include "pose_ncc.h"
+#include <memory>
+
+namespace fpm::research {
+// Native orchestration of the previously Python-driven gray8 experiment.
+// One caller at a time. Session owns immutable source/template snapshots.
+struct Settings {
+    int backend = 1; // 0 CPU, 1 Metal (explicit failure if unavailable)
+    int minReducedArea = 256;
+    std::vector<double> scales{1.}; // proposal bank, not final refinement bounds
+    int cpuThreads = 8;
+};
+struct Options {
+    MatchConfig match;
+    int nccMode = 0;
+    bool overlap = false;
+    bool refine = true;
+    double proposalScore = .5; // capped at final minScore; ignored without refine
+};
+struct Result {
+    std::vector<Match> matches, proposals;
+    std::vector<double> scales, proposalScales;
+    double prepareMs = 0, proposalMs = 0, refineMs = 0, nmsMs = 0, totalMs = 0;
+    FpmFrameMetricsV1 frame{};
+    FpmPoseMetrics pose{};
+    FpmPoseRescueMetrics rescue{};
+    std::vector<FpmCoarseMetrics> coarse;
+    std::vector<FpmFineMetricsV1> fine;
+    std::vector<FpmCoarseOverlapMetricsV1> overlapMetrics;
+};
+// Public for cross-language parity checks; zero extension, width/2 center,
+// ties-to-even dimensions and floor(value+.5) gray8 rounding. No antialiasing.
+Image scaledTemplate(ImageView source, double scale);
+class Session {
+public:
+    Session(ImageView source, ImageView templ, const Settings& settings = {});
+    ~Session();
+    Session(const Session&) = delete;
+    Session& operator=(const Session&) = delete;
+    Result run(const Options& options = {});
+private:
+    struct Impl;
+    std::unique_ptr<Impl> impl_;
+};
+} // namespace fpm::research

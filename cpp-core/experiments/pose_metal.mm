@@ -224,6 +224,10 @@ public:
             if (!derivativeFinishPipeline_) throw std::runtime_error([[error localizedDescription] UTF8String]);
             if (partialPipeline_.maxTotalThreadsPerThreadgroup < 256)
                 throw std::runtime_error("Metal device cannot run 256-thread workgroups");
+            for (id<MTLComputePipelineState> pipeline : {partialPipeline_, finishPipeline_, derivativePipeline_, derivativeFinishPipeline_}) {
+                if (pipeline.staticThreadgroupMemoryLength > device_.maxThreadgroupMemoryLength)
+                    throw std::runtime_error("Metal pose pipeline exceeds device threadgroup memory limit");
+            }
             if (derivativePipeline_.maxTotalThreadsPerThreadgroup < 128)
                 throw std::runtime_error("Metal device cannot run 128-thread derivative workgroups");
             source_ = buffer(d.source.size()*sizeof(float)); template_ = buffer(d.templ.size()*sizeof(float));

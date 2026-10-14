@@ -1,0 +1,55 @@
+// SPDX-License-Identifier: BSD-2-Clause
+#include "research_pipeline.hpp"
+#include <cmath>
+#include <iostream>
+#include <random>
+#include <stdexcept>
+using namespace fpm;
+using namespace fpm::research;
+void require(bool v,const char* why) { if(!v) throw std::runtime_error(why); }
+void same(const Result& a,const Result& b) {
+    require(a.matches.size()==b.matches.size() && a.scales==b.scales,"result count/scale differs");
+    require(a.proposals.size()==b.proposals.size(),"proposal count differs");
+    auto compare=[](const auto& aa,const auto& bb) {
+        for(size_t i=0;i<aa.size();++i) {
+            require(aa[i].score==bb[i].score && aa[i].angle==bb[i].angle && aa[i].center.x==bb[i].center.x && aa[i].center.y==bb[i].center.y,"ordered pose/score differs");
+            for(int j=0;j<4;++j) require(aa[i].corners[j].x==bb[i].corners[j].x && aa[i].corners[j].y==bb[i].corners[j].y,"corners differ");
+        }
+    };
+    compare(a.matches,b.matches);compare(a.proposals,b.proposals);
+}
+int main(int argc,char**) {
+    try {
+        const bool metal=argc>1;
+        Image templ(32,24),source(256,192);std::mt19937 random(17);
+        for(int y=0;y<24;++y) for(int x=0;x<32;++x) templ.row(y)[x]=uint8_t(random());
+        auto small=scaledTemplate(templ.view(),.75);
+        for(int y=0;y<192;++y) for(int x=0;x<256;++x) source.row(y)[x]=20;
+        for(int y=0;y<24;++y) for(int x=0;x<32;++x) source.row(30+y)[40+x]=templ.row(y)[x];
+        for(int y=0;y<small.height();++y) for(int x=0;x<small.width();++x) source.row(110+y)[160+x]=small.row(y)[x];
+        for(int y=0;y<24;++y) for(int x=0;x<32;++x) source.row(80+y)[100+x]=255-templ.row(y)[x];
+        Settings s;s.backend=metal?1:0;s.scales={.75,1.};s.minReducedArea=10000;
+        Session session(source.view(),templ.view(),s);Options o;o.refine=false;o.match.minScore=.9;o.match.maxTargets=5;o.match.maxOverlap=.2;o.match.toleranceAngle=180;
+        auto baseline=session.run(o);require(baseline.matches.size()==2,"scaled instances missing");
+        require(baseline.frame.models_matched==2 && baseline.frame.generation==1,"frame not shared/prepared");
+        for(auto m:baseline.matches) require((std::hypot(m.center.x-56,m.center.y-42)<.1) || (std::hypot(m.center.x-172,m.center.y-119)<.1),"wrong position");
+        // Source/template snapshots are owned; caller changes must not leak in.
+        source.row(30)[40]^=255;templ.row(0)[0]^=255;same(baseline,session.run(o));
+        if(metal) for(int mode:{0,2,3}) for(bool overlap:{false,true}) {
+            o.nccMode=mode;o.overlap=overlap;const auto r=session.run(o);same(baseline,r);
+            for(auto m:r.overlapMetrics) require(m.submitted_batches==m.completed_batches,"undrained async batches");
+        }
+        o.refine=true;auto refined=session.run(o);require(!refined.matches.empty(),"refine failed");
+        require(refined.rescue.selected_backend==(metal?1:0),"wrong solver backend");
+        same(refined,session.run(o));
+        o.match.invertSource=true;auto inverted=session.run(o);require(inverted.matches.size()==1 && std::hypot(inverted.matches[0].center.x-116,inverted.matches[0].center.y-92)<.1 && inverted.matches[0].score>.99,"stale noninverted pose/image");
+        o.match.invertSource=false;same(refined,session.run(o));
+        o.match.angleRanges={{70,40}};bool rejected=false;try { session.run(o); } catch(const std::invalid_argument&) { rejected=true; }
+        require(rejected,"invalid range accepted");o.match.angleRanges.clear();same(refined,session.run(o));
+        o.match.angleRanges={{20,30}};auto restricted=session.run(o);for(auto m:restricted.matches) require(m.angle>=20-1e-5 && m.angle<=30+1e-5,"refinement escaped angle range");
+        Settings invalid=s;invalid.scales={0};rejected=false;try{Session broken(source.view(),templ.view(),invalid);}catch(const std::invalid_argument&){rejected=true;}require(rejected,"zero scale accepted");
+        Image odd(5,7);auto half=scaledTemplate(odd.view(),.5);require(half.width()==2 && half.height()==4,"ties-even resize");
+        std::cout<<(metal?"Metal":"CPU")<<" native pipeline: scale, source ownership, options, repeated calls, inversion and refinement passed\n";
+        return 0;
+    } catch(const std::exception& e) { std::cerr<<e.what()<<'\n';return 1; }
+}

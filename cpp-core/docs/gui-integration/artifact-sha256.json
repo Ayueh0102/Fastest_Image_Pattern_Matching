@@ -1,0 +1,19 @@
+{
+  "complete": true,
+  "formal_workers": 72,
+  "measured_calls": 360,
+  "first_calls": 72,
+  "all_source_binary_input_job_result_hashes_valid": true,
+  "frozen_libraries_match_previous_study": true,
+  "all_workers_exclude_ground_truth": true,
+  "python_warmup_digests_match_first": true,
+  "all_output_geometry_shapes_valid": true,
+  "relocated_summary_identical": true,
+  "archive_files": 483,
+  "archive_bytes": 28188883,
+  "archive_sha256": "54cc38f0017d606863746e5a2c95940f79146976bc474c1ca03bb03776ca7f5b",
+  "manifest_sha256": "093c3df8a0b775cb50284607a3b5cc953673315eb2c9a51c981dd160badc04ae",
+  "replayed_summary_sha256": "f996d6559a856180d54dd115a37c5d05407ed2f95fb3fbaa7f05dd36ad04fb44",
+  "extracted_archive_replay_byte_identical": true,
+  "extracted_replay_sha256": "f996d6559a856180d54dd115a37c5d05407ed2f95fb3fbaa7f05dd36ad04fb44"
+}
