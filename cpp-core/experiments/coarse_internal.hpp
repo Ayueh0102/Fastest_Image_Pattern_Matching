@@ -20,6 +20,15 @@ public:
         FpmFineMetricsV1 value{}; value.version = 1; value.struct_bytes = sizeof(value); return value;
     }
     virtual FpmCoarseMetrics metrics() const = 0;
+    virtual void setCoarseOverlap(bool enabled) {
+        if (enabled) throw std::invalid_argument("coarse overlap is unavailable");
+    }
+    virtual FpmCoarseOverlapMetricsV1 coarseOverlapMetrics() const {
+        FpmCoarseOverlapMetricsV1 value{};
+        value.version = 1; value.struct_bytes = sizeof(value);
+        value.device_ms = value.device_span_ms = -1;
+        return value;
+    }
     virtual void setExecution(const FpmCoarseExecutionConfigV1& config) {
         if (config.pyramid_mode != 0 || config.batch_angles != 1)
             throw std::invalid_argument("GPU execution options are unsupported by this backend");

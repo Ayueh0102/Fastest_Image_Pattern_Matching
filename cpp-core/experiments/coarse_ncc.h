@@ -134,6 +134,44 @@ typedef struct FpmCoarseOptimizationConfigV1 {
 FPM_API int fpm_frame_set_coarse_optimization(fpm_frame_handle* frame,
     const FpmCoarseOptimizationConfigV1* config, size_t config_bytes,
     char* error, size_t error_capacity);
+/* Opt-in two-slot CPU rotation / GPU coarse NCC pipeline. Public match remains
+ * synchronous. Each slot owns up to four source canvases, exact integer stats
+ * and template pixels. Caps per slot: 64 MiB sources, 16 MiB statistics;
+ * oversized/single/degenerate batches use the original synchronous path.
+ * Reserved fields must be zero. Changing options requires an idle frame. */
+typedef struct FpmCoarseOverlapConfigV1 {
+    uint32_t version, struct_bytes;
+    int32_t enabled, reserved0;
+    uint64_t reserved1, reserved2;
+} FpmCoarseOverlapConfigV1;
+/* Per-model diagnostics, reset on match/prepare. Times are ms. submit_ms
+ * includes copy/encode/commit; finish_wait_ms measures only finish waits.
+ * device_ms is summed command GPU duration; device_span_ms includes gaps
+ * between first GPU start and last GPU end. They overlap host times and must
+ * not be added. -1 means unavailable GPU timestamps. Pending counts submitted
+ * commands not yet consumed, not proof of concurrent device execution.
+ * Fallback work is excluded from async timings and counted in fallback_ms.
+ * Retained slot capacities are included in legacy coarse gpu_bytes, overlap
+ * RSS on unified memory, and remain allocated when the option is disabled.
+ * No raw caller image, model or template pointers survive begin. */
+typedef struct FpmCoarseOverlapMetricsV1 {
+    uint32_t version, struct_bytes;
+    int32_t enabled, reserved;
+    double submit_ms, copy_ms, encode_ms, finish_wait_ms;
+    double normalization_ms, device_ms, device_span_ms, fallback_ms;
+    uint64_t submitted_batches, submitted_maps, submissions_with_pending, max_pending;
+    uint64_t completed_batches, fallback_batches, fallback_maps, fallback_single;
+    uint64_t fallback_degenerate, fallback_oversized, source_upload_bytes, template_upload_bytes;
+    uint64_t slot0_source_bytes, slot0_statistics_bytes, slot0_template_bytes;
+    uint64_t slot1_source_bytes, slot1_statistics_bytes, slot1_template_bytes;
+    uint64_t retained_gpu_bytes, drained_batches;
+} FpmCoarseOverlapMetricsV1;
+FPM_API int fpm_frame_set_coarse_overlap(fpm_frame_handle* frame,
+    const FpmCoarseOverlapConfigV1* config, size_t config_bytes,
+    char* error, size_t error_capacity);
+FPM_API int fpm_frame_coarse_overlap_metrics(fpm_frame_handle* frame,
+    FpmCoarseOverlapMetricsV1* metrics, size_t metrics_bytes,
+    char* error, size_t error_capacity);
 FPM_API void fpm_frame_default_config(FpmFrameConfigV1* config);
 FPM_API int fpm_frame_create(const FpmFrameConfigV1* config, size_t config_bytes,
     fpm_frame_handle** out, char* error, size_t error_capacity);

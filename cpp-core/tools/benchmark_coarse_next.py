@@ -79,7 +79,7 @@ class Search(shared.Search):
     Patterns and source frame select the requested frozen/current library.
     Rescue always selects job['build']; no process-global function replacement.
     """
-    def __init__(self, job):
+    def __init__(self, job, *, frame_adapter=FrameAdapter, pattern_adapter=shared.PatternAdapter):
         self.job = dict(job, audit_refinement=True, prune=False)
         case = job['case']
         self.source = cv2.imread(case['source'], cv2.IMREAD_GRAYSCALE)
@@ -105,7 +105,7 @@ class Search(shared.Search):
             self.library = real.Library(str(core_library_path(job['baseline'])))
             for scale in self.scales:
                 scaled = real.scaled_template(self.template, scale)
-                self.patterns.append((scale, shared.PatternAdapter(pattern_job, self.library, real.image_view(scaled))))
+                self.patterns.append((scale, pattern_adapter(pattern_job, self.library, real.image_view(scaled))))
             self.config = self.library.config()
             self.config.max_targets = case['limit']
             self.config.min_score = case.get('proposal_score', case['score'])
@@ -114,7 +114,7 @@ class Search(shared.Search):
             self.config.stop_layer = case['stop_layer']
             self.config.subpixel = case['subpixel']
             self.config.invert_source = case.get('invert_source', 0)
-            self.frame = FrameAdapter(job, [pattern.pattern for _, pattern in self.patterns])
+            self.frame = frame_adapter(job, [pattern.pattern for _, pattern in self.patterns])
             if self.hybrid:
                 self.source_float = self.source.astype(np.float32)/255
                 self.scorer = shared.RescueScorer(job['build'], self.source_float,
@@ -130,10 +130,10 @@ fine_checks = shared.fine_checks
 make_cases = shared.make_cases
 
 
-def worker(job):
+def worker(job, search_factory=Search):
     cv2.setNumThreads(1)
     start = time.perf_counter()
-    search = Search(job)
+    search = search_factory(job)
     construct_ms = (time.perf_counter()-start)*1000
     expected_calls = 0
 

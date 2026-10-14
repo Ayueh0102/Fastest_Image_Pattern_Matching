@@ -80,6 +80,29 @@ class MetalBackend final : public Backend {
     // Only these source buffers are owned exclusively by fine search. Aliases
     // of the already-accounted pyramid input/output must not be counted again.
     std::vector<id<MTLBuffer>> fineSourceBuffers_;
+    struct CoarseSlot {
+        id<MTLBuffer> source = nil, statistics = nil, templ = nil;
+        id<MTLCommandBuffer> command = nil;
+        struct Item { int width, height; size_t windows, statisticsOffset; };
+        std::vector<Item> items;
+        std::vector<fpm::detail::ScoreMap> fallback;
+        // Only the two learned scalars are used; image stays empty. The GPU
+        // template pixels live in this slot's owned Metal buffer.
+        fpm::TemplateLevel normalizationTemplate;
+        double area = 0;
+        uint64_t sequence = 0;
+        bool occupied = false, use32 = false;
+    };
+    std::array<CoarseSlot, 2> coarseSlots_;
+    bool coarseOverlap_ = false;
+    uint64_t coarseSequence_ = 0;
+    double firstCoarseGpuStart_ = 0, lastCoarseGpuEnd_ = 0;
+    FpmCoarseOverlapMetricsV1 overlapMetrics_{};
+
+    void requireCoarseIdle() const {
+        for (const auto& slot : coarseSlots_)
+            if (slot.occupied) throw std::runtime_error("coarse overlap slot is still pending");
+    }
 
     void ensure(id<MTLBuffer> __strong& buffer, size_t bytes, double* setup = nullptr) {
         if (buffer && buffer.length >= bytes) return;
@@ -141,6 +164,7 @@ class MetalBackend final : public Backend {
             threadsPerThreadgroup:MTLSizeMake(groups * simdWidth, 1, 1)];
     }
 public:
+    ~MetalBackend() override { drainCoarseBatches(); }
     MetalBackend() {
         @autoreleasepool {
             device_ = MTLCreateSystemDefaultDevice();
@@ -181,16 +205,20 @@ public:
         }
     }
     void resetMetrics() override {
+        drainCoarseBatches();
         metrics_ = {}; executionMetrics_ = {}; fineMetrics_ = {};
+        overlapMetrics_ = {}; firstCoarseGpuStart_ = lastCoarseGpuEnd_ = 0;
         // A shared frame may visit new pattern objects at recycled addresses.
         // Revalidate template content once per model; source-frame identities
         // remain valid until explicit invalidateFineSource/prepare.
         uploadedTemplate_ = nullptr; uploadedFineTemplate_ = nullptr;
     }
     void invalidateFineSource() override {
+        drainCoarseBatches();
         fineSources_.clear(); nextFineSourceBuffer_ = 0;
     }
     void setCoarseOptimization(int peakMode, int nccMode) override {
+        requireCoarseIdle();
         if (peakMode < 0 || peakMode > 1 || nccMode < 0 || nccMode > 1)
             throw std::invalid_argument("coarse optimization modes must be 0 or 1");
         if (nccMode == 1 && !parallelStats32_) {
@@ -208,6 +236,38 @@ public:
         coarsePeakMode_ = peakMode; coarseNccMode_ = nccMode;
     }
     bool fastCoarsePeaks() const override { return coarsePeakMode_ == 1; }
+    void setCoarseOverlap(bool enabled) override {
+        requireCoarseIdle(); coarseOverlap_ = enabled;
+    }
+    bool coarseOverlapEnabled() const override { return coarseOverlap_; }
+    FpmCoarseOverlapMetricsV1 coarseOverlapMetrics() const override {
+        auto m = overlapMetrics_;
+        m.version = 1; m.struct_bytes = sizeof(m); m.enabled = coarseOverlap_ ? 1 : 0;
+        const auto& a = coarseSlots_[0]; const auto& b = coarseSlots_[1];
+        m.slot0_source_bytes = a.source ? a.source.length : 0;
+        m.slot0_statistics_bytes = a.statistics ? a.statistics.length : 0;
+        m.slot0_template_bytes = a.templ ? a.templ.length : 0;
+        m.slot1_source_bytes = b.source ? b.source.length : 0;
+        m.slot1_statistics_bytes = b.statistics ? b.statistics.length : 0;
+        m.slot1_template_bytes = b.templ ? b.templ.length : 0;
+        m.retained_gpu_bytes = m.slot0_source_bytes + m.slot0_statistics_bytes + m.slot0_template_bytes +
+            m.slot1_source_bytes + m.slot1_statistics_bytes + m.slot1_template_bytes;
+        if (m.device_ms < 0) m.device_span_ms = -1;
+        else m.device_span_ms = firstCoarseGpuStart_ > 0 ? 1000*(lastCoarseGpuEnd_-firstCoarseGpuStart_) : 0;
+        return m;
+    }
+    void drainCoarseBatches() noexcept override {
+        for (auto& slot : coarseSlots_) {
+            if (slot.command) {
+                if (slot.command.status != MTLCommandBufferStatusCompleted &&
+                    slot.command.status != MTLCommandBufferStatusError)
+                    [slot.command waitUntilCompleted];
+                ++overlapMetrics_.drained_batches;
+            }
+            slot.command = nil; slot.occupied = false;
+            slot.items.clear(); slot.fallback.clear();
+        }
+    }
     void setFineBatchSize(size_t count) override {
         if (count > 1024) throw std::invalid_argument("fine batch size must be in 0..1024");
         fineBatchSize_ = count;
@@ -233,6 +293,7 @@ public:
         return m;
     }
     void setExecution(const FpmCoarseExecutionConfigV1& config) override {
+        requireCoarseIdle();
         if (config.version != 1 || config.struct_bytes != sizeof(config) ||
             config.pyramid_mode < 0 || config.pyramid_mode > 2 ||
             config.batch_angles < 1 || config.batch_angles > 4 ||
@@ -261,6 +322,11 @@ public:
             (template_ ? template_.length : 0) + m.workspace_bytes + executionMetrics().pyramid_buffer_bytes;
         m.source_buffer_bytes = (source_ ? source_.length : 0) + (batchSource_ ? batchSource_.length : 0);
         m.template_buffer_bytes = template_ ? template_.length : 0;
+        const auto overlap = coarseOverlapMetrics();
+        m.workspace_bytes += overlap.slot0_statistics_bytes + overlap.slot1_statistics_bytes;
+        m.gpu_bytes += overlap.retained_gpu_bytes;
+        m.source_buffer_bytes += overlap.slot0_source_bytes + overlap.slot1_source_bytes;
+        m.template_buffer_bytes += overlap.slot0_template_bytes + overlap.slot1_template_bytes;
         return m;
     }
     bool buildPyramid(std::vector<fpm::Image>& pyramid, int top) override {
@@ -528,6 +594,174 @@ public:
             }
             if (rotationWallMs) *rotationWallMs = rotationTotal;
             fineMetrics_.wall_ms += elapsed(start);
+            return maps;
+        }
+    }
+    void beginCoarseBatch(size_t index, const std::vector<fpm::ImageView>& sources,
+        const fpm::TemplateLevel& templ) override
+    {
+        @autoreleasepool {
+            const auto start = Clock::now();
+            if (!coarseOverlap_) throw std::runtime_error("coarse overlap is disabled");
+            if (index >= coarseSlots_.size()) throw std::invalid_argument("coarse overlap slot must be 0 or 1");
+            auto& slot = coarseSlots_[index];
+            if (slot.occupied) throw std::runtime_error("coarse overlap slot is still pending");
+            if (sources.empty() || sources.size() > size_t(execution_.batch_angles))
+                throw std::invalid_argument("coarse overlap batch must contain 1..batch_angles sources");
+            const int tw = templ.image.width(), th = templ.image.height();
+            if (tw < 1 || th < 1) throw std::invalid_argument("NCC template dimensions must be positive");
+            const uint64_t area = uint64_t(tw)*th;
+            if (area > (uint64_t(1) << 53)/65025)
+                throw std::invalid_argument("template exceeds exact NCC statistics range");
+            const bool use32 = area <= std::numeric_limits<uint32_t>::max()/uint64_t(65025);
+            const size_t itemBytes = use32 ? sizeof(Stats32) : sizeof(Stats64);
+            const bool degenerate = templ.norm*templ.norm/double(area) < DBL_EPSILON;
+            size_t sourceBytes = 0, statisticsBytes = 0;
+            bool oversized = false;
+            std::array<size_t, 4> sourceOffsets{};
+            std::vector<CoarseSlot::Item> items;
+            items.reserve(sources.size());
+            for (size_t i = 0; i < sources.size(); ++i) {
+                const auto& source = sources[i];
+                fpm::detail::validateImage(source);
+                const int width = source.width-tw+1, height = source.height-th+1;
+                if (width < 1 || height < 1) throw std::invalid_argument("NCC template must fit the source");
+                const size_t windows = size_t(width)*height;
+                const size_t pixels = size_t(source.width)*source.height;
+                const size_t sourceOffset = alignedBytes(sourceBytes), statisticsOffset = alignedBytes(statisticsBytes);
+                // Keep even partially accumulated arenas bounded; once one
+                // item does not fit, validate the rest without growing them.
+                if (!oversized && (sourceOffset > SOURCE_ARENA_LIMIT || statisticsOffset > WORKSPACE_LIMIT ||
+                    pixels > SOURCE_ARENA_LIMIT-sourceOffset || windows > (WORKSPACE_LIMIT-statisticsOffset)/itemBytes))
+                    oversized = true;
+                if (!oversized) {
+                    sourceOffsets[i] = sourceOffset;
+                    sourceBytes = sourceOffset+pixels; statisticsBytes = statisticsOffset+windows*itemBytes;
+                }
+                items.push_back({width, height, windows, statisticsOffset});
+            }
+            if (sources.size() == 1 || degenerate || oversized) {
+                // Preserve the original subdivision/chunking and exact scalar
+                // normalization. An outstanding other slot owns distinct buffers.
+                const auto fallbackStart = Clock::now();
+                slot.fallback = computeBatch(sources, templ);
+                overlapMetrics_.fallback_ms += elapsed(fallbackStart);
+                ++overlapMetrics_.fallback_batches; overlapMetrics_.fallback_maps += sources.size();
+                if (degenerate) ++overlapMetrics_.fallback_degenerate;
+                else if (oversized) ++overlapMetrics_.fallback_oversized;
+                else ++overlapMetrics_.fallback_single;
+                slot.sequence = ++coarseSequence_; slot.occupied = true;
+                return;
+            }
+            ensure(slot.source, sourceBytes); ensure(slot.statistics, statisticsBytes); ensure(slot.templ, size_t(area));
+            const auto copy = Clock::now();
+            for (size_t i = 0; i < sources.size(); ++i) {
+                const auto& source = sources[i];
+                for (int y = 0; y < source.height; ++y)
+                    std::memcpy(static_cast<uint8_t*>(slot.source.contents)+sourceOffsets[i]+size_t(y)*source.width,
+                        source.data+size_t(y)*source.stride, source.width);
+                const auto pixels = uint64_t(source.width)*source.height;
+                overlapMetrics_.source_upload_bytes += pixels;
+                executionMetrics_.batch_source_upload_bytes += pixels;
+            }
+            std::memcpy(slot.templ.contents, templ.image.view().data, size_t(area));
+            overlapMetrics_.template_upload_bytes += area;
+            const double copyMs = elapsed(copy);
+            overlapMetrics_.copy_ms += copyMs; metrics_.upload_ms += copyMs;
+            slot.normalizationTemplate.mean = templ.mean; slot.normalizationTemplate.norm = templ.norm;
+            slot.area = double(area); slot.use32 = use32; slot.items = std::move(items);
+            const auto encode = Clock::now();
+            const id<MTLComputePipelineState> pipeline = coarseNccMode_ == 1 ?
+                (use32 ? parallelStats32_ : parallelStats64_) : (use32 ? stats32_ : stats64_);
+            id<MTLCommandBuffer> command = [queue_ commandBuffer];
+            if (!command) throw std::runtime_error("Metal asynchronous NCC command buffer creation failed");
+            id<MTLComputeCommandEncoder> encoder = [command computeCommandEncoder];
+            if (!encoder) throw std::runtime_error("Metal asynchronous NCC encoder creation failed");
+            [encoder setComputePipelineState:pipeline];
+            [encoder setBuffer:slot.templ offset:0 atIndex:1];
+            for (size_t i = 0; i < sources.size(); ++i) {
+                const auto& item = slot.items[i];
+                const Config config{uint32_t(sources[i].width), uint32_t(tw), uint32_t(th),
+                    uint32_t(item.width), 0, uint32_t(item.windows), 0};
+                [encoder setBuffer:slot.source offset:sourceOffsets[i] atIndex:0];
+                [encoder setBuffer:slot.statistics offset:item.statisticsOffset atIndex:2];
+                [encoder setBytes:&config length:sizeof(config) atIndex:3];
+                dispatchCoarse(encoder, pipeline, item.windows);
+            }
+            [encoder endEncoding];
+            const double encodeMs = elapsed(encode);
+            overlapMetrics_.encode_ms += encodeMs; executionMetrics_.batch_encode_ms += encodeMs;
+            size_t pending = 0;
+            for (const auto& other : coarseSlots_) if (other.command) ++pending;
+            if (pending) ++overlapMetrics_.submissions_with_pending;
+            overlapMetrics_.max_pending = std::max<uint64_t>(overlapMetrics_.max_pending, pending+1);
+            slot.command = command; slot.sequence = ++coarseSequence_; slot.occupied = true;
+            [command commit];
+            ++metrics_.command_buffers;
+            ++overlapMetrics_.submitted_batches; overlapMetrics_.submitted_maps += sources.size();
+            ++executionMetrics_.batch_calls; executionMetrics_.batch_maps += sources.size();
+            executionMetrics_.max_batch_maps = std::max<uint64_t>(executionMetrics_.max_batch_maps, sources.size());
+            for (const auto& item : slot.items) {
+                ++metrics_.score_maps; metrics_.windows += item.windows;
+                if (use32) ++metrics_.integer32_maps; else ++metrics_.integer64_maps;
+                metrics_.scoremap_peak_bytes = std::max<uint64_t>(metrics_.scoremap_peak_bytes, item.windows*sizeof(double));
+            }
+            const double submitMs = elapsed(start);
+            overlapMetrics_.submit_ms += submitMs; metrics_.ncc_ms += submitMs;
+        }
+    }
+    std::vector<fpm::detail::ScoreMap> finishCoarseBatch(size_t index) override {
+        @autoreleasepool {
+            const auto start = Clock::now();
+            if (index >= coarseSlots_.size()) throw std::invalid_argument("coarse overlap slot must be 0 or 1");
+            auto& slot = coarseSlots_[index];
+            if (!slot.occupied) throw std::runtime_error("coarse overlap slot is empty");
+            for (const auto& other : coarseSlots_)
+                if (other.occupied && other.sequence < slot.sequence)
+                    throw std::runtime_error("coarse overlap slots must finish in submission order");
+            if (!slot.command) {
+                slot.occupied = false;
+                return std::move(slot.fallback);
+            }
+            const auto wait = Clock::now();
+            [slot.command waitUntilCompleted];
+            const double waitMs = elapsed(wait);
+            overlapMetrics_.finish_wait_ms += waitMs; metrics_.wait_ms += waitMs;
+            if (slot.command.status != MTLCommandBufferStatusCompleted)
+                throw metalError("Metal asynchronous NCC execution", slot.command.error);
+            if (slot.command.GPUEndTime > slot.command.GPUStartTime && slot.command.GPUStartTime > 0) {
+                const double gpuMs = 1000*(slot.command.GPUEndTime-slot.command.GPUStartTime);
+                if (metrics_.device_ms >= 0) metrics_.device_ms += gpuMs;
+                if (overlapMetrics_.device_ms >= 0) overlapMetrics_.device_ms += gpuMs;
+                if (!firstCoarseGpuStart_) firstCoarseGpuStart_ = slot.command.GPUStartTime;
+                lastCoarseGpuEnd_ = slot.command.GPUEndTime;
+            } else metrics_.device_ms = overlapMetrics_.device_ms = -1;
+            const auto normalization = Clock::now();
+            std::vector<fpm::detail::ScoreMap> maps;
+            maps.reserve(slot.items.size());
+            for (const auto& item : slot.items) {
+                fpm::detail::ScoreMap map{item.width, item.height, std::vector<double>(item.windows)};
+                const auto* bytes = static_cast<const uint8_t*>(slot.statistics.contents)+item.statisticsOffset;
+                if (slot.use32) {
+                    const auto* stats = reinterpret_cast<const Stats32*>(bytes);
+                    for (size_t i = 0; i < item.windows; ++i)
+                        map.values[i] = normalize(stats[i].sum, stats[i].square, stats[i].product,
+                            slot.normalizationTemplate, slot.area);
+                } else {
+                    const auto* stats = reinterpret_cast<const Stats64*>(bytes);
+                    for (size_t i = 0; i < item.windows; ++i)
+                        map.values[i] = normalize(double(stats[i].sum), double(stats[i].square), double(stats[i].product),
+                            slot.normalizationTemplate, slot.area);
+                }
+                maps.push_back(std::move(map));
+            }
+            const double normalizationMs = elapsed(normalization);
+            overlapMetrics_.normalization_ms += normalizationMs; metrics_.normalization_ms += normalizationMs;
+            ++overlapMetrics_.completed_batches;
+            slot.command = nil; slot.occupied = false; slot.items.clear();
+            // Count only host work done here, excluding CPU rotation and peak
+            // extraction between begin and finish. GPU duration is separate.
+            metrics_.ncc_ms += elapsed(start);
             return maps;
         }
     }

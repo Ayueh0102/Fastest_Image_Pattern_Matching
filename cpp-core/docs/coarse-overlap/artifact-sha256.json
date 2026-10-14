@@ -1,0 +1,34 @@
+{
+  "complete": true,
+  "integrity_passed": true,
+  "detection_all_passed": true,
+  "worker_count": 60,
+  "first_calls": 60,
+  "measured_calls": 300,
+  "warmup_calls": 1435,
+  "all_sources_libraries_inputs_hashes_valid": true,
+  "all_jobs_workers_hashes_valid": true,
+  "all_measured_frame_capacities_equal_first": true,
+  "warmup_digests_match_first": true,
+  "formal_workers_have_no_truth": true,
+  "archive_files": 312,
+  "archive_sha256": "3e3839c513f01c57d4c362d0ef22ae8542ea772886286c8d3e5a9bb2ae932bbf",
+  "archive_bytes": 30009371,
+  "manifest_sha256": "156ff31bf9f49365bfc83bfa316834ca3e578019df54bd6d8419d92ed5b55a25",
+  "replayed_summary_sha256": "3462784d0d0eefe83bf5ab18867bef8b88c2fcd74ba3158177af806c2c5f0242",
+  "relocated_replay_byte_identical": true,
+  "user_facing_files": {
+    "results.json": "adecf2dbdb799b477a4d5ce63f3031cc8426246c17a7dd60710d5a5afcfd55fd",
+    "protocol.json": "0e300ca4829605c57817b6537b0ddd46fa366a69fcdc216254331dd6c053372a",
+    "performance.png": "79c20c03550d71239f2e3bee458d5f92d31dc0adb17a4a594f06f7491361b78f"
+  },
+  "release_tests_passed": 23,
+  "asan_ubsan_scalar_tests_passed": 21,
+  "leak_sanitizer_enabled": false,
+  "harness_tests_passed": 6,
+  "performance_all_passed": false,
+  "performance_failed_cases": [
+    "many512_pose"
+  ],
+  "default_overlap_enabled": false
+}

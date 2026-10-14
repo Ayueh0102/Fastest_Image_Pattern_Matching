@@ -244,6 +244,27 @@ class CoarseOptimizationConfigV1(C.Structure):
                 ('reserved0', C.c_uint64), ('reserved1', C.c_uint64)]
 
 
+class CoarseOverlapConfigV1(C.Structure):
+    _fields_ = [('version', C.c_uint32), ('struct_bytes', C.c_uint32),
+                ('enabled', C.c_int32), ('reserved0', C.c_int32),
+                ('reserved1', C.c_uint64), ('reserved2', C.c_uint64)]
+
+
+class CoarseOverlapMetricsV1(C.Structure):
+    _fields_ = [('version', C.c_uint32), ('struct_bytes', C.c_uint32),
+                ('enabled', C.c_int32), ('reserved', C.c_int32)] + [
+        (name, C.c_double) for name in (
+            'submit_ms', 'copy_ms', 'encode_ms', 'finish_wait_ms', 'normalization_ms',
+            'device_ms', 'device_span_ms', 'fallback_ms')] + [
+        (name, C.c_uint64) for name in (
+            'submitted_batches', 'submitted_maps', 'submissions_with_pending', 'max_pending',
+            'completed_batches', 'fallback_batches', 'fallback_maps', 'fallback_single',
+            'fallback_degenerate', 'fallback_oversized', 'source_upload_bytes', 'template_upload_bytes',
+            'slot0_source_bytes', 'slot0_statistics_bytes', 'slot0_template_bytes',
+            'slot1_source_bytes', 'slot1_statistics_bytes', 'slot1_template_bytes',
+            'retained_gpu_bytes', 'drained_batches')]
+
+
 class FrameConfigV1(C.Structure):
     _fields_ = [('version', C.c_uint32), ('struct_bytes', C.c_uint32)] + [
         (name, C.c_int32) for name in ('backend', 'pyramid_mode', 'batch_angles', 'fine_batch_size')
@@ -306,6 +327,7 @@ class SourceFrame:
         self.config = FrameConfigV1(1, C.sizeof(FrameConfigV1), int(backend == 'metal'),
                                    pyramid_mode, batch_angles, fine_batch_size, 0)
         self.last_metrics = self.last_profile = self.last_execution_metrics = self.last_fine_metrics = None
+        self.last_overlap_metrics = None
         self._check(self.dll.fpm_frame_create(C.byref(self.config), C.sizeof(self.config),
             C.byref(self.handle), self.error, len(self.error)))
 
@@ -331,6 +353,7 @@ class SourceFrame:
             raise ValueError('frame is closed')
         self._ready = False
         self.last_metrics = self.last_profile = self.last_execution_metrics = self.last_fine_metrics = None
+        self.last_overlap_metrics = None
         models = list(patterns)
         if not models:
             raise ValueError('at least one pattern is required')
@@ -358,6 +381,34 @@ class SourceFrame:
         self._check(function(self.handle, C.byref(config), C.sizeof(config), self.error, len(self.error)))
         self.coarse_optimization = dict(peak_mode=peak_mode, ncc_mode=ncc_mode)
 
+    def set_coarse_overlap(self, *, enabled=True):
+        if not self.handle:
+            raise ValueError('frame is closed')
+        if not isinstance(enabled, (bool, int)) or enabled not in (0, 1):
+            raise ValueError('coarse overlap enabled must be boolean or integer 0/1')
+        if not hasattr(self.dll, 'fpm_frame_set_coarse_overlap'):
+            raise RuntimeError('Coarse overlap API unavailable; rebuild experimental library')
+        function = self.dll.fpm_frame_set_coarse_overlap
+        function.argtypes = [C.c_void_p, C.POINTER(CoarseOverlapConfigV1), C.c_size_t,
+                             C.POINTER(C.c_char), C.c_size_t]
+        function.restype = C.c_int
+        config = CoarseOverlapConfigV1(1, C.sizeof(CoarseOverlapConfigV1), int(enabled), 0, 0, 0)
+        self._check(function(self.handle, C.byref(config), C.sizeof(config), self.error, len(self.error)))
+        self.coarse_overlap = dict(enabled=int(enabled))
+
+    def coarse_overlap_metrics(self):
+        if not self.handle:
+            raise ValueError('frame is closed')
+        if not hasattr(self.dll, 'fpm_frame_coarse_overlap_metrics'):
+            raise RuntimeError('Coarse overlap API unavailable; rebuild experimental library')
+        function = self.dll.fpm_frame_coarse_overlap_metrics
+        function.argtypes = [C.c_void_p, C.POINTER(CoarseOverlapMetricsV1), C.c_size_t,
+                             C.POINTER(C.c_char), C.c_size_t]
+        function.restype = C.c_int
+        metrics = CoarseOverlapMetricsV1()
+        self._check(function(self.handle, C.byref(metrics), C.sizeof(metrics), self.error, len(self.error)))
+        return _fields_snapshot(metrics)
+
     def _frame_snapshot(self):
         if not self.handle:
             raise ValueError('frame is closed')
@@ -384,12 +435,17 @@ class SourceFrame:
         metrics, execution, fine = CoarseMetrics(), CoarseExecutionMetricsV1(), FineMetricsV1()
         stages = CoarseProfileV1() if profile else None
         self.last_metrics = self.last_profile = self.last_execution_metrics = self.last_fine_metrics = None
+        self.last_overlap_metrics = None
         self._check(self.dll.fpm_frame_match(self.handle, handle, C.byref(config), results, len(results),
             C.byref(count), C.byref(metrics), C.byref(stages) if stages is not None else None,
             C.sizeof(stages) if stages is not None else 0, C.byref(execution), C.sizeof(execution),
             C.byref(fine), C.sizeof(fine), self.error, len(self.error)))
         self.last_metrics, self.last_execution_metrics, self.last_fine_metrics = map(_fields_snapshot, (metrics, execution, fine))
         self.last_profile = _fields_snapshot(stages) if stages is not None else None
+        # Frozen earlier libraries remain usable: the additive getter is only
+        # requested after this caller explicitly selected an overlap option.
+        if hasattr(self, 'coarse_overlap'):
+            self.last_overlap_metrics = self.coarse_overlap_metrics()
         return [dict(index=i, score=r.score, angle=r.angle, pos_x=r.center.x, pos_y=r.center.y,
                      corners=[[p.x, p.y] for p in r.corners]) for i, r in enumerate(results[:count.value])]
 

@@ -204,7 +204,78 @@ std::vector<Match> detail::matchWithCoarseNcc(ImageView source, const Pattern& p
 	const auto angles = coarseAngles(config, ranges, angleStep(top));
 	const std::size_t batchAngles = provider ? provider->coarseBatchAngles() : 1;
 	if (batchAngles < 1 || batchAngles > 4) throw std::runtime_error("coarse provider batch size must be 1..4");
-	if (batchAngles == 1) {
+	if (provider && provider->coarseOverlapEnabled()) {
+		// GPU slots own their input snapshots. CPU canvases can be released as
+		// soon as begin returns; only angle/translation metadata stays live.
+		// Submit the following batch before consuming the previous one, so
+		// rotation and then exact CPU normalization/peaks can overlap GPU work.
+		struct Drain {
+			CoarseNccProvider* provider;
+			~Drain() { provider->drainCoarseBatches(); }
+		} drain{provider};
+		struct Meta { Point translation; double angle; int width, height; };
+		std::array<std::vector<Meta>, 2> metadata;
+		auto consume = [&](std::size_t slot) {
+			auto responses = [&] {
+				StageScope stage(stageClock, Stage::CoarseNcc);
+				return provider->finishCoarseBatch(slot);
+			}();
+			if (responses.size() != metadata[slot].size())
+				throw std::runtime_error("coarse provider returned the wrong map count");
+			for (std::size_t i = 0; i < responses.size(); ++i) {
+				auto& response = responses[i]; const auto& meta = metadata[slot][i];
+				if (response.width != meta.width || response.height != meta.height ||
+					response.values.size() != std::size_t(meta.width)*meta.height)
+					throw std::runtime_error("coarse provider returned an invalid score map");
+				if (profile) {
+					++profile->coarse_maps; profile->coarse_windows += response.values.size();
+					const auto bytes = std::uint64_t(response.values.size())*sizeof(double);
+					profile->scoremap_total_bytes += bytes;
+					profile->scoremap_peak_bytes = std::max(profile->scoremap_peak_bytes, bytes);
+				}
+				StageScope peakStage(stageClock, Stage::PeakSelection);
+				for (const auto& peak : selectCoarsePeaks(std::move(response), topW, topH,
+					config.maxTargets + EXTRA_CANDIDATES, config.maxOverlap, thresholds[top], blocked)) {
+					const Point rotated{peak.x - meta.translation.x, peak.y - meta.translation.y};
+					candidates.push_back({rotate(rotated, center, -meta.angle), meta.angle, peak.score});
+				}
+			}
+			metadata[slot].clear();
+		};
+		int previous = -1;
+		std::size_t next = 0;
+		for (std::size_t first = 0; first < angles.size(); first += batchAngles) {
+			std::vector<Canvas> canvases;
+			canvases.reserve(batchAngles); metadata[next].clear(); metadata[next].reserve(batchAngles);
+			for (std::size_t i = first; i < std::min(first + batchAngles, angles.size()); ++i) {
+				if (profile) ++profile->coarse_angles;
+				auto canvas = [&] {
+					StageScope stage(stageClock, Stage::CoarseRotation);
+					return rotateCanvas(topSource.view(), topW, topH, angles[i], pattern.borderColor());
+				}();
+				if (profile) {
+					const auto bytes = std::uint64_t(canvas.image.width())*canvas.image.height();
+					profile->coarse_rotation_total_bytes += bytes;
+					profile->coarse_rotation_peak_bytes = std::max(profile->coarse_rotation_peak_bytes, bytes);
+				}
+				if (canvas.image.width() < topW || canvas.image.height() < topH) continue;
+				metadata[next].push_back({canvas.translation, angles[i],
+					canvas.image.width()-topW+1, canvas.image.height()-topH+1});
+				canvases.push_back(std::move(canvas));
+			}
+			if (canvases.empty()) continue;
+			std::vector<ImageView> views; views.reserve(canvases.size());
+			for (const auto& canvas : canvases) views.push_back(canvas.image.view());
+			{
+				StageScope stage(stageClock, Stage::CoarseNcc);
+				provider->beginCoarseBatch(next, views, topTemplate);
+			}
+			canvases.clear();
+			if (previous >= 0) consume(std::size_t(previous));
+			previous = int(next); next = 1-next;
+		}
+		if (previous >= 0) consume(std::size_t(previous));
+	} else if (batchAngles == 1) {
 	for (double angle : angles) {
 		if (profile) ++profile->coarse_angles;
 		auto canvas = [&] {

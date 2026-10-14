@@ -185,6 +185,40 @@ int fpm_frame_create(const FpmFrameConfigV1* config, size_t bytes,
     return FPM_ERROR;
 }
 void fpm_frame_destroy(fpm_frame_handle* frame) { delete frame; }
+int fpm_frame_set_coarse_overlap(fpm_frame_handle* frame,
+    const FpmCoarseOverlapConfigV1* config, size_t bytes, char* error, size_t capacity)
+{
+    static_assert(sizeof(FpmCoarseOverlapConfigV1) == 32, "coarse overlap config v1 ABI changed");
+    message(error, capacity, "");
+    try {
+        if (!frame || !config || bytes != sizeof(*config) || config->version != 1 ||
+            config->struct_bytes != sizeof(*config) || config->reserved0 || config->reserved1 ||
+            config->reserved2 || config->enabled < 0 || config->enabled > 1)
+            throw std::invalid_argument("valid coarse overlap v1, exact size and enabled 0..1 are required");
+        if (frame->backend) frame->backend->setCoarseOverlap(config->enabled != 0);
+        else if (config->enabled) throw std::invalid_argument("coarse overlap requires Metal backend");
+        return FPM_OK;
+    } catch (const std::exception& e) { message(error, capacity, e.what()); }
+    catch (...) { message(error, capacity, "unknown coarse overlap configuration exception"); }
+    return FPM_ERROR;
+}
+int fpm_frame_coarse_overlap_metrics(fpm_frame_handle* frame,
+    FpmCoarseOverlapMetricsV1* metrics, size_t bytes, char* error, size_t capacity)
+{
+    static_assert(sizeof(FpmCoarseOverlapMetricsV1) == 240, "coarse overlap metrics v1 ABI changed");
+    message(error, capacity, "");
+    try {
+        if (!frame || !metrics || bytes != sizeof(*metrics))
+            throw std::invalid_argument("frame and exact coarse overlap metrics size are required");
+        auto value = frame->backend ? frame->backend->coarseOverlapMetrics() : FpmCoarseOverlapMetricsV1{};
+        value.version = 1; value.struct_bytes = sizeof(value);
+        if (!frame->backend) value.device_ms = value.device_span_ms = -1;
+        *metrics = value;
+        return FPM_OK;
+    } catch (const std::exception& e) { message(error, capacity, e.what()); }
+    catch (...) { message(error, capacity, "unknown coarse overlap metrics exception"); }
+    return FPM_ERROR;
+}
 int fpm_frame_set_coarse_optimization(fpm_frame_handle* frame,
     const FpmCoarseOptimizationConfigV1* config, size_t bytes, char* error, size_t capacity)
 {

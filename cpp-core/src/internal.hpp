@@ -56,6 +56,16 @@ public:
 	virtual bool buildPyramid(std::vector<Image>&, int) { return false; }
 	virtual std::size_t coarseBatchAngles() const { return 1; }
 	virtual bool fastCoarsePeaks() const { return false; }
+	// A begin call must own all input bytes needed after it returns. Slots 0/1
+	// are consumed in submission order; finish releases a slot for reuse. Drain
+	// is mandatory on exceptional exits, and must not throw from destructors.
+	virtual bool coarseOverlapEnabled() const { return false; }
+	virtual void beginCoarseBatch(std::size_t, const std::vector<ImageView>&,
+		const TemplateLevel&) { throw std::runtime_error("coarse overlap is unavailable"); }
+	virtual std::vector<ScoreMap> finishCoarseBatch(std::size_t) {
+		throw std::runtime_error("coarse overlap is unavailable");
+	}
+	virtual void drainCoarseBatches() noexcept {}
 	virtual std::vector<ScoreMap> computeBatch(const std::vector<ImageView>& sources,
 		const TemplateLevel& templ) {
 		std::vector<ScoreMap> result;
