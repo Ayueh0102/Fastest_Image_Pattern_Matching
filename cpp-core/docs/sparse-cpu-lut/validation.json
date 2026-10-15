@@ -1,0 +1,21 @@
+{
+  "workers": 64,
+  "expected_workers": 64,
+  "measured_calls": 192,
+  "all_workers_succeeded": true,
+  "exact_proposals_all": true,
+  "exact_cpu_final_all": true,
+  "route_integrity_all": true,
+  "normal_gt_all": true,
+  "source_binary_input_hashes_unchanged": true,
+  "validation_logs": {
+    "release-tests.log": "34748cb9db6786fc348005cf7a04795245ad97781d2d187d2de7cf932df40229",
+    "asan-tests.log": "bddd8caa3b1a5b05ada1eb16f491128a4463363f61b637a3330eb0e7d0e4a1ee",
+    "metal-validation.log": "9ee8f56d0dbc7afd57965a427752d4c05fef336db1ce6da5af5e0691cc698a1d",
+    "tests-python.log": "62a89f5346e0c9191c22caf1e31ff2b1734e254f12587110b125fdbb6f5b93a3",
+    "configure.log": "a24be9a8c312a66c0bb365c34361599e05122ddcd2c8360d72424d1b5ae97c50",
+    "build.log": "87c98ed78c24676798aeab3e2365c6772aeba5b70dcf8a941dc4c5d1ae792440",
+    "asan-configure.log": "b963745e70e14d32ab377f17c121aa871717f49935724e0f4a4ec6127ae2491c",
+    "asan-build.log": "a4041d5b0fcd95383099c09d82b74bd748bcc2a230514d0540ac653686b91955"
+  }
+}

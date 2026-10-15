@@ -1,6 +1,6 @@
 # 稀疏粗搜尋的 GPU 架構，以及 Liquid NN 適用的位置
 
-2026-10-15。本文分析目前 [sparse_orientation.cpp](../experiments/sparse_orientation.cpp) 的固定尺度、灰階稀疏提案流程；既有量測見 [CPU／Metal 比較](SPARSE_CPU_METAL_zh-TW.md)。新的 Metal 前段已完成實作與64程序／192次正式比較，時間、記憶體、準確度與限制見[第19輪實測](SPARSE_METAL_FRONTEND_zh-TW.md)。本文保留設計推導；Liquid／CfC尚未實作或訓練，設計建議不等於已測結果。
+2026-10-15。本文分析目前 [sparse_orientation.cpp](../experiments/sparse_orientation.cpp) 的固定尺度、灰階稀疏提案流程；既有量測見 [CPU／Metal 比較](SPARSE_CPU_METAL_zh-TW.md)。新的 Metal 前段已完成實作與64程序／192次正式比較，時間、記憶體、準確度與限制見[第19輪實測](SPARSE_METAL_FRONTEND_zh-TW.md)。第20輪再補[CPU相同LUT對照與異構界線](SPARSE_CPU_LUT_zh-TW.md)。本文保留設計推導；Liquid／CfC尚未實作或訓練，設計建議不等於已測結果。
 
 **前段建圖與全圖稀疏搜尋可以交給 GPU，也不需要先訓練神經網路。** 目前適合優先實驗的是把既有分數寫成固定的平行運算流程，讓大量像素、位置與角度直接在 GPU 執行。Liquid NN 可以作為未來影片預測的另一個實驗方向，但不會自動將 NCC 或稀疏方向分數轉換成更快且等價的搜尋器。
 

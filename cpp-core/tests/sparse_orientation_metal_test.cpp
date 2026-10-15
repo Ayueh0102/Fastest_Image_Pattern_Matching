@@ -85,6 +85,11 @@ void sameWork(const SparseOrientationMetrics& cpu, const SparseOrientationMetric
 }
 
 void routes(const SparseOrientationResult& cpu, const SparseOrientationResult& metal) {
+    require(cpu.metrics.gradientMode == 0 && cpu.metrics.gradientLookupBytes == 0,
+        "CPU reference unexpectedly used a gradient lookup");
+    require(metal.metrics.gradientMode == 1 && metal.metrics.gradientLookupBytes ==
+        (metal.metrics.featureCount > 0 ? 261121u : 0u),
+        "Metal did not report its effective gradient lookup route");
     require(cpu.metrics.selectedBackend == 0 && cpu.metrics.gpuBufferBytes == 0 &&
         cpu.metrics.commandBuffers == 0 && cpu.metrics.cpuWaits == 0,
         "CPU sparse route reported GPU allocations or execution");

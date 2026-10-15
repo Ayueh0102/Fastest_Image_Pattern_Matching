@@ -2,9 +2,11 @@
 
 更新：2026-10-15，Apple M4 Pro、48 GiB。這頁記錄研究流程的建議設定；不是宣稱所有場景最快。灰階尺度研究流程已可在原生 C++ GUI 選用，GUI 預設仍保留 CPU 原有流程。
 
-**最新固定尺度稀疏研究路徑，按場景選CPU／Metal前段：** 第19輪已將方向建圖、稀疏評分與局部選峰搬到Metal，候選整理仍在CPU，精修可獨立選後端。同建置比較：4096²全CPU142.08→Metal前段＋CPU精修15.66ms（9.07倍），RSS311.27→255.26MiB；128物件全CPU23.76→Metal前段＋Metal精修11.03ms（2.15倍），RSS43.58→50.21MiB。小圖全角CPU1.81ms仍優於混合CPU2.83ms與混合Metal5.82ms，細線與本輪實圖也先用CPU。`responseMode=1`、`searchBackend=1`選Metal前段，`backend=0/1`獨立選CPU／Metal精修；沒有通用自動分流門檻。
+**最新固定尺度稀疏研究路徑，按場景選CPU／Metal前段：** 第20輪已補相同精確方向LUT的CPU對照，完整來源與獨立比較見[CPU查表報告](SPARSE_CPU_LUT_zh-TW.md)。四路均CPU精修；4096²原CPU136.47→查表CPU130.53→Metal前段15.61ms，Metal對查表CPU仍快8.36倍，RSS311.50→254.90MiB。128物件22.33→19.23→13.55ms，Metal對查表CPU快1.42倍；兩block皆有收益。小圖CPU1.80／查表CPU1.78／Metal2.85ms，低對比與細線也先選CPU，不能全面換GPU。
 
-64程序／192次正式量測的有序候選與工作量完全一致；144正常GT姿態皆零FP／FN，原提案127/128與尺度負控制失敗仍保留。Release32/32與相關ASan／UBSan、Metal驗證通過。完整[新前段實測與來源](SPARSE_METAL_FRONTEND_zh-TW.md)、[Liquid NN／固定運算圖研究](SPARSE_GPU_ARCHITECTURE_zh-TW.md)。此路徑尚未接GUI，不能用其結論改寫以下通用金字塔基準；前一輪[CPU前段＋CPU／Metal精修](SPARSE_CPU_METAL_zh-TW.md)的CPU建議保留為歷史比較。新GPU前段也使用預算方向LUT，而CPU尚用逐像素atan2；收益同時含數學化簡與平行化，還須補同LUT的優化CPU對照。
+查表CPU以`responseMode=1`、`searchBackend=0`、`cpuGradientMode=1`選用；每個非空模型多261121bytes，建模多約1.7ms，適合重複使用模板，預設仍為0。Metal前段使用`responseMode=1`、`searchBackend=1`，`backend=0/1`獨立選CPU／Metal精修。第19輪128物件的Metal精修組合11.03ms仍保留為可用選項，本輪未重測該後端，不將它與本輪19.23ms相除；沒有通用自動分流門檻。
+
+本輪64程序／192次的有序候選、工作量及最終結果四路逐值一致；144正常GT姿態皆零FP／FN，原提案127/128與尺度負控制失敗保留。Release33/33、相關ASan／UBSan4/4、Metal57組與工具14項通過。CPU建圖仍單執行緒，還可研究列平行、SIMD或工作區共用；相同LUT並不等於最佳CPU或純GPU硬體倍率。此路徑尚未接GUI，下方通用金字塔基準另行保留。前一輪[Metal前段實測](SPARSE_METAL_FRONTEND_zh-TW.md)、[CPU前段＋CPU／Metal精修](SPARSE_CPU_METAL_zh-TW.md)及[Liquid NN／固定運算圖研究](SPARSE_GPU_ARCHITECTURE_zh-TW.md)均保留。
 
 **穩定基準：同圖共用金字塔 → Metal 批次粗／細搜尋 → CPU 精確選峰 → GPU 常駐姿態精修 → CPU 最終驗分與有預算救援。** 完整流程仍是 CPU＋GPU 異構；灰階尺度排程、NMS 與運算核心現在都有 C++／Metal 源碼，原 Python 排程保留對照。Fourier 原型尚未改寫成全 C++。
 
@@ -41,4 +43,4 @@ GUI 原生化已完成本輪驗證，但記憶體並非全面優於 Python：8K�
 
 原生 GUI 的使用、組合模式比較與有界持續運行結果見 [第14輪整合報告](GUI_INTEGRATION_AND_STABILITY_zh-TW.md)。
 
-人工 review 請從 [19 階段實驗總索引](EXPERIMENT_REVIEW_zh-TW.md) 開始：每一輪都保留原始資料、比較版本、失敗與採用決定。API 使用例在該索引開頭；完整建置與 GUI 說明見 [README](../README_zh-TW.md)。
+人工 review 請從 [20 階段實驗總索引](EXPERIMENT_REVIEW_zh-TW.md) 開始：每一輪都保留原始資料、比較版本、失敗與採用決定。API 使用例在該索引開頭；完整建置與 GUI 說明見 [README](../README_zh-TW.md)。

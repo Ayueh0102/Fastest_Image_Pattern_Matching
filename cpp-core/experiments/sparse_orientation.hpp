@@ -23,6 +23,7 @@ struct SparseOrientationSettings {
     int cpuThreads = 8;
     int responseMode = 0; // 0: eight response planes; 1: exact mask + shared lookup.
     int searchBackend = 0; // 0: CPU; 1: Metal compact construction/scan/local peaks.
+    int cpuGradientMode = 0; // 0: per-pixel atan2; 1: exact gray8 lookup. Metal always uses lookup.
 };
 
 struct SparseOrientationMetrics {
@@ -32,6 +33,9 @@ struct SparseOrientationMetrics {
     std::uint64_t templateBytes = 0;
     std::uint64_t sourceBytes = 0; // Logical response bytes; included in GPU capacity on Metal.
     std::uint64_t lookupBytes = 0; // Shared read-only table, counted once per process.
+    // CPU: retained gradient table capacity, included in templateBytes. Metal:
+    // logical gradient table bytes, included in gpuBufferBytes. Do not add twice.
+    std::uint64_t gradientLookupBytes = 0;
     std::uint64_t workingBytes = 0; // Partial host/device allocation estimate, not peak RSS.
     std::uint64_t windows = 0;
     std::uint64_t featureEvaluations = 0;
@@ -40,6 +44,7 @@ struct SparseOrientationMetrics {
     int angleCount = 0;
     int responseMode = 0;
     int selectedBackend = 0;
+    int gradientMode = 0; // Effective mode: CPU setting, or 1 for Metal.
     double gpuSetupMs = 0, uploadMs = 0, encodeMs = 0, waitMs = 0;
     double deviceMs = 0, readbackMs = 0;
     std::uint64_t gpuBufferBytes = 0, commandBuffers = 0, dispatches = 0, cpuWaits = 0;

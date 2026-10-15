@@ -22,6 +22,7 @@ namespace fpm::research {
 namespace {
 constexpr double pi = 3.14159265358979323846;
 constexpr int orientationBins = 8;
+constexpr int gradientAxisValues = 511;
 using Clock = std::chrono::steady_clock;
 double milliseconds(Clock::time_point start) {
     return std::chrono::duration<double,std::milli>(Clock::now()-start).count();
@@ -40,6 +41,7 @@ void validateSettings(const SparseOrientationSettings& s) {
         s.candidateCap < 1 || s.candidateCap > 1000000 || s.cpuThreads < 1 ||
         s.cpuThreads > 64 || s.responseMode < 0 || s.responseMode > 1 ||
         s.searchBackend < 0 || s.searchBackend > 1 ||
+        s.cpuGradientMode < 0 || s.cpuGradientMode > 1 ||
         (s.searchBackend == 1 && s.responseMode != 1) || !std::isfinite(s.angleStepDegrees) ||
         s.angleStepDegrees < .1 || s.angleStepDegrees > 180 ||
         !std::isfinite(s.minGradient) || s.minGradient <= 0 ||
@@ -59,6 +61,19 @@ int orientationBin(double imageRadians) {
     // the same direction after the floating-point modulo operation (angle+pi
     // can otherwise land a few ulps below its equivalent positive angle).
     return int(std::floor(imageRadians*orientationBins/pi+.5+1e-12))%orientationBins;
+}
+std::vector<std::uint8_t> makeGradientLookup(double minGradient) {
+    // Gray8 central differences have only 511^2 possible signed input pairs.
+    // Share this exact double-precision threshold/angle classification between
+    // CPU and Metal; no approximation to atan2 or half-bin rounding is needed.
+    std::vector<std::uint8_t> result(gradientAxisValues*gradientAxisValues);
+    for (int dy=-255;dy<=255;++dy) for (int dx=-255;dx<=255;++dx) {
+        const double gx=dx*.5,gy=dy*.5;
+        if (gx*gx+gy*gy>=minGradient*minGradient)
+            result[std::size_t(dy+255)*gradientAxisValues+dx+255]=
+                std::uint8_t(1u<<orientationBin(std::atan2(gy,gx)));
+    }
+    return result;
 }
 std::vector<double> makeAngles(const MatchConfig& c,double step) {
     if (!std::isfinite(c.toleranceAngle) || c.toleranceAngle < 0 || c.toleranceAngle > 180)
@@ -149,13 +164,24 @@ const ResponseLookup& responseLookup() {
     return tables;
 }
 std::vector<std::uint8_t> responseMaps(ImageView source,const SparseOrientationSettings& s,
-    std::uint64_t& prepareBytes) {
+    const std::vector<std::uint8_t>& gradients,std::uint64_t& prepareBytes) {
     const std::size_t count=std::size_t(source.width)*source.height;
     std::vector<std::uint8_t> mask(count),horizontal(count),spread(count);
-    for (int y=1;y<source.height-1;++y) for (int x=1;x<source.width-1;++x) {
-        const auto g=gradient(source,x,y);
-        if (g.first*g.first+g.second*g.second >= s.minGradient*s.minGradient)
-            mask[std::size_t(y)*source.width+x]=std::uint8_t(1u<<orientationBin(std::atan2(g.second,g.first)));
+    if (s.cpuGradientMode==1) {
+        for (int y=1;y<source.height-1;++y) for (int x=1;x<source.width-1;++x) {
+            const auto* row=source.data+std::size_t(y)*source.stride;
+            const int dx=int(row[x+1])-row[x-1];
+            const int dy=int(source.data[std::size_t(y+1)*source.stride+x])-
+                source.data[std::size_t(y-1)*source.stride+x];
+            mask[std::size_t(y)*source.width+x]=
+                gradients[std::size_t(dy+255)*gradientAxisValues+dx+255];
+        }
+    } else {
+        for (int y=1;y<source.height-1;++y) for (int x=1;x<source.width-1;++x) {
+            const auto g=gradient(source,x,y);
+            if (g.first*g.first+g.second*g.second >= s.minGradient*s.minGradient)
+                mask[std::size_t(y)*source.width+x]=std::uint8_t(1u<<orientationBin(std::atan2(g.second,g.first)));
+        }
     }
     for (int y=0;y<source.height;++y) for (int x=0;x<source.width;++x) {
         std::uint8_t bits=0;
@@ -227,6 +253,7 @@ struct SparseOrientationPattern::Impl {
     int width=0,height=0;
     SparseOrientationSettings settings;
     std::vector<Feature> features;
+    std::vector<std::uint8_t> gradients; // Immutable CPU table, absent for Metal and flat models.
 #ifdef FPM_SPARSE_METAL
     std::shared_ptr<detail::SparseMetalBackend> metal;
 #endif
@@ -239,16 +266,8 @@ SparseOrientationPattern::SparseOrientationPattern(ImageView image,const SparseO
     if (settings.searchBackend == 1) {
 #ifdef FPM_SPARSE_METAL
       if(!model->features.empty()) {
-        // Gray8 central differences have only 511^2 possible signed input
-        // pairs. Precompute the exact CPU threshold and angle classification,
-        // so the GPU never approximates atan2 or half-bin rounding.
-        std::vector<std::uint8_t> gradients(511*511),responses;
-        for(int dy=-255;dy<=255;++dy) for(int dx=-255;dx<=255;++dx) {
-            const double gx=dx*.5,gy=dy*.5;
-            if(gx*gx+gy*gy>=settings.minGradient*settings.minGradient)
-                gradients[std::size_t(dy+255)*511+dx+255]=
-                    std::uint8_t(1u<<orientationBin(std::atan2(gy,gx)));
-        }
+        const auto gradients=makeGradientLookup(settings.minGradient);
+        std::vector<std::uint8_t> responses;
         responses.reserve(2048);
         for(const auto& row:responseLookup()) responses.insert(responses.end(),row.begin(),row.end());
         model->metal=detail::makeSparseMetalBackend(gradients,responses);
@@ -256,13 +275,14 @@ SparseOrientationPattern::SparseOrientationPattern(ImageView image,const SparseO
 #else
         throw std::runtime_error("Metal sparse search is not compiled on this platform");
 #endif
-    }
+    } else if (settings.cpuGradientMode==1 && !model->features.empty())
+        model->gradients=makeGradientLookup(settings.minGradient);
     impl_=std::move(model);
 }
 SparseOrientationPattern::~SparseOrientationPattern()=default;
 int SparseOrientationPattern::featureCount() const { return int(impl_->features.size()); }
 std::uint64_t SparseOrientationPattern::templateBytes() const {
-    return sizeof(Impl)+impl_->features.capacity()*sizeof(Feature);
+    return sizeof(Impl)+impl_->features.capacity()*sizeof(Feature)+impl_->gradients.capacity();
 }
 int SparseOrientationPattern::width() const { return impl_->width; }
 int SparseOrientationPattern::height() const { return impl_->height; }
@@ -275,12 +295,16 @@ SparseOrientationResult SparseOrientationPattern::search(ImageView source,const 
     metrics.templateBytes=templateBytes();metrics.featureCount=featureCount();metrics.angleCount=int(angles.size());
     metrics.responseMode=settings.responseMode;
     metrics.selectedBackend=settings.searchBackend;
+    metrics.gradientMode=settings.searchBackend==1?1:settings.cpuGradientMode;
     if (model.features.empty()) return result;
+    metrics.gradientLookupBytes=settings.searchBackend==1?
+        std::uint64_t(gradientAxisValues)*gradientAxisValues:model.gradients.capacity();
     auto start=Clock::now();
     const auto& lookup=responseLookup();
     metrics.lookupBytes=sizeof(lookup);
     std::uint64_t prepareBytes=0;
-    const auto maps=settings.searchBackend==0?responseMaps(source,settings,prepareBytes):std::vector<std::uint8_t>{};
+    const auto maps=settings.searchBackend==0?responseMaps(source,settings,model.gradients,prepareBytes):
+        std::vector<std::uint8_t>{};
     const std::size_t imageSize=std::size_t(source.width)*source.height;
     metrics.sourceBytes=maps.capacity();
     // Compact mode retains the spread mask from the three construction planes;
