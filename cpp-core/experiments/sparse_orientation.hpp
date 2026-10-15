@@ -24,9 +24,13 @@ struct SparseOrientationSettings {
     int responseMode = 0; // 0: eight response planes; 1: exact mask + shared lookup.
     int searchBackend = 0; // 0: CPU; 1: Metal compact construction/scan/local peaks.
     int cpuGradientMode = 0; // 0: per-pixel atan2; 1: exact gray8 lookup. Metal always uses lookup.
+    int metalSubmissionMode = 0; // 0: separate source preparation; 1: merge with first scan batch.
 };
 
 struct SparseOrientationMetrics {
+    // In Metal submission mode 1 this covers host source allocation/upload and
+    // encoding only. Device preparation is included in searchMs's first wait;
+    // compare sourcePrepareMs + searchMs across submission modes.
     double sourcePrepareMs = 0;
     double searchMs = 0;
     double selectMs = 0;
@@ -45,6 +49,7 @@ struct SparseOrientationMetrics {
     int responseMode = 0;
     int selectedBackend = 0;
     int gradientMode = 0; // Effective mode: CPU setting, or 1 for Metal.
+    int metalSubmissionMode = 0; // Effective Metal setting; always 0 on CPU.
     double gpuSetupMs = 0, uploadMs = 0, encodeMs = 0, waitMs = 0;
     double deviceMs = 0, readbackMs = 0;
     std::uint64_t gpuBufferBytes = 0, commandBuffers = 0, dispatches = 0, cpuWaits = 0;

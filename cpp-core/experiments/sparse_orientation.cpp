@@ -42,6 +42,7 @@ void validateSettings(const SparseOrientationSettings& s) {
         s.cpuThreads > 64 || s.responseMode < 0 || s.responseMode > 1 ||
         s.searchBackend < 0 || s.searchBackend > 1 ||
         s.cpuGradientMode < 0 || s.cpuGradientMode > 1 ||
+        s.metalSubmissionMode < 0 || s.metalSubmissionMode > 1 ||
         (s.searchBackend == 1 && s.responseMode != 1) || !std::isfinite(s.angleStepDegrees) ||
         s.angleStepDegrees < .1 || s.angleStepDegrees > 180 ||
         !std::isfinite(s.minGradient) || s.minGradient <= 0 ||
@@ -296,6 +297,7 @@ SparseOrientationResult SparseOrientationPattern::search(ImageView source,const 
     metrics.responseMode=settings.responseMode;
     metrics.selectedBackend=settings.searchBackend;
     metrics.gradientMode=settings.searchBackend==1?1:settings.cpuGradientMode;
+    metrics.metalSubmissionMode=settings.searchBackend==1?settings.metalSubmissionMode:0;
     if (model.features.empty()) return result;
     metrics.gradientLookupBytes=settings.searchBackend==1?
         std::uint64_t(gradientAxisValues)*gradientAxisValues:model.gradients.capacity();
@@ -426,7 +428,8 @@ SparseOrientationResult SparseOrientationPattern::search(ImageView source,const 
                 plan.features.push_back({std::int32_t(offset),std::uint32_t(orientationBin(f.direction-radians))});
             }
         }
-        const auto gpu=model.metal->search(source,plans,settings.spreadRadius,requiredScore);
+        const auto gpu=model.metal->search(source,plans,settings.spreadRadius,requiredScore,
+            settings.metalSubmissionMode);
         if(gpu.angles.size()!=angles.size()) throw std::runtime_error("Metal sparse result angle count differs");
         metrics.sourcePrepareMs=gpu.metrics.sourcePrepareMs;
         metrics.sourceBytes=gpu.metrics.sourcePrepareMs>0?imageSize:0;

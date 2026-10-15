@@ -23,7 +23,9 @@ struct SparseMetalAngleResult {
 struct SparseMetalMetrics {
     // setup/upload/encode/wait/readback partition host work; deviceMs is inside
     // waitMs and must not be added to it. sourcePrepareMs/searchMs are outer
-    // wall intervals, also not additional terms in the same sum.
+    // wall intervals, also not additional terms in the same sum. With merged
+    // submission, sourcePrepareMs excludes device preparation: that device work
+    // executes in searchMs's first wait. Only the outer sum is mode-comparable.
     double setupMs = 0, uploadMs = 0, encodeMs = 0, waitMs = 0;
     double deviceMs = 0, readbackMs = 0, sourcePrepareMs = 0, searchMs = 0;
     std::uint64_t gpuBufferBytes = 0, commandBuffers = 0, dispatches = 0;
@@ -38,7 +40,7 @@ public:
     virtual ~SparseMetalBackend() = default;
     virtual SparseMetalResult search(ImageView source,
         const std::vector<SparseMetalAngle>& angles, int spreadRadius,
-        std::uint32_t requiredScore) = 0;
+        std::uint32_t requiredScore, int submissionMode) = 0;
 };
 
 // gradientLut[(dy+255)*511+(dx+255)] is either zero or an orientation mask.

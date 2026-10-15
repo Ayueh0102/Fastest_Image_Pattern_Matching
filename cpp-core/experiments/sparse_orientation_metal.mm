@@ -99,7 +99,8 @@ class MetalBackend final : public SparseMetalBackend {
             threadsPerThreadgroup:MTLSizeMake(threads,1,1)];
         ++m.dispatches;
     }
-    void prepareSource(ImageView source,int spreadRadius,SparseMetalMetrics& m) {
+    id<MTLCommandBuffer> prepareSource(ImageView source,int spreadRadius,bool merge,
+        SparseMetalMetrics& m) {
         const auto start=Clock::now();
         const std::size_t count=std::size_t(source.width)*source.height;
         ensure(source_,count,false,m);ensure(spread_,count,true,m);ensure(horizontalMask_,count,true,m);
@@ -127,8 +128,13 @@ class MetalBackend final : public SparseMetalBackend {
         [enc setBuffer:horizontalMask_ offset:0 atIndex:0];[enc setBuffer:spread_ offset:0 atIndex:1];
         [enc setBytes:&config length:sizeof(config) atIndex:2];
         dispatch(enc,vertical_,count,m);[enc endEncoding];
-        m.encodeMs+=elapsed(stage);finish(cmd,m);
+        m.encodeMs+=elapsed(stage);
+        if(!merge) {finish(cmd,m);cmd=nil;}
         m.sourcePrepareMs=elapsed(start);
+        // The merged command remains uncommitted and local to this search.
+        // First-batch scoring consumes spread_ through tracked dependencies;
+        // its completion wait includes device source preparation.
+        return cmd;
     }
     struct BatchItem { std::size_t angleIndex,windows,groups;ScoreConfig config; };
     void encodePeaks(id<MTLCommandBuffer> cmd,const std::vector<BatchItem>& items,SparseMetalMetrics& m) {
@@ -143,7 +149,8 @@ class MetalBackend final : public SparseMetalBackend {
     }
     void scanBatch(const std::vector<SparseMetalAngle>& angles,std::vector<BatchItem>& items,
         std::size_t windows,std::size_t groups,std::size_t xCount,std::size_t yCount,
-        std::size_t featureCount,std::size_t peakCount,SparseMetalResult& result) {
+        std::size_t featureCount,std::size_t peakCount,id<MTLCommandBuffer> __strong& prepared,
+        SparseMetalResult& result) {
         auto& m=result.metrics;
         ensure(xs_,xCount*sizeof(std::int32_t),false,m);ensure(ys_,yCount*sizeof(std::int32_t),false,m);
         ensure(features_,featureCount*sizeof(SparseMetalFeature),false,m);
@@ -161,7 +168,9 @@ class MetalBackend final : public SparseMetalBackend {
         std::memset(counters_.contents,0,items.size()*sizeof(std::uint32_t));
         m.uploadMs+=elapsed(stage);
         stage=Clock::now();
-        id<MTLCommandBuffer> cmd=command();id<MTLComputeCommandEncoder> enc=encoder(cmd);
+        id<MTLCommandBuffer> cmd=prepared ? prepared : command();
+        prepared=nil; // Transfer ownership so completed buffers can be released before overflow growth.
+        id<MTLComputeCommandEncoder> enc=encoder(cmd);
         [enc setComputePipelineState:score_];
         [enc setBuffer:spread_ offset:0 atIndex:0];[enc setBuffer:responseLut_ offset:0 atIndex:1];
         [enc setBuffer:xs_ offset:0 atIndex:2];[enc setBuffer:ys_ offset:0 atIndex:3];
@@ -257,8 +266,10 @@ public:
         }
     }
     SparseMetalResult search(ImageView source,const std::vector<SparseMetalAngle>& angles,
-        int spreadRadius,std::uint32_t requiredScore) override {
+        int spreadRadius,std::uint32_t requiredScore,int submissionMode) override {
         std::lock_guard<std::mutex> lock(mutex_);
+        if(submissionMode<0 || submissionMode>1)
+            throw std::invalid_argument("Metal sparse submission mode must be 0 or 1");
         if(!source.data || source.width<=0 || source.height<=0 || source.stride<std::size_t(source.width) ||
             source.stride>(std::size_t(PTRDIFF_MAX)-source.width)/std::size_t(source.height) ||
             std::uint64_t(source.width)*source.height>INT32_MAX || spreadRadius<0 || spreadRadius>16)
@@ -287,7 +298,7 @@ public:
             SparseMetalResult result;result.angles.resize(angles.size());
             bool any=false;for(const auto& angle:angles) any|=!angle.xs.empty() && !angle.ys.empty();
             if(!any) {result.metrics.gpuBufferBytes=capacity();return result;}
-            prepareSource(source,spreadRadius,result.metrics);
+            id<MTLCommandBuffer> prepared=prepareSource(source,spreadRadius,submissionMode==1,result.metrics);
             const auto start=Clock::now();
             std::size_t next=0;
             while(next<angles.size()) {
@@ -307,7 +318,9 @@ public:
                     items.push_back({next++,count,groupCount,config});windows+=count;groups+=groupCount;
                     xCount+=angle.xs.size();yCount+=angle.ys.size();featureCount+=angle.features.size();peakCount+=peakCapacity;
                 }
-                if(!items.empty()) scanBatch(angles,items,windows,groups,xCount,yCount,featureCount,peakCount,result);
+                if(!items.empty()) {
+                    scanBatch(angles,items,windows,groups,xCount,yCount,featureCount,peakCount,prepared,result);
+                }
             }
             result.metrics.searchMs=elapsed(start);result.metrics.gpuBufferBytes=capacity();
             return result;

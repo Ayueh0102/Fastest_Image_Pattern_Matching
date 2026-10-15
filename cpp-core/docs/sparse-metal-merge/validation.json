@@ -1,0 +1,27 @@
+{
+  "workers": 48,
+  "expected_workers": 48,
+  "measured_calls": 144,
+  "all_workers_succeeded": true,
+  "exact_proposals_all": true,
+  "exact_cpu_final_all": true,
+  "route_integrity_all": true,
+  "synchronization_all": true,
+  "normal_gt_all": true,
+  "source_binary_input_hashes_unchanged": true,
+  "validation_logs": {
+    "configure.log": "eb05c309c2a1f7805a3b2f1d90d5a7c5c5c89e10d5e1d928934f570f666b969c",
+    "build.log": "71c6ccdcb214c475fb62fae5966a98b789d171b4dc11ea0c8f275754bcfcc0c2",
+    "release-tests.log": "9d14b9ea45a70f587594ecad0db8ad30ccb09503acb274127283f3dc87cb588b",
+    "asan-configure.log": "8c08375fdaa45df13ed4711791acf28c861b2b4e561e694c4dce6388d6fa44ee",
+    "asan-build.log": "f82d2cd8d41a9fc7936dcb170ce8076bd38f47eb51dce96c32ce6c0e87ccd7f5",
+    "asan-tests.log": "b479c43f3d751c83018acf3d4f3dee0c85460c8a61c9aba845c8d5fef6cfc0b2",
+    "metal-validation.log": "d08aaa1d72e0021381ba32264856ec89ecd1c6468426aa42f1e400980af43bf0",
+    "python-tests.log": "699a73a6d2e729973aa80ebfbcfcb8d738d66f2200ee474c3d6b08bfd2addf35",
+    "build-provenance.txt": "f10ccfd4eaa25c853a7efd097b8bca7d76287b2d527b17b5a8d6cb2093d89a1a",
+    "validation-details.json": "d7d6a73a169694ab1c18ccb60f092cd0ad2893f4d8cd6d0c1dfa119b5827c65e",
+    "pilot.log": "1ba2e5113acf8ab03f4282c39e3da41afcae4a782f9a6b0845e4b5f78893659a",
+    "formal.log": "3d4c9e61dcc87bf9c8944a1d11e08e96ff4afacb8aef151ceb6ae5dd011d6815",
+    "recheck.log": "1f698e49d6a0c3d7a5b53bc5e88692132371707f09248f4cb2f714736b3a3d1f"
+  }
+}

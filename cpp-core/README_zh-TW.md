@@ -36,6 +36,7 @@
 - [Metal稀疏前段：4K／128物件時間、記憶體與精確性](docs/SPARSE_METAL_FRONTEND_zh-TW.md)
 - [Liquid NN／CfC適用性與固定GPU運算圖推導](docs/SPARSE_GPU_ARCHITECTURE_zh-TW.md)
 - [CPU精確方向查表：相同LUT後的CPU／Metal公平對照](docs/SPARSE_CPU_LUT_zh-TW.md)
+- [Metal建圖與首批搜尋合併：等待減少、128物件效能回退](docs/SPARSE_METAL_MERGE_zh-TW.md)
 - [下一步數學推導與agent建議](docs/SPARSE_NEXT_STEPS_MATH_zh-TW.md)
 
 GUI 的完整原始碼位於 `../macos-cli/mainwindow.{h,cpp}` 與 `main.cpp`，使用 Qt6。CLI 可選用 OpenCV 解碼圖片。Qt、OpenCV、C++ 標準函式庫本身並未複製進專案；比對核心沒有呼叫它們的影像演算法，也沒有依賴未提供源碼的 FPM DLL／SO。

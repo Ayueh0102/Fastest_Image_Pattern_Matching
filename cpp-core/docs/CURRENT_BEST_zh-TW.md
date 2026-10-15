@@ -2,6 +2,8 @@
 
 更新：2026-10-15，Apple M4 Pro、48 GiB。這頁記錄研究流程的建議設定；不是宣稱所有場景最快。灰階尺度研究流程已可在原生 C++ GUI 選用，GUI 預設仍保留 CPU 原有流程。
 
+**第21輪提交合併不升為預設：** [實作與完整結果](SPARSE_METAL_MERGE_zh-TW.md)。每個非空搜尋少一次CPU等待、候選與結果不變，但128物件同建置分開12.14→合併15.00ms，兩個block速度門檻均失敗；獨立複查12.71→13.59ms，仍有失敗。4K約16.08→15.73ms、複查15.28→15.03ms，只是小幅收益且主實驗有反向block。保留`metalSubmissionMode=1`研究選項，預設維持0；下一個精修融合實驗應先沿用分開提交基準。這沒有推翻前輪大圖Metal前段的優勢，也不是全GPU失敗證據。
+
 **最新固定尺度稀疏研究路徑，按場景選CPU／Metal前段：** 第20輪已補相同精確方向LUT的CPU對照，完整來源與獨立比較見[CPU查表報告](SPARSE_CPU_LUT_zh-TW.md)。四路均CPU精修；4096²原CPU136.47→查表CPU130.53→Metal前段15.61ms，Metal對查表CPU仍快8.36倍，RSS311.50→254.90MiB。128物件22.33→19.23→13.55ms，Metal對查表CPU快1.42倍；兩block皆有收益。小圖CPU1.80／查表CPU1.78／Metal2.85ms，低對比與細線也先選CPU，不能全面換GPU。
 
 查表CPU以`responseMode=1`、`searchBackend=0`、`cpuGradientMode=1`選用；每個非空模型多261121bytes，建模多約1.7ms，適合重複使用模板，預設仍為0。Metal前段使用`responseMode=1`、`searchBackend=1`，`backend=0/1`獨立選CPU／Metal精修。第19輪128物件的Metal精修組合11.03ms仍保留為可用選項，本輪未重測該後端，不將它與本輪19.23ms相除；沒有通用自動分流門檻。
@@ -43,4 +45,4 @@ GUI 原生化已完成本輪驗證，但記憶體並非全面優於 Python：8K�
 
 原生 GUI 的使用、組合模式比較與有界持續運行結果見 [第14輪整合報告](GUI_INTEGRATION_AND_STABILITY_zh-TW.md)。
 
-人工 review 請從 [20 階段實驗總索引](EXPERIMENT_REVIEW_zh-TW.md) 開始：每一輪都保留原始資料、比較版本、失敗與採用決定。API 使用例在該索引開頭；完整建置與 GUI 說明見 [README](../README_zh-TW.md)。
+人工 review 請從 [21 階段實驗總索引](EXPERIMENT_REVIEW_zh-TW.md) 開始：每一輪都保留原始資料、比較版本、失敗與採用決定。API 使用例在該索引開頭；完整建置與 GUI 說明見 [README](../README_zh-TW.md)。

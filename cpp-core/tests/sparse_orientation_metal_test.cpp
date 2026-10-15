@@ -84,7 +84,7 @@ void sameWork(const SparseOrientationMetrics& cpu, const SparseOrientationMetric
         "CPU/Metal searched windows, early-bound work or survivors differ");
 }
 
-void routes(const SparseOrientationResult& cpu, const SparseOrientationResult& metal) {
+void routes(const SparseOrientationResult& cpu, const SparseOrientationResult& metal, int submissionMode) {
     require(cpu.metrics.gradientMode == 0 && cpu.metrics.gradientLookupBytes == 0,
         "CPU reference unexpectedly used a gradient lookup");
     require(metal.metrics.gradientMode == 1 && metal.metrics.gradientLookupBytes ==
@@ -93,6 +93,8 @@ void routes(const SparseOrientationResult& cpu, const SparseOrientationResult& m
     require(cpu.metrics.selectedBackend == 0 && cpu.metrics.gpuBufferBytes == 0 &&
         cpu.metrics.commandBuffers == 0 && cpu.metrics.cpuWaits == 0,
         "CPU sparse route reported GPU allocations or execution");
+    require(cpu.metrics.metalSubmissionMode == 0 && metal.metrics.metalSubmissionMode == submissionMode,
+        "Sparse route did not report its effective Metal submission mode");
     require(cpu.metrics.responseMode == 1 && metal.metrics.responseMode == 1,
         "Backend parity test did not use compact responses");
     if (metal.metrics.featureCount > 0 && metal.metrics.windows > 0) {
@@ -101,6 +103,27 @@ void routes(const SparseOrientationResult& cpu, const SparseOrientationResult& m
             metal.metrics.cpuWaits > 0 && metal.metrics.cpuWaits <= metal.metrics.commandBuffers,
             "Active Metal sparse route did not report valid GPU execution counters");
     }
+}
+
+void sameSubmissionResult(const SparseOrientationResult& cpu, const SparseOrientationResult& split,
+    const SparseOrientationResult& merged) {
+    sameMatches(cpu.proposals, split.proposals); sameWork(cpu.metrics, split.metrics);
+    sameMatches(cpu.proposals, merged.proposals); sameWork(cpu.metrics, merged.metrics);
+    routes(cpu, split, 0); routes(cpu, merged, 1);
+    require(split.metrics.dispatches == merged.metrics.dispatches &&
+        split.metrics.peakOverflowRetries == merged.metrics.peakOverflowRetries,
+        "Merging submissions changed GPU dispatch work or overflow retries");
+    if (cpu.metrics.windows > 0) {
+        require(split.metrics.commandBuffers == merged.metrics.commandBuffers + 1 &&
+            split.metrics.cpuWaits == merged.metrics.cpuWaits + 1,
+            "Merging source preparation did not remove exactly one command buffer and CPU wait");
+    } else {
+        require(split.metrics.commandBuffers == 0 && merged.metrics.commandBuffers == 0 &&
+            split.metrics.cpuWaits == 0 && merged.metrics.cpuWaits == 0 &&
+            split.metrics.dispatches == 0 && merged.metrics.dispatches == 0,
+            "An empty search or flat model submitted GPU work");
+    }
+    ++comparisons;
 }
 
 SparseOrientationSettings defaults() {
@@ -119,16 +142,19 @@ SparseOrientationSettings defaults() {
 SparseOrientationResult compare(ImageView source, ImageView templ,
     SparseOrientationSettings settings, const MatchConfig& config = {}) {
     settings.searchBackend = 0;
+    // The Metal-only setting must not silently change the CPU route.
+    settings.metalSubmissionMode = 1;
     SparseOrientationPattern cpuPattern(templ, settings);
     const auto cpu = cpuPattern.search(source, config);
     settings.searchBackend = 1;
-    SparseOrientationPattern metalPattern(templ, settings);
-    const auto metal = metalPattern.search(source, config);
-    sameMatches(cpu.proposals, metal.proposals);
-    sameWork(cpu.metrics, metal.metrics);
-    routes(cpu, metal);
-    ++comparisons;
-    return metal;
+    settings.metalSubmissionMode = 0;
+    SparseOrientationPattern splitPattern(templ, settings);
+    const auto split = splitPattern.search(source, config);
+    settings.metalSubmissionMode = 1;
+    SparseOrientationPattern mergedPattern(templ, settings);
+    const auto merged = mergedPattern.search(source, config);
+    sameSubmissionResult(cpu, split, merged);
+    return split;
 }
 
 bool contains(const std::vector<Match>& matches, double x, double y, double angle) {
@@ -172,6 +198,11 @@ void rotationAndStrideContracts() {
     config.angleRanges = {{90., 90.}};
     require(contains(compare(narrow.view(), wide.view(), defaults(), config).proposals, 12, 20, 90),
         "Metal rejected a rotated template that fits a narrow source");
+    // The first angle has no valid windows. Deferred preparation must attach
+    // to the first nonempty batch, rather than disappear with an empty plan.
+    config.angleRanges = {{0., 90.}};
+    require(contains(compare(narrow.view(), wide.view(), defaults(), config).proposals, 12, 20, 90),
+        "Metal omitted a valid angle after an empty leading plan");
 
     // The maximum coordinate must be included even when not on the stride grid.
     Image edges(83, 71);
@@ -271,34 +302,31 @@ void repeatedFramesAndTies() {
     settings.searchBackend = 0;
     SparseOrientationPattern cpu(templ.view(), settings);
     settings.searchBackend = 1;
-    SparseOrientationPattern metal(templ.view(), settings);
+    SparseOrientationPattern split(templ.view(), settings);
+    settings.metalSubmissionMode = 1;
+    SparseOrientationPattern merged(templ.view(), settings);
     const auto first = cpu.search(source.view());
     require(first.proposals.size() == 3, "Tie fixture did not reach the candidate cap");
     require(first.proposals.front().score == first.proposals.back().score,
         "Candidate cap fixture did not exercise tied scores");
     for (int repeat = 0; repeat < 3; ++repeat) {
-        const auto actual = metal.search(source.view());
-        sameMatches(first.proposals, actual.proposals); sameWork(first.metrics, actual.metrics);
-        routes(first, actual); ++comparisons;
+        sameSubmissionResult(first, split.search(source.view()), merged.search(source.view()));
     }
     // Identical addresses, different pixel contents: a cached GPU source must
     // be refreshed. Unsigned orientations must also preserve contrast polarity.
     for (int y = 0; y < source.height(); ++y)
         for (int x = 0; x < source.width(); ++x) source.row(y)[x] = std::uint8_t(255 - source.row(y)[x]);
-    auto expected = cpu.search(source.view()), actual = metal.search(source.view());
+    auto expected = cpu.search(source.view());
     sameMatches(first.proposals, expected.proposals); sameWork(first.metrics, expected.metrics);
-    sameMatches(expected.proposals, actual.proposals); sameWork(expected.metrics, actual.metrics);
-    routes(expected, actual); ++comparisons;
+    sameSubmissionResult(expected, split.search(source.view()), merged.search(source.view()));
     for (int y = 0; y < source.height(); ++y)
         std::reverse(source.row(y), source.row(y) + source.width());
-    expected = cpu.search(source.view()); actual = metal.search(source.view());
-    sameMatches(expected.proposals, actual.proposals); sameWork(expected.metrics, actual.metrics);
-    routes(expected, actual); ++comparisons;
+    expected = cpu.search(source.view());
+    sameSubmissionResult(expected, split.search(source.view()), merged.search(source.view()));
     fill(source, 128);
-    expected = cpu.search(source.view()); actual = metal.search(source.view());
-    require(actual.proposals.empty(), "Metal reused stale proposals after source became flat");
-    sameMatches(expected.proposals, actual.proposals); sameWork(expected.metrics, actual.metrics);
-    routes(expected, actual); ++comparisons;
+    expected = cpu.search(source.view());
+    require(expected.proposals.empty(), "Flat source generated CPU proposals");
+    sameSubmissionResult(expected, split.search(source.view()), merged.search(source.view()));
 }
 
 void finiteGradientDomain() {
@@ -353,15 +381,30 @@ void emptyAndInvalidContracts() {
         invalid([&] { SparseOrientationPattern bad(templ.view(), settings); },
             "Invalid sparse search backend was accepted");
     }
-    settings = defaults(); settings.searchBackend = 1; settings.responseMode = 0;
-    invalid([&] { SparseOrientationPattern bad(templ.view(), settings); },
-        "Metal search silently accepted incompatible response planes");
-    settings.responseMode = 1;
-    SparseOrientationPattern metal(templ.view(), settings);
-    MatchConfig config; config.angleRanges = {{20., -20.}};
-    invalid([&] { metal.search(source.view(), config); }, "Metal accepted a reversed angle interval");
-    invalid([&] { metal.search({source.row(0), source.width(), source.height(), 1}); },
-        "Metal accepted an invalid source stride");
+    for (int backend : {0, 1}) for (int mode : {-1, 2, std::numeric_limits<int>::max()}) {
+        settings = defaults(); settings.searchBackend = backend; settings.metalSubmissionMode = mode;
+        invalid([&] { SparseOrientationPattern bad(templ.view(), settings); },
+            "Invalid Metal submission mode was accepted");
+    }
+    for (int mode : {0, 1}) {
+        settings = defaults(); settings.searchBackend = 1; settings.responseMode = 0;
+        settings.metalSubmissionMode = mode;
+        invalid([&] { SparseOrientationPattern bad(templ.view(), settings); },
+            "Metal search silently accepted incompatible response planes");
+        settings.responseMode = 1;
+        SparseOrientationPattern metal(templ.view(), settings);
+        MatchConfig config; config.angleRanges = {{20., -20.}};
+        invalid([&] { metal.search(source.view(), config); }, "Metal accepted a reversed angle interval");
+        invalid([&] { metal.search({source.row(0), source.width(), source.height(), 1}); },
+            "Metal accepted an invalid source stride");
+        // Invalid calls must not leave an unsubmitted command attached to the
+        // reusable model, or poison its next valid result.
+        const auto actual = metal.search(source.view());
+        settings.searchBackend = 0;
+        const auto expected = SparseOrientationPattern(templ.view(), settings).search(source.view());
+        sameMatches(expected.proposals, actual.proposals); sameWork(expected.metrics, actual.metrics);
+        routes(expected, actual, mode);
+    }
 }
 
 void capacityAndSharingContracts() {
@@ -376,19 +419,25 @@ void capacityAndSharingContracts() {
 
     auto model=texture();settings=defaults();settings.positionStride=4;
     SparseOrientationPattern cpu(model.view(),settings);settings.searchBackend=1;
-    SparseOrientationPattern gpu(model.view(),settings);
+    SparseOrientationPattern split(model.view(),settings);
+    settings.metalSubmissionMode=1;
+    SparseOrientationPattern merged(model.view(),settings);
     Image small(65,57),large(200,170);fill(small,128);fill(large,128);
     paste(small,model,32,28);paste(large,model,100,80);
     const auto a=cpu.search(small.view()),b=cpu.search(large.view());
     for(auto source:{small.view(),large.view(),small.view()}) {
-        const auto expected=cpu.search(source),actual=gpu.search(source);
-        sameMatches(expected.proposals,actual.proposals);sameWork(expected.metrics,actual.metrics);++comparisons;
+        const auto expected=cpu.search(source);
+        sameSubmissionResult(expected,split.search(source),merged.search(source));
     }
-    auto fa=std::async(std::launch::async,[&]{return gpu.search(small.view());});
-    auto fb=std::async(std::launch::async,[&]{return gpu.search(large.view());});
-    const auto ga=fa.get(),gb=fb.get();
-    sameMatches(a.proposals,ga.proposals);sameWork(a.metrics,ga.metrics);
-    sameMatches(b.proposals,gb.proposals);sameWork(b.metrics,gb.metrics);comparisons+=2;
+    // Two callers share each model. Run modes serially to keep this a resource
+    // lifetime test without concurrent work from independent Metal backends.
+    auto sa=std::async(std::launch::async,[&]{return split.search(small.view());});
+    auto sb=std::async(std::launch::async,[&]{return split.search(large.view());});
+    const auto splitA=sa.get(),splitB=sb.get();
+    auto ma=std::async(std::launch::async,[&]{return merged.search(small.view());});
+    auto mb=std::async(std::launch::async,[&]{return merged.search(large.view());});
+    sameSubmissionResult(a,splitA,ma.get());
+    sameSubmissionResult(b,splitB,mb.get());
 
     settings=defaults();settings.positionStride=4;settings.angleStepDegrees=4;
     MatchConfig angles;angles.toleranceAngle=180;
@@ -398,8 +447,17 @@ void capacityAndSharingContracts() {
     // 4M single-angle limit. Rejection must occur before score allocation.
     Image oversized(2052,2052);fill(oversized,128);
     settings=defaults();settings.featureCount=1;settings.searchBackend=1;
-    SparseOrientationPattern limited(templ.view(),settings);
-    invalid([&]{limited.search(oversized.view());},"Oversized single-angle grid was not rejected");
+    for(int mode:{0,1}) {
+        settings.metalSubmissionMode=mode;
+        SparseOrientationPattern limited(templ.view(),settings);
+        invalid([&]{limited.search(oversized.view());},"Oversized single-angle grid was not rejected");
+        // Rejection must leave the model reusable, with no pending GPU work.
+        const auto valid=limited.search(many.view());
+        auto cpuSettings=settings;cpuSettings.searchBackend=0;
+        const auto expected=SparseOrientationPattern(templ.view(),cpuSettings).search(many.view());
+        sameMatches(expected.proposals,valid.proposals);sameWork(expected.metrics,valid.metrics);
+        routes(expected,valid,mode);
+    }
 }
 }
 
@@ -411,7 +469,7 @@ int main() {
         finiteGradientDomain();
         emptyAndInvalidContracts();
         capacityAndSharingContracts();
-        std::cout << "Sparse Metal: " << comparisons << " exact CPU proposal/work parity cases; "
+        std::cout << "Sparse Metal: " << comparisons << " exact CPU/split/merged proposal/work parity cases; "
             << "rotation endpoints, stride edges, odd/padded views, tied caps, mutable frames, "
             << "score/gradient boundaries, all 261121 gray8 difference pairs, and invalid routes passed\n";
         return 0;

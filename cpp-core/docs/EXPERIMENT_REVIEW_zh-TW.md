@@ -1,10 +1,10 @@
 # Template Matching 研究總索引與人工審查指南
 
-整理日期：2026-10-15。前12階段整理 repository 已保存的報告、protocol 與結果；第13階段為 NCC tiling 正式量測，第14階段接入原生尺度 GUI 並驗證組合模式與持續運行，第15階段比較固定尺度的金字塔與原解析度搜尋，第16階段實作稀疏方向全圖提案並比較128物件，第17階段驗證等價回應壓縮，第18階段比較稀疏全CPU與Metal精修，第19階段實作並驗證Metal稀疏前段，第20階段補相同方向LUT的CPU對照以拆開數學化簡與GPU收益。各數字是各輪的證據快照，不是同一輪連續量測；不要將不同輪次的加速比相乘。快速設定摘要見 [目前建議方案](CURRENT_BEST_zh-TW.md)，整體完成範圍與待辦見 [專案狀態](PROJECT_STATUS_zh-TW.md)。
+整理日期：2026-10-15。前12階段整理 repository 已保存的報告、protocol 與結果；第13階段為 NCC tiling 正式量測，第14階段接入原生尺度 GUI 並驗證組合模式與持續運行，第15階段比較固定尺度的金字塔與原解析度搜尋，第16階段實作稀疏方向全圖提案並比較128物件，第17階段驗證等價回應壓縮，第18階段比較稀疏全CPU與Metal精修，第19階段實作並驗證Metal稀疏前段，第20階段補相同方向LUT的CPU對照以拆開數學化簡與GPU收益，第21階段驗證GPU建圖與首批搜尋合併提交但保留效能失敗。各數字是各輪的證據快照，不是同一輪連續量測；不要將不同輪次的加速比相乘。快速設定摘要見 [目前建議方案](CURRENT_BEST_zh-TW.md)，整體完成範圍與待辦見 [專案狀態](PROJECT_STATUS_zh-TW.md)。
 
 ## 目前推薦方案
 
-固定尺度的新稀疏研究路徑，第20輪CPU也採同樣LUT後，4096²的Metal前段＋CPU精修仍比查表CPU快8.36倍、128物件快1.42倍，小圖則CPU較快。查表CPU已保留可選模式，第19輪的Metal精修選項另留比較；尚無通用自動routing門檻。下表屬於原有金字塔流程，其推薦與新稀疏路徑分開判斷。
+固定尺度的新稀疏研究路徑，第20輪CPU也採同樣LUT後，4096²的Metal前段＋CPU精修仍比查表CPU快8.36倍、128物件快1.42倍，小圖則CPU較快。查表CPU已保留可選模式，第19輪的Metal精修選項另留比較；尚無通用自動routing門檻。第21輪合併提交雖減少等待，128物件仍有速度回退，因此維持分開提交預設。下表屬於原有金字塔流程，其推薦與新稀疏路徑分開判斷。
 
 在本機 Metal 金字塔研究流程，以**共享來源金字塔＋批次細搜尋＋精確選峰樹**作為下一次比較的基準：
 
@@ -280,6 +280,16 @@ Metal Shader Validation另發現導數kernel插裝後共享記憶體超過32KiB�
 **決定：保留查表CPU選項，大圖Metal收益在相同LUT下仍成立。** 4096²兩block相對查表CPU為8.53／8.00倍，128為1.32／1.65倍；小幅CPU差異有block波動，沒有自動分流或改GUI。所有容忍gate通過不表示全面加速，小圖Metal較查表CPU慢約60%。Release33/33、ASan／UBSan4/4、CPU新測試78組、Metal驗證57組與工具14項通過；645內容檔封存與搬移摘要逐byte重播通過。下一步可分別驗證CPU建圖平行、合併GPU建圖與首批提交、候選內精修融合。
 
 來源：[完整報告與架構界線](SPARSE_CPU_LUT_zh-TW.md)・[protocol](sparse-cpu-lut/protocol.json)・[結果](sparse-cpu-lut/results.json)・[驗證](sparse-cpu-lut/validation.json)・[完整來源與原始封存](sparse-cpu-lut/raw-results.tar.gz)・[封存SHA](sparse-cpu-lut/artifact-sha256.json)。
+
+### 21. GPU來源建圖與首批搜尋合併提交（2026-10-15）
+
+**目的／實作：** mode1將梯度、OR擴散與首批搜尋／局部峰值放入同一command buffer，沒有更動kernel、數學、候選預算、後續批次或溢出策略。每個非空搜尋少一次提交與CPU等待，完整來源保留；CPU模式忽略有效Metal設定，非法值拒絕。
+
+**時間／記憶體／精度：** 凍結de02299、同建置分開、合併三路皆Metal前段＋CPU精修；8重用場景、48程序／144次。小圖2.885→2.787ms，128物件12.140→14.999ms，4K16.084→15.727ms；128兩block比分別1.356／1.351，速度gate失敗，4K一快一慢。128／4K另12程序／36次複查，12812.715→13.594ms仍有一個block失敗，4K15.276→15.034ms。主量測RSS12843.96→43.85MiB、4K254.90→254.75MiB，所有記憶體容忍通過。主／複查候選、工作量、最終CPU結果逐值相同；正常144姿態零FP／FN，既有127/128提案與尺度負控制失敗不變。
+
+**決定：可選實驗，維持mode0預設。** 沒有因省一次等待就推定更快；小幅4K收益不足以掩蓋128回退。CPU複製很小，尚未量GPU時脈／occupancy，不斷言回退機制。Release33/33、ASan／UBSan4/4、Metal58組三路精確比較與工具19項通過；主／複查hash一致，原始資料與來源封存。尚未實作候選內精修融合、全GPU或自動分流。
+
+來源：[完整報告](SPARSE_METAL_MERGE_zh-TW.md)・[protocol](sparse-metal-merge/protocol.json)・[主要結果](sparse-metal-merge/results.json)・[獨立複查](sparse-metal-merge/recheck-results.json)・[速度失敗細節](sparse-metal-merge/validation-details.json)・[完整來源與原始資料](sparse-metal-merge/raw-results.tar.gz)。
 
 ## 人工審查時應保留的限制
 

@@ -76,6 +76,10 @@ CPU每個非空模型新增261121bytes（約0.249MiB）唯讀表；實際程序R
 
 ## 相同查表如何保留數學定義
 
+「CPU查表」是先把有限輸入的計算結果存好，搜尋時直接讀取。例如左右亮度差20、上下亮度差10，原本每遇到一次都要算方向並分類；現在建立模型時先算出這組差值的分類，之後每張圖直接取用。這張表約255KiB，每個非空模型一份，與原本方向分類完全一致。
+
+它加速的是稀疏前段的局部邊緣方向計算；旋轉角度搜尋、位置搜尋與完整NCC精修仍照常執行。表內八個方向類別是原本已有的特徵表示，不是將物件旋轉搜尋限制成八個角度。新圖仍須讀取像素、計算亮度差與建立方向圖。
+
 灰階8-bit中心差分可寫成：
 
 ```text
@@ -132,3 +136,5 @@ Metal原有57組測試啟用API／Shader Validation後通過，並加入實際�
 [事前規則](sparse-cpu-lut/protocol.json)・[正式摘要與block結果](sparse-cpu-lut/results.json)・[驗證結果](sparse-cpu-lut/validation.json)・[完整來源與原始封存](sparse-cpu-lut/raw-results.tar.gz)・[封存SHA與重播證據](sparse-cpu-lut/artifact-sha256.json)。
 
 [量測工具](../tools/benchmark_sparse_cpu_lut.py)預設新build為`build/sparse-cpu-lut`、凍結CPU為`build/sparse-metal`。基準必須符合第19輪protocol的binary SHA；重建或換機需建立新的基準識別與protocol，不冒用原SHA。新建置開啟`FPM_BUILD_EXPERIMENTS=ON`、`FPM_BUILD_GUI=ON`、Release，Qt提供原生runner影像解碼；測試另開`FPM_BUILD_TESTS=ON`。離線摘要重播不需GPU或原binary，封存README提供命令。[報告工具](../tools/report_sparse_cpu_lut.py)負責繪圖、封存、全部雜湊與搬移重播驗證。
+
+後續第21輪已實作[來源建圖與首批搜尋合併提交](SPARSE_METAL_MERGE_zh-TW.md)，非空搜尋少一次等待，但128物件速度回退，仍保留原分開提交預設；完整失敗與複查保留。
