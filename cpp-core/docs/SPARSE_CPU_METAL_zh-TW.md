@@ -77,3 +77,31 @@ python3 EXTRACT/formal/source-snapshot/cpp-core/tools/benchmark_sparse_backends.
 ```
 
 [事前protocol](sparse-backends/protocol.json)・[全部數值](sparse-backends/results.json)・[驗證](sparse-backends/validation.json)・[完整原始資料與源碼](sparse-backends/raw-results.tar.gz)・[封存SHA與重播](sparse-backends/artifact-sha256.json)・[比較工具](../tools/benchmark_sparse_backends.py)・[封存工具](../tools/report_sparse_backends.py)・[工具負控制測試](../tests/test_sparse_backends_harness.py)。
+
+## 後續診斷：GPU 慢在哪裡，不代表不能執行
+
+2026-10-15追加。沿用同一binary與前述小圖、128物件的原始提案，直接呼叫既有精修API，讀取內建計時；沒有改runtime或重建library。這兩例原流程皆無救援，診斷精修結果逐值等於同後端的完整`refine_rescue`入口輸出。每例暖機至少1秒、正式7次；下表取各例wall時間排序居中的**同一次run**，各欄不是分別取中位數。這是局部診斷，不是新增整圖速度／GT比較，沒有測量新圖像串流。
+
+| 區間／計數 | 小圖，5提案 | 128物件，256提案 |
+|---|---:|---:|
+| Metal精修API wall ms | 3.979 | 9.472 |
+| CPU命令編碼 ms | 0.277 | 0.281 |
+| 提交至等待完成 ms | 3.656 | 7.880 |
+| 其中GPU命令執行區間 ms | 3.529 | 7.767 |
+| CPU最後驗分 ms | 0.040 | 1.299 |
+| command buffers／CPU waits | 1／1 | 1／1 |
+| 編碼dispatch數 | 1023 | 1023 |
+
+**GPU命令區間已包含在等待內，不能相加。** 它也包含GPU內部派工、歸約、記憶體等待與各運算之間的依賴，不能當成純像素ALU時間或利用率。此診斷沒有per-kernel時間或硬體counter，因此不能把3.529ms全部歸因為空派工、barrier或記憶體；但可排除「CPU編碼／最後驗分已解釋小圖大部分成本」及「每輪CPU等待」這兩個說法。編碼約占小圖wall的7%，並非最大區間。
+
+源碼仍有具體的改善方向：`pose_metal.mm`對每批預先編碼`3+34×max_iterations`個派工，30輪即1023；每個派工各用一個encoder，迭代中包含多次partial、finish、求解／接受控制。提前停止會把後續indirect grid設為0，但CPU編碼已付出；1023是編碼數，不是1023次非空像素kernel，也不是1023次CPU等待。大批時各個kernel尚有較多像素可攤成本，小圖模板僅64×48且只有5提案。Metal路徑仍是通用RGB／尺度可變的統計結構：固定尺度時把該導數設0，但沒有專用的低維kernel。實際的資源使用與編譯器消除程度仍需檢查。
+
+另用獨立CPU程序在GPU診斷之後量相同提案，7次代表wall為小圖1.080ms、128物件9.132ms；非交錯設計，不能替換前表正式比較。小圖CPU／GPU迭代總數89／87、評估總數239／246；128為2070／1858輪、5699／6106次評估。數值路徑與單次評估成本不同，但此資料不支持「GPU只是多迭代數倍才慢」。
+
+**可執行性與是否值得採用分開：** 全部方向建圖、角度／位置搜尋、候選整理、精修與NMS都可設計GPU版本，目前這條稀疏前段仍在CPU。固定模板、角度特徵與設定可以預算／專用化；新圖方向、活躍候選與收斂結果仍須每次計算，這些動態工作也能放GPU，並非必須交給CPU。
+
+下一個GPU實驗宜先測「小模板每候選一個threadgroup，組內完成取樣、歸約、求解、重試與停止」，減少跨kernel的中間結果與全域同步；大模板保留分tile路徑。此融合尚未實作，可能受暫存器／threadgroup容量及少量候選的並行度限制，也會改變浮點歸約順序，不能承諾勝過CPU。後續再評估來源建圖→搜尋→候選整理→精修的連續GPU流程。這比僅將現有小kernel逐個移植更有研究價值；原始CPU基準與GT條件必須保留。
+
+Apple的[命令提交指引](https://developer.apple.com/library/archive/documentation/3DDrawing/Conceptual/MTLBestPracticesGuide/CommandBuffers.html)支持平衡提交數與GPU利用率，但本例只有一個command buffer，不能套用成「只要減少CPU提交就會變快」。[threadgroup文件](https://developer.apple.com/documentation/metal/calculating-threadgroup-and-grid-sizes)指出可用執行緒數也受kernel所需的暫存器與記憶體影響。
+
+[診斷摘要、來源／library雜湊](sparse-backends/resident-diagnosis.json)・[診斷腳本與全部逐次輸出](sparse-backends/resident-diagnosis.tar.gz)。新增封存獨立於正式64程序封存；7個檔案雜湊核對通過。腳本保留原始歷史路徑，沒有宣稱本次小型診斷已完成跨目錄可執行重播。

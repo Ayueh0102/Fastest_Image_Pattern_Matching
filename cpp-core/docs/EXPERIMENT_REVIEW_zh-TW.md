@@ -259,6 +259,8 @@ Metal Shader Validation另發現導數kernel插裝後共享記憶體超過32KiB�
 
 來源：[報告](SPARSE_CPU_METAL_zh-TW.md)・[protocol](sparse-backends/protocol.json)・[全部結果](sparse-backends/results.json)・[驗證](sparse-backends/validation.json)・[完整來源與原始封存](sparse-backends/raw-results.tar.gz)・[封存SHA](sparse-backends/artifact-sha256.json)。
 
+**追加局部診斷：** 同binary、小圖5候選與128物件256候選，Metal各7次；兩例皆一次提交／等待、1023個編碼派工。小圖wall3.979ms，encode0.277、wait3.656（內含GPU區間3.529）、CPU驗分0.040；128 wall9.472ms，encode0.281、wait7.880（內含GPU7.767）、CPU驗分1.299。未拆GPU區間的像素／派工／barrier成本，不能說傳輸或CPU編碼主導。全部局部輸出等於同後端救援入口，未改原正式結果；[診斷摘要與來源](sparse-backends/resident-diagnosis.json)、[原始封存](sparse-backends/resident-diagnosis.tar.gz)保留。候選內融合kernel與連續GPU稀疏前段仍為待實驗方向。
+
 ## 人工審查時應保留的限制
 
 1. **時間範圍先對齊。** 固定姿態score、局部refine、全圖proposal、含rescue全流程、setup／first各不相同；多數暖機表排除解碼與一次學習，但shared frame每次prepare已計入。原CPU／GPU勝負只能在同輪、同工作量列內比較。
