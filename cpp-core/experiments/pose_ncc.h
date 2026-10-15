@@ -42,6 +42,19 @@ FPM_EXP_API void* fpm_pose_create(int backend, int threads, const float* source,
 FPM_EXP_API void* fpm_pose_create_with_storage(int backend, int threads, const float* source,
     int sw, int sh, const float* templ, int tw, int th, int channels, int storage_mode,
     char* error, int error_capacity);
+// Optional byte input, packed HWC pixels within each row (channels = 1 or 3).
+// Strides are bytes and must cover a full row; the caller must provide readable
+// storage through the last pixel of the last row. Padding bytes are ignored.
+// Converts directly into the final owned float images using value/255.f,
+// or (255-value)/255.f for the source when invert_source is 1 (otherwise 0).
+// No caller memory is retained and no intermediate float images are allocated.
+// Storage modes, backend selection and subsequent NCC math are unchanged.
+FPM_EXP_API void* fpm_pose_create_u8(int backend, int threads, const uint8_t* source,
+    int sw, int sh, uint64_t source_stride, const uint8_t* templ, int tw, int th,
+    uint64_t template_stride, int channels, int invert_source, int storage_mode,
+    char* error, int error_capacity);
+// Creation input format: 0 = float32, 1 = uint8; -1 for null. No dispatch.
+FPM_EXP_API int fpm_pose_input_format(void* handle);
 typedef struct FpmPoseStorageInfo {
     int mode;
     int reserved;

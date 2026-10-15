@@ -60,6 +60,8 @@ QJsonObject record(const Result& r,bool outputs) {
     o["pose_shared_image_bytes"]=double(r.poseStorage.shared_image_bytes);
     o["pose_unique_image_bytes"]=double(r.poseStorage.unique_image_bytes);
     o["pose_create_ms"]=r.poseCreateMs;
+    o["pose_input_mode"]=r.poseInputMode;
+    o["pose_conversion_temporary_bytes"]=double(r.poseConversionTemporaryBytes);
     o["refinement_threads"]=int(r.residentKernel.threads);
     o["refinement_simd_width"]=int(r.residentKernel.simd_width);
     o["refinement_threadgroup_bytes"]=double(r.residentKernel.threadgroup_bytes);
@@ -114,6 +116,7 @@ int main(int argc,char** argv) {
         auto src=read(j["source"].toString()),tmp=read(j["template"].toString());Settings settings;
         settings.backend=j["backend"].toInt(1);settings.minReducedArea=j["min_area"].toInt(256);settings.scales.clear();
         settings.poseStorageMode=j["pose_storage_mode"].toInt(0);
+        settings.poseInputMode=j["pose_input_mode"].toInt(0);
         for(auto s:j["scales"].toArray()) settings.scales.push_back(s.toDouble());
         if(settings.scales.empty()) settings.scales={1.};
         const auto method=j["proposal_method"].toString("pyramid");

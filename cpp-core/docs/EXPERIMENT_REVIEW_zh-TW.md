@@ -1,10 +1,10 @@
 # Template Matching 研究總索引與人工審查指南
 
-整理日期：2026-10-15。前12階段整理 repository 已保存的報告、protocol 與結果；第13階段為 NCC tiling 正式量測，第14階段接入原生尺度 GUI 並驗證組合模式與持續運行，第15階段比較固定尺度的金字塔與原解析度搜尋，第16階段實作稀疏方向全圖提案並比較128物件，第17階段驗證等價回應壓縮，第18階段比較稀疏全CPU與Metal精修，第19階段實作並驗證Metal稀疏前段，第20階段補相同方向LUT的CPU對照以拆開數學化簡與GPU收益，第21階段驗證GPU建圖與首批搜尋合併提交但保留效能失敗，第22階段完成灰階GPU精修融合與四路效能比較，第23階段再驗證SIMD128群組內加總與共享暫存優化，第24階段減少CPU／Metal精修影像副本並擴充8K24物件。各數字是各輪的證據快照，不是同一輪連續量測；不要將不同輪次的加速比相乘。快速設定摘要見 [目前建議方案](CURRENT_BEST_zh-TW.md)，整體完成範圍與待辦見 [專案狀態](PROJECT_STATUS_zh-TW.md)。
+整理日期：2026-10-15。前12階段整理 repository 已保存的報告、protocol 與結果；第13階段為 NCC tiling 正式量測，第14階段接入原生尺度 GUI 並驗證組合模式與持續運行，第15階段比較固定尺度的金字塔與原解析度搜尋，第16階段實作稀疏方向全圖提案並比較128物件，第17階段驗證等價回應壓縮，第18階段比較稀疏全CPU與Metal精修，第19階段實作並驗證Metal稀疏前段，第20階段補相同方向LUT的CPU對照以拆開數學化簡與GPU收益，第21階段驗證GPU建圖與首批搜尋合併提交但保留效能失敗，第22階段完成灰階GPU精修融合與四路效能比較，第23階段再驗證SIMD128群組內加總與共享暫存優化，第24階段減少CPU／Metal精修影像副本並擴充8K24物件，第25階段以直接8-bit入口移除初始化float暫存並比較CPU／Metal。各數字是各輪的證據快照，不是同一輪連續量測；不要將不同輪次的加速比相乘。快速設定摘要見 [目前建議方案](CURRENT_BEST_zh-TW.md)，整體完成範圍與待辦見 [專案狀態](PROJECT_STATUS_zh-TW.md)。
 
 ## 目前推薦方案
 
-固定尺度的新稀疏研究路徑，第20輪CPU也採同樣LUT後，4096²的Metal前段＋CPU精修仍比查表CPU快8.36倍、128物件快1.42倍，小圖則CPU較快。查表CPU已保留可選模式，第19輪的Metal精修選項另留比較；尚無通用自動routing門檻。第21輪合併提交雖減少等待，128物件仍有速度回退，因此維持分開提交預設。第22輪融合精修在已測八場景快於原Metal精修；128可選融合，多數少候選場景仍選CPU精修，完整證據見第22節。第23輪新增SIMD128，128物件可優先試mode2：同輪fused256／SIMD128為10.52／8.56ms、複查10.37／8.55ms；多數少候選仍先CPU，完整比較與歸因限制見第23節。第24輪可加`poseStorageMode=1`：4K／8K各省約64／256MiB，數值不變；8K時間49.82／49.78ms幾乎持平，詳第24節。下表屬於原有金字塔流程，其推薦與新稀疏路徑分開判斷。
+固定尺度的新稀疏研究路徑，第20輪CPU也採同樣LUT後，4096²的Metal前段＋CPU精修仍比查表CPU快8.36倍、128物件快1.42倍，小圖則CPU較快。查表CPU已保留可選模式，第19輪的Metal精修選項另留比較；尚無通用自動routing門檻。第21輪合併提交雖減少等待，128物件仍有速度回退，因此維持分開提交預設。第22輪融合精修在已測八場景快於原Metal精修；128可選融合，多數少候選場景仍選CPU精修，完整證據見第22節。第23輪新增SIMD128，128物件可優先試mode2：同輪fused256／SIMD128為10.52／8.56ms、複查10.37／8.55ms；多數少候選仍先CPU，完整比較與歸因限制見第23節。第24輪可加`poseStorageMode=1`：4K／8K各省約64／256MiB，數值不變；8K時間49.82／49.78ms幾乎持平，詳第24節。第25輪再加`poseInputMode=1`，8K峰值RSS 946.59→690.53MiB，初始化125.84→81.29ms；暖機無穩定加速，CPU慢樣本亦保留，見第25節。下表屬於原有金字塔流程，其推薦與新稀疏路徑分開判斷。
 
 在本機 Metal 金字塔研究流程，以**共享來源金字塔＋批次細搜尋＋精確選峰樹**作為下一次比較的基準：
 
@@ -326,6 +326,18 @@ Metal Shader Validation另發現導數kernel插裝後共享記憶體超過32KiB�
 **驗證／歸因：** Release37/37、ASan／UBSan10/10、Metal API／Shader Validation共用精修119次、9組灰階RGB生命週期對照、工具34項通過。容量用host+gpu−shared避免重複計數，另量RSS；建立時間與暖機時間分開。保留初次編譯失敗、修正前全套研究及最終重測；主／追加換目錄重播通過。沒有新RGB全圖、GUI、串流或30分鐘soak；服務額度使子agent不可用，主agent完成，不宣稱獨立agent最終審查。
 
 來源：[完整報告](POSE_SHARED_STORAGE_zh-TW.md)・[protocol](pose-shared/protocol.json)・[主結果](pose-shared/results.json)・[複查／8K](pose-shared/recheck-results.json)・[檢查細節](pose-shared/validation-details.json)・[完整來源與原始資料](pose-shared/raw-results.tar.gz)。
+
+### 25. 直接8-bit初始化與CPU／Metal暫存移除（2026-10-15）
+
+**目的／實作：** 新增`fpm_pose_create_u8`，直接從有stride的HWC灰階／RGB轉入最終自有float影像，來源可反色；Session以`poseInputMode=1`選用。沿用相同中心化與求解，8-bit入口不需再掃描有限值；原float驗證保留。呼叫端可釋放原圖，storage與lazy規則不變，所有Metal shader hash不變。
+
+**時間／記憶體／精度：** 凍結54ae7b6共用Metal、同建置CPU float／直接、Metal float／直接五路，80程序／240次；前段均Metal。4K Metal float／直接初始化30.36／19.71ms，RSS 255.77→191.80MiB，暖機15.95／15.93ms。CPU亦省約64MiB。正常144姿態零FP／FN，同後端新舊輸出逐值相同；尺度負控制、Src4無GT與提案127/128限制保留。
+
+**複查／決定：** 六物件、128、4K、8K另40程序／120次，8K是沿用4K拼接、24同模板實例。Metal初始化125.84→81.29ms、RSS 946.59→690.53MiB，暖機51.29／51.40ms。Metal直接對float性能容忍全過；CPU直接主量測六物件block0與128 block1暖機失敗，複查未重現。Metal直接對CPU直接主6個／複查1個速度失敗保留，所有記憶體容忍通過。可手動用於降低大圖初始化成本，沒有通用暖機加速或自動分流結論。
+
+**驗證／歸因：** Release39/39、ASan／UBSan12/12、新入口CPU／Metal各10組精確對照、Metal119次共用精修與工具42項通過。新舊入口常駐容量與求解工作相同，變化來自初始化暫存與掃描；暫存容量不與RSS相加。主／追加／試跑摘要搬移重播逐byte一致。兩協作agent遇服務額度中斷，由主agent補全及驗證；沒有獨立agent最終審查、新GUI、RGB全圖、串流或新soak。
+
+來源：[完整報告](POSE_U8_INPUT_zh-TW.md)・[protocol](pose-u8/protocol.json)・[主結果](pose-u8/results.json)・[複查／8K](pose-u8/recheck-results.json)・[失敗與驗證](pose-u8/validation-details.json)・[來源與原始資料](pose-u8/raw-results.tar.gz)。
 
 ## 人工審查時應保留的限制
 

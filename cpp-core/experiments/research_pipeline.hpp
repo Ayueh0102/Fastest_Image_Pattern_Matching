@@ -16,6 +16,7 @@ struct Settings {
     int cpuThreads = 8;
     int residentMode = 0; // 0 original Metal resident; 1 fused256, 2 SIMD128; fused gray templates <=16384 pixels.
     int poseStorageMode = 0; // 0 separate CPU/Metal images; 1 shared pages on unified-memory Metal.
+    int poseInputMode = 0; // 0 Session float conversion; 1 convert gray8 directly into owned pose images.
     // Experimental fixed-scale full-image proposals. No reduced image levels
     // or dense NCC maps are constructed; final acceptance still uses full NCC.
     bool sparseOrientation = false;
@@ -38,6 +39,8 @@ struct Result {
     FpmPoseResidentKernelInfo residentKernel{};
     FpmPoseStorageInfo poseStorage{};
     double poseCreateMs = 0; // New pose context initialization only, nested in refineMs.
+    uint64_t poseConversionTemporaryBytes = 0; // Initialization-only float conversion capacity, not retained or RSS.
+    int poseInputMode = 0; // Actual context input format, or configured selection before creation.
     FpmPoseResidentMetrics resident{}; // Aggregated baseline/retry diagnostics.
     int refinementMode = 0; // Selected mode; zero dispatches means no GPU refinement ran.
     bool sparseEnabled = false;

@@ -25,6 +25,7 @@ struct ImageStorage {
     std::vector<float> values;
     std::shared_ptr<float> pages;
     size_t count = 0, pageBytes = 0;
+    void allocate(size_t n, bool shared);
     void assign(const float* first, const float* last, bool shared);
     float* data() { return pages ? pages.get() : values.data(); }
     const float* data() const { return pages ? pages.get() : values.data(); }

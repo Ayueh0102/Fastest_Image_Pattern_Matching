@@ -5,6 +5,7 @@
 #include <chrono>
 #include <cmath>
 #include <condition_variable>
+#include <cstddef>
 #include <cstdio>
 #include <exception>
 #include <functional>
@@ -18,22 +19,30 @@
 #endif
 
 namespace fpm_exp {
-void ImageStorage::assign(const float* first, const float* last, bool shared)
+void ImageStorage::allocate(size_t n, bool shared)
 {
-    if (!shared) { values.assign(first,last); return; }
+    if (!shared) { values.resize(n); return; }
 #if defined(__APPLE__)
     const long page = sysconf(_SC_PAGESIZE);
     if (page <= 0) throw std::runtime_error("Cannot query VM page size");
-    const size_t n = size_t(last-first), bytes = n*sizeof(float);
+    if (!n || n > (std::numeric_limits<size_t>::max()-size_t(page)+1)/sizeof(float))
+        throw std::invalid_argument("invalid shared pose image size");
+    const size_t bytes = n*sizeof(float);
     const size_t aligned = (bytes+size_t(page)-1)/size_t(page)*size_t(page);
     void* address = mmap(nullptr,aligned,PROT_READ|PROT_WRITE,MAP_PRIVATE|MAP_ANON,-1,0);
     if (address == MAP_FAILED) throw std::bad_alloc();
     std::shared_ptr<float> owner(static_cast<float*>(address),[aligned](float* p) { munmap(p,aligned); });
-    std::copy(first,last,owner.get());
     pages = std::move(owner); count = n; pageBytes = aligned;
 #else
     throw std::invalid_argument("Shared pose storage requires Apple Metal");
 #endif
+}
+void ImageStorage::assign(const float* first, const float* last, bool shared)
+{
+    // Preserve vector assign for the float API: no extra zero-initialization.
+    if (!shared) { values.assign(first,last); return; }
+    allocate(size_t(last-first),true);
+    std::copy(first,last,data());
 }
 using Clock = std::chrono::steady_clock;
 constexpr double radians = 3.14159265358979323846/180;
@@ -325,7 +334,7 @@ struct Context {
     FpmPoseResidentMetrics lastResident{};
     FpmPoseResidentKernelInfo lastKernel{};
     int residentMode = 0;
-    int threads = 1, creationBackend = 0;
+    int threads = 1, creationBackend = 0, inputFormat = 0;
 };
 static void errorMessage(char* error, int cap, const char* message) {
     if (error && cap > 0) std::snprintf(error, size_t(cap), "%s", message);
@@ -336,6 +345,79 @@ static size_t imageSize(int w, int h, int c) {
     const size_t size = size_t(w)*h*c;
     if (size > 128*1024*1024) throw std::invalid_argument("experiment image size limit exceeded");
     return size;
+}
+static void validateByteImage(const uint8_t* image, int w, int h, int c, uint64_t stride)
+{
+    const uint64_t rowBytes = uint64_t(w)*c;
+    const uint64_t limit = std::min(uint64_t(std::numeric_limits<size_t>::max()),
+        uint64_t(std::numeric_limits<std::ptrdiff_t>::max()));
+    if (stride < rowBytes || stride > limit || uint64_t(h-1) > (limit-rowBytes)/stride)
+        throw std::invalid_argument("invalid byte image stride or row span");
+    const uint64_t span = uint64_t(h-1)*stride+rowBytes;
+    if (span-1 > std::numeric_limits<uintptr_t>::max()-reinterpret_cast<uintptr_t>(image))
+        throw std::invalid_argument("byte image address span overflows");
+}
+static void fillByteImage(ImageStorage& destination, const uint8_t* source,
+    int w, int h, int channels, uint64_t stride, bool invert)
+{
+    const size_t rowValues = size_t(w)*channels;
+    for (int y = 0; y < h; ++y) {
+        const auto* row = source+size_t(y)*size_t(stride);
+        float* output = destination.data()+size_t(y)*rowValues;
+        for (size_t x = 0; x < rowValues; ++x)
+            output[x] = (invert ? 255-row[x] : row[x])/255.f;
+    }
+}
+template<class Populate>
+static void* createContext(int backend, int threads, bool validPointers, int sw, int sh,
+    int tw, int th, int channels, int storageMode, int inputFormat, Populate&& populate,
+    char* error, int errorCapacity)
+{
+    try {
+        if (!validPointers || threads < 1 || threads > 64 || (backend != 0 && backend != 1 && backend != 2))
+            throw std::invalid_argument("invalid pointer/backend/thread count");
+        if (storageMode < 0 || storageMode > 1 || (storageMode && backend == 0))
+            throw std::invalid_argument("invalid pose storage mode or CPU handle with shared storage");
+        auto ctx = std::make_unique<Context>();
+        ctx->threads = threads;
+        ctx->creationBackend = backend;
+        ctx->inputFormat = inputFormat;
+        auto& d = ctx->data;
+        d.sw = sw; d.sh = sh; d.tw = tw; d.th = th; d.channels = channels;
+        d.storageMode = storageMode;
+        populate(d);
+        // Byte conversion is finite and in [0,1] by construction. Preserve the
+        // existing validation for the unrestricted float initializer.
+        if (inputFormat == 0) for (auto* image : {&d.source, &d.templ})
+            for (float x : *image) if (!std::isfinite(x) || std::abs(x) > 16)
+                throw std::invalid_argument("inputs must be finite with abs(value) <= 16");
+        for (int c = 0; c < channels; ++c) {
+            double sum = 0;
+            for (size_t i = c; i < d.source.size(); i += channels) sum += d.source[i];
+            d.sourceMean[c] = float(sum/(size_t(sw)*sh));
+            for (size_t i = c; i < d.source.size(); i += channels) d.source[i] -= d.sourceMean[c];
+            sum = 0;
+            for (size_t i = c; i < d.templ.size(); i += channels) sum += d.templ[i];
+            const float mean = float(sum/(size_t(tw)*th));
+            double squares = 0;
+            for (size_t i = c; i < d.templ.size(); i += channels) {
+                d.templ[i] -= mean;
+                d.templateSum[c] += d.templ[i];
+                squares += double(d.templ[i])*d.templ[i];
+            }
+            d.templateEnergy += squares-d.templateSum[c]*d.templateSum[c]/(double(tw)*th);
+        }
+        if (backend != 1) ctx->backend = std::make_unique<Cpu>(d, threads);
+        else {
+#ifdef FPM_EXPERIMENT_METAL
+            ctx->backend = makeMetal(d);
+#else
+            throw std::runtime_error("Metal backend was not compiled on this platform");
+#endif
+        }
+        errorMessage(error, errorCapacity, "");
+        return ctx.release();
+    } catch (const std::exception& e) { errorMessage(error, errorCapacity, e.what()); return nullptr; }
 }
 
 struct DeviceTiming {
@@ -493,51 +575,36 @@ void* fpm_pose_create(int backend, int threads, const float* source, int sw, int
 void* fpm_pose_create_with_storage(int backend, int threads, const float* source, int sw, int sh,
     const float* templ, int tw, int th, int channels, int storage_mode, char* error, int error_capacity)
 {
-    using namespace fpm_exp;
-    try {
-        if (!source || !templ || threads < 1 || threads > 64 || (backend != 0 && backend != 1 && backend != 2))
-            throw std::invalid_argument("invalid pointer/backend/thread count");
-        if (storage_mode < 0 || storage_mode > 1 || (storage_mode && backend == 0))
-            throw std::invalid_argument("invalid pose storage mode or CPU handle with shared storage");
-        auto ctx = std::make_unique<Context>();
-        ctx->threads = threads;
-        ctx->creationBackend = backend;
-        auto& d = ctx->data;
-        d.sw = sw; d.sh = sh; d.tw = tw; d.th = th; d.channels = channels;
-        d.storageMode = storage_mode;
-        d.source.assign(source, source+imageSize(sw, sh, channels),storage_mode != 0);
-        d.templ.assign(templ, templ+imageSize(tw, th, channels),storage_mode != 0);
-        for (auto* image : {&d.source, &d.templ})
-            for (float x : *image) if (!std::isfinite(x) || std::abs(x) > 16)
-                throw std::invalid_argument("inputs must be finite with abs(value) <= 16");
-        for (int c = 0; c < channels; ++c) {
-            double sum = 0;
-            for (size_t i = c; i < d.source.size(); i += channels) sum += d.source[i];
-            d.sourceMean[c] = float(sum/(size_t(sw)*sh));
-            for (size_t i = c; i < d.source.size(); i += channels) d.source[i] -= d.sourceMean[c];
-            sum = 0;
-            for (size_t i = c; i < d.templ.size(); i += channels) sum += d.templ[i];
-            const float mean = float(sum/(size_t(tw)*th));
-            double squares = 0;
-            for (size_t i = c; i < d.templ.size(); i += channels) {
-                d.templ[i] -= mean;
-                d.templateSum[c] += d.templ[i];
-                squares += double(d.templ[i])*d.templ[i];
-            }
-            d.templateEnergy += squares-d.templateSum[c]*d.templateSum[c]/(double(tw)*th);
-        }
-        if (backend != 1) ctx->backend = std::make_unique<Cpu>(d, threads);
-        else {
-#ifdef FPM_EXPERIMENT_METAL
-            ctx->backend = makeMetal(d);
-#else
-            throw std::runtime_error("Metal backend was not compiled on this platform");
-#endif
-        }
-        errorMessage(error, error_capacity, "");
-        return ctx.release();
-    } catch (const std::exception& e) { errorMessage(error, error_capacity, e.what()); return nullptr; }
+    return fpm_exp::createContext(backend,threads,source && templ,sw,sh,tw,th,channels,
+        storage_mode,0,[&](fpm_exp::Data& d) {
+            d.source.assign(source,source+fpm_exp::imageSize(sw,sh,channels),storage_mode != 0);
+            d.templ.assign(templ,templ+fpm_exp::imageSize(tw,th,channels),storage_mode != 0);
+        },error,error_capacity);
 }
+void* fpm_pose_create_u8(int backend, int threads, const uint8_t* source, int sw, int sh,
+    uint64_t source_stride, const uint8_t* templ, int tw, int th, uint64_t template_stride,
+    int channels, int invert_source, int storage_mode, char* error, int error_capacity)
+{
+    return fpm_exp::createContext(backend,threads,source && templ,sw,sh,tw,th,channels,
+        storage_mode,1,[&](fpm_exp::Data& d) {
+            if (invert_source != 0 && invert_source != 1)
+                throw std::invalid_argument("invalid source inversion mode");
+            const size_t sourceSize = fpm_exp::imageSize(sw,sh,channels);
+            const size_t templateSize = fpm_exp::imageSize(tw,th,channels);
+            // Validate BOTH image spans before allocating or reading either.
+            fpm_exp::validateByteImage(source,sw,sh,channels,source_stride);
+            fpm_exp::validateByteImage(templ,tw,th,channels,template_stride);
+            d.source.allocate(sourceSize,storage_mode != 0);
+            d.templ.allocate(templateSize,storage_mode != 0);
+            fpm_exp::fillByteImage(d.source,source,sw,sh,channels,source_stride,invert_source != 0);
+            fpm_exp::fillByteImage(d.templ,templ,tw,th,channels,template_stride,false);
+        },error,error_capacity);
+}
+int fpm_pose_input_format(void* handle)
+{
+    return handle ? static_cast<fpm_exp::Context*>(handle)->inputFormat : -1;
+}
+
 const char* fpm_pose_device(void* handle)
 {
     return handle ? static_cast<fpm_exp::Context*>(handle)->backend->name() : "invalid handle";

@@ -117,6 +117,8 @@ struct Session::Impl {
             throw std::invalid_argument("Fused refinement requires Metal and a template with <=16384 pixels");
         if(s.poseStorageMode<0 || s.poseStorageMode>1 || (s.poseStorageMode && s.backend!=1))
             throw std::invalid_argument("Shared pose storage requires Metal refinement");
+        if(s.poseInputMode<0 || s.poseInputMode>1)
+            throw std::invalid_argument("Invalid pose input mode");
         if(s.sparseOrientation) {
             if(s.scales.size()!=1 || s.scales.front()!=1.)
                 throw std::invalid_argument("Sparse orientation requires fixed scale {1}");
@@ -136,16 +138,24 @@ struct Session::Impl {
         config.pyramid_mode=s.backend?1:0;config.batch_angles=s.backend?4:1;config.fine_batch_size=s.backend?512:0;
         fpm_frame_handle* f=nullptr;check(fpm_frame_create(&config,sizeof(config),&f,error,sizeof(error)),error);frame.reset(f);
     }
-    double ensurePose(bool invert) {
+    double ensurePose(bool invert,uint64_t& temporaryBytes) {
+        temporaryBytes=0;
         if(pose && poseInvert==invert) return 0;
         const auto begin=Clock::now();
         // Release old GPU image before replacement, also after previous errors.
         pose.reset();
-        std::vector<float> src(size_t(source.width())*source.height()),tmp(size_t(templ.width())*templ.height());
-        for(int y=0;y<source.height();++y) for(int x=0;x<source.width();++x) src[size_t(y)*source.width()+x]=(invert?255-source.row(y)[x]:source.row(y)[x])/255.f;
-        for(int y=0;y<templ.height();++y) for(int x=0;x<templ.width();++x) tmp[size_t(y)*templ.width()+x]=templ.row(y)[x]/255.f;
         char error[1024]{};
-        pose.reset(fpm_pose_create_with_storage(settings.backend,settings.cpuThreads,src.data(),source.width(),source.height(),tmp.data(),templ.width(),templ.height(),1,settings.poseStorageMode,error,sizeof(error)));
+        std::vector<float> src,tmp;
+        if(settings.poseInputMode==0) {
+            src.resize(size_t(source.width())*source.height());tmp.resize(size_t(templ.width())*templ.height());
+            for(int y=0;y<source.height();++y) for(int x=0;x<source.width();++x) src[size_t(y)*source.width()+x]=(invert?255-source.row(y)[x]:source.row(y)[x])/255.f;
+            for(int y=0;y<templ.height();++y) for(int x=0;x<templ.width();++x) tmp[size_t(y)*templ.width()+x]=templ.row(y)[x]/255.f;
+            temporaryBytes=(src.capacity()+tmp.capacity())*sizeof(float);
+            pose.reset(fpm_pose_create_with_storage(settings.backend,settings.cpuThreads,src.data(),source.width(),source.height(),tmp.data(),templ.width(),templ.height(),1,settings.poseStorageMode,error,sizeof(error)));
+        } else {
+            pose.reset(fpm_pose_create_u8(settings.backend,settings.cpuThreads,source.view().data,source.width(),source.height(),source.view().stride,
+                templ.view().data,templ.width(),templ.height(),templ.view().stride,1,int(invert),settings.poseStorageMode,error,sizeof(error)));
+        }
         if(!pose) throw std::runtime_error(error);
         check(fpm_pose_set_resident_mode(pose.get(),settings.residentMode,error,sizeof(error)),error);
         poseInvert=invert;
@@ -160,6 +170,7 @@ Result Session::run(const Options& o) {
     auto& s=*impl_;validateOptions(o,s.settings.backend);Result r;char error[1024]{};const auto start=Clock::now();
     r.refinementMode=s.settings.residentMode;
     r.poseStorage.mode=s.settings.poseStorageMode;
+    r.poseInputMode=s.settings.poseInputMode;
     std::vector<fpm_angle_range> ranges;for(auto a:o.match.angleRanges) ranges.push_back({a.min,a.max});
     if(s.sparse) {
         // Orientation similarity is not NCC and cannot be used as a final
@@ -201,7 +212,7 @@ Result Session::run(const Options& o) {
     r.proposalMs=ms(start);
     auto candidates=r.proposals;auto scales=r.proposalScales;
     if(o.refine && !candidates.empty()) {
-        const auto t=Clock::now();r.poseCreateMs=s.ensurePose(o.match.invertSource);
+        const auto t=Clock::now();r.poseCreateMs=s.ensurePose(o.match.invertSource,r.poseConversionTemporaryBytes);
         const size_t n=candidates.size();
         if(n>65536) throw std::invalid_argument("Refinement accepts at most 65536 proposals; reduce scale bank or target count");
         std::vector<float> seeds(n*4),refined(n*4),scores(n);
@@ -241,6 +252,8 @@ Result Session::run(const Options& o) {
     FpmCoarseExecutionMetricsV1 prepareMetrics{};
     if(s.frame) check(fpm_frame_get_metrics(s.frame.get(),&r.frame,sizeof(r.frame),&prepareMetrics,sizeof(prepareMetrics),error,sizeof(error)),error);
     if(s.pose) {
+        r.poseInputMode=fpm_pose_input_format(s.pose.get());
+        if(r.poseInputMode!=s.settings.poseInputMode) throw std::runtime_error("Unexpected pose input format");
         FpmPoseMetrics memory{};
         if(fpm_pose_memory(s.pose.get(),&memory)) throw std::runtime_error("Cannot query pose memory");
         r.pose.host_buffer_bytes=memory.host_buffer_bytes;r.pose.gpu_buffer_bytes=memory.gpu_buffer_bytes;r.pose.gpu_allocated_bytes=memory.gpu_allocated_bytes;

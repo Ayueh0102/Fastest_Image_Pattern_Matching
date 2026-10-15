@@ -1,0 +1,15 @@
+{
+  "archive_sha256": "4adb7b21e54c22d287e87cdc30edabeb71e06261c3060830dad78ac0495f704f",
+  "archive_bytes": 48214651,
+  "members": 1112,
+  "all_member_hashes_valid": true,
+  "relocated_summary_byte_identical": true,
+  "summary_sha256": "50ab4eab378df549604f49432ad855b541fe7cc0c416454071b369e4dabda275",
+  "relocated_recheck_summary_byte_identical": true,
+  "recheck_summary_sha256": "c83d2fc05f2404b2b0005a56ee8e3cb7d889c751083e4fa95d672a31bf2dccd2",
+  "validation_details_sha256": "f12a08452511d45b49b2deb8b8bccff2e05834bf6185b8927d85c03480e283b0",
+  "additional_relocated_replays": [
+    "formal/recheck",
+    "pilots/pilot"
+  ]
+}

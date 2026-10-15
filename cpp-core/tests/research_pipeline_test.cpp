@@ -35,6 +35,7 @@ int main(int argc,char**) {
         for(auto m:baseline.matches) require((std::hypot(m.center.x-56,m.center.y-42)<.1) || (std::hypot(m.center.x-172,m.center.y-119)<.1),"wrong position");
         // Source/template snapshots are owned; caller changes must not leak in.
         source.row(30)[40]^=255;templ.row(0)[0]^=255;same(baseline,session.run(o));
+        source.row(30)[40]^=255;templ.row(0)[0]^=255;
         if(metal) for(int mode:{0,2,3}) for(bool overlap:{false,true}) {
             o.nccMode=mode;o.overlap=overlap;const auto r=session.run(o);same(baseline,r);
             for(auto m:r.overlapMetrics) require(m.submitted_batches==m.completed_batches,"undrained async batches");
@@ -44,15 +45,23 @@ int main(int argc,char**) {
         require(refined.refinementMode==0,"default refinement mode changed");
         require(metal ? refined.resident.encoded_dispatches>refined.resident.command_buffers : refined.resident.encoded_dispatches==0,"wrong default refinement diagnostics");
         same(refined,session.run(o));
-        if(metal) for(int fusedMode:{1,2}) for(int storageMode:{0,1}) {
-            // Recreate from the original input, not the caller-mutated buffers.
-            if(fusedMode==1 && storageMode==0) {source.row(30)[40]^=255;templ.row(0)[0]^=255;}
-            Settings fusedSettings=s;fusedSettings.residentMode=fusedMode;fusedSettings.poseStorageMode=storageMode;
+        require(refined.poseInputMode==0 && refined.poseConversionTemporaryBytes>0,"float conversion allocation missing");
+        Settings directSettings=s;directSettings.poseInputMode=1;
+        Session direct(source.view(),templ.view(),directSettings);
+        const auto directResult=direct.run(o);same(refined,directResult);
+        require(directResult.poseInputMode==1 && directResult.poseConversionTemporaryBytes==0 && directResult.poseCreateMs>0,"direct input route ignored");
+        const auto directRepeated=direct.run(o);same(directResult,directRepeated);
+        require(directRepeated.poseCreateMs==0 && directRepeated.poseConversionTemporaryBytes==0,"direct cached context recreated");
+        Result floatFused,floatInverted;
+        if(metal) for(int fusedMode:{1,2}) for(int storageMode:{0,1}) for(int inputMode:{0,1}) {
+            Settings fusedSettings=s;fusedSettings.residentMode=fusedMode;fusedSettings.poseStorageMode=storageMode;fusedSettings.poseInputMode=inputMode;
             Session fused(source.view(),templ.view(),fusedSettings);
             Options discrete=o;discrete.refine=false;const auto noRefinement=fused.run(discrete);
             require(noRefinement.refinementMode==fusedMode && noRefinement.resident.encoded_dispatches==0,"selected fused mode lost when refinement disabled");
             const auto result=fused.run(o);
             require(result.poseStorage.mode==storageMode && result.poseCreateMs>0,"wrong storage route or missing initialization time");
+            require(result.poseInputMode==inputMode && (inputMode ? result.poseConversionTemporaryBytes==0 : result.poseConversionTemporaryBytes>0),"wrong input route or temporary capacity");
+            if(inputMode==0) floatFused=result;else same(floatFused,result);
             require(storageMode ? result.poseStorage.shared_image_bytes==result.poseStorage.host_image_bytes && result.poseStorage.shared_image_bytes>0 : result.poseStorage.shared_image_bytes==0,"wrong shared image accounting");
             require(result.refinementMode==fusedMode && result.resident.command_buffers>0 &&
                 result.resident.encoded_dispatches==result.resident.command_buffers &&
@@ -64,19 +73,23 @@ int main(int argc,char**) {
                 result.proposals.size()==refined.proposals.size(),"fused pipeline changed reference detections");
             for(const auto& m:result.matches) require(m.score>.99 &&
                 std::hypot(m.center.x-56,m.center.y-42)<.1,"fused pipeline GT mismatch");
-            const auto repeated=fused.run(o);same(result,repeated);require(repeated.poseCreateMs==0,"cached pose context rebuilt");
+            const auto repeated=fused.run(o);same(result,repeated);require(repeated.poseCreateMs==0 && repeated.poseConversionTemporaryBytes==0,"cached pose context rebuilt");
             const auto retained=fused.run(discrete);
-            require(retained.poseCreateMs==0 && retained.resident.encoded_dispatches==0 &&
+            require(retained.poseCreateMs==0 && retained.poseConversionTemporaryBytes==0 && retained.poseInputMode==inputMode && retained.resident.encoded_dispatches==0 &&
                 retained.poseStorage.unique_image_bytes==result.poseStorage.unique_image_bytes &&
                 retained.poseStorage.shared_image_bytes==result.poseStorage.shared_image_bytes,
                 "discrete-only call hid retained pose storage or dispatched refinement");
             Options invertedOptions=o;invertedOptions.match.invertSource=true;
             const auto invertedFused=fused.run(invertedOptions);
+            if(inputMode==0) floatInverted=invertedFused;else same(floatInverted,invertedFused);
             require(invertedFused.matches.size()==1 && std::hypot(invertedFused.matches[0].center.x-116,invertedFused.matches[0].center.y-92)<.1 && invertedFused.matches[0].score>.99,"fused pipeline stale inverted source");
             same(result,fused.run(o));
         }
         o.match.invertSource=true;auto inverted=session.run(o);require(inverted.matches.size()==1 && std::hypot(inverted.matches[0].center.x-116,inverted.matches[0].center.y-92)<.1 && inverted.matches[0].score>.99,"stale noninverted pose/image");
+        const auto directInverted=direct.run(o);same(inverted,directInverted);
+        require(directInverted.poseCreateMs>0 && directInverted.poseConversionTemporaryBytes==0,"direct inversion failed to rebuild without temporary");
         o.match.invertSource=false;same(refined,session.run(o));
+        same(refined,direct.run(o));
         o.match.angleRanges={{70,40}};bool rejected=false;try { session.run(o); } catch(const std::invalid_argument&) { rejected=true; }
         require(rejected,"invalid range accepted");o.match.angleRanges.clear();same(refined,session.run(o));
         o.match.angleRanges={{20,30}};auto restricted=session.run(o);for(auto m:restricted.matches) require(m.angle>=20-1e-5 && m.angle<=30+1e-5,"refinement escaped angle range");
@@ -85,6 +98,7 @@ int main(int argc,char**) {
         invalid=s;invalid.backend=0;invalid.residentMode=1;rejected=false;try{Session broken(source.view(),templ.view(),invalid);}catch(const std::invalid_argument&){rejected=true;}require(rejected,"CPU pipeline accepted fused mode");
         for(int mode:{-1,2}) {invalid=s;invalid.poseStorageMode=mode;rejected=false;try{Session broken(source.view(),templ.view(),invalid);}catch(const std::invalid_argument&){rejected=true;}require(rejected,"invalid storage mode accepted");}
         invalid=s;invalid.backend=0;invalid.poseStorageMode=1;rejected=false;try{Session broken(source.view(),templ.view(),invalid);}catch(const std::invalid_argument&){rejected=true;}require(rejected,"CPU pipeline accepted shared pose storage");
+        for(int mode:{-1,2}) {invalid=s;invalid.poseInputMode=mode;rejected=false;try{Session broken(source.view(),templ.view(),invalid);}catch(const std::invalid_argument&){rejected=true;}require(rejected,"invalid input mode accepted");}
         Image odd(5,7);auto half=scaledTemplate(odd.view(),.5);require(half.width()==2 && half.height()==4,"ties-even resize");
         std::cout<<(metal?"Metal":"CPU")<<" native pipeline: scale, source ownership, options, repeated calls, inversion and refinement passed\n";
         return 0;
