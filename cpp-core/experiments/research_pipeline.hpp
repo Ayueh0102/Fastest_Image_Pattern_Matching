@@ -15,6 +15,7 @@ struct Settings {
     std::vector<double> scales{1.}; // proposal bank, not final refinement bounds
     int cpuThreads = 8;
     int residentMode = 0; // 0 original Metal resident; 1 fused256, 2 SIMD128; fused gray templates <=16384 pixels.
+    int poseStorageMode = 0; // 0 separate CPU/Metal images; 1 shared pages on unified-memory Metal.
     // Experimental fixed-scale full-image proposals. No reduced image levels
     // or dense NCC maps are constructed; final acceptance still uses full NCC.
     bool sparseOrientation = false;
@@ -35,6 +36,8 @@ struct Result {
     FpmPoseMetrics pose{};
     FpmPoseRescueMetrics rescue{};
     FpmPoseResidentKernelInfo residentKernel{};
+    FpmPoseStorageInfo poseStorage{};
+    double poseCreateMs = 0; // New pose context initialization only, nested in refineMs.
     FpmPoseResidentMetrics resident{}; // Aggregated baseline/retry diagnostics.
     int refinementMode = 0; // Selected mode; zero dispatches means no GPU refinement ran.
     bool sparseEnabled = false;

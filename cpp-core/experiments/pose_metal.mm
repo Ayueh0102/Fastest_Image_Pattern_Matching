@@ -62,6 +62,21 @@ class Metal final : public Backend {
         if (!out) throw std::runtime_error("Metal buffer allocation failed");
         return out;
     }
+    id<MTLBuffer> imageBuffer(const ImageStorage& image, bool shared) {
+        if (!shared) {
+            id<MTLBuffer> out = buffer(image.size()*sizeof(float));
+            std::memcpy(out.contents,image.data(),out.length);
+            return out;
+        }
+        if (!image.pages || image.pageBytes > device_.maxBufferLength)
+            throw std::runtime_error("Invalid shared pose image allocation or Metal buffer size");
+        const auto owner = image.pages;
+        id<MTLBuffer> out = [device_ newBufferWithBytesNoCopy:owner.get() length:image.pageBytes
+            options:MTLResourceStorageModeShared deallocator:^(void*, NSUInteger) { (void)owner; }];
+        if (!out || out.contents != image.data())
+            throw std::runtime_error("Metal could not wrap shared pose image without copying");
+        return out;
+    }
     struct Workspace {
         size_t capacity, partialOffset, resultOffset, bytes;
     };
@@ -308,6 +323,8 @@ public:
         @autoreleasepool {
             device_ = MTLCreateSystemDefaultDevice();
             if (!device_) throw MetalUnavailable("No Metal GPU available");
+            if (d.storageMode && !device_.hasUnifiedMemory)
+                throw std::runtime_error("Shared pose storage requires a unified-memory Metal device");
             name_ = [device_.name UTF8String];
             queue_ = [device_ newCommandQueue];
             if (!queue_) throw std::runtime_error("Could not create Metal command queue");
@@ -344,9 +361,8 @@ public:
             }
             if (derivativePipeline_.maxTotalThreadsPerThreadgroup < 128)
                 throw std::runtime_error("Metal device cannot run 128-thread derivative workgroups");
-            source_ = buffer(d.source.size()*sizeof(float)); template_ = buffer(d.templ.size()*sizeof(float));
-            std::memcpy(source_.contents, d.source.data(), source_.length);
-            std::memcpy(template_.contents, d.templ.data(), template_.length);
+            source_ = imageBuffer(d.source,d.storageMode != 0);
+            template_ = imageBuffer(d.templ,d.storageMode != 0);
             config_.sw = d.sw; config_.sh = d.sh; config_.tw = d.tw; config_.th = d.th;
             config_.channels = d.channels; config_.tiles = (uint32_t(d.tw)*d.th+1023)/1024;
             config_.templateEnergy = float(d.templateEnergy);
@@ -357,6 +373,7 @@ public:
         }
     }
     const char* name() const override { return name_.c_str(); }
+    uint64_t imageBufferBytes() const override { return source_.length+template_.length; }
     void memory(FpmPoseMetrics& metrics) const override {
         metrics.gpu_buffer_bytes = source_.length+template_.length+workspace_.length;
         metrics.gpu_allocated_bytes = device_.currentAllocatedSize;

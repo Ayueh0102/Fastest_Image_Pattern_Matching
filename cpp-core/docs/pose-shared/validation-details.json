@@ -1,0 +1,163 @@
+{
+  "scope": "Stage24 shared CPU/Metal image storage with unchanged SIMD128 kernels. Main 8 reused scenes; post-hoc 128/4K recheck plus deterministic 8K24 tiled extension are separate.",
+  "final_revision_note": "Main and recheck rerun after retained-context storage diagnostics fix. Prior full measurements retained under pilots/formal; pilot under pilots/pilot. No solver or Metal kernel change.",
+  "formal": {
+    "checks": {
+      "workers": 64,
+      "expected_workers": 64,
+      "measured_calls": 192,
+      "all_workers_succeeded": true,
+      "exact_proposals_all": true,
+      "exact_resident_final_all": true,
+      "paired_final_all": true,
+      "fused_final_all": true,
+      "cpu_final_comparison_all": true,
+      "route_integrity_all": true,
+      "frontend_identical_all": true,
+      "normal_gt_all": true
+    },
+    "sources_binaries_inputs_unchanged": true,
+    "copied_shared_kernel_geometry_dispatch_wait_auxiliary_exact_all": true,
+    "performance_failures": [
+      {
+        "case": "crop_lowcontrast20",
+        "method": "current_shared",
+        "reference": "current_cpu",
+        "attribution": "shared_vs_cpu",
+        "block": 0,
+        "time_ratio": 1.5621500800533277,
+        "speedup": 0.6401433593152988,
+        "refinement_speedup": 0.5363313008130082,
+        "speed_gate": false,
+        "rss_delta_bytes": 573440,
+        "memory_gate": true
+      },
+      {
+        "case": "crop_lowcontrast20",
+        "method": "current_shared",
+        "reference": "current_cpu",
+        "attribution": "shared_vs_cpu",
+        "block": 1,
+        "time_ratio": 1.52255876595869,
+        "speedup": 0.6567890989549706,
+        "refinement_speedup": 0.5577167664539192,
+        "speed_gate": false,
+        "rss_delta_bytes": 655360,
+        "memory_gate": true
+      },
+      {
+        "case": "thin_detail20",
+        "method": "current_shared",
+        "reference": "current_cpu",
+        "attribution": "shared_vs_cpu",
+        "block": 0,
+        "time_ratio": 1.5968205618638034,
+        "speedup": 0.626244440911259,
+        "refinement_speedup": 0.4966613958422794,
+        "speed_gate": false,
+        "rss_delta_bytes": 851968,
+        "memory_gate": true
+      }
+    ],
+    "shared_vs_copied_image_capacity_bytes": [
+      {
+        "case": "crop_small360",
+        "copied": 548864.0,
+        "shared": 278528.0
+      },
+      {
+        "case": "crop_medium20",
+        "copied": 3170304.0,
+        "shared": 1589248.0
+      },
+      {
+        "case": "crop_lowcontrast20",
+        "copied": 1597440.0,
+        "shared": 802816.0
+      },
+      {
+        "case": "thin_detail20",
+        "copied": 548864.0,
+        "shared": 278528.0
+      },
+      {
+        "case": "scale_violation20",
+        "copied": 548864.0,
+        "shared": 278528.0
+      },
+      {
+        "case": "repo_src4",
+        "copied": 545288.0,
+        "shared": 294912.0
+      },
+      {
+        "case": "heldout_crowd128_20",
+        "copied": 9461760.0,
+        "shared": 4734976.0
+      },
+      {
+        "case": "large4096_6",
+        "copied": 134242304.0,
+        "shared": 67125248.0
+      }
+    ],
+    "normal_gt_pose_count": 144
+  },
+  "recheck": {
+    "checks": {
+      "workers": 24,
+      "expected_workers": 24,
+      "measured_calls": 72,
+      "all_workers_succeeded": true,
+      "exact_proposals_all": true,
+      "exact_resident_final_all": true,
+      "paired_final_all": true,
+      "fused_final_all": true,
+      "cpu_final_comparison_all": true,
+      "route_integrity_all": true,
+      "frontend_identical_all": true,
+      "normal_gt_all": true
+    },
+    "sources_binaries_inputs_unchanged": true,
+    "copied_shared_kernel_geometry_dispatch_wait_auxiliary_exact_all": true,
+    "performance_failures": [],
+    "shared_vs_copied_image_capacity_bytes": [
+      {
+        "case": "heldout_crowd128_20",
+        "copied": 9461760.0,
+        "shared": 4734976.0
+      },
+      {
+        "case": "large4096_6",
+        "copied": 134242304.0,
+        "shared": 67125248.0
+      },
+      {
+        "case": "tiled8192_24",
+        "copied": 536895488.0,
+        "shared": 268451840.0
+      }
+    ],
+    "normal_gt_pose_count": 158
+  },
+  "pose_metal_kernel_sources_unchanged_vs_stage23": {
+    "pose_fused.metal": "f55eaa5d3f6b31972b04ebe9a5d9a92f6edbc54fcd8dce3503f0f3f83dcd7c2c",
+    "pose_ncc.metal": "1e475aa57768ab2d2474ba5e2420372191b3028c3e843858ef952f603885cf81",
+    "pose_resident.metal": "43bd7b74f87c426abdf90b5464b1bc807fc80a9fae859f2e7b18e300c2dae6c6",
+    "pose_simd.metal": "babdf06d30c831a95535e1945ea1bf5c36522df9be548b5baff6e9d29439606c"
+  },
+  "validation": {
+    "release_passed": 37,
+    "release_tests": 37,
+    "asan_ubsan_passed": 10,
+    "asan_ubsan_tests": 10,
+    "leak_sanitizer": false,
+    "metal_shared_resident_calls": 119,
+    "metal_storage_lifecycle_context_pairs": 9,
+    "storage_cases": "8 odd-sized gray/RGB pairs plus one4K gray pair; caller mutation/free and exact CPU/GPU/accelerated results",
+    "harness_controls": 34,
+    "new_long_soak": false,
+    "independent_agent_final_review": false,
+    "retained_context_discrete_run_storage_accounting": true
+  }
+}

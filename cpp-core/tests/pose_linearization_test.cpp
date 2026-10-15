@@ -47,7 +47,7 @@ void normalize(std::vector<double>& values, int channels)
 Data fixture(int channels, float contrast)
 {
     Data d{}; d.sw=112; d.sh=104; d.tw=43; d.th=39; d.channels=channels;
-    d.source.resize(size_t(d.sw)*d.sh*channels);
+    d.source.values.resize(size_t(d.sw)*d.sh*channels);
     for (int c=0;c<channels;++c) {
         double sum=0;
         for (int y=0;y<d.sh;++y) for (int x=0;x<d.sw;++x) {
@@ -58,7 +58,7 @@ Data fixture(int channels, float contrast)
         for (size_t i=c;i<d.source.size();i+=channels) d.source[i]-=d.sourceMean[c];
     }
     auto raw=samples(d,{1.12f,-.73f,.977f,.194f});
-    d.templ.resize(raw.size());
+    d.templ.values.resize(raw.size());
     const double n=double(d.tw)*d.th;
     for (int c=0;c<channels;++c) {
         double sum=0, square=0;

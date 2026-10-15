@@ -12,8 +12,29 @@
 #include <mutex>
 #include <stdexcept>
 #include <thread>
+#if defined(__APPLE__)
+#include <sys/mman.h>
+#include <unistd.h>
+#endif
 
 namespace fpm_exp {
+void ImageStorage::assign(const float* first, const float* last, bool shared)
+{
+    if (!shared) { values.assign(first,last); return; }
+#if defined(__APPLE__)
+    const long page = sysconf(_SC_PAGESIZE);
+    if (page <= 0) throw std::runtime_error("Cannot query VM page size");
+    const size_t n = size_t(last-first), bytes = n*sizeof(float);
+    const size_t aligned = (bytes+size_t(page)-1)/size_t(page)*size_t(page);
+    void* address = mmap(nullptr,aligned,PROT_READ|PROT_WRITE,MAP_PRIVATE|MAP_ANON,-1,0);
+    if (address == MAP_FAILED) throw std::bad_alloc();
+    std::shared_ptr<float> owner(static_cast<float*>(address),[aligned](float* p) { munmap(p,aligned); });
+    std::copy(first,last,owner.get());
+    pages = std::move(owner); count = n; pageBytes = aligned;
+#else
+    throw std::invalid_argument("Shared pose storage requires Apple Metal");
+#endif
+}
 using Clock = std::chrono::steady_clock;
 constexpr double radians = 3.14159265358979323846/180;
 static float value(const Data& d, int x, int y, int c)
@@ -467,17 +488,25 @@ extern "C" {
 void* fpm_pose_create(int backend, int threads, const float* source, int sw, int sh,
     const float* templ, int tw, int th, int channels, char* error, int error_capacity)
 {
+    return fpm_pose_create_with_storage(backend,threads,source,sw,sh,templ,tw,th,channels,0,error,error_capacity);
+}
+void* fpm_pose_create_with_storage(int backend, int threads, const float* source, int sw, int sh,
+    const float* templ, int tw, int th, int channels, int storage_mode, char* error, int error_capacity)
+{
     using namespace fpm_exp;
     try {
         if (!source || !templ || threads < 1 || threads > 64 || (backend != 0 && backend != 1 && backend != 2))
             throw std::invalid_argument("invalid pointer/backend/thread count");
+        if (storage_mode < 0 || storage_mode > 1 || (storage_mode && backend == 0))
+            throw std::invalid_argument("invalid pose storage mode or CPU handle with shared storage");
         auto ctx = std::make_unique<Context>();
         ctx->threads = threads;
         ctx->creationBackend = backend;
         auto& d = ctx->data;
         d.sw = sw; d.sh = sh; d.tw = tw; d.th = th; d.channels = channels;
-        d.source.assign(source, source+imageSize(sw, sh, channels));
-        d.templ.assign(templ, templ+imageSize(tw, th, channels));
+        d.storageMode = storage_mode;
+        d.source.assign(source, source+imageSize(sw, sh, channels),storage_mode != 0);
+        d.templ.assign(templ, templ+imageSize(tw, th, channels),storage_mode != 0);
         for (auto* image : {&d.source, &d.templ})
             for (float x : *image) if (!std::isfinite(x) || std::abs(x) > 16)
                 throw std::invalid_argument("inputs must be finite with abs(value) <= 16");
@@ -512,6 +541,19 @@ void* fpm_pose_create(int backend, int threads, const float* source, int sw, int
 const char* fpm_pose_device(void* handle)
 {
     return handle ? static_cast<fpm_exp::Context*>(handle)->backend->name() : "invalid handle";
+}
+int fpm_pose_storage_info(void* handle, FpmPoseStorageInfo* info)
+{
+    static_assert(sizeof(FpmPoseStorageInfo) == 40);
+    if (info) *info = {};
+    if (!handle || !info) return -1;
+    const auto& ctx = *static_cast<fpm_exp::Context*>(handle);
+    info->mode = ctx.data.storageMode;
+    info->host_image_bytes = (ctx.data.source.capacity()+ctx.data.templ.capacity())*sizeof(float);
+    info->gpu_image_bytes = ctx.backend->imageBufferBytes()+(ctx.lazyMetal ? ctx.lazyMetal->imageBufferBytes() : 0);
+    info->shared_image_bytes = info->mode ? info->gpu_image_bytes : 0;
+    info->unique_image_bytes = info->host_image_bytes+info->gpu_image_bytes-info->shared_image_bytes;
+    return 0;
 }
 int fpm_pose_backend(void* handle)
 {

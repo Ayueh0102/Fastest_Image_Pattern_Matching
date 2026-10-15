@@ -44,14 +44,16 @@ int main(int argc,char**) {
         require(refined.refinementMode==0,"default refinement mode changed");
         require(metal ? refined.resident.encoded_dispatches>refined.resident.command_buffers : refined.resident.encoded_dispatches==0,"wrong default refinement diagnostics");
         same(refined,session.run(o));
-        if(metal) for(int fusedMode:{1,2}) {
+        if(metal) for(int fusedMode:{1,2}) for(int storageMode:{0,1}) {
             // Recreate from the original input, not the caller-mutated buffers.
-            if(fusedMode==1) {source.row(30)[40]^=255;templ.row(0)[0]^=255;}
-            Settings fusedSettings=s;fusedSettings.residentMode=fusedMode;
+            if(fusedMode==1 && storageMode==0) {source.row(30)[40]^=255;templ.row(0)[0]^=255;}
+            Settings fusedSettings=s;fusedSettings.residentMode=fusedMode;fusedSettings.poseStorageMode=storageMode;
             Session fused(source.view(),templ.view(),fusedSettings);
             Options discrete=o;discrete.refine=false;const auto noRefinement=fused.run(discrete);
             require(noRefinement.refinementMode==fusedMode && noRefinement.resident.encoded_dispatches==0,"selected fused mode lost when refinement disabled");
             const auto result=fused.run(o);
+            require(result.poseStorage.mode==storageMode && result.poseCreateMs>0,"wrong storage route or missing initialization time");
+            require(storageMode ? result.poseStorage.shared_image_bytes==result.poseStorage.host_image_bytes && result.poseStorage.shared_image_bytes>0 : result.poseStorage.shared_image_bytes==0,"wrong shared image accounting");
             require(result.refinementMode==fusedMode && result.resident.command_buffers>0 &&
                 result.resident.encoded_dispatches==result.resident.command_buffers &&
                 result.resident.cpu_waits==result.resident.command_buffers && result.resident.cpu_verified==1,"fused pipeline route ignored");
@@ -62,7 +64,12 @@ int main(int argc,char**) {
                 result.proposals.size()==refined.proposals.size(),"fused pipeline changed reference detections");
             for(const auto& m:result.matches) require(m.score>.99 &&
                 std::hypot(m.center.x-56,m.center.y-42)<.1,"fused pipeline GT mismatch");
-            same(result,fused.run(o));
+            const auto repeated=fused.run(o);same(result,repeated);require(repeated.poseCreateMs==0,"cached pose context rebuilt");
+            const auto retained=fused.run(discrete);
+            require(retained.poseCreateMs==0 && retained.resident.encoded_dispatches==0 &&
+                retained.poseStorage.unique_image_bytes==result.poseStorage.unique_image_bytes &&
+                retained.poseStorage.shared_image_bytes==result.poseStorage.shared_image_bytes,
+                "discrete-only call hid retained pose storage or dispatched refinement");
             Options invertedOptions=o;invertedOptions.match.invertSource=true;
             const auto invertedFused=fused.run(invertedOptions);
             require(invertedFused.matches.size()==1 && std::hypot(invertedFused.matches[0].center.x-116,invertedFused.matches[0].center.y-92)<.1 && invertedFused.matches[0].score>.99,"fused pipeline stale inverted source");
@@ -76,6 +83,8 @@ int main(int argc,char**) {
         Settings invalid=s;invalid.scales={0};rejected=false;try{Session broken(source.view(),templ.view(),invalid);}catch(const std::invalid_argument&){rejected=true;}require(rejected,"zero scale accepted");
         for(int mode:{-1,3}) { invalid=s;invalid.residentMode=mode;rejected=false;try{Session broken(source.view(),templ.view(),invalid);}catch(const std::invalid_argument&){rejected=true;}require(rejected,"invalid resident mode accepted"); }
         invalid=s;invalid.backend=0;invalid.residentMode=1;rejected=false;try{Session broken(source.view(),templ.view(),invalid);}catch(const std::invalid_argument&){rejected=true;}require(rejected,"CPU pipeline accepted fused mode");
+        for(int mode:{-1,2}) {invalid=s;invalid.poseStorageMode=mode;rejected=false;try{Session broken(source.view(),templ.view(),invalid);}catch(const std::invalid_argument&){rejected=true;}require(rejected,"invalid storage mode accepted");}
+        invalid=s;invalid.backend=0;invalid.poseStorageMode=1;rejected=false;try{Session broken(source.view(),templ.view(),invalid);}catch(const std::invalid_argument&){rejected=true;}require(rejected,"CPU pipeline accepted shared pose storage");
         Image odd(5,7);auto half=scaledTemplate(odd.view(),.5);require(half.width()==2 && half.height()==4,"ties-even resize");
         std::cout<<(metal?"Metal":"CPU")<<" native pipeline: scale, source ownership, options, repeated calls, inversion and refinement passed\n";
         return 0;

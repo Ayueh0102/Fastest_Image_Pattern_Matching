@@ -13,6 +13,9 @@
 #ifndef FPM_FUSED_TEST_MODE
 #define FPM_FUSED_TEST_MODE 1
 #endif
+#ifndef FPM_TEST_STORAGE_MODE
+#define FPM_TEST_STORAGE_MODE 0
+#endif
 
 namespace {
 constexpr int FUSED_MODE = FPM_FUSED_TEST_MODE;
@@ -69,8 +72,8 @@ struct Handle {
     explicit Handle(const Fixture& f, int backend)
     {
         char error[1024]{};
-        value = fpm_pose_create(backend, 4, f.source.data(), f.sw, f.sh,
-            f.templ.data(), f.tw, f.th, f.channels, error, sizeof(error));
+        value = fpm_pose_create_with_storage(backend, 4, f.source.data(), f.sw, f.sh,
+            f.templ.data(), f.tw, f.th, f.channels, backend ? FPM_TEST_STORAGE_MODE : 0, error, sizeof(error));
         if (!value) throw std::runtime_error(error);
     }
     ~Handle() { fpm_pose_destroy(value); }
@@ -176,6 +179,11 @@ Result run(Handle& handle, const std::vector<float>& initial,
         &result.metrics, error, sizeof(error)) == 0, error);
     require(error[0] == 0, "successful resident call retained an error");
     ++checkedCalls;
+    FpmPoseStorageInfo storage{};
+    require(fpm_pose_storage_info(handle.value,&storage)==0 && storage.mode==FPM_TEST_STORAGE_MODE,"wrong storage mode");
+    require(storage.host_image_bytes>0 && storage.gpu_image_bytes>0,"missing image allocation diagnostics");
+    require(storage.unique_image_bytes==storage.host_image_bytes+storage.gpu_image_bytes-storage.shared_image_bytes,"image allocation overlap accounting");
+    require(FPM_TEST_STORAGE_MODE ? storage.shared_image_bytes==storage.gpu_image_bytes && storage.shared_image_bytes==storage.host_image_bytes : storage.shared_image_bytes==0,"storage allocation silently copied/fell back");
     FpmPoseResidentKernelInfo kernel{};
     require(fpm_pose_last_resident_kernel(handle.value,&kernel)==0,"missing kernel diagnostics");
     const int mode=fpm_pose_resident_mode(handle.value);
@@ -546,7 +554,7 @@ int main()
         fpm_pose_destroy(available);
         testAccuracyAndSwitching(); testDifficultInputs(); testFrozenAndInwardBounds();
         testLazyRecoveryAndChunking(); testRescue(); testSimdEquivalence();
-        std::cout << "Fused mode " << FUSED_MODE << " gray resident: " << checkedCalls << " GPU calls; independent NCC/GT, baseline switching, "
+        std::cout << "Fused mode " << FUSED_MODE << ", storage " << FPM_TEST_STORAGE_MODE << " gray resident: " << checkedCalls << " GPU calls; independent NCC/GT, baseline switching, "
             "strict bounds, degeneracy, lazy guards, 513-pose chunks and bounded rescue passed\n";
         return 0;
     } catch (const std::exception& error) {

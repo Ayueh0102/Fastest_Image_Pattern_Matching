@@ -19,9 +19,26 @@ struct PackedPose { float tx, ty, cs, sn; };
 struct ResidentSeed { float pose[4], lower[4], upper[4]; };
 static_assert(sizeof(ResidentSeed) == 48);
 static_assert(sizeof(FpmPoseResidentMetrics) == 72);
+// Immutable after preparation. Shared pages can be retained independently by
+// Metal's no-copy buffer, so CPU views and device resources share one owner.
+struct ImageStorage {
+    std::vector<float> values;
+    std::shared_ptr<float> pages;
+    size_t count = 0, pageBytes = 0;
+    void assign(const float* first, const float* last, bool shared);
+    float* data() { return pages ? pages.get() : values.data(); }
+    const float* data() const { return pages ? pages.get() : values.data(); }
+    size_t size() const { return pages ? count : values.size(); }
+    size_t capacity() const { return pages ? pageBytes/sizeof(float) : values.capacity(); }
+    float& operator[](size_t i) { return data()[i]; }
+    const float& operator[](size_t i) const { return data()[i]; }
+    const float* begin() const { return data(); }
+    const float* end() const { return data()+size(); }
+};
 struct Data {
     int sw, sh, tw, th, channels;
-    std::vector<float> source, templ;
+    int storageMode = 0;
+    ImageStorage source, templ;
     std::array<float, 3> sourceMean{};
     std::array<double, 3> templateSum{};
     double templateEnergy = 0;
@@ -37,6 +54,7 @@ struct Backend {
     virtual void score(const std::vector<PackedPose>&, float*, FpmPoseMetrics&) = 0;
     virtual const char* name() const = 0;
     virtual void memory(FpmPoseMetrics&) const {}
+    virtual uint64_t imageBufferBytes() const { return 0; }
     // Optional batched derivative path. False means unsupported; callers must
     // explicitly select a CPU fallback rather than mislabeling device work.
     virtual bool linearize(const std::vector<PackedPose>&, const FpmPoseRefineConfig&,

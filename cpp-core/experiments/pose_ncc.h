@@ -25,7 +25,7 @@ extern "C" {
 typedef struct FpmPoseMetrics {
     double wall_ms;                 // packing, allocations, dispatch, wait, output copy
     double device_ms;               // Metal command-buffer GPU interval; -1 if unavailable
-    uint64_t host_buffer_bytes;     // owned vector capacities, NOT whole-process RSS
+    uint64_t host_buffer_bytes;     // CPU-accessible owned capacities, includes shared pages; NOT RSS
     uint64_t gpu_buffer_bytes;      // requested Metal buffer lengths (shared memory)
     uint64_t gpu_allocated_bytes;   // MTLDevice currentAllocatedSize snapshot, NOT peak RSS
 } FpmPoseMetrics;
@@ -33,6 +33,25 @@ typedef struct FpmPoseMetrics {
 FPM_EXP_API void* fpm_pose_create(int backend, int threads, const float* source,
     int sw, int sh, const float* templ, int tw, int th, int channels,
     char* error, int error_capacity);
+// Opt-in storage: 0 preserves separate CPU vectors and Metal buffers; 1 owns
+// page-aligned images and wraps the same pages with Metal no-copy buffers.
+// Mode 1 requires a Metal/auto handle and a unified-memory Metal device on use.
+// Auto remains lazy; unavailable auto may still use its CPU path. No caller
+// memory is borrowed; both modes copy inputs and preserve their lifetime contract.
+// No fallback to duplicate storage on unsupported devices or allocation errors.
+FPM_EXP_API void* fpm_pose_create_with_storage(int backend, int threads, const float* source,
+    int sw, int sh, const float* templ, int tw, int th, int channels, int storage_mode,
+    char* error, int error_capacity);
+typedef struct FpmPoseStorageInfo {
+    int mode;
+    int reserved;
+    uint64_t host_image_bytes;
+    uint64_t gpu_image_bytes;
+    uint64_t shared_image_bytes; // overlap of host/gpu image capacities, not additional memory
+    uint64_t unique_image_bytes; // host + gpu - shared; excludes workspaces/driver/RSS
+} FpmPoseStorageInfo;
+// Current capacity accounting without allocation/dispatch; null returns -1.
+FPM_EXP_API int fpm_pose_storage_info(void* handle, FpmPoseStorageInfo* info);
 FPM_EXP_API const char* fpm_pose_device(void* handle);
 // Creation mode (0/1/2), or -1 for null. device() names the default score backend.
 FPM_EXP_API int fpm_pose_backend(void* handle);

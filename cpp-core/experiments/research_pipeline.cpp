@@ -115,6 +115,8 @@ struct Session::Impl {
         if(s.residentMode<0 || s.residentMode>2 ||
             (s.residentMode && (s.backend!=1 || uint64_t(tmp.width)*tmp.height>16384)))
             throw std::invalid_argument("Fused refinement requires Metal and a template with <=16384 pixels");
+        if(s.poseStorageMode<0 || s.poseStorageMode>1 || (s.poseStorageMode && s.backend!=1))
+            throw std::invalid_argument("Shared pose storage requires Metal refinement");
         if(s.sparseOrientation) {
             if(s.scales.size()!=1 || s.scales.front()!=1.)
                 throw std::invalid_argument("Sparse orientation requires fixed scale {1}");
@@ -134,18 +136,20 @@ struct Session::Impl {
         config.pyramid_mode=s.backend?1:0;config.batch_angles=s.backend?4:1;config.fine_batch_size=s.backend?512:0;
         fpm_frame_handle* f=nullptr;check(fpm_frame_create(&config,sizeof(config),&f,error,sizeof(error)),error);frame.reset(f);
     }
-    void ensurePose(bool invert) {
-        if(pose && poseInvert==invert) return;
+    double ensurePose(bool invert) {
+        if(pose && poseInvert==invert) return 0;
+        const auto begin=Clock::now();
         // Release old GPU image before replacement, also after previous errors.
         pose.reset();
         std::vector<float> src(size_t(source.width())*source.height()),tmp(size_t(templ.width())*templ.height());
         for(int y=0;y<source.height();++y) for(int x=0;x<source.width();++x) src[size_t(y)*source.width()+x]=(invert?255-source.row(y)[x]:source.row(y)[x])/255.f;
         for(int y=0;y<templ.height();++y) for(int x=0;x<templ.width();++x) tmp[size_t(y)*templ.width()+x]=templ.row(y)[x]/255.f;
         char error[1024]{};
-        pose.reset(fpm_pose_create(settings.backend,settings.cpuThreads,src.data(),source.width(),source.height(),tmp.data(),templ.width(),templ.height(),1,error,sizeof(error)));
+        pose.reset(fpm_pose_create_with_storage(settings.backend,settings.cpuThreads,src.data(),source.width(),source.height(),tmp.data(),templ.width(),templ.height(),1,settings.poseStorageMode,error,sizeof(error)));
         if(!pose) throw std::runtime_error(error);
         check(fpm_pose_set_resident_mode(pose.get(),settings.residentMode,error,sizeof(error)),error);
         poseInvert=invert;
+        return ms(begin);
     }
 };
 Session::Session(ImageView source,ImageView templ,const Settings& settings) {
@@ -155,6 +159,7 @@ Session::~Session()=default;
 Result Session::run(const Options& o) {
     auto& s=*impl_;validateOptions(o,s.settings.backend);Result r;char error[1024]{};const auto start=Clock::now();
     r.refinementMode=s.settings.residentMode;
+    r.poseStorage.mode=s.settings.poseStorageMode;
     std::vector<fpm_angle_range> ranges;for(auto a:o.match.angleRanges) ranges.push_back({a.min,a.max});
     if(s.sparse) {
         // Orientation similarity is not NCC and cannot be used as a final
@@ -196,7 +201,7 @@ Result Session::run(const Options& o) {
     r.proposalMs=ms(start);
     auto candidates=r.proposals;auto scales=r.proposalScales;
     if(o.refine && !candidates.empty()) {
-        const auto t=Clock::now();s.ensurePose(o.match.invertSource);
+        const auto t=Clock::now();r.poseCreateMs=s.ensurePose(o.match.invertSource);
         const size_t n=candidates.size();
         if(n>65536) throw std::invalid_argument("Refinement accepts at most 65536 proposals; reduce scale bank or target count");
         std::vector<float> seeds(n*4),refined(n*4),scores(n);
@@ -212,6 +217,7 @@ Result Session::run(const Options& o) {
         if(fpm_pose_last_resident_metrics(s.pose.get(),&r.resident)) throw std::runtime_error("Cannot read refinement metrics");
         r.refinementMode=fpm_pose_resident_mode(s.pose.get());
         if(fpm_pose_last_resident_kernel(s.pose.get(),&r.residentKernel)) throw std::runtime_error("Cannot read refinement kernel metrics");
+        if(fpm_pose_storage_info(s.pose.get(),&r.poseStorage)) throw std::runtime_error("Cannot read pose storage metrics");
         for(size_t i=0;i<n;++i) {
             // Match NumPy float32 pose + weak Python scalar arithmetic before conversion to double.
             const float cx=refined[4*i]+float(s.source.width()/2.),cy=float(s.source.height()/2.)-refined[4*i+1];
@@ -238,6 +244,9 @@ Result Session::run(const Options& o) {
         FpmPoseMetrics memory{};
         if(fpm_pose_memory(s.pose.get(),&memory)) throw std::runtime_error("Cannot query pose memory");
         r.pose.host_buffer_bytes=memory.host_buffer_bytes;r.pose.gpu_buffer_bytes=memory.gpu_buffer_bytes;r.pose.gpu_allocated_bytes=memory.gpu_allocated_bytes;
+        // A discrete-only call can still retain an earlier pose context.
+        if(!r.poseStorage.host_image_bytes && fpm_pose_storage_info(s.pose.get(),&r.poseStorage))
+            throw std::runtime_error("Cannot query retained pose storage");
     }
     r.totalMs=ms(start);return r;
 }

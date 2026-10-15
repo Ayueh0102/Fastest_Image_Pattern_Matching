@@ -54,6 +54,12 @@ QJsonObject record(const Result& r,bool outputs) {
         {"pose_host_bytes",double(r.pose.host_buffer_bytes)},{"pose_gpu_bytes",double(r.pose.gpu_buffer_bytes)},
         {"selected_refinement_backend",r.rescue.selected_backend},{"rescued_seeds",double(r.rescue.selected_seeds)},{"memory",memory()}};
     o["refinement_mode"]=r.refinementMode;
+    o["pose_storage_mode"]=r.poseStorage.mode;
+    o["pose_host_image_bytes"]=double(r.poseStorage.host_image_bytes);
+    o["pose_gpu_image_bytes"]=double(r.poseStorage.gpu_image_bytes);
+    o["pose_shared_image_bytes"]=double(r.poseStorage.shared_image_bytes);
+    o["pose_unique_image_bytes"]=double(r.poseStorage.unique_image_bytes);
+    o["pose_create_ms"]=r.poseCreateMs;
     o["refinement_threads"]=int(r.residentKernel.threads);
     o["refinement_simd_width"]=int(r.residentKernel.simd_width);
     o["refinement_threadgroup_bytes"]=double(r.residentKernel.threadgroup_bytes);
@@ -107,6 +113,7 @@ int main(int argc,char** argv) {
         if(j.isEmpty() || j.contains("truth")) throw std::invalid_argument("Expected job without ground truth");
         auto src=read(j["source"].toString()),tmp=read(j["template"].toString());Settings settings;
         settings.backend=j["backend"].toInt(1);settings.minReducedArea=j["min_area"].toInt(256);settings.scales.clear();
+        settings.poseStorageMode=j["pose_storage_mode"].toInt(0);
         for(auto s:j["scales"].toArray()) settings.scales.push_back(s.toDouble());
         if(settings.scales.empty()) settings.scales={1.};
         const auto method=j["proposal_method"].toString("pyramid");
