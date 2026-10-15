@@ -1,0 +1,23 @@
+{
+  "valid": true,
+  "workers": 384,
+  "formal_calls": 1920,
+  "diagnostic_maps": 1408,
+  "diagnostic_windows": 20298904,
+  "false_rejects": 0,
+  "survivor_bit_mismatches": 0,
+  "summary_reconstructed": true,
+  "hashes_verified": 48,
+  "negative_controls_rejected": [
+    "false_rejects",
+    "score_mismatch",
+    "window_count",
+    "timed_stats",
+    "missing_sample",
+    "wrong_cap",
+    "nonfinite_time"
+  ],
+  "full_gt_pass": true,
+  "time_tolerance_failures": 83,
+  "memory_tolerance_failures": 0
+}

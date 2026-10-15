@@ -67,8 +67,8 @@ std::uint64_t dotProduct(const std::uint8_t* a, const std::uint8_t* b, int size,
 	return total;
 }
 
-ScoreMap ncc(ImageView src, const TemplateLevel& templ, Backend backend,
-	double rejectBelow, NccStats* stats)
+static ScoreMap computeNcc(ImageView src, const TemplateLevel& templ, Backend backend,
+	double rejectBelow, NccStats* stats, const NccScreen* screen)
 {
 	validateImage(src);
 	const auto& t = templ.image;
@@ -103,6 +103,8 @@ ScoreMap ncc(ImageView src, const TemplateLevel& templ, Backend backend,
 	// cancellation-sensitive bound. The guard is far above practical images.
 	const bool useBounds = std::isfinite(rejectBelow) && rejectBelow > 0 && rejectBelow <= 1 &&
 		area >= 256 && double(src.width) * src.height <= 9007199254740992.0 / 65025;
+	const bool screened = screen && std::isfinite(rejectBelow) && rejectBelow > 0 &&
+		rejectBelow <= 1 && screen->supports(src);
 	struct Block { int x0, y0, x1, y1; double count, centeredSum; };
 	std::array<Block, 4> blocks{};
 	double templateProjection = 0;
@@ -111,7 +113,7 @@ ScoreMap ncc(ImageView src, const TemplateLevel& templ, Backend backend,
 	// area-term sum. Inflate residual energies as well as the final numerator;
 	// candidates on/near the threshold therefore fall back to exact evaluation.
 	const double roundoff = 64 * DBL_EPSILON * area * area * 65025;
-	if (useBounds && t.width() >= 2 && t.height() >= 2) {
+	if (!screened && useBounds && t.width() >= 2 && t.height() >= 2) {
 		int index = 0;
 		for (int by = 0; by < 2; ++by) for (int bx = 0; bx < 2; ++bx) {
 			auto& b = blocks[index++];
@@ -154,6 +156,12 @@ ScoreMap ncc(ImageView src, const TemplateLevel& templ, Backend backend,
 			const double denominator = nccDenominator(variance, square, templ.norm);
 			if (denominator == 0) { out.at(x, y) = 0; continue; }
 			const double sourceMean = sum / area;
+			if (screened && screen->reject(sums.data(), squares.data(), stride, a,
+				sum, square, denominator, rejectBelow, stats ? &counters : nullptr)) {
+				out.at(x, y) = -std::numeric_limits<double>::infinity();
+				if (stats) { ++counters.rejected; ++counters.adaptiveRejected; }
+				continue;
+			}
 			if (project) {
 				if (stats) ++counters.projectionChecks;
 				double product = 0, projection = 0;
@@ -213,6 +221,18 @@ ScoreMap ncc(ImageView src, const TemplateLevel& templ, Backend backend,
 		}
 	if (stats) *stats = counters;
 	return out;
+}
+
+ScoreMap ncc(ImageView source, const TemplateLevel& templ, Backend backend,
+	double rejectBelow, NccStats* stats)
+{
+	return computeNcc(source, templ, backend, rejectBelow, stats, nullptr);
+}
+
+ScoreMap nccScreened(ImageView source, const TemplateLevel& templ, Backend backend,
+	double rejectBelow, const NccScreen& screen, NccStats* stats)
+{
+	return computeNcc(source, templ, backend, rejectBelow, stats, &screen);
 }
 
 static bool better(Peak a, Peak b)

@@ -98,6 +98,17 @@ std::uint64_t dotProduct(const std::uint8_t* a, const std::uint8_t* b, int size,
 struct NccStats {
 	std::uint64_t windows = 0, projectionChecks = 0, partialChecks = 0;
 	std::uint64_t rejected = 0, fullDotProducts = 0, dotPixels = 0;
+	std::uint64_t adaptiveChecks = 0, adaptiveRectangles = 0, adaptiveRejected = 0;
+};
+// Internal experimental screen. It can only remove a window proved strictly
+// below the supplied threshold; surviving scores use the unchanged NCC path.
+class NccScreen {
+public:
+	virtual ~NccScreen() = default;
+	virtual bool supports(ImageView source) const = 0;
+	virtual bool reject(const double* sums, const double* squares, std::size_t stride,
+		std::size_t offset, double sum, double square, double denominator,
+		double threshold, NccStats* stats) const = 0;
 };
 // Shared normalization guards; retain legacy expression order. Integer GPU
 // statistics and portable CPU statistics use these same binary64 operations.
@@ -121,6 +132,8 @@ inline double nccNormalizeProduct(double product, double sum, double templateMea
 // can map large negative numerators to zero). Stats are reset per invocation.
 ScoreMap ncc(ImageView source, const TemplateLevel& templ, Backend backend,
 	double rejectBelow = -std::numeric_limits<double>::infinity(), NccStats* stats = nullptr);
+ScoreMap nccScreened(ImageView source, const TemplateLevel& templ, Backend backend,
+	double rejectBelow, const NccScreen& screen, NccStats* stats = nullptr);
 Peak maximum(const ScoreMap& map);
 std::vector<Peak> selectPeaks(ScoreMap map, int width, int height,
 	int count, double overlap, double threshold, bool blocked);

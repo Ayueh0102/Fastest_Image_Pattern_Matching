@@ -1,0 +1,158 @@
+{
+  "purpose": "mathematical feasibility only; not matcher performance or recall",
+  "probe_sha256": "acdd5130597ecf52f9038c18098d37260eb6c9c36442d1a04e7d06317a17b58b",
+  "raw_sha256": "3fa034f06d9455b60e95c331cb37d5695188c26c92b473ad167493298de620d7",
+  "summary_tool_sha256": "d9d1204b4a31677c21a5a7989358177cad187778df87ebc4438f881bc7472793",
+  "source_commit": "3793e9ea7e37b4b2d811084431f25d20439a3c91",
+  "checks": {
+    "probe_self_checks": {
+      "bound_checks": 664,
+      "pyramid_shapes": 5,
+      "passed": true
+    },
+    "inputs_unchanged": true,
+    "probe_source_unchanged": true,
+    "observed_bound_pairs": 11010,
+    "bounds_and_nested_monotonicity_passed": true,
+    "summary_recomputed_from_observations": true,
+    "all_recorded_thresholds_zero_false_rejection": true
+  },
+  "threshold_rule": "0.8 at native, 0.8*0.9**level at pyramid top",
+  "groups": {
+    "native": {
+      "cases": 10,
+      "windows": 930,
+      "degenerate": 10,
+      "stages": {
+        "4": {
+          "above_threshold": 164,
+          "below_threshold": 756,
+          "rejected": 82,
+          "block_rejected": 216,
+          "false_rejections": 0,
+          "block_false_rejections": 0,
+          "approximation_false_rejections": 164
+        },
+        "8": {
+          "above_threshold": 164,
+          "below_threshold": 756,
+          "rejected": 526,
+          "block_rejected": 614,
+          "false_rejections": 0,
+          "block_false_rejections": 0,
+          "approximation_false_rejections": 134
+        },
+        "16": {
+          "above_threshold": 164,
+          "below_threshold": 756,
+          "rejected": 682,
+          "block_rejected": 707,
+          "false_rejections": 0,
+          "block_false_rejections": 0,
+          "approximation_false_rejections": 90
+        },
+        "32": {
+          "above_threshold": 164,
+          "below_threshold": 756,
+          "rejected": 732,
+          "block_rejected": 735,
+          "false_rejections": 0,
+          "block_false_rejections": 0,
+          "approximation_false_rejections": 19
+        },
+        "64": {
+          "above_threshold": 164,
+          "below_threshold": 756,
+          "rejected": 740,
+          "block_rejected": 741,
+          "false_rejections": 0,
+          "block_false_rejections": 0,
+          "approximation_false_rejections": 9
+        },
+        "uniform64": {
+          "above_threshold": 164,
+          "below_threshold": 756,
+          "rejected": 669,
+          "block_rejected": 722,
+          "false_rejections": 0,
+          "block_false_rejections": 0,
+          "approximation_false_rejections": 89
+        }
+      }
+    },
+    "pyramid_top": {
+      "cases": 10,
+      "windows": 930,
+      "degenerate": 15,
+      "stages": {
+        "4": {
+          "above_threshold": 149,
+          "below_threshold": 766,
+          "rejected": 74,
+          "block_rejected": 126,
+          "false_rejections": 0,
+          "block_false_rejections": 0,
+          "approximation_false_rejections": 147
+        },
+        "8": {
+          "above_threshold": 149,
+          "below_threshold": 766,
+          "rejected": 395,
+          "block_rejected": 469,
+          "false_rejections": 0,
+          "block_false_rejections": 0,
+          "approximation_false_rejections": 35
+        },
+        "16": {
+          "above_threshold": 149,
+          "below_threshold": 766,
+          "rejected": 648,
+          "block_rejected": 690,
+          "false_rejections": 0,
+          "block_false_rejections": 0,
+          "approximation_false_rejections": 6
+        },
+        "32": {
+          "above_threshold": 149,
+          "below_threshold": 766,
+          "rejected": 746,
+          "block_rejected": 752,
+          "false_rejections": 0,
+          "block_false_rejections": 0,
+          "approximation_false_rejections": 4
+        },
+        "64": {
+          "above_threshold": 149,
+          "below_threshold": 766,
+          "rejected": 761,
+          "block_rejected": 761,
+          "false_rejections": 0,
+          "block_false_rejections": 0,
+          "approximation_false_rejections": 0
+        },
+        "uniform64": {
+          "above_threshold": 149,
+          "below_threshold": 766,
+          "rejected": 750,
+          "block_rejected": 757,
+          "false_rejections": 0,
+          "block_false_rejections": 0,
+          "approximation_false_rejections": 5
+        }
+      }
+    }
+  },
+  "diagnostic_cost": {
+    "elapsed_python_seconds": 18.357699541840702,
+    "process_peak_rss_raw": 887685120,
+    "process_peak_rss_units": "bytes",
+    "note": "Includes decoding, repeated diagnostic arrays, observations; not native algorithm performance"
+  },
+  "limitations": [
+    "No matcher, Metal, full rotation/scale search or detection GT benchmark",
+    "Sampled source windows and constructed controls, not actual fine requests",
+    "Floating point margin is diagnostic, not a production safety proof",
+    "Four-block comparison excludes existing partial-dot pruning and its enable heuristics",
+    "Initial development attempts stopped on missing Src5.bmp and Src6.bmp; corrected names used"
+  ]
+}

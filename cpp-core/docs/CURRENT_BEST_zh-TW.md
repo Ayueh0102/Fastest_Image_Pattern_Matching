@@ -1,8 +1,10 @@
 # 目前建議使用的方案
 
-更新：2026-10-15，Apple M4 Pro、48 GiB。這頁記錄研究流程的建議設定；不是宣稱所有場景最快。灰階尺度研究流程已可在原生 C++ GUI 選用，GUI 預設仍保留 CPU 原有流程。
+更新：2026-10-16，Apple M4 Pro、48 GiB。這頁記錄研究流程的建議設定；不是宣稱所有場景最快。灰階尺度研究流程已可在原生 C++ GUI 選用，GUI 預設仍保留 CPU 原有流程。
 
-**最新第25輪：大圖可加直接8-bit入口，省初始化暫存。** [完整實作與五路比較](POSE_U8_INPUT_zh-TW.md)。選`poseInputMode=1`，CPU與Metal都可用；Metal仍搭配`backend=1, residentMode=2, poseStorageMode=1`，前段保持分開提交。
+**第26輪回到原始NCC算法：保留新上界原型，不取代金字塔粗搜尋。** [完整C++實作與比較](ADAPTIVE_NCC_zh-TW.md)。結構256²模板現有剪枝19.27→global16 7.72ms，但隨機模板9.29→19.60ms、完整128物件544.62→740.16ms，均保留反例。384程序／1920次量測、所有存活分數與完整輸出相同，合成138姿態零FP／FN；Release40/40、相關ASan／UBSan3/3。這輪全CPU，不是傳輸瓶頸或Metal性能結論。先維持下面已驗證方案；下一個原算法重點是fine相鄰視窗重用。
+
+**第25輪：大圖可加直接8-bit入口，省初始化暫存。** [完整實作與五路比較](POSE_U8_INPUT_zh-TW.md)。選`poseInputMode=1`，CPU與Metal都可用；Metal仍搭配`backend=1, residentMode=2, poseStorageMode=1`，前段保持分開提交。
 
 - **4K／8K：** Metal共用模式上，主量測4K峰值RSS 255.77→191.80MiB，初始化30.36→19.71ms；8K複查RSS 946.59→690.53MiB，初始化125.84→81.29ms。8K暖機51.29／51.40ms近乎持平，主要收益是首次成本與記憶體。
 - **128與小工作：** 128直接CPU／Metal完整時間主量測14.21／8.56ms、複查12.73／8.64ms；此比較兩路前段均Metal，不能當作全CPU／全GPU硬體倍率。小圖、少候選仍先CPU精修，兩後端皆可選直接入口。
@@ -77,4 +79,4 @@ GUI 原生化已完成本輪驗證，但記憶體並非全面優於 Python：8K�
 
 原生 GUI 的使用、組合模式比較與有界持續運行結果見 [第14輪整合報告](GUI_INTEGRATION_AND_STABILITY_zh-TW.md)。
 
-人工 review 請從 [25 階段實驗總索引](EXPERIMENT_REVIEW_zh-TW.md) 開始：每一輪都保留原始資料、比較版本、失敗與採用決定。API 使用例在該索引開頭；完整建置與 GUI 說明見 [README](../README_zh-TW.md)。
+人工 review 請從 [26 階段實驗總索引](EXPERIMENT_REVIEW_zh-TW.md) 開始：每一輪都保留原始資料、比較版本、失敗與採用決定。API 使用例在該索引開頭；完整建置與 GUI 說明見 [README](../README_zh-TW.md)。
