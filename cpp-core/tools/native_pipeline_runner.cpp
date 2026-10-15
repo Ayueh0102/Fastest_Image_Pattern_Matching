@@ -53,6 +53,16 @@ QJsonObject record(const Result& r,bool outputs) {
         {"frame_host_bytes",double(r.frame.host_pyramid_bytes)},{"frame_coarse_gpu_bytes",double(r.frame.coarse_gpu_bytes)},{"frame_fine_gpu_bytes",double(r.frame.fine_gpu_bytes)},
         {"pose_host_bytes",double(r.pose.host_buffer_bytes)},{"pose_gpu_bytes",double(r.pose.gpu_buffer_bytes)},
         {"selected_refinement_backend",r.rescue.selected_backend},{"rescued_seeds",double(r.rescue.selected_seeds)},{"memory",memory()}};
+    o["refinement_mode"]=r.refinementMode;
+    o["refinement_dispatches"]=double(r.resident.encoded_dispatches);
+    o["refinement_command_buffers"]=double(r.resident.command_buffers);
+    o["refinement_cpu_waits"]=double(r.resident.cpu_waits);
+    o["refinement_auxiliary_bytes"]=double(r.resident.auxiliary_buffer_bytes);
+    o["refinement_setup_ms"]=r.resident.setup_ms;
+    o["refinement_encode_ms"]=r.resident.encode_ms;
+    o["refinement_wait_ms"]=r.resident.wait_ms;
+    o["refinement_verify_ms"]=r.resident.cpu_verify_ms;
+    o["refinement_device_ms"]=r.pose.device_ms;
     QJsonArray work;for(size_t i=0;i<r.coarse.size();++i) {
         auto a=r.coarse[i];auto b=r.fine[i];auto c=r.overlapMetrics[i];
         work.append(QJsonObject{{"maps",double(a.score_maps)},{"windows",double(a.windows)},{"fine_maps",double(b.maps)},
@@ -110,6 +120,7 @@ int main(int argc,char** argv) {
         settings.sparse.searchBackend=j["sparse_search_backend"].toInt(0);
         settings.sparse.cpuGradientMode=j["sparse_cpu_gradient_mode"].toInt(0);
         settings.sparse.metalSubmissionMode=j["sparse_metal_submission_mode"].toInt(0);
+        settings.residentMode=j["pose_resident_mode"].toInt(0);
         settings.cpuThreads=j["cpu_threads"].toInt(8);settings.sparse.cpuThreads=settings.cpuThreads;
         Options o;o.nccMode=j["ncc_mode"].toInt();o.overlap=j["overlap_enabled"].toBool();o.refine=j["refine"].toBool(true);
         o.match.maxTargets=j["limit"].toInt(70);o.match.minScore=j["score"].toDouble(.8);o.match.maxOverlap=j["overlap"].toDouble(.2);o.match.toleranceAngle=j["angle"].toDouble(180);

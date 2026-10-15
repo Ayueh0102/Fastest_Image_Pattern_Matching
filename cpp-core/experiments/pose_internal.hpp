@@ -42,7 +42,7 @@ struct Backend {
     virtual bool linearize(const std::vector<PackedPose>&, const FpmPoseRefineConfig&,
         std::vector<Linearization>&, FpmPoseMetrics&) { return false; }
     virtual bool refineResident(const std::vector<ResidentSeed>&, const FpmPoseRefineConfig&,
-        float*, float*, FpmPoseRefineStats*, FpmPoseResidentMetrics&, FpmPoseMetrics&) { return false; }
+        float*, float*, FpmPoseRefineStats*, FpmPoseResidentMetrics&, FpmPoseMetrics&, int = 0) { return false; }
 };
 #ifdef FPM_EXPERIMENT_METAL
 std::unique_ptr<Backend> makeMetal(const Data&);

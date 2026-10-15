@@ -2,13 +2,21 @@
 
 更新：2026-10-15，Apple M4 Pro、48 GiB。這頁記錄研究流程的建議設定；不是宣稱所有場景最快。灰階尺度研究流程已可在原生 C++ GUI 選用，GUI 預設仍保留 CPU 原有流程。
 
-**第21輪提交合併不升為預設：** [實作與完整結果](SPARSE_METAL_MERGE_zh-TW.md)。每個非空搜尋少一次CPU等待、候選與結果不變，但128物件同建置分開12.14→合併15.00ms，兩個block速度門檻均失敗；獨立複查12.71→13.59ms，仍有失敗。4K約16.08→15.73ms、複查15.28→15.03ms，只是小幅收益且主實驗有反向block。保留`metalSubmissionMode=1`研究選項，預設維持0；下一個精修融合實驗應先沿用分開提交基準。這沒有推翻前輪大圖Metal前段的優勢，也不是全GPU失敗證據。
+**第22輪已完成灰階精修融合：** [完整實作與四路比較](POSE_FUSED_zh-TW.md)。搜尋前段維持分開提交。融合版在八場景皆快於原Metal精修，實測最終輸出逐值相同；正常144姿態零FP／FN。選擇建議如下，沒有自動routing或GUI預設更動：
+
+- **128物件：** Metal前段＋融合精修可選 `backend=1, residentMode=1`；主量測CPU／原resident／融合12.41／12.07／10.31ms，獨立複查11.43／11.65／10.66ms。相對CPU完整時間約快7%～17%，RSS多約4.7MiB。
+- **小圖、六物件、低對比、細線、Src4與4K六物件：** 仍先選CPU精修 `backend=0`。4K主量測CPU15.37／融合16.55ms，RSS254.80／319.51MiB；獨立複查結論相同。不能只依圖片大小強制GPU精修。
+- **已有GPU精修需求：** 灰階、模板≤16384像素可手動選融合mode1，原mode0完整保留。每批≤512候選，求解／停止在GPU群組內，CPU驗分、救援與NMS仍保留；尚非全GPU或完整RGB流程。
+
+本輪Release34/34、相關ASan／UBSan6/6、Metal驗證59次呼叫、工具30項控制通過。完整比較為64程序／192次，另16程序／48次複查，速度與記憶體失敗亦保留。下段第20／21輪數字是各自歷史證據，不與本輪倍率相乘。
+
+**第21輪提交合併不升為預設：** [實作與完整結果](SPARSE_METAL_MERGE_zh-TW.md)。每個非空搜尋少一次CPU等待、候選與結果不變，但128物件同建置分開12.14→合併15.00ms，兩個block速度門檻均失敗；獨立複查12.71→13.59ms，仍有失敗。4K約16.08→15.73ms、複查15.28→15.03ms，只是小幅收益且主實驗有反向block。保留`metalSubmissionMode=1`研究選項，預設維持0；第22輪精修融合已沿用分開提交基準。這沒有推翻前輪大圖Metal前段的優勢，也不是全GPU失敗證據。
 
 **最新固定尺度稀疏研究路徑，按場景選CPU／Metal前段：** 第20輪已補相同精確方向LUT的CPU對照，完整來源與獨立比較見[CPU查表報告](SPARSE_CPU_LUT_zh-TW.md)。四路均CPU精修；4096²原CPU136.47→查表CPU130.53→Metal前段15.61ms，Metal對查表CPU仍快8.36倍，RSS311.50→254.90MiB。128物件22.33→19.23→13.55ms，Metal對查表CPU快1.42倍；兩block皆有收益。小圖CPU1.80／查表CPU1.78／Metal2.85ms，低對比與細線也先選CPU，不能全面換GPU。
 
-查表CPU以`responseMode=1`、`searchBackend=0`、`cpuGradientMode=1`選用；每個非空模型多261121bytes，建模多約1.7ms，適合重複使用模板，預設仍為0。Metal前段使用`responseMode=1`、`searchBackend=1`，`backend=0/1`獨立選CPU／Metal精修。第19輪128物件的Metal精修組合11.03ms仍保留為可用選項，本輪未重測該後端，不將它與本輪19.23ms相除；沒有通用自動分流門檻。
+查表CPU以`responseMode=1`、`searchBackend=0`、`cpuGradientMode=1`選用；每個非空模型多261121bytes，建模多約1.7ms，適合重複使用模板，預設仍為0。Metal前段使用`responseMode=1`、`searchBackend=1`，`backend=0/1`獨立選CPU／Metal精修。第19輪128物件的Metal精修組合11.03ms仍保留為可用選項，第20輪未重測該後端，第22輪已另作同輪比較；不將19輪11.03ms與20輪19.23ms相除；沒有通用自動分流門檻。
 
-本輪64程序／192次的有序候選、工作量及最終結果四路逐值一致；144正常GT姿態皆零FP／FN，原提案127/128與尺度負控制失敗保留。Release33/33、相關ASan／UBSan4/4、Metal57組與工具14項通過。CPU建圖仍單執行緒，還可研究列平行、SIMD或工作區共用；相同LUT並不等於最佳CPU或純GPU硬體倍率。此路徑尚未接GUI，下方通用金字塔基準另行保留。前一輪[Metal前段實測](SPARSE_METAL_FRONTEND_zh-TW.md)、[CPU前段＋CPU／Metal精修](SPARSE_CPU_METAL_zh-TW.md)及[Liquid NN／固定運算圖研究](SPARSE_GPU_ARCHITECTURE_zh-TW.md)均保留。
+第20輪64程序／192次的有序候選、工作量及最終結果四路逐值一致；144正常GT姿態皆零FP／FN，原提案127/128與尺度負控制失敗保留。Release33/33、相關ASan／UBSan4/4、Metal57組與工具14項通過。CPU建圖仍單執行緒，還可研究列平行、SIMD或工作區共用；相同LUT並不等於最佳CPU或純GPU硬體倍率。此路徑尚未接GUI，下方通用金字塔基準另行保留。前一輪[Metal前段實測](SPARSE_METAL_FRONTEND_zh-TW.md)、[CPU前段＋CPU／Metal精修](SPARSE_CPU_METAL_zh-TW.md)及[Liquid NN／固定運算圖研究](SPARSE_GPU_ARCHITECTURE_zh-TW.md)均保留。
 
 **穩定基準：同圖共用金字塔 → Metal 批次粗／細搜尋 → CPU 精確選峰 → GPU 常駐姿態精修 → CPU 最終驗分與有預算救援。** 完整流程仍是 CPU＋GPU 異構；灰階尺度排程、NMS 與運算核心現在都有 C++／Metal 源碼，原 Python 排程保留對照。Fourier 原型尚未改寫成全 C++。
 

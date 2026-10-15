@@ -14,6 +14,7 @@ struct Settings {
     int minReducedArea = 256;
     std::vector<double> scales{1.}; // proposal bank, not final refinement bounds
     int cpuThreads = 8;
+    int residentMode = 0; // 0 original Metal resident; 1 fused gray templates <=16384 pixels.
     // Experimental fixed-scale full-image proposals. No reduced image levels
     // or dense NCC maps are constructed; final acceptance still uses full NCC.
     bool sparseOrientation = false;
@@ -33,6 +34,8 @@ struct Result {
     FpmFrameMetricsV1 frame{};
     FpmPoseMetrics pose{};
     FpmPoseRescueMetrics rescue{};
+    FpmPoseResidentMetrics resident{}; // Aggregated baseline/retry diagnostics.
+    int refinementMode = 0; // Selected mode; zero dispatches means no GPU refinement ran.
     bool sparseEnabled = false;
     SparseOrientationMetrics sparse{};
     std::vector<FpmCoarseMetrics> coarse;

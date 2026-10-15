@@ -112,6 +112,9 @@ struct Session::Impl {
     Impl(ImageView src,ImageView tmp,const Settings& s):source(src),templ(tmp),settings(s) {
         if(s.backend<0 || s.backend>1 || s.minReducedArea<1 || s.cpuThreads<1 || s.cpuThreads>256 || s.scales.empty() || s.scales.size()>64)
             throw std::invalid_argument("Invalid backend, reduced area, threads or scale bank");
+        if(s.residentMode<0 || s.residentMode>1 ||
+            (s.residentMode && (s.backend!=1 || uint64_t(tmp.width)*tmp.height>16384)))
+            throw std::invalid_argument("Fused refinement requires Metal and a template with <=16384 pixels");
         if(s.sparseOrientation) {
             if(s.scales.size()!=1 || s.scales.front()!=1.)
                 throw std::invalid_argument("Sparse orientation requires fixed scale {1}");
@@ -141,6 +144,7 @@ struct Session::Impl {
         char error[1024]{};
         pose.reset(fpm_pose_create(settings.backend,settings.cpuThreads,src.data(),source.width(),source.height(),tmp.data(),templ.width(),templ.height(),1,error,sizeof(error)));
         if(!pose) throw std::runtime_error(error);
+        check(fpm_pose_set_resident_mode(pose.get(),settings.residentMode,error,sizeof(error)),error);
         poseInvert=invert;
     }
 };
@@ -150,6 +154,7 @@ Session::Session(ImageView source,ImageView templ,const Settings& settings) {
 Session::~Session()=default;
 Result Session::run(const Options& o) {
     auto& s=*impl_;validateOptions(o,s.settings.backend);Result r;char error[1024]{};const auto start=Clock::now();
+    r.refinementMode=s.settings.residentMode;
     std::vector<fpm_angle_range> ranges;for(auto a:o.match.angleRanges) ranges.push_back({a.min,a.max});
     if(s.sparse) {
         // Orientation similarity is not NCC and cannot be used as a final
@@ -204,6 +209,8 @@ Result Session::run(const Options& o) {
         FpmPoseRescueConfig rescue{};fpm_pose_rescue_default_config(&rescue);rescue.backend=s.settings.backend;
         rescue.trigger_score=std::min(rescue.trigger_score,o.match.minScore);rescue.trigger_min_score=std::min(rescue.trigger_min_score,rescue.trigger_score);
         if(fpm_pose_refine_rescue(s.pose.get(),seeds.data(),int(n),&config,&rescue,refined.data(),scores.data(),nullptr,&r.rescue,&r.pose,error,sizeof(error))) throw std::runtime_error(error);
+        if(fpm_pose_last_resident_metrics(s.pose.get(),&r.resident)) throw std::runtime_error("Cannot read refinement metrics");
+        r.refinementMode=fpm_pose_resident_mode(s.pose.get());
         for(size_t i=0;i<n;++i) {
             // Match NumPy float32 pose + weak Python scalar arithmetic before conversion to double.
             const float cx=refined[4*i]+float(s.source.width()/2.),cy=float(s.source.height()/2.)-refined[4*i+1];

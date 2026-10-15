@@ -301,6 +301,8 @@ struct Context {
     AcceleratedWorkspace accelerated;
     RescueWorkspace rescue;
     std::vector<ResidentSeed> residentSeeds;
+    FpmPoseResidentMetrics lastResident{};
+    int residentMode = 0;
     int threads = 1, creationBackend = 0;
 };
 static void errorMessage(char* error, int cap, const char* message) {
@@ -514,6 +516,30 @@ int fpm_pose_backend(void* handle)
 {
     return handle ? static_cast<fpm_exp::Context*>(handle)->creationBackend : -1;
 }
+int fpm_pose_set_resident_mode(void* handle, int mode, char* error, int error_capacity)
+{
+    using namespace fpm_exp;
+    try {
+        if (!handle || mode < 0 || mode > 1) throw std::invalid_argument("invalid resident implementation mode");
+        auto& ctx = *static_cast<Context*>(handle);
+        if (mode && (ctx.creationBackend == 0 || ctx.data.channels != 1
+            || uint64_t(ctx.data.tw)*ctx.data.th > 16384))
+            throw std::invalid_argument("fused resident requires a Metal/auto grayscale handle and <=16384 template pixels");
+        ctx.residentMode = mode;
+        errorMessage(error, error_capacity, ""); return 0;
+    } catch (const std::exception& e) { errorMessage(error, error_capacity, e.what()); return -1; }
+}
+int fpm_pose_resident_mode(void* handle)
+{
+    return handle ? static_cast<fpm_exp::Context*>(handle)->residentMode : -1;
+}
+int fpm_pose_last_resident_metrics(void* handle, FpmPoseResidentMetrics* metrics)
+{
+    if (metrics) *metrics = {};
+    if (!handle || !metrics) return -1;
+    *metrics = static_cast<fpm_exp::Context*>(handle)->lastResident;
+    return 0;
+}
 int fpm_pose_memory(void* handle, FpmPoseMetrics* metrics)
 {
     if (!handle || !metrics) return -1;
@@ -664,6 +690,7 @@ int fpm_pose_refine_resident(void* handle, const float* seeds, int count,
 {
     using namespace fpm_exp;
     const auto begin = Clock::now();
+    if (handle) static_cast<Context*>(handle)->lastResident = {};
     if (resident_metrics) *resident_metrics = {};
     if (metrics) { *metrics = {}; metrics->device_ms = -1; }
     try {
@@ -718,7 +745,7 @@ int fpm_pose_refine_resident(void* handle, const float* seeds, int count,
             throw std::runtime_error("Metal backend was not compiled on this platform");
 #endif
         }
-        if (!selected->refineResident(ctx.residentSeeds, options, refined, scores, stats, *resident_metrics, *metrics))
+        if (!selected->refineResident(ctx.residentSeeds, options, refined, scores, stats, *resident_metrics, *metrics, ctx.residentMode))
             throw std::runtime_error("GPU-resident refinement is unsupported by this backend");
         // Cheap validation remains enabled even when CPU pixel verification is
         // disabled. Device failures are errors, never silently repaired poses.
@@ -764,6 +791,7 @@ int fpm_pose_refine_resident(void* handle, const float* seeds, int count,
         fpm_pose_memory(handle, metrics);
         metrics->device_ms = deviceTime;
         metrics->wall_ms = std::chrono::duration<double, std::milli>(Clock::now()-begin).count();
+        ctx.lastResident = *resident_metrics;
         errorMessage(error, error_capacity, "");
         return 0;
     } catch (const std::exception& e) {
@@ -787,6 +815,7 @@ int fpm_pose_refine_rescue(void* handle, const float* seeds, int count,
     static_assert(sizeof(FpmPoseRescueConfig) == 64);
     static_assert(sizeof(FpmPoseRescueMetrics) == 136);
     const auto begin = Clock::now();
+    if (handle) static_cast<Context*>(handle)->lastResident = {};
     if (rescue_metrics) *rescue_metrics = {};
     if (metrics) { *metrics = {}; metrics->device_ms = -1; }
     try {
@@ -832,7 +861,15 @@ int fpm_pose_refine_rescue(void* handle, const float* seeds, int count,
         w.continuation.clear(); w.continuationOwners.clear(); w.baseScores.clear();
         rescue_metrics->selected_backend = policy.backend;
         DeviceTiming deviceTiming;
+        FpmPoseResidentMetrics aggregate{};
         auto recordResident = [&](const FpmPoseResidentMetrics& diagnostic, const FpmPoseMetrics& measured) {
+            aggregate.command_buffers += diagnostic.command_buffers;
+            aggregate.cpu_waits += diagnostic.cpu_waits;
+            aggregate.encoded_dispatches += diagnostic.encoded_dispatches;
+            aggregate.auxiliary_buffer_bytes = std::max(aggregate.auxiliary_buffer_bytes, diagnostic.auxiliary_buffer_bytes);
+            aggregate.setup_ms += diagnostic.setup_ms;
+            aggregate.encode_ms += diagnostic.encode_ms;
+            aggregate.wait_ms += diagnostic.wait_ms;
             rescue_metrics->command_buffers += diagnostic.command_buffers;
             rescue_metrics->cpu_waits += diagnostic.cpu_waits;
             rescue_metrics->auxiliary_buffer_bytes = std::max(rescue_metrics->auxiliary_buffer_bytes,
@@ -920,7 +957,7 @@ int fpm_pose_refine_rescue(void* handle, const float* seeds, int count,
                 if (policy.backend == 1) {
                     FpmPoseResidentMetrics resident{}; FpmPoseMetrics measured{}; measured.device_ms = -1;
                     if (!residentBackend->refineResident(trials, trialConfig, w.output.data(), w.values.data(),
-                        w.trialStats.data(), resident, measured))
+                        w.trialStats.data(), resident, measured, ctx.residentMode))
                         throw std::runtime_error("GPU-resident rescue unsupported by this backend");
                     recordResident(resident, measured);
                 } else cpu->parallel(trials.size(), [&](size_t i) {
@@ -979,10 +1016,16 @@ int fpm_pose_refine_rescue(void* handle, const float* seeds, int count,
         fpm_pose_memory(handle, metrics);
         metrics->device_ms = deviceTiming.result();
         metrics->wall_ms = std::chrono::duration<double, std::milli>(Clock::now()-begin).count();
+        if (policy.backend == 1) {
+            aggregate.cpu_verify_ms = rescue_metrics->cpu_verify_ms;
+            aggregate.cpu_verified = 1;
+        }
+        ctx.lastResident = aggregate;
         errorMessage(error, error_capacity, "");
         return 0;
     } catch (const std::exception& e) {
         if (rescue_metrics) *rescue_metrics = {};
+        if (handle) static_cast<Context*>(handle)->lastResident = {};
         if (metrics) { *metrics = {}; metrics->device_ms = -1; }
         errorMessage(error, error_capacity, e.what());
         return -1;

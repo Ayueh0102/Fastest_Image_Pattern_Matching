@@ -4,6 +4,7 @@
 
 完成範圍與待辦見 [專案狀態](docs/PROJECT_STATUS_zh-TW.md)。人工 review 建議先讀 [目前推薦方案](docs/CURRENT_BEST_zh-TW.md)，再看 [歷次實驗總索引與採用／不採用理由](docs/EXPERIMENT_REVIEW_zh-TW.md)。各輪原始報告與失敗紀錄均保留，不把不同輪次的加速比相乘。
 
+- [灰階Metal精修融合、CPU／GPU時間／記憶體與精度比較](docs/POSE_FUSED_zh-TW.md)
 - [歷史版本與移植稽核](docs/AUDIT_zh-TW.md)
 - [演算法契約與移植順序](docs/PORTING_zh-TW.md)
 - [17 組影像實測原始資料](docs/validation.json)

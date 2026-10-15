@@ -2,6 +2,7 @@
 #include "pose_internal.hpp"
 #include "metal_source.hpp"
 #include "resident_metal_source.hpp"
+#include "fused_metal_source.hpp"
 #import <Foundation/Foundation.h>
 #import <Metal/Metal.h>
 #include <algorithm>
@@ -47,6 +48,7 @@ class Metal final : public Backend {
     id<MTLCommandQueue> queue_;
     id<MTLComputePipelineState> partialPipeline_, finishPipeline_, derivativePipeline_, derivativeFinishPipeline_;
     id<MTLComputePipelineState> residentInitializePipeline_, residentPreparePipeline_, residentTrialPipeline_;
+    id<MTLComputePipelineState> fusedPipeline_;
     bool residentReady_ = false;
     id<MTLBuffer> source_, template_, workspace_;
     MetalConfig config_{};
@@ -152,6 +154,114 @@ class Metal final : public Backend {
         residentPreparePipeline_ = pipeline(@"resident_prepare");
         residentTrialPipeline_ = pipeline(@"resident_trial");
         residentReady_ = true;
+    }
+    void prepareFusedPipeline() {
+        if (fusedPipeline_) return;
+        NSError* error = nil;
+        MTLCompileOptions* options = [[MTLCompileOptions alloc] init];
+#if __MAC_OS_X_VERSION_MAX_ALLOWED >= 150000
+        if (@available(macOS 15.0, *)) {
+            options.mathMode = MTLMathModeSafe;
+            options.mathFloatingPointFunctions = MTLMathFloatingPointFunctionsPrecise;
+        } else
+#endif
+        {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+            options.fastMathEnabled = NO;
+#pragma clang diagnostic pop
+        }
+        const std::string program = std::string(fpmMetalSource)+"\n"+fpmResidentMetalSource+"\n"+fpmFusedMetalSource;
+        id<MTLLibrary> library = [device_ newLibraryWithSource:[NSString stringWithUTF8String:program.c_str()]
+            options:options error:&error];
+        if (!library) throw std::runtime_error([[error localizedDescription] UTF8String]);
+        id<MTLComputePipelineState> pipeline = [device_ newComputePipelineStateWithFunction:
+            [library newFunctionWithName:@"pose_refine_fused"] error:&error];
+        if (!pipeline) throw std::runtime_error([[error localizedDescription] UTF8String]);
+        if (pipeline.maxTotalThreadsPerThreadgroup < 256 ||
+            pipeline.staticThreadgroupMemoryLength > device_.maxThreadgroupMemoryLength)
+            throw std::runtime_error("Metal device cannot run fused resident workgroup");
+        fusedPipeline_ = pipeline;
+    }
+    bool refineFused(const std::vector<ResidentSeed>& seeds, const FpmPoseRefineConfig& options,
+        float* poses, float* scores, FpmPoseRefineStats* stats,
+        FpmPoseResidentMetrics& diagnostic, FpmPoseMetrics& metrics) {
+        const auto begin = std::chrono::steady_clock::now();
+        auto elapsed = [](std::chrono::steady_clock::time_point start) {
+            return std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now()-start).count();
+        };
+        if (config_.channels != 1 || uint64_t(config_.tw)*config_.th > 16384)
+            throw std::invalid_argument("fused resident supports grayscale templates with <=16384 pixels");
+        metrics = {}; metrics.device_ms = 0;
+        @autoreleasepool {
+            if (!fusedPipeline_) {
+                const auto setup = std::chrono::steady_clock::now();
+                prepareFusedPipeline(); diagnostic.setup_ms += elapsed(setup);
+            }
+            // Bound the duration of a single submission without changing any
+            // candidate's iteration/trial budget. No cross-workgroup barrier.
+            const size_t capacity = std::min<size_t>(512, seeds.size());
+            constexpr size_t stateOffset = 256, budget = 16*1024*1024;
+            const size_t bytes = stateOffset+capacity*sizeof(ResidentState);
+            if (!workspace_ || workspace_.length < bytes || workspace_.length > budget)
+                workspace_ = buffer(bytes);
+            diagnostic.auxiliary_buffer_bytes = workspace_.length;
+            bool timed = true;
+            for (size_t offset = 0; offset < seeds.size(); offset += capacity) {
+              @autoreleasepool {
+                const size_t count = std::min(capacity, seeds.size()-offset);
+                auto* data = static_cast<char*>(workspace_.contents);
+                auto* states = reinterpret_cast<ResidentState*>(data+stateOffset);
+                for (size_t i = 0; i < count; ++i) {
+                    auto& state = states[i]; state = {};
+                    const auto& seed = seeds[offset+i];
+                    std::copy(seed.pose, seed.pose+4, state.pose);
+                    std::copy(seed.lower, seed.lower+4, state.lower);
+                    std::copy(seed.upper, seed.upper+4, state.upper);
+                    const double angle = double(seed.pose[2])*3.14159265358979323846/180;
+                    const double scale = std::exp(double(seed.pose[3]));
+                    const PackedPose packed{seed.pose[0], seed.pose[1], float(scale*std::cos(angle)), float(scale*std::sin(angle))};
+                    std::memcpy(state.packed, &packed, sizeof(packed));
+                }
+                MetalConfig dynamicConfig = config_; dynamicConfig.count = uint32_t(count);
+                dynamicConfig.unused = (options.max_translation != 0 ? 1u : 0u)
+                    | (options.optimize_angle && options.max_angle_degrees != 0 ? 2u : 0u)
+                    | (options.optimize_scale && options.max_log_scale != 0 ? 4u : 0u);
+                std::memcpy(data, &dynamicConfig, sizeof(dynamicConfig));
+                const auto encodeBegin = std::chrono::steady_clock::now();
+                id<MTLCommandBuffer> command = [queue_ commandBuffer];
+                if (!command) throw std::runtime_error("Could not create fused resident command buffer");
+                id<MTLComputeCommandEncoder> encoder = [command computeCommandEncoder];
+                if (!encoder) throw std::runtime_error("Could not create fused resident encoder");
+                [encoder setComputePipelineState:fusedPipeline_];
+                [encoder setBuffer:source_ offset:0 atIndex:0];
+                [encoder setBuffer:template_ offset:0 atIndex:1];
+                [encoder setBuffer:workspace_ offset:stateOffset atIndex:2];
+                [encoder setBuffer:workspace_ offset:0 atIndex:3];
+                const uint32_t iterations = uint32_t(options.max_iterations);
+                [encoder setBytes:&iterations length:sizeof(iterations) atIndex:4];
+                [encoder dispatchThreadgroups:MTLSizeMake(count,1,1)
+                    threadsPerThreadgroup:MTLSizeMake(256,1,1)];
+                [encoder endEncoding];
+                ++diagnostic.encoded_dispatches; ++diagnostic.command_buffers;
+                diagnostic.encode_ms += elapsed(encodeBegin);
+                const auto waitBegin = std::chrono::steady_clock::now();
+                ++diagnostic.cpu_waits; complete(command);
+                diagnostic.wait_ms += elapsed(waitBegin);
+                if (!accumulateTime(command, metrics)) timed = false;
+                for (size_t i = 0; i < count; ++i) {
+                    const auto& state = states[i];
+                    std::copy(state.pose, state.pose+4, poses+(offset+i)*4);
+                    scores[offset+i] = state.score;
+                    if (stats) stats[offset+i] = {int(state.iterations), int(state.evaluations), int(state.status)};
+                }
+              }
+            }
+            if (!timed) metrics.device_ms = -1;
+            memory(metrics);
+        }
+        metrics.wall_ms = elapsed(begin);
+        return true;
     }
     static bool accumulateTime(id<MTLCommandBuffer> command, FpmPoseMetrics& metrics) {
         const double start = command.GPUStartTime, end = command.GPUEndTime;
@@ -338,13 +448,15 @@ public:
     }
     bool refineResident(const std::vector<ResidentSeed>& seeds, const FpmPoseRefineConfig& options,
         float* poses, float* scores, FpmPoseRefineStats* stats,
-        FpmPoseResidentMetrics& residentMetrics, FpmPoseMetrics& metrics) override {
+        FpmPoseResidentMetrics& residentMetrics, FpmPoseMetrics& metrics, int mode = 0) override {
         const auto begin = std::chrono::steady_clock::now();
         auto elapsed = [](std::chrono::steady_clock::time_point start) {
             return std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now()-start).count();
         };
         metrics = {}; metrics.device_ms = -1;
         if (seeds.empty()) { memory(metrics); return true; }
+        if (mode == 1) return refineFused(seeds, options, poses, scores, stats, residentMetrics, metrics);
+        if (mode != 0) throw std::invalid_argument("invalid Metal resident mode");
         @autoreleasepool {
             const auto workspace = prepareResidentWorkspace(seeds.size());
             residentMetrics.auxiliary_buffer_bytes = workspace_.length;

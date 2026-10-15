@@ -41,13 +41,41 @@ int main(int argc,char**) {
         }
         o.refine=true;auto refined=session.run(o);require(!refined.matches.empty(),"refine failed");
         require(refined.rescue.selected_backend==(metal?1:0),"wrong solver backend");
+        require(refined.refinementMode==0,"default refinement mode changed");
+        require(metal ? refined.resident.encoded_dispatches>refined.resident.command_buffers : refined.resident.encoded_dispatches==0,"wrong default refinement diagnostics");
         same(refined,session.run(o));
+        if(metal) {
+            // Recreate from the original input, not the caller-mutated buffers.
+            source.row(30)[40]^=255;templ.row(0)[0]^=255;
+            Settings fusedSettings=s;fusedSettings.residentMode=1;
+            Session fused(source.view(),templ.view(),fusedSettings);
+            Options discrete=o;discrete.refine=false;const auto noRefinement=fused.run(discrete);
+            require(noRefinement.refinementMode==1 && noRefinement.resident.encoded_dispatches==0,"selected fused mode lost when refinement disabled");
+            const auto result=fused.run(o);
+            require(result.refinementMode==1 && result.resident.command_buffers>0 &&
+                result.resident.encoded_dispatches==result.resident.command_buffers &&
+                result.resident.cpu_waits==result.resident.command_buffers && result.resident.cpu_verified==1,"fused pipeline route ignored");
+            // The .75 bilinear-resized random patch passes the discrete matcher
+            // but both refiners reject it at .9 full-resolution NCC. Preserve
+            // that control outcome; continuous scale GT is tested separately.
+            require(result.matches.size()==refined.matches.size() && result.matches.size()==1 &&
+                result.proposals.size()==refined.proposals.size(),"fused pipeline changed reference detections");
+            for(const auto& m:result.matches) require(m.score>.99 &&
+                std::hypot(m.center.x-56,m.center.y-42)<.1,"fused pipeline GT mismatch");
+            same(result,fused.run(o));
+            Options invertedOptions=o;invertedOptions.match.invertSource=true;
+            const auto invertedFused=fused.run(invertedOptions);
+            require(invertedFused.matches.size()==1 && std::hypot(invertedFused.matches[0].center.x-116,invertedFused.matches[0].center.y-92)<.1 && invertedFused.matches[0].score>.99,"fused pipeline stale inverted source");
+            same(result,fused.run(o));
+        }
         o.match.invertSource=true;auto inverted=session.run(o);require(inverted.matches.size()==1 && std::hypot(inverted.matches[0].center.x-116,inverted.matches[0].center.y-92)<.1 && inverted.matches[0].score>.99,"stale noninverted pose/image");
         o.match.invertSource=false;same(refined,session.run(o));
         o.match.angleRanges={{70,40}};bool rejected=false;try { session.run(o); } catch(const std::invalid_argument&) { rejected=true; }
         require(rejected,"invalid range accepted");o.match.angleRanges.clear();same(refined,session.run(o));
         o.match.angleRanges={{20,30}};auto restricted=session.run(o);for(auto m:restricted.matches) require(m.angle>=20-1e-5 && m.angle<=30+1e-5,"refinement escaped angle range");
         Settings invalid=s;invalid.scales={0};rejected=false;try{Session broken(source.view(),templ.view(),invalid);}catch(const std::invalid_argument&){rejected=true;}require(rejected,"zero scale accepted");
+        for(int mode:{-1,2}) { invalid=s;invalid.residentMode=mode;rejected=false;try{Session broken(source.view(),templ.view(),invalid);}catch(const std::invalid_argument&){rejected=true;}require(rejected,"invalid resident mode accepted"); }
+        invalid=s;invalid.backend=0;invalid.residentMode=1;rejected=false;try{Session broken(source.view(),templ.view(),invalid);}catch(const std::invalid_argument&){rejected=true;}require(rejected,"CPU pipeline accepted fused mode");
         Image odd(5,7);auto half=scaledTemplate(odd.view(),.5);require(half.width()==2 && half.height()==4,"ties-even resize");
         std::cout<<(metal?"Metal":"CPU")<<" native pipeline: scale, source ownership, options, repeated calls, inversion and refinement passed\n";
         return 0;

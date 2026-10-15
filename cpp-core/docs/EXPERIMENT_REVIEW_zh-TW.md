@@ -1,10 +1,10 @@
 # Template Matching 研究總索引與人工審查指南
 
-整理日期：2026-10-15。前12階段整理 repository 已保存的報告、protocol 與結果；第13階段為 NCC tiling 正式量測，第14階段接入原生尺度 GUI 並驗證組合模式與持續運行，第15階段比較固定尺度的金字塔與原解析度搜尋，第16階段實作稀疏方向全圖提案並比較128物件，第17階段驗證等價回應壓縮，第18階段比較稀疏全CPU與Metal精修，第19階段實作並驗證Metal稀疏前段，第20階段補相同方向LUT的CPU對照以拆開數學化簡與GPU收益，第21階段驗證GPU建圖與首批搜尋合併提交但保留效能失敗。各數字是各輪的證據快照，不是同一輪連續量測；不要將不同輪次的加速比相乘。快速設定摘要見 [目前建議方案](CURRENT_BEST_zh-TW.md)，整體完成範圍與待辦見 [專案狀態](PROJECT_STATUS_zh-TW.md)。
+整理日期：2026-10-15。前12階段整理 repository 已保存的報告、protocol 與結果；第13階段為 NCC tiling 正式量測，第14階段接入原生尺度 GUI 並驗證組合模式與持續運行，第15階段比較固定尺度的金字塔與原解析度搜尋，第16階段實作稀疏方向全圖提案並比較128物件，第17階段驗證等價回應壓縮，第18階段比較稀疏全CPU與Metal精修，第19階段實作並驗證Metal稀疏前段，第20階段補相同方向LUT的CPU對照以拆開數學化簡與GPU收益，第21階段驗證GPU建圖與首批搜尋合併提交但保留效能失敗，第22階段完成灰階GPU精修融合與四路效能比較。各數字是各輪的證據快照，不是同一輪連續量測；不要將不同輪次的加速比相乘。快速設定摘要見 [目前建議方案](CURRENT_BEST_zh-TW.md)，整體完成範圍與待辦見 [專案狀態](PROJECT_STATUS_zh-TW.md)。
 
 ## 目前推薦方案
 
-固定尺度的新稀疏研究路徑，第20輪CPU也採同樣LUT後，4096²的Metal前段＋CPU精修仍比查表CPU快8.36倍、128物件快1.42倍，小圖則CPU較快。查表CPU已保留可選模式，第19輪的Metal精修選項另留比較；尚無通用自動routing門檻。第21輪合併提交雖減少等待，128物件仍有速度回退，因此維持分開提交預設。下表屬於原有金字塔流程，其推薦與新稀疏路徑分開判斷。
+固定尺度的新稀疏研究路徑，第20輪CPU也採同樣LUT後，4096²的Metal前段＋CPU精修仍比查表CPU快8.36倍、128物件快1.42倍，小圖則CPU較快。查表CPU已保留可選模式，第19輪的Metal精修選項另留比較；尚無通用自動routing門檻。第21輪合併提交雖減少等待，128物件仍有速度回退，因此維持分開提交預設。第22輪融合精修在已測八場景快於原Metal精修；128可選融合，多數少候選場景仍選CPU精修，完整證據見第22節。下表屬於原有金字塔流程，其推薦與新稀疏路徑分開判斷。
 
 在本機 Metal 金字塔研究流程，以**共享來源金字塔＋批次細搜尋＋精確選峰樹**作為下一次比較的基準：
 
@@ -259,7 +259,7 @@ Metal Shader Validation另發現導數kernel插裝後共享記憶體超過32KiB�
 
 來源：[報告](SPARSE_CPU_METAL_zh-TW.md)・[protocol](sparse-backends/protocol.json)・[全部結果](sparse-backends/results.json)・[驗證](sparse-backends/validation.json)・[完整來源與原始封存](sparse-backends/raw-results.tar.gz)・[封存SHA](sparse-backends/artifact-sha256.json)。
 
-**追加局部診斷：** 同binary、小圖5候選與128物件256候選，Metal各7次；兩例皆一次提交／等待、1023個編碼派工。小圖wall3.979ms，encode0.277、wait3.656（內含GPU區間3.529）、CPU驗分0.040；128 wall9.472ms，encode0.281、wait7.880（內含GPU7.767）、CPU驗分1.299。未拆GPU區間的像素／派工／barrier成本，不能說傳輸或CPU編碼主導。全部局部輸出等於同後端救援入口，未改原正式結果；[診斷摘要與來源](sparse-backends/resident-diagnosis.json)、[原始封存](sparse-backends/resident-diagnosis.tar.gz)保留。當時候選內融合kernel與連續GPU稀疏前段仍為待實驗方向；第19輪已實作GPU前段，融合精修仍未實作。
+**追加局部診斷：** 同binary、小圖5候選與128物件256候選，Metal各7次；兩例皆一次提交／等待、1023個編碼派工。小圖wall3.979ms，encode0.277、wait3.656（內含GPU區間3.529）、CPU驗分0.040；128 wall9.472ms，encode0.281、wait7.880（內含GPU7.767）、CPU驗分1.299。未拆GPU區間的像素／派工／barrier成本，不能說傳輸或CPU編碼主導。全部局部輸出等於同後端救援入口，未改原正式結果；[診斷摘要與來源](sparse-backends/resident-diagnosis.json)、[原始封存](sparse-backends/resident-diagnosis.tar.gz)保留。當時候選內融合kernel與連續GPU稀疏前段仍為待實驗方向；第19輪已實作GPU前段，第22輪完成灰階融合精修。
 
 ### 19. Metal稀疏前段與獨立精修後端（2026-10-15）
 
@@ -290,6 +290,18 @@ Metal Shader Validation另發現導數kernel插裝後共享記憶體超過32KiB�
 **決定：可選實驗，維持mode0預設。** 沒有因省一次等待就推定更快；小幅4K收益不足以掩蓋128回退。CPU複製很小，尚未量GPU時脈／occupancy，不斷言回退機制。Release33/33、ASan／UBSan4/4、Metal58組三路精確比較與工具19項通過；主／複查hash一致，原始資料與來源封存。尚未實作候選內精修融合、全GPU或自動分流。
 
 來源：[完整報告](SPARSE_METAL_MERGE_zh-TW.md)・[protocol](sparse-metal-merge/protocol.json)・[主要結果](sparse-metal-merge/results.json)・[獨立複查](sparse-metal-merge/recheck-results.json)・[速度失敗細節](sparse-metal-merge/validation-details.json)・[完整來源與原始資料](sparse-metal-merge/raw-results.tar.gz)。
+
+### 22. 灰階GPU精修融合與群組內統計（2026-10-15）
+
+**目的／實作：** 前段固定分開提交；一個256執行緒群組完成單候選NCC、導數、阻尼GN、試步及停止。1024像素tile、加總順序、迭代／救援預算與CPU驗分保留，中間統計重用不到10KiB群組暫存。灰階模板≤16384像素、每批≤512候選；mode1選配，mode0原實作不變，完整來源保留。
+
+**時間／記憶體／精度：** 凍結60a8936原Metal、同建置CPU／原Metal／融合四路，64程序／192次。八場景融合比原Metal完整時間快約12%～50%；128 12.07→10.31ms、RSS49.63→48.64MiB，Src4 17.69→8.78ms。CPU比較：128 12.41ms／43.95MiB，4K CPU15.37ms／254.80MiB、融合16.55ms／319.51MiB。候選／工作量與最終融合輸出逐值相同，144正常GT姿態零FP／FN；尺度負控制TP0／FP1／FN1與Src4無GT24結果保留。
+
+**獨立複查／決定：** 128與4K另16程序／48次。128 CPU／原Metal／融合11.43／11.65／10.66ms，兩block融合仍較快；4K15.35／18.91／16.46ms，CPU仍較快且省約64.7MiB。融合可改善既有Metal精修，128可手動採用；多數少候選場景仍用CPU。融合相對CPU有8個主量測速度配對失敗，4K主／複查共4個記憶體配對失敗；通過容忍不等於加速，不作自動分流或改GUI。
+
+**驗證／歸因：** Release34/34、ASan／UBSan6/6、Metal驗證59次及工具30項通過。原30次迭代dispatch1023→1，128提交／等待仍1→1，GPU時間8.492→6.962ms；少派工並非少傳輸的證明。128融合對CPU的精修階段差小於完整時間差，保留前段時間變異的限制。初次Session測試預期修正及失敗log保留；本輪無新GUI、RGB全圖或30分鐘持續測試。
+
+來源：[完整報告](POSE_FUSED_zh-TW.md)・[protocol](pose-fused/protocol.json)・[主結果](pose-fused/results.json)・[複查](pose-fused/recheck-results.json)・[失敗與檢查細節](pose-fused/validation-details.json)・[完整來源與原始資料](pose-fused/raw-results.tar.gz)。
 
 ## 人工審查時應保留的限制
 

@@ -1,0 +1,12 @@
+{
+  "archive_sha256": "7bbc3c65535318a58ef7e4a224223f6411afd9f64cca15513d251546ac11e879",
+  "archive_bytes": 34485398,
+  "members": 993,
+  "all_member_hashes_valid": true,
+  "relocated_summary_byte_identical": true,
+  "summary_sha256": "ea02f10aa48ab420f9f9ee60496c70bff3117d15dd5ba726721168dda14d71f8",
+  "relocated_recheck_summary_byte_identical": true,
+  "recheck_summary_sha256": "1a27d3e93b82abd972af4c5cbdb7ddc9b0102cb024d6ea8963cbc4e7c356481e",
+  "validation_details_sha256": "ed63463f917a0c35d54cf449226bb4a78963af1e1770d606842141fc6d7d9f83",
+  "post_study_comment_manifest_sha256": "08cb5247d8eefdd9c1907b770e1032b44d2e610917ca3eae50a8c789d5e1c603"
+}

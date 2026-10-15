@@ -1,0 +1,5 @@
+// SPDX-License-Identifier: BSD-2-Clause
+#pragma once
+static const char* fpmFusedMetalSource = R"FPM_FUSED(
+@FPM_FUSED_METAL_SOURCE@
+)FPM_FUSED";

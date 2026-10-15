@@ -107,6 +107,18 @@ typedef struct FpmPoseResidentMetrics {
     int cpu_verified;
     int reserved;
 } FpmPoseResidentMetrics;
+// Opt-in implementation selection; creation defaults to 0 (original resident
+// kernels). Mode 1 fuses one grayscale candidate into one 256-thread GPU group;
+// supports <=16384 template pixels, chunks of <=512 poses. No automatic fallback.
+// Setting mode 1 rejects CPU handles, RGB and larger templates without changing
+// the previous setting. Selection does not initialize lazy Metal resources.
+// Existing ABI structs/functions and ordinary score/CPU refine stay unchanged.
+FPM_EXP_API int fpm_pose_set_resident_mode(void* handle, int mode, char* error, int error_capacity);
+FPM_EXP_API int fpm_pose_resident_mode(void* handle); // 0/1; -1 for null
+// Diagnostics from the most recent explicit resident/rescue call. Rescue sums
+// baseline and retries; auxiliary bytes are their maximum, not their sum.
+// Reset at entry/error; CPU rescue returns zeros. Does not dispatch any work.
+FPM_EXP_API int fpm_pose_last_resident_metrics(void* handle, FpmPoseResidentMetrics* metrics);
 // GPU owns the local solve, acceptance and stopping decisions. Only Metal or
 // auto handles are supported; CPU handles and unavailable Metal return errors.
 // Auto handles initialize Metal lazily, without applying workload thresholds.
