@@ -112,7 +112,7 @@ struct Session::Impl {
     Impl(ImageView src,ImageView tmp,const Settings& s):source(src),templ(tmp),settings(s) {
         if(s.backend<0 || s.backend>1 || s.minReducedArea<1 || s.cpuThreads<1 || s.cpuThreads>256 || s.scales.empty() || s.scales.size()>64)
             throw std::invalid_argument("Invalid backend, reduced area, threads or scale bank");
-        if(s.residentMode<0 || s.residentMode>1 ||
+        if(s.residentMode<0 || s.residentMode>2 ||
             (s.residentMode && (s.backend!=1 || uint64_t(tmp.width)*tmp.height>16384)))
             throw std::invalid_argument("Fused refinement requires Metal and a template with <=16384 pixels");
         if(s.sparseOrientation) {
@@ -211,6 +211,7 @@ Result Session::run(const Options& o) {
         if(fpm_pose_refine_rescue(s.pose.get(),seeds.data(),int(n),&config,&rescue,refined.data(),scores.data(),nullptr,&r.rescue,&r.pose,error,sizeof(error))) throw std::runtime_error(error);
         if(fpm_pose_last_resident_metrics(s.pose.get(),&r.resident)) throw std::runtime_error("Cannot read refinement metrics");
         r.refinementMode=fpm_pose_resident_mode(s.pose.get());
+        if(fpm_pose_last_resident_kernel(s.pose.get(),&r.residentKernel)) throw std::runtime_error("Cannot read refinement kernel metrics");
         for(size_t i=0;i<n;++i) {
             // Match NumPy float32 pose + weak Python scalar arithmetic before conversion to double.
             const float cx=refined[4*i]+float(s.source.width()/2.),cy=float(s.source.height()/2.)-refined[4*i+1];

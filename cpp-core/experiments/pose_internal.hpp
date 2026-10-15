@@ -41,6 +41,7 @@ struct Backend {
     // explicitly select a CPU fallback rather than mislabeling device work.
     virtual bool linearize(const std::vector<PackedPose>&, const FpmPoseRefineConfig&,
         std::vector<Linearization>&, FpmPoseMetrics&) { return false; }
+    virtual FpmPoseResidentKernelInfo residentKernelInfo(int) const { return {}; }
     virtual bool refineResident(const std::vector<ResidentSeed>&, const FpmPoseRefineConfig&,
         float*, float*, FpmPoseRefineStats*, FpmPoseResidentMetrics&, FpmPoseMetrics&, int = 0) { return false; }
 };

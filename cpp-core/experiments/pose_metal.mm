@@ -3,6 +3,7 @@
 #include "metal_source.hpp"
 #include "resident_metal_source.hpp"
 #include "fused_metal_source.hpp"
+#include "simd_metal_source.hpp"
 #import <Foundation/Foundation.h>
 #import <Metal/Metal.h>
 #include <algorithm>
@@ -48,7 +49,7 @@ class Metal final : public Backend {
     id<MTLCommandQueue> queue_;
     id<MTLComputePipelineState> partialPipeline_, finishPipeline_, derivativePipeline_, derivativeFinishPipeline_;
     id<MTLComputePipelineState> residentInitializePipeline_, residentPreparePipeline_, residentTrialPipeline_;
-    id<MTLComputePipelineState> fusedPipeline_;
+    id<MTLComputePipelineState> fusedPipeline_, simdPipeline_;
     bool residentReady_ = false;
     id<MTLBuffer> source_, template_, workspace_;
     MetalConfig config_{};
@@ -155,8 +156,8 @@ class Metal final : public Backend {
         residentTrialPipeline_ = pipeline(@"resident_trial");
         residentReady_ = true;
     }
-    void prepareFusedPipeline() {
-        if (fusedPipeline_) return;
+    void prepareFusedPipeline(int mode) {
+        if (mode == 2 ? simdPipeline_ != nil : fusedPipeline_ != nil) return;
         NSError* error = nil;
         MTLCompileOptions* options = [[MTLCompileOptions alloc] init];
 #if __MAC_OS_X_VERSION_MAX_ALLOWED >= 150000
@@ -171,21 +172,24 @@ class Metal final : public Backend {
             options.fastMathEnabled = NO;
 #pragma clang diagnostic pop
         }
-        const std::string program = std::string(fpmMetalSource)+"\n"+fpmResidentMetalSource+"\n"+fpmFusedMetalSource;
+        const std::string program = std::string(fpmMetalSource)+"\n"+fpmResidentMetalSource+"\n"+fpmFusedMetalSource
+            +(mode == 2 ? std::string("\n")+fpmSimdMetalSource : "");
         id<MTLLibrary> library = [device_ newLibraryWithSource:[NSString stringWithUTF8String:program.c_str()]
             options:options error:&error];
         if (!library) throw std::runtime_error([[error localizedDescription] UTF8String]);
         id<MTLComputePipelineState> pipeline = [device_ newComputePipelineStateWithFunction:
-            [library newFunctionWithName:@"pose_refine_fused"] error:&error];
+            [library newFunctionWithName:(mode == 2 ? @"pose_refine_simd" : @"pose_refine_fused")] error:&error];
         if (!pipeline) throw std::runtime_error([[error localizedDescription] UTF8String]);
-        if (pipeline.maxTotalThreadsPerThreadgroup < 256 ||
+        if (mode == 2 && pipeline.threadExecutionWidth != 32)
+            throw std::runtime_error("SIMD resident requires a Metal SIMD width of 32");
+        if (pipeline.maxTotalThreadsPerThreadgroup < (mode == 2 ? 128u : 256u) ||
             pipeline.staticThreadgroupMemoryLength > device_.maxThreadgroupMemoryLength)
             throw std::runtime_error("Metal device cannot run fused resident workgroup");
-        fusedPipeline_ = pipeline;
+        if (mode == 2) simdPipeline_ = pipeline; else fusedPipeline_ = pipeline;
     }
     bool refineFused(const std::vector<ResidentSeed>& seeds, const FpmPoseRefineConfig& options,
         float* poses, float* scores, FpmPoseRefineStats* stats,
-        FpmPoseResidentMetrics& diagnostic, FpmPoseMetrics& metrics) {
+        FpmPoseResidentMetrics& diagnostic, FpmPoseMetrics& metrics, int mode) {
         const auto begin = std::chrono::steady_clock::now();
         auto elapsed = [](std::chrono::steady_clock::time_point start) {
             return std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now()-start).count();
@@ -194,9 +198,9 @@ class Metal final : public Backend {
             throw std::invalid_argument("fused resident supports grayscale templates with <=16384 pixels");
         metrics = {}; metrics.device_ms = 0;
         @autoreleasepool {
-            if (!fusedPipeline_) {
+            if (mode == 2 ? simdPipeline_ == nil : fusedPipeline_ == nil) {
                 const auto setup = std::chrono::steady_clock::now();
-                prepareFusedPipeline(); diagnostic.setup_ms += elapsed(setup);
+                prepareFusedPipeline(mode); diagnostic.setup_ms += elapsed(setup);
             }
             // Bound the duration of a single submission without changing any
             // candidate's iteration/trial budget. No cross-workgroup barrier.
@@ -233,7 +237,7 @@ class Metal final : public Backend {
                 if (!command) throw std::runtime_error("Could not create fused resident command buffer");
                 id<MTLComputeCommandEncoder> encoder = [command computeCommandEncoder];
                 if (!encoder) throw std::runtime_error("Could not create fused resident encoder");
-                [encoder setComputePipelineState:fusedPipeline_];
+                [encoder setComputePipelineState:(mode == 2 ? simdPipeline_ : fusedPipeline_)];
                 [encoder setBuffer:source_ offset:0 atIndex:0];
                 [encoder setBuffer:template_ offset:0 atIndex:1];
                 [encoder setBuffer:workspace_ offset:stateOffset atIndex:2];
@@ -241,7 +245,7 @@ class Metal final : public Backend {
                 const uint32_t iterations = uint32_t(options.max_iterations);
                 [encoder setBytes:&iterations length:sizeof(iterations) atIndex:4];
                 [encoder dispatchThreadgroups:MTLSizeMake(count,1,1)
-                    threadsPerThreadgroup:MTLSizeMake(256,1,1)];
+                    threadsPerThreadgroup:MTLSizeMake(mode == 2 ? 128 : 256,1,1)];
                 [encoder endEncoding];
                 ++diagnostic.encoded_dispatches; ++diagnostic.command_buffers;
                 diagnostic.encode_ms += elapsed(encodeBegin);
@@ -446,6 +450,11 @@ public:
         metrics.wall_ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now()-begin).count();
         return true;
     }
+    FpmPoseResidentKernelInfo residentKernelInfo(int mode) const override {
+        id<MTLComputePipelineState> pipeline = mode == 2 ? simdPipeline_ : (mode == 1 ? fusedPipeline_ : nil);
+        if (!pipeline) return {};
+        return {mode == 2 ? 128u : 256u, uint32_t(pipeline.threadExecutionWidth), uint64_t(pipeline.staticThreadgroupMemoryLength)};
+    }
     bool refineResident(const std::vector<ResidentSeed>& seeds, const FpmPoseRefineConfig& options,
         float* poses, float* scores, FpmPoseRefineStats* stats,
         FpmPoseResidentMetrics& residentMetrics, FpmPoseMetrics& metrics, int mode = 0) override {
@@ -455,7 +464,7 @@ public:
         };
         metrics = {}; metrics.device_ms = -1;
         if (seeds.empty()) { memory(metrics); return true; }
-        if (mode == 1) return refineFused(seeds, options, poses, scores, stats, residentMetrics, metrics);
+        if (mode == 1 || mode == 2) return refineFused(seeds, options, poses, scores, stats, residentMetrics, metrics, mode);
         if (mode != 0) throw std::invalid_argument("invalid Metal resident mode");
         @autoreleasepool {
             const auto workspace = prepareResidentWorkspace(seeds.size());

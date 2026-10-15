@@ -3,13 +3,20 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstdlib>
 #include <iostream>
 #include <limits>
 #include <stdexcept>
 #include <string>
 #include <vector>
 
+#ifndef FPM_FUSED_TEST_MODE
+#define FPM_FUSED_TEST_MODE 1
+#endif
+
 namespace {
+constexpr int FUSED_MODE = FPM_FUSED_TEST_MODE;
+static_assert(FUSED_MODE == 1 || FUSED_MODE == 2, "test mode must be a fused implementation");
 constexpr double PI = 3.14159265358979323846;
 constexpr double SCORE_TOLERANCE = 3e-5;
 constexpr uint64_t AUXILIARY_LIMIT = 16u*1024u*1024u;
@@ -73,8 +80,9 @@ struct Handle {
 
 void setMode(Handle& handle, int mode)
 {
-    char error[1024]{};
+    char error[1024] = "stale mode error";
     require(fpm_pose_set_resident_mode(handle.value, mode, error, sizeof(error)) == 0, error);
+    require(error[0] == 0, "successful mode setter retained an error");
     require(fpm_pose_resident_mode(handle.value) == mode, "resident mode was not retained");
 }
 
@@ -162,16 +170,29 @@ Result run(Handle& handle, const std::vector<float>& initial,
     Result result;
     const int count = int(initial.size()/4);
     result.poses.resize(initial.size()); result.scores.resize(count); result.stats.resize(count);
-    char error[1024]{};
+    char error[1024] = "stale refinement error";
     require(fpm_pose_refine_resident(handle.value, initial.data(), count, &options, verify,
         result.poses.data(), result.scores.data(), result.stats.data(), &result.resident,
         &result.metrics, error, sizeof(error)) == 0, error);
+    require(error[0] == 0, "successful resident call retained an error");
     ++checkedCalls;
+    FpmPoseResidentKernelInfo kernel{};
+    require(fpm_pose_last_resident_kernel(handle.value,&kernel)==0,"missing kernel diagnostics");
+    const int mode=fpm_pose_resident_mode(handle.value);
+    if(mode) {
+        require(kernel.threads==(mode==2?128u:256u) && (mode==2 ? kernel.simd_width==32 : kernel.simd_width>0) && kernel.threadgroup_bytes>0,
+            "wrong actual compiled kernel geometry");
+        // Shader Validation adds compiler-owned threadgroup instrumentation.
+        // Production scratch bounds apply without that instrumentation only.
+        const char* validation=std::getenv("MTL_SHADER_VALIDATION");
+        const bool instrumented=validation && std::string(validation)=="1";
+        require(kernel.threadgroup_bytes<=(instrumented?32768u:mode==2?7168u:10240u),"unexpected fused threadgroup memory");
+    } else require(kernel.threads==0 && kernel.threadgroup_bytes==0,"multi-kernel mode reported fused geometry");
     const auto& d = result.resident;
     require(d.command_buffers > 0 && d.command_buffers == d.cpu_waits,
         "resident command/wait accounting");
     require(d.encoded_dispatches >= d.command_buffers, "resident dispatch accounting");
-    if (fpm_pose_resident_mode(handle.value) == 1) {
+    if (fpm_pose_resident_mode(handle.value) > 0) {
         require(d.command_buffers == uint64_t((count+511)/512), "fused chunk boundary changed");
         require(d.encoded_dispatches == d.command_buffers, "fused path did not use one dispatch per chunk");
     }
@@ -247,7 +268,7 @@ void testAccuracyAndSwitching()
             setMode(metal, 0);
             const auto baseline = run(metal, initial, config(), verify);
             checkScores(f, initial, baseline, verify); checkTruth(f, baseline);
-            setMode(metal, 1);
+            setMode(metal, FUSED_MODE);
             const auto fused = run(metal, initial, config(), verify);
             checkScores(f, initial, fused, verify); checkTruth(f, fused);
             for (size_t i = 0; i < fused.scores.size(); ++i) {
@@ -282,7 +303,7 @@ void testDifficultInputs()
         }
         if (kind == 5) initial = {95.25f, 85.75f, 11.5f, 0, 100000, -100000, 0, 0};
         if (kind == 6) f = fixture(1, 1);
-        Handle metal(f, 1); setMode(metal, 1);
+        Handle metal(f, 1); setMode(metal, FUSED_MODE);
         for (int verify : {0, 1}) {
             const auto result = run(metal, initial, config(), verify);
             checkScores(f, initial, result, verify);
@@ -299,7 +320,7 @@ void testFrozenAndInwardBounds()
 {
     const Fixture f = fixture(45, 37, 35998.25, .98);
     auto initial = seeds(f); initial[2] = 35996; initial[6] = 35999;
-    Handle metal(f, 1); setMode(metal, 1);
+    Handle metal(f, 1); setMode(metal, FUSED_MODE);
     for (int frozen = 0; frozen < 4; ++frozen) {
         auto options = config(); options.max_iterations = frozen == 3 ? 1 : 5;
         if (frozen < 3) options.optimize_angle = 0;
@@ -322,7 +343,7 @@ void testFrozenAndInwardBounds()
         for (int y = 0; y < narrow.th; ++y) for (int x = 0; x < narrow.tw; ++x)
             narrow.templ[size_t(y)*narrow.tw+x] = float(sample(narrow,
                 center+x-narrow.tw*.5+direction*.04, narrow.sh*.5+y-narrow.th*.5+direction*.04, 0));
-        Handle handle(narrow, 1); setMode(handle, 1);
+        Handle handle(narrow, 1); setMode(handle, FUSED_MODE);
         for (int verify : {0, 1}) {
             const auto result = run(handle, narrowInitial, options, verify);
             require(result.poses[0] == narrowInitial[0], "fused rounded outside sub-ULP inward bound");
@@ -346,7 +367,7 @@ void testModeGuardsWithoutGpu()
         FpmPoseMetrics before{}, after{};
         require(fpm_pose_memory(handle.value, &before) == 0 && before.gpu_buffer_bytes == 0,
             "CPU/auto mode guard initialized Metal eagerly");
-        for (int rejected : {-1, 1, 2}) {
+        for (int rejected : {-1, 1, 2, 3}) {
             error[0] = 0;
             require(fpm_pose_set_resident_mode(handle.value, rejected, error, sizeof(error)) == -1 && error[0],
                 "unsupported fused mode accepted or missing error");
@@ -364,14 +385,14 @@ void testLazyRecoveryAndChunking()
     const Fixture f = fixture(17, 19);
     Handle automatic(f, 2);
     FpmPoseMetrics memory{};
-    setMode(automatic, 1);
+    setMode(automatic, FUSED_MODE);
     require(fpm_pose_memory(automatic.value, &memory) == 0 && memory.gpu_buffer_bytes == 0,
         "enabling fused mode eagerly initialized lazy GPU");
     char error[1024]{};
-    for (int invalid : {-1, 2}) {
+    for (int invalid : {-1, 3}) {
         require(fpm_pose_set_resident_mode(automatic.value, invalid, error, sizeof(error)) == -1,
             "invalid mode accepted after enabling fused");
-        require(fpm_pose_resident_mode(automatic.value) == 1, "invalid mode reset valid selection");
+        require(fpm_pose_resident_mode(automatic.value) == FUSED_MODE, "invalid mode reset valid selection");
     }
     auto options = config(); options.max_iterations = 2;
     auto initial = seeds(f, 513);
@@ -404,20 +425,22 @@ void testLazyRecoveryAndChunking()
     FpmPoseResidentMetrics last{};
     require(fpm_pose_last_resident_metrics(automatic.value, &last) == 0
         && last.command_buffers == 0 && last.encoded_dispatches == 0, "fused failure retained cached diagnostics");
-    require(fpm_pose_resident_mode(automatic.value) == 1, "fused failure reset mode");
+    require(fpm_pose_resident_mode(automatic.value) == FUSED_MODE, "fused failure reset mode");
+    FpmPoseResidentKernelInfo failedInfo{1,1,1};
+    require(fpm_pose_last_resident_kernel(automatic.value,&failedInfo)==0 && failedInfo.threads==0 && failedInfo.threadgroup_bytes==0,"failed call retained kernel diagnostics");
     initial.resize(3*4);
     const auto recovered = run(automatic, initial, options, 0);
     checkScores(f, initial, recovered, 0);
     setMode(automatic, 0);
     checkScores(f, initial, run(automatic, initial, options, 1), 1);
-    setMode(automatic, 1);
+    setMode(automatic, FUSED_MODE);
     checkScores(f, initial, run(automatic, initial, options, 1), 1);
 }
 
 void testRescue()
 {
     const Fixture f = fixture(27, 25);
-    Handle metal(f, 1); setMode(metal, 1);
+    Handle metal(f, 1); setMode(metal, FUSED_MODE);
     const auto initial = seeds(f, 4);
     auto options = config(); options.max_iterations = 2;
     const auto baseline = run(metal, initial, options, 1);
@@ -441,6 +464,8 @@ void testRescue()
             && last.encoded_dispatches == last.command_buffers && last.command_buffers > 0,
             "rescue ignored fused mode or did not aggregate diagnostics");
         require(last.cpu_verified == 1 && diagnostic.selected_backend == 1, "rescue omitted CPU verification or changed backend");
+        FpmPoseResidentKernelInfo info{};fpm_pose_last_resident_kernel(metal.value,&info);
+        require(info.threads==(FUSED_MODE==2?128u:256u) && info.threadgroup_bytes>0,"rescue kernel diagnostics stale");
         require(diagnostic.auxiliary_buffer_bytes > 0 && diagnostic.auxiliary_buffer_bytes <= AUXILIARY_LIMIT,
             "fused rescue memory cap");
         require(diagnostic.reserved_retry_sample_iterations == diagnostic.selected_seeds*perParent
@@ -471,6 +496,36 @@ void testRescue()
     FpmPoseResidentMetrics last{};
     require(fpm_pose_last_resident_metrics(metal.value, &last) == 0
         && last.command_buffers == 0 && last.encoded_dispatches == 0, "CPU rescue retained stale GPU diagnostics");
+    FpmPoseResidentKernelInfo info{1,1,1};fpm_pose_last_resident_kernel(metal.value,&info);
+    require(info.threads==0 && info.threadgroup_bytes==0,"CPU rescue retained GPU kernel info");
+}
+void exactPair(const Result& a,const Result& b)
+{
+    require(a.poses==b.poses && a.scores==b.scores,"SIMD differs from fused reference");
+    for(size_t i=0;i<a.stats.size();++i) require(a.stats[i].iterations==b.stats[i].iterations &&
+        a.stats[i].evaluations==b.stats[i].evaluations && a.stats[i].status==b.stats[i].status,
+        "SIMD changed convergence or work count");
+}
+void testSimdEquivalence()
+{
+    if(FUSED_MODE!=2) return;
+    for(const auto shape:{std::array<int,2>{1,1},{1,33},{35,1},{7,5},{17,31},{31,33},{32,32},{25,41},{31,67},{128,128}}) {
+        const auto f=fixture(shape[0],shape[1]);Handle metal(f,1);
+        auto initial=seeds(f,9);
+        for(int k=0;k<4;++k) initial[k]=float(f.truth[k]);
+        initial[4]=10000;initial[5]=-10000; // inactive degenerate group next to active groups
+        initial[8]=95.25;initial[9]=85.75; // partial image border support
+        auto options=config();options.max_iterations=7;
+        for(int verify:{0,1}) {
+            setMode(metal,1);const auto old=run(metal,initial,options,verify);
+            FpmPoseResidentKernelInfo before{},after{};fpm_pose_last_resident_kernel(metal.value,&before);
+            setMode(metal,2);fpm_pose_last_resident_kernel(metal.value,&after);
+            require(before.threads==after.threads && before.threadgroup_bytes==after.threadgroup_bytes,"setter changed last executed kernel");
+            const auto current=run(metal,initial,options,verify);exactPair(old,current);
+            checkScores(f,initial,current,verify);exactPair(current,run(metal,initial,options,verify));
+        }
+    }
+    require(fpm_pose_last_resident_kernel(nullptr,nullptr)==-1,"null kernel query accepted");
 }
 } // namespace
 
@@ -490,8 +545,8 @@ int main()
         }
         fpm_pose_destroy(available);
         testAccuracyAndSwitching(); testDifficultInputs(); testFrozenAndInwardBounds();
-        testLazyRecoveryAndChunking(); testRescue();
-        std::cout << "Fused gray resident: " << checkedCalls << " GPU calls; independent NCC/GT, baseline switching, "
+        testLazyRecoveryAndChunking(); testRescue(); testSimdEquivalence();
+        std::cout << "Fused mode " << FUSED_MODE << " gray resident: " << checkedCalls << " GPU calls; independent NCC/GT, baseline switching, "
             "strict bounds, degeneracy, lazy guards, 513-pose chunks and bounded rescue passed\n";
         return 0;
     } catch (const std::exception& error) {

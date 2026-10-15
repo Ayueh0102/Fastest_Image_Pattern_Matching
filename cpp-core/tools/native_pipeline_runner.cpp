@@ -54,6 +54,9 @@ QJsonObject record(const Result& r,bool outputs) {
         {"pose_host_bytes",double(r.pose.host_buffer_bytes)},{"pose_gpu_bytes",double(r.pose.gpu_buffer_bytes)},
         {"selected_refinement_backend",r.rescue.selected_backend},{"rescued_seeds",double(r.rescue.selected_seeds)},{"memory",memory()}};
     o["refinement_mode"]=r.refinementMode;
+    o["refinement_threads"]=int(r.residentKernel.threads);
+    o["refinement_simd_width"]=int(r.residentKernel.simd_width);
+    o["refinement_threadgroup_bytes"]=double(r.residentKernel.threadgroup_bytes);
     o["refinement_dispatches"]=double(r.resident.encoded_dispatches);
     o["refinement_command_buffers"]=double(r.resident.command_buffers);
     o["refinement_cpu_waits"]=double(r.resident.cpu_waits);

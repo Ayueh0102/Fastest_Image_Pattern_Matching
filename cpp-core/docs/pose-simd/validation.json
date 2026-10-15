@@ -1,0 +1,27 @@
+{
+  "workers": 64,
+  "expected_workers": 64,
+  "measured_calls": 192,
+  "all_workers_succeeded": true,
+  "exact_proposals_all": true,
+  "exact_resident_final_all": true,
+  "paired_final_all": true,
+  "fused_final_all": true,
+  "cpu_final_comparison_all": true,
+  "route_integrity_all": true,
+  "frontend_identical_all": true,
+  "normal_gt_all": true,
+  "source_binary_input_hashes_unchanged": true,
+  "validation_logs": {
+    "final-release-tests.log": "a10ad404740752bc9923b95cbc8cbdfb58ce579ca7ae35b957bb376b664d218f",
+    "asan-tests.log": "017521f789b4332446d4001df0868cc119229011045cf559e5232e0282ef9b44",
+    "metal-validation.log": "95e9d67a476b156e2919d83889455b1e84ab92387c3ca078d58b69b668b74941",
+    "final-harness-tests.log": "f3d3f37d8b43b0ab399f62d432dc4aef9d46de3a275c9de9646445adff73ad1d",
+    "final-build.log": "12ff1a60b23346d0268566ece54b15f1717c183a9390dae0a4dd53ca9b76a3be",
+    "configure.log": "96d75faae68b30151258ad15f94d330aeee4af38e2050204280153ef6df70142",
+    "asan-configure.log": "08ef7a797db5dea3a55ecdfb74ab819db33b895b50c2e58866bee7d949eae5fc",
+    "asan-rebuild.log": "cf71f81f4d5c4a92983617ad010ef0edc11bfb47feb217cc536d91cba12624ad",
+    "build-initial-failure.log": "90a0c8096b9bdb7e2a02f41eb442cd946f3cf00cf74799da7ac85cf83f06d7a6",
+    "metal-instrumentation-initial-failure.log": "5e8615d1d895950666e43071fe6fc4630a53f21b38d6d4039559ed033e64d8ed"
+  }
+}

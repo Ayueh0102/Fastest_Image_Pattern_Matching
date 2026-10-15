@@ -110,15 +110,26 @@ typedef struct FpmPoseResidentMetrics {
 // Opt-in implementation selection; creation defaults to 0 (original resident
 // kernels). Mode 1 fuses one grayscale candidate into one 256-thread GPU group;
 // supports <=16384 template pixels, chunks of <=512 poses. No automatic fallback.
-// Setting mode 1 rejects CPU handles, RGB and larger templates without changing
+// Mode 2 uses 128 threads with 32-wide SIMD shuffles and compact gray statistics.
+// SIMD width is checked on first dispatch; unsupported devices error, never fall back.
+// Setting mode 1/2 rejects CPU handles, RGB and larger templates without changing
 // the previous setting. Selection does not initialize lazy Metal resources.
 // Existing ABI structs/functions and ordinary score/CPU refine stay unchanged.
 FPM_EXP_API int fpm_pose_set_resident_mode(void* handle, int mode, char* error, int error_capacity);
-FPM_EXP_API int fpm_pose_resident_mode(void* handle); // 0/1; -1 for null
+FPM_EXP_API int fpm_pose_resident_mode(void* handle); // 0/1/2; -1 for null
 // Diagnostics from the most recent explicit resident/rescue call. Rescue sums
 // baseline and retries; auxiliary bytes are their maximum, not their sum.
 // Reset at entry/error; CPU rescue returns zeros. Does not dispatch any work.
 FPM_EXP_API int fpm_pose_last_resident_metrics(void* handle, FpmPoseResidentMetrics* metrics);
+// Actual compiled fused pipeline from the last successful resident/rescue call;
+// zeros for CPU, original multi-kernel mode 0, no call, or failed call. Changing
+// the selected mode alone does not change this record. No compilation or work.
+typedef struct FpmPoseResidentKernelInfo {
+    uint32_t threads;
+    uint32_t simd_width;
+    uint64_t threadgroup_bytes;
+} FpmPoseResidentKernelInfo;
+FPM_EXP_API int fpm_pose_last_resident_kernel(void* handle, FpmPoseResidentKernelInfo* info);
 // GPU owns the local solve, acceptance and stopping decisions. Only Metal or
 // auto handles are supported; CPU handles and unavailable Metal return errors.
 // Auto handles initialize Metal lazily, without applying workload thresholds.

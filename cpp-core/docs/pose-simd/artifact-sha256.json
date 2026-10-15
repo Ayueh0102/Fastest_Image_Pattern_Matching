@@ -1,0 +1,11 @@
+{
+  "archive_sha256": "f5b825dd1dbf95f94b12630cb6392535e06c32bb0a6f5e2d15f922a111f8e11d",
+  "archive_bytes": 35721723,
+  "members": 1071,
+  "all_member_hashes_valid": true,
+  "relocated_summary_byte_identical": true,
+  "summary_sha256": "1feefbacf237829849451a9e67cc67b3bfd749a0c894fbc7250e85d222df7c53",
+  "relocated_recheck_summary_byte_identical": true,
+  "recheck_summary_sha256": "2e38a89c0e3b6474c37856f1835ad6364a7a0c83f6e18a0ec5deae7c27f9bdbb",
+  "validation_details_sha256": "39186d9cb81ec790fa236bc1158520d6d43f01aecabc0523989b2543e9dbc182"
+}

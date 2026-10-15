@@ -302,6 +302,7 @@ struct Context {
     RescueWorkspace rescue;
     std::vector<ResidentSeed> residentSeeds;
     FpmPoseResidentMetrics lastResident{};
+    FpmPoseResidentKernelInfo lastKernel{};
     int residentMode = 0;
     int threads = 1, creationBackend = 0;
 };
@@ -520,7 +521,7 @@ int fpm_pose_set_resident_mode(void* handle, int mode, char* error, int error_ca
 {
     using namespace fpm_exp;
     try {
-        if (!handle || mode < 0 || mode > 1) throw std::invalid_argument("invalid resident implementation mode");
+        if (!handle || mode < 0 || mode > 2) throw std::invalid_argument("invalid resident implementation mode");
         auto& ctx = *static_cast<Context*>(handle);
         if (mode && (ctx.creationBackend == 0 || ctx.data.channels != 1
             || uint64_t(ctx.data.tw)*ctx.data.th > 16384))
@@ -538,6 +539,13 @@ int fpm_pose_last_resident_metrics(void* handle, FpmPoseResidentMetrics* metrics
     if (metrics) *metrics = {};
     if (!handle || !metrics) return -1;
     *metrics = static_cast<fpm_exp::Context*>(handle)->lastResident;
+    return 0;
+}
+int fpm_pose_last_resident_kernel(void* handle, FpmPoseResidentKernelInfo* info)
+{
+    if (info) *info = {};
+    if (!handle || !info) return -1;
+    *info = static_cast<fpm_exp::Context*>(handle)->lastKernel;
     return 0;
 }
 int fpm_pose_memory(void* handle, FpmPoseMetrics* metrics)
@@ -690,7 +698,7 @@ int fpm_pose_refine_resident(void* handle, const float* seeds, int count,
 {
     using namespace fpm_exp;
     const auto begin = Clock::now();
-    if (handle) static_cast<Context*>(handle)->lastResident = {};
+    if (handle) { static_cast<Context*>(handle)->lastResident = {}; static_cast<Context*>(handle)->lastKernel = {}; }
     if (resident_metrics) *resident_metrics = {};
     if (metrics) { *metrics = {}; metrics->device_ms = -1; }
     try {
@@ -792,6 +800,7 @@ int fpm_pose_refine_resident(void* handle, const float* seeds, int count,
         metrics->device_ms = deviceTime;
         metrics->wall_ms = std::chrono::duration<double, std::milli>(Clock::now()-begin).count();
         ctx.lastResident = *resident_metrics;
+        ctx.lastKernel = selected->residentKernelInfo(ctx.residentMode);
         errorMessage(error, error_capacity, "");
         return 0;
     } catch (const std::exception& e) {
@@ -815,7 +824,7 @@ int fpm_pose_refine_rescue(void* handle, const float* seeds, int count,
     static_assert(sizeof(FpmPoseRescueConfig) == 64);
     static_assert(sizeof(FpmPoseRescueMetrics) == 136);
     const auto begin = Clock::now();
-    if (handle) static_cast<Context*>(handle)->lastResident = {};
+    if (handle) { static_cast<Context*>(handle)->lastResident = {}; static_cast<Context*>(handle)->lastKernel = {}; }
     if (rescue_metrics) *rescue_metrics = {};
     if (metrics) { *metrics = {}; metrics->device_ms = -1; }
     try {
@@ -1021,11 +1030,13 @@ int fpm_pose_refine_rescue(void* handle, const float* seeds, int count,
             aggregate.cpu_verified = 1;
         }
         ctx.lastResident = aggregate;
+        // Successful GPU baseline recorded this mode's pipeline; retries use the same pipeline.
+        if (policy.backend == 0) ctx.lastKernel = {};
         errorMessage(error, error_capacity, "");
         return 0;
     } catch (const std::exception& e) {
         if (rescue_metrics) *rescue_metrics = {};
-        if (handle) static_cast<Context*>(handle)->lastResident = {};
+        if (handle) { static_cast<Context*>(handle)->lastResident = {}; static_cast<Context*>(handle)->lastKernel = {}; }
         if (metrics) { *metrics = {}; metrics->device_ms = -1; }
         errorMessage(error, error_capacity, e.what());
         return -1;

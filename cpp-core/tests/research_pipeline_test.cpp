@@ -44,15 +44,15 @@ int main(int argc,char**) {
         require(refined.refinementMode==0,"default refinement mode changed");
         require(metal ? refined.resident.encoded_dispatches>refined.resident.command_buffers : refined.resident.encoded_dispatches==0,"wrong default refinement diagnostics");
         same(refined,session.run(o));
-        if(metal) {
+        if(metal) for(int fusedMode:{1,2}) {
             // Recreate from the original input, not the caller-mutated buffers.
-            source.row(30)[40]^=255;templ.row(0)[0]^=255;
-            Settings fusedSettings=s;fusedSettings.residentMode=1;
+            if(fusedMode==1) {source.row(30)[40]^=255;templ.row(0)[0]^=255;}
+            Settings fusedSettings=s;fusedSettings.residentMode=fusedMode;
             Session fused(source.view(),templ.view(),fusedSettings);
             Options discrete=o;discrete.refine=false;const auto noRefinement=fused.run(discrete);
-            require(noRefinement.refinementMode==1 && noRefinement.resident.encoded_dispatches==0,"selected fused mode lost when refinement disabled");
+            require(noRefinement.refinementMode==fusedMode && noRefinement.resident.encoded_dispatches==0,"selected fused mode lost when refinement disabled");
             const auto result=fused.run(o);
-            require(result.refinementMode==1 && result.resident.command_buffers>0 &&
+            require(result.refinementMode==fusedMode && result.resident.command_buffers>0 &&
                 result.resident.encoded_dispatches==result.resident.command_buffers &&
                 result.resident.cpu_waits==result.resident.command_buffers && result.resident.cpu_verified==1,"fused pipeline route ignored");
             // The .75 bilinear-resized random patch passes the discrete matcher
@@ -74,7 +74,7 @@ int main(int argc,char**) {
         require(rejected,"invalid range accepted");o.match.angleRanges.clear();same(refined,session.run(o));
         o.match.angleRanges={{20,30}};auto restricted=session.run(o);for(auto m:restricted.matches) require(m.angle>=20-1e-5 && m.angle<=30+1e-5,"refinement escaped angle range");
         Settings invalid=s;invalid.scales={0};rejected=false;try{Session broken(source.view(),templ.view(),invalid);}catch(const std::invalid_argument&){rejected=true;}require(rejected,"zero scale accepted");
-        for(int mode:{-1,2}) { invalid=s;invalid.residentMode=mode;rejected=false;try{Session broken(source.view(),templ.view(),invalid);}catch(const std::invalid_argument&){rejected=true;}require(rejected,"invalid resident mode accepted"); }
+        for(int mode:{-1,3}) { invalid=s;invalid.residentMode=mode;rejected=false;try{Session broken(source.view(),templ.view(),invalid);}catch(const std::invalid_argument&){rejected=true;}require(rejected,"invalid resident mode accepted"); }
         invalid=s;invalid.backend=0;invalid.residentMode=1;rejected=false;try{Session broken(source.view(),templ.view(),invalid);}catch(const std::invalid_argument&){rejected=true;}require(rejected,"CPU pipeline accepted fused mode");
         Image odd(5,7);auto half=scaledTemplate(odd.view(),.5);require(half.width()==2 && half.height()==4,"ties-even resize");
         std::cout<<(metal?"Metal":"CPU")<<" native pipeline: scale, source ownership, options, repeated calls, inversion and refinement passed\n";
