@@ -9,6 +9,10 @@ Qt; image codecs and the GUI are optional. The original MFC sources remain below
 See the [version audit](cpp-core/docs/AUDIT_zh-TW.md) for verified porting gaps,
 17 image comparisons, performance costs, and platform limits, and the
 [porting contract](cpp-core/docs/PORTING_zh-TW.md) for future language rewrites.
+The [research review](cpp-core/docs/EXPERIMENT_REVIEW_zh-TW.md) preserves all 18
+experiment stages, including the latest controlled
+[CPU versus Metal refinement comparison](cpp-core/docs/SPARSE_CPU_METAL_zh-TW.md)
+for fixed-scale sparse search.
 
 ## **The best template matching implementation in the world.**
 

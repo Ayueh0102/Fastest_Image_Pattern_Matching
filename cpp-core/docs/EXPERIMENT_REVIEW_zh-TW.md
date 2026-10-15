@@ -1,10 +1,12 @@
 # Template Matching 研究總索引與人工審查指南
 
-整理日期：2026-10-14。前12階段整理 repository 已保存的報告、protocol 與結果；第13階段為 NCC tiling 正式量測，第14階段接入原生尺度 GUI 並驗證組合模式與持續運行，第15階段比較固定尺度的金字塔與原解析度搜尋，第16階段實作稀疏方向全圖提案並比較128物件，第17階段驗證等價回應壓縮。各數字是各輪的證據快照，不是同一輪連續量測；不要將不同輪次的加速比相乘。快速設定摘要見 [目前建議方案](CURRENT_BEST_zh-TW.md)，整體完成範圍與待辦見 [專案狀態](PROJECT_STATUS_zh-TW.md)。
+整理日期：2026-10-15。前12階段整理 repository 已保存的報告、protocol 與結果；第13階段為 NCC tiling 正式量測，第14階段接入原生尺度 GUI 並驗證組合模式與持續運行，第15階段比較固定尺度的金字塔與原解析度搜尋，第16階段實作稀疏方向全圖提案並比較128物件，第17階段驗證等價回應壓縮，第18階段比較稀疏全CPU與Metal精修。各數字是各輪的證據快照，不是同一輪連續量測；不要將不同輪次的加速比相乘。快速設定摘要見 [目前建議方案](CURRENT_BEST_zh-TW.md)，整體完成範圍與待辦見 [專案狀態](PROJECT_STATUS_zh-TW.md)。
 
 ## 目前推薦方案
 
-在本機 Metal 研究流程，以**共享來源金字塔＋批次細搜尋＋精確選峰樹**作為下一次比較的基準：
+固定尺度的新稀疏研究路徑，依第18輪先選CPU，大圖配compact；128物件CPU／Metal打平，尚無通用自動routing門檻。下表屬於原有金字塔流程，其推薦與新稀疏路徑分開判斷。
+
+在本機 Metal 金字塔研究流程，以**共享來源金字塔＋批次細搜尋＋精確選峰樹**作為下一次比較的基準：
 
 | 設定／階段 | 建議值 | 適用界線 |
 |---|---|---|
@@ -246,6 +248,16 @@ Metal Shader Validation另發現導數kernel插裝後共享記憶體超過32KiB�
 **決定：省記憶體研究選項，不全面替換。** 全部速度／記憶體容忍gate通過，但小圖5.19→5.64ms、細線8.09→8.78ms反而較慢。來源表示8N→N，不能說速度快8倍；GUI／金字塔預設不變。Release31/31、ASan／UBSan受影響3/3、Python稽核5/5；新測試85組提案／工作量精確一致，Metal插裝128通過。完整source／binary／input與snapshot SHA、封存換目錄重播通過，初次測試fixture失敗日誌保留。
 
 來源：[實測報告](SPARSE_COMPACT_zh-TW.md)・[數學／agent建議](SPARSE_NEXT_STEPS_MATH_zh-TW.md)・[protocol](sparse-compact/protocol.json)・[結果](sparse-compact/results.json)・[完整源碼與原始封存](sparse-compact/raw-results.tar.gz)。
+
+### 18. 稀疏全CPU與Metal精修對照（2026-10-15整理）
+
+**目的／方法：** 回答目前是否全CPU更快。凍結第17輪`ae0489f`執行期，八圖／compact兩種表示各比較CPU與Metal精修；兩路都用相同CPU稀疏提案，沒有新runtime改動或全GPU搜尋。8重用場景、64新程序、192正式次，兩block正反順序，建立與首次呼叫獨立記錄。
+
+**時間／記憶體／精度：** compact全CPU／混合Metal：小圖1.82／5.47ms，六物件5.62／10.93ms，128物件21.30／21.33ms，4096²132.76／148.13ms。128峰值RSS43.11／55.93MiB，4096²311.31／382.80MiB。原始候選與工作量完全相同，144正常合成姿態兩路皆零FP／FN；CPU最大誤差0.12021px／0.23185°，Metal為0.12119px／0.23170°。128提案鄰域127/128、尺度+4%負控制失敗、無GT實圖24結果保留。
+
+**決定：這條稀疏路徑先採CPU，大圖配compact；128只稱打平。** 其兩block Metal／CPU比分別1.009與0.997，不能訂為穩定勝負或256候選交叉點。4096²只有23提案，來源建圖／搜尋才是主要時間。精修總時間差已量到，copy／wait／device未分開，不宣稱是傳輸主導。GUI預設不變，原密集金字塔建議保留。工具負控制5/5通過；64程序路徑、精度與hash檢查通過；418內容檔封存SHA及換目錄摘要重播通過。前輪C++／Metal測試沒有重報成本輪新跑。
+
+來源：[報告](SPARSE_CPU_METAL_zh-TW.md)・[protocol](sparse-backends/protocol.json)・[全部結果](sparse-backends/results.json)・[驗證](sparse-backends/validation.json)・[完整來源與原始封存](sparse-backends/raw-results.tar.gz)・[封存SHA](sparse-backends/artifact-sha256.json)。
 
 ## 人工審查時應保留的限制
 

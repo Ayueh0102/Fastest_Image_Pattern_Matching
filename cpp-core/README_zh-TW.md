@@ -32,6 +32,7 @@
 - [固定尺度新架構、遮罩FFT與改善方向](docs/FIXED_SCALE_SEARCH_DESIGN_zh-TW.md)
 - [原圖稀疏方向提案：C++實作、128物件與NCC精修比較](docs/SPARSE_ORIENTATION_zh-TW.md)
 - [等價回應壓縮：4K記憶體與效能實測](docs/SPARSE_COMPACT_zh-TW.md)
+- [稀疏CPU／Metal精修對照：多數場景全CPU更快，128物件打平](docs/SPARSE_CPU_METAL_zh-TW.md)
 - [下一步數學推導與agent建議](docs/SPARSE_NEXT_STEPS_MATH_zh-TW.md)
 
 GUI 的完整原始碼位於 `../macos-cli/mainwindow.{h,cpp}` 與 `main.cpp`，使用 Qt6。CLI 可選用 OpenCV 解碼圖片。Qt、OpenCV、C++ 標準函式庫本身並未複製進專案；比對核心沒有呼叫它們的影像演算法，也沒有依賴未提供源碼的 FPM DLL／SO。

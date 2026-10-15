@@ -1,6 +1,8 @@
 # 目前建議使用的方案
 
-更新：2026-10-14，Apple M4 Pro、48 GiB。這頁記錄研究流程的建議設定；不是宣稱所有場景最快。灰階研究流程已可在原生 C++ GUI 選用，GUI 預設仍保留 CPU 原有流程。
+更新：2026-10-15，Apple M4 Pro、48 GiB。這頁記錄研究流程的建議設定；不是宣稱所有場景最快。灰階尺度研究流程已可在原生 C++ GUI 選用，GUI 預設仍保留 CPU 原有流程。
+
+**最新固定尺度稀疏研究路徑，先選 CPU：** 第18輪同一執行期、同候選比較，全CPU對混合Metal精修，小圖1.82／5.47ms、六物件5.62／10.93ms、4096²132.76／148.13ms；128物件21.30／21.33ms幾乎打平，但CPU peak RSS43.11／55.93MiB較低。這些是compact表示；大圖建議配`responseMode=1`，小圖保留八圖比較。64程序／192次、144正常GT姿態兩後端皆零FP／FN；原提案127/128與尺度負控制失敗仍保留。完整[CPU／Metal對照](SPARSE_CPU_METAL_zh-TW.md)。此選項尚未接GUI，不能用其結論改寫以下通用金字塔基準。
 
 **穩定基準：同圖共用金字塔 → Metal 批次粗／細搜尋 → CPU 精確選峰 → GPU 常駐姿態精修 → CPU 最終驗分與有預算救援。** 完整流程仍是 CPU＋GPU 異構；灰階尺度排程、NMS 與運算核心現在都有 C++／Metal 源碼，原 Python 排程保留對照。Fourier 原型尚未改寫成全 C++。
 
@@ -37,4 +39,4 @@ GUI 原生化已完成本輪驗證，但記憶體並非全面優於 Python：8K�
 
 原生 GUI 的使用、組合模式比較與有界持續運行結果見 [第14輪整合報告](GUI_INTEGRATION_AND_STABILITY_zh-TW.md)。
 
-人工 review 請從 [17 階段實驗總索引](EXPERIMENT_REVIEW_zh-TW.md) 開始：每一輪都保留原始資料、比較版本、失敗與採用決定。API 使用例在該索引開頭；完整建置與 GUI 說明見 [README](../README_zh-TW.md)。
+人工 review 請從 [18 階段實驗總索引](EXPERIMENT_REVIEW_zh-TW.md) 開始：每一輪都保留原始資料、比較版本、失敗與採用決定。API 使用例在該索引開頭；完整建置與 GUI 說明見 [README](../README_zh-TW.md)。
