@@ -1,10 +1,10 @@
 # Template Matching 研究總索引與人工審查指南
 
-整理日期：2026-10-15。前12階段整理 repository 已保存的報告、protocol 與結果；第13階段為 NCC tiling 正式量測，第14階段接入原生尺度 GUI 並驗證組合模式與持續運行，第15階段比較固定尺度的金字塔與原解析度搜尋，第16階段實作稀疏方向全圖提案並比較128物件，第17階段驗證等價回應壓縮，第18階段比較稀疏全CPU與Metal精修。各數字是各輪的證據快照，不是同一輪連續量測；不要將不同輪次的加速比相乘。快速設定摘要見 [目前建議方案](CURRENT_BEST_zh-TW.md)，整體完成範圍與待辦見 [專案狀態](PROJECT_STATUS_zh-TW.md)。
+整理日期：2026-10-15。前12階段整理 repository 已保存的報告、protocol 與結果；第13階段為 NCC tiling 正式量測，第14階段接入原生尺度 GUI 並驗證組合模式與持續運行，第15階段比較固定尺度的金字塔與原解析度搜尋，第16階段實作稀疏方向全圖提案並比較128物件，第17階段驗證等價回應壓縮，第18階段比較稀疏全CPU與Metal精修，第19階段實作並驗證Metal稀疏前段。各數字是各輪的證據快照，不是同一輪連續量測；不要將不同輪次的加速比相乘。快速設定摘要見 [目前建議方案](CURRENT_BEST_zh-TW.md)，整體完成範圍與待辦見 [專案狀態](PROJECT_STATUS_zh-TW.md)。
 
 ## 目前推薦方案
 
-固定尺度的新稀疏研究路徑，依第18輪先選CPU，大圖配compact；128物件CPU／Metal打平，尚無通用自動routing門檻。下表屬於原有金字塔流程，其推薦與新稀疏路徑分開判斷。
+固定尺度的新稀疏研究路徑，依第19輪小圖先選CPU，4096²可選Metal前段＋CPU精修，128物件可選Metal前段＋Metal精修；皆配compact，有序候選與原CPU相同，尚無通用自動routing門檻。下表屬於原有金字塔流程，其推薦與新稀疏路徑分開判斷。
 
 在本機 Metal 金字塔研究流程，以**共享來源金字塔＋批次細搜尋＋精確選峰樹**作為下一次比較的基準：
 
@@ -259,7 +259,17 @@ Metal Shader Validation另發現導數kernel插裝後共享記憶體超過32KiB�
 
 來源：[報告](SPARSE_CPU_METAL_zh-TW.md)・[protocol](sparse-backends/protocol.json)・[全部結果](sparse-backends/results.json)・[驗證](sparse-backends/validation.json)・[完整來源與原始封存](sparse-backends/raw-results.tar.gz)・[封存SHA](sparse-backends/artifact-sha256.json)。
 
-**追加局部診斷：** 同binary、小圖5候選與128物件256候選，Metal各7次；兩例皆一次提交／等待、1023個編碼派工。小圖wall3.979ms，encode0.277、wait3.656（內含GPU區間3.529）、CPU驗分0.040；128 wall9.472ms，encode0.281、wait7.880（內含GPU7.767）、CPU驗分1.299。未拆GPU區間的像素／派工／barrier成本，不能說傳輸或CPU編碼主導。全部局部輸出等於同後端救援入口，未改原正式結果；[診斷摘要與來源](sparse-backends/resident-diagnosis.json)、[原始封存](sparse-backends/resident-diagnosis.tar.gz)保留。候選內融合kernel與連續GPU稀疏前段仍為待實驗方向。
+**追加局部診斷：** 同binary、小圖5候選與128物件256候選，Metal各7次；兩例皆一次提交／等待、1023個編碼派工。小圖wall3.979ms，encode0.277、wait3.656（內含GPU區間3.529）、CPU驗分0.040；128 wall9.472ms，encode0.281、wait7.880（內含GPU7.767）、CPU驗分1.299。未拆GPU區間的像素／派工／barrier成本，不能說傳輸或CPU編碼主導。全部局部輸出等於同後端救援入口，未改原正式結果；[診斷摘要與來源](sparse-backends/resident-diagnosis.json)、[原始封存](sparse-backends/resident-diagnosis.tar.gz)保留。當時候選內融合kernel與連續GPU稀疏前段仍為待實驗方向；第19輪已實作GPU前段，融合精修仍未實作。
+
+### 19. Metal稀疏前段與獨立精修後端（2026-10-15）
+
+**目的／實作：** 回答粗略／稀疏搜尋能否放GPU。完整C++／Metal實作來源梯度LUT、OR擴散、角度／位置稀疏整數加總與3×3局部峰值；保留CPU候選排序／空間輪替與原NCC精修。每批至多64角度、4M位置，峰值溢出重試不截斷，僅讀回峰值與統計；沒有神經網路訓練，Liquid／CfC僅作未來時序預測研究。GPU使用預算方向LUT，CPU仍逐像素atan2，不能將收益全歸因GPU硬體。
+
+**資料／時間／記憶體／精度：** 凍結ae0489f CPU、新CPU、Metal前段＋CPU、Metal前段＋Metal四路；8重用場景、64新程序／192次正式。4096²新CPU142.08→混合CPU15.66ms、RSS311.27→255.26MiB；128物件新CPU23.76→混合Metal11.03ms、RSS43.58→50.21MiB。小圖CPU1.81／混合CPU2.83／混合Metal5.82ms，細線與無GT實圖CPU仍最快。候選順序／整數工作量全等，CPU最終結果逐值等於凍結版；144正常GT姿態四路皆零FP／FN。128提案127/128、尺度+4%負控制嚴格TP0／FP1／FN1、無GT實圖24結果保留。
+
+**決定：大圖／大量物件的可用研究選項，不全面替換。** 小圖慢57%但仍在2ms容忍內，不能以gate通過稱加速；混合Metal的5個小場景速度gate失敗，所有RSS gate通過。GUI與金字塔預設不變。下一個對照應讓CPU也用相同方向LUT，再研究減少同步與精修融合。Release32/32、相關ASan／UBSan3/3、Metal57組精確性及Python負控制7/7通過；正式source／binary／input與snapshot SHA未變，631內容檔封存與換目錄摘要逐byte重播通過。
+
+來源：[完整報告](SPARSE_METAL_FRONTEND_zh-TW.md)・[Liquid／固定運算圖研究](SPARSE_GPU_ARCHITECTURE_zh-TW.md)・[protocol](sparse-metal/protocol.json)・[結果](sparse-metal/results.json)・[驗證](sparse-metal/validation.json)・[完整來源與原始封存](sparse-metal/raw-results.tar.gz)・[封存SHA](sparse-metal/artifact-sha256.json)。
 
 ## 人工審查時應保留的限制
 

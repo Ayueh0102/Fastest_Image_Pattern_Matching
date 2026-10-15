@@ -64,7 +64,11 @@ QJsonObject record(const Result& r,bool outputs) {
     if(r.sparseEnabled) {
         const auto& s=r.sparse;
         o["sparse"]=QJsonObject{{"enabled",true},{"source_levels",1},{"feature_count",s.featureCount},
-            {"response_mode",s.responseMode},{"lookup_bytes",double(s.lookupBytes)},
+            {"response_mode",s.responseMode},{"lookup_bytes",double(s.lookupBytes)},{"search_backend",s.selectedBackend},
+            {"gpu_setup_ms",s.gpuSetupMs},{"upload_ms",s.uploadMs},{"encode_ms",s.encodeMs},{"wait_ms",s.waitMs},
+            {"device_ms",s.deviceMs},{"readback_ms",s.readbackMs},{"gpu_buffer_bytes",double(s.gpuBufferBytes)},
+            {"command_buffers",double(s.commandBuffers)},{"dispatches",double(s.dispatches)},
+            {"cpu_waits",double(s.cpuWaits)},{"peak_overflow_retries",double(s.peakOverflowRetries)},
             {"angle_count",s.angleCount},{"candidate_count",double(r.proposals.size())},
             {"source_prepare_ms",s.sourcePrepareMs},{"search_ms",s.searchMs},{"select_ms",s.selectMs},
             {"template_bytes",double(s.templateBytes)},{"source_bytes",double(s.sourceBytes)},
@@ -101,6 +105,7 @@ int main(int argc,char** argv) {
         settings.sparse.minScore=j["sparse_threshold"].toDouble(.75);
         settings.sparse.candidateCap=j["sparse_candidate_limit"].toInt(256);
         settings.sparse.responseMode=j["sparse_response_mode"].toInt(0);
+        settings.sparse.searchBackend=j["sparse_search_backend"].toInt(0);
         settings.cpuThreads=j["cpu_threads"].toInt(8);settings.sparse.cpuThreads=settings.cpuThreads;
         Options o;o.nccMode=j["ncc_mode"].toInt();o.overlap=j["overlap_enabled"].toBool();o.refine=j["refine"].toBool(true);
         o.match.maxTargets=j["limit"].toInt(70);o.match.minScore=j["score"].toDouble(.8);o.match.maxOverlap=j["overlap"].toDouble(.2);o.match.toleranceAngle=j["angle"].toDouble(180);

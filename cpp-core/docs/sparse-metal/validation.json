@@ -1,0 +1,18 @@
+{
+  "workers": 64,
+  "expected_workers": 64,
+  "measured_calls": 192,
+  "all_workers_succeeded": true,
+  "exact_proposals_all": true,
+  "exact_cpu_final_all": true,
+  "route_integrity_all": true,
+  "normal_gt_all": true,
+  "source_binary_input_hashes_unchanged": true,
+  "validation_logs": {
+    "release-tests.log": "bdefb05ac69d77fa53fb49cc78d8d9f623b52330efabd14142f4fd6106f55a03",
+    "asan-tests.log": "3b09234cc87da38b515e2126a9a24b37f549535927f15b78429009e999a2245c",
+    "metal-validation.log": "19651b2035ec852c9ccbe17b2fd38bf087a8fc1c6cc57441250578ac0e4cf4bc",
+    "tests-python.log": "fc41c2d7414818ab5d13f3f01f18f38944cf291a2faf3ccfa9ee0395fabeaa44",
+    "build-final.log": "63c0ff561e67a5d3e9a4e44563f7102ab63902541f56ffbe3b23db93dc0c3599"
+  }
+}

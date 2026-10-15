@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: BSD-2-Clause
 #include "sparse_orientation.hpp"
+#ifdef FPM_SPARSE_METAL
+#include "sparse_orientation_metal.hpp"
+#endif
 
 #include <algorithm>
 #include <array>
@@ -35,7 +38,9 @@ void validateSettings(const SparseOrientationSettings& s) {
     if (s.featureCount < 1 || s.featureCount > 4096 || s.positionStride < 1 ||
         s.positionStride > 64 || s.spreadRadius < 0 || s.spreadRadius > 16 ||
         s.candidateCap < 1 || s.candidateCap > 1000000 || s.cpuThreads < 1 ||
-        s.cpuThreads > 64 || s.responseMode < 0 || s.responseMode > 1 || !std::isfinite(s.angleStepDegrees) ||
+        s.cpuThreads > 64 || s.responseMode < 0 || s.responseMode > 1 ||
+        s.searchBackend < 0 || s.searchBackend > 1 ||
+        (s.searchBackend == 1 && s.responseMode != 1) || !std::isfinite(s.angleStepDegrees) ||
         s.angleStepDegrees < .1 || s.angleStepDegrees > 180 ||
         !std::isfinite(s.minGradient) || s.minGradient <= 0 ||
         !std::isfinite(s.minScore) || s.minScore <= 0 || s.minScore > 1)
@@ -222,12 +227,37 @@ struct SparseOrientationPattern::Impl {
     int width=0,height=0;
     SparseOrientationSettings settings;
     std::vector<Feature> features;
+#ifdef FPM_SPARSE_METAL
+    std::shared_ptr<detail::SparseMetalBackend> metal;
+#endif
 };
 SparseOrientationPattern::SparseOrientationPattern(ImageView image,const SparseOrientationSettings& settings) {
     validateImage(image);validateSettings(settings);
     auto model=std::make_shared<Impl>();
     model->width=image.width;model->height=image.height;model->settings=settings;
-    model->features=learnFeatures(image,settings);impl_=std::move(model);
+    model->features=learnFeatures(image,settings);
+    if (settings.searchBackend == 1) {
+#ifdef FPM_SPARSE_METAL
+      if(!model->features.empty()) {
+        // Gray8 central differences have only 511^2 possible signed input
+        // pairs. Precompute the exact CPU threshold and angle classification,
+        // so the GPU never approximates atan2 or half-bin rounding.
+        std::vector<std::uint8_t> gradients(511*511),responses;
+        for(int dy=-255;dy<=255;++dy) for(int dx=-255;dx<=255;++dx) {
+            const double gx=dx*.5,gy=dy*.5;
+            if(gx*gx+gy*gy>=settings.minGradient*settings.minGradient)
+                gradients[std::size_t(dy+255)*511+dx+255]=
+                    std::uint8_t(1u<<orientationBin(std::atan2(gy,gx)));
+        }
+        responses.reserve(2048);
+        for(const auto& row:responseLookup()) responses.insert(responses.end(),row.begin(),row.end());
+        model->metal=detail::makeSparseMetalBackend(gradients,responses);
+      }
+#else
+        throw std::runtime_error("Metal sparse search is not compiled on this platform");
+#endif
+    }
+    impl_=std::move(model);
 }
 SparseOrientationPattern::~SparseOrientationPattern()=default;
 int SparseOrientationPattern::featureCount() const { return int(impl_->features.size()); }
@@ -244,12 +274,13 @@ SparseOrientationResult SparseOrientationPattern::search(ImageView source,const 
     SparseOrientationResult result;auto& metrics=result.metrics;
     metrics.templateBytes=templateBytes();metrics.featureCount=featureCount();metrics.angleCount=int(angles.size());
     metrics.responseMode=settings.responseMode;
+    metrics.selectedBackend=settings.searchBackend;
     if (model.features.empty()) return result;
     auto start=Clock::now();
     const auto& lookup=responseLookup();
     metrics.lookupBytes=sizeof(lookup);
     std::uint64_t prepareBytes=0;
-    const auto maps=responseMaps(source,settings,prepareBytes);
+    const auto maps=settings.searchBackend==0?responseMaps(source,settings,prepareBytes):std::vector<std::uint8_t>{};
     const std::size_t imageSize=std::size_t(source.width)*source.height;
     metrics.sourceBytes=maps.capacity();
     // Compact mode retains the spread mask from the three construction planes;
@@ -259,6 +290,7 @@ SparseOrientationResult SparseOrientationPattern::search(ImageView source,const 
     metrics.sourcePrepareMs=milliseconds(start);
     start=Clock::now();
     std::vector<AngleResult> angleResults(angles.size());
+    std::uint64_t gpuHostWorkspace=0;
     std::atomic<std::size_t> nextAngle{0};
     std::exception_ptr failure;std::mutex failureMutex;
     const int workers=std::min<int>(settings.cpuThreads,int(angles.size()));
@@ -340,11 +372,63 @@ SparseOrientationResult SparseOrientationPattern::search(ImageView source,const 
             else scanAngles(std::false_type{});
         } catch (...) { std::lock_guard<std::mutex> lock(failureMutex);if(!failure) failure=std::current_exception(); }
     };
-    std::vector<std::thread> threads;
-    try { for (int i=1;i<workers;++i) threads.emplace_back(worker); }
-    catch (...) { for(auto& thread:threads) thread.join();throw; }
-    worker();for(auto& thread:threads) thread.join();
-    if (failure) std::rethrow_exception(failure);
+    if(settings.searchBackend==0) {
+        std::vector<std::thread> threads;
+        try { for (int i=1;i<workers;++i) threads.emplace_back(worker); }
+        catch (...) { for(auto& thread:threads) thread.join();throw; }
+        worker();for(auto& thread:threads) thread.join();
+        if (failure) std::rethrow_exception(failure);
+    } else {
+#ifdef FPM_SPARSE_METAL
+        if(imageSize>std::size_t(INT32_MAX))
+            throw std::invalid_argument("Metal sparse image exceeds signed 32-bit indexing");
+        std::vector<detail::SparseMetalAngle> plans(angles.size());
+        for(std::size_t i=0;i<angles.size();++i) {
+            auto& plan=plans[i];
+            const double radians=angles[i]*pi/180,c=std::cos(radians),s=std::sin(radians);
+            const double halfWidth=(std::abs(c)*model.width+std::abs(s)*model.height)*.5;
+            const double halfHeight=(std::abs(s)*model.width+std::abs(c)*model.height)*.5;
+            const int minX=int(std::ceil(halfWidth-1e-9)),maxX=int(std::floor(source.width-halfWidth+1e-9));
+            const int minY=int(std::ceil(halfHeight-1e-9)),maxY=int(std::floor(source.height-halfHeight+1e-9));
+            if(minX>maxX || minY>maxY) continue;
+            for(int x=minX;x<=maxX;) {plan.xs.push_back(x);if(maxX-x<settings.positionStride)break;x+=settings.positionStride;}
+            for(int y=minY;y<=maxY;) {plan.ys.push_back(y);if(maxY-y<settings.positionStride)break;y+=settings.positionStride;}
+            if(plan.xs.back()!=maxX)plan.xs.push_back(maxX);
+            if(plan.ys.back()!=maxY)plan.ys.push_back(maxY);
+            for(const auto& f:model.features) {
+                const int x=int(std::lround(c*f.x+s*f.y)),y=int(std::lround(-s*f.x+c*f.y));
+                const auto offset=std::int64_t(y)*source.width+x;
+                if(offset<INT32_MIN || offset>INT32_MAX)throw std::invalid_argument("Metal sparse feature offset overflow");
+                plan.features.push_back({std::int32_t(offset),std::uint32_t(orientationBin(f.direction-radians))});
+            }
+        }
+        const auto gpu=model.metal->search(source,plans,settings.spreadRadius,requiredScore);
+        if(gpu.angles.size()!=angles.size()) throw std::runtime_error("Metal sparse result angle count differs");
+        metrics.sourcePrepareMs=gpu.metrics.sourcePrepareMs;
+        metrics.sourceBytes=gpu.metrics.sourcePrepareMs>0?imageSize:0;
+        metrics.gpuSetupMs=gpu.metrics.setupMs;metrics.uploadMs=gpu.metrics.uploadMs;
+        metrics.encodeMs=gpu.metrics.encodeMs;metrics.waitMs=gpu.metrics.waitMs;
+        metrics.deviceMs=gpu.metrics.deviceMs;metrics.readbackMs=gpu.metrics.readbackMs;
+        metrics.gpuBufferBytes=gpu.metrics.gpuBufferBytes;metrics.commandBuffers=gpu.metrics.commandBuffers;
+        metrics.dispatches=gpu.metrics.dispatches;metrics.cpuWaits=gpu.metrics.cpuWaits;
+        metrics.peakOverflowRetries=gpu.metrics.peakOverflowRetries;
+        for(std::size_t i=0;i<angles.size();++i) {
+            const auto& from=gpu.angles[i];auto& out=angleResults[i];
+            out.windows=from.windows;out.evaluations=from.evaluations;out.survivors=from.survivors;
+            out.workingBytes=plans[i].features.capacity()*sizeof(detail::SparseMetalFeature)+
+                (plans[i].xs.capacity()+plans[i].ys.capacity())*sizeof(std::int32_t)+
+                from.peaks.capacity()*sizeof(detail::SparseMetalPeak);
+            gpuHostWorkspace+=out.workingBytes;
+            for(const auto& peak:from.peaks) {
+                if(peak.xIndex>=plans[i].xs.size() || peak.yIndex>=plans[i].ys.size())
+                    throw std::runtime_error("Metal sparse peak outside search grid");
+                out.candidates.push_back({plans[i].xs[peak.xIndex],plans[i].ys[peak.yIndex],angles[i],double(peak.score)/totalScore});
+            }
+            out.candidates=diverseLimit(std::move(out.candidates),std::size_t(settings.candidateCap)*2,
+                source.width,source.height,tileSize);
+        }
+#endif
+    }
     std::vector<Candidate> candidates;
     std::uint64_t maxWorkerBytes=0,candidateBytes=0;
     for (auto& one : angleResults) {
@@ -356,9 +440,11 @@ SparseOrientationResult SparseOrientationPattern::search(ImageView source,const 
     // Accounted allocation estimate, not an allocator peak or OS RSS bound.
     // Temporary selection indices and nested vector spare capacities are not
     // completely accounted here; benchmark process RSS must be measured too.
-    metrics.workingBytes=std::max(metrics.workingBytes,metrics.lookupBytes+metrics.sourceBytes+maxWorkerBytes*workers+
+    const auto sourceAndWork=settings.searchBackend?metrics.gpuBufferBytes+gpuHostWorkspace:
+        metrics.sourceBytes+maxWorkerBytes*workers;
+    metrics.workingBytes=std::max(metrics.workingBytes,metrics.lookupBytes+sourceAndWork+
         candidateBytes+candidates.capacity()*sizeof(Candidate));
-    metrics.searchMs=milliseconds(start);start=Clock::now();
+    metrics.searchMs=milliseconds(start)-(settings.searchBackend?metrics.sourcePrepareMs:0.);start=Clock::now();
     std::sort(candidates.begin(),candidates.end(),better);
     std::vector<Candidate> distinct;distinct.reserve(candidates.size());
     const double spatialRadius=std::max(double(settings.positionStride)*1.5,std::min(model.width,model.height)*.15);
@@ -382,7 +468,8 @@ SparseOrientationResult SparseOrientationPattern::search(ImageView source,const 
     const auto selected=diverseLimit(std::move(distinct),settings.candidateCap,source.width,source.height,tileSize);
     result.proposals.reserve(selected.size());
     for (const auto& p : selected) result.proposals.push_back(makeMatch(p,model.width,model.height));
-    metrics.workingBytes=std::max(metrics.workingBytes,metrics.lookupBytes+metrics.sourceBytes+candidateBytes+
+    metrics.workingBytes=std::max(metrics.workingBytes,metrics.lookupBytes+
+        (settings.searchBackend?metrics.gpuBufferBytes:metrics.sourceBytes)+candidateBytes+
         candidates.capacity()*sizeof(Candidate)*2+cells.capacity()*sizeof(std::vector<std::size_t>)+
         candidates.size()*sizeof(std::size_t)+result.proposals.capacity()*sizeof(Match));
     metrics.selectMs=milliseconds(start);

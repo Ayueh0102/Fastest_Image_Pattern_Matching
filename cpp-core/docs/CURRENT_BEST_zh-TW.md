@@ -2,7 +2,9 @@
 
 更新：2026-10-15，Apple M4 Pro、48 GiB。這頁記錄研究流程的建議設定；不是宣稱所有場景最快。灰階尺度研究流程已可在原生 C++ GUI 選用，GUI 預設仍保留 CPU 原有流程。
 
-**最新固定尺度稀疏研究路徑，先選 CPU：** 第18輪同一執行期、同候選比較，全CPU對混合Metal精修，小圖1.82／5.47ms、六物件5.62／10.93ms、4096²132.76／148.13ms；128物件21.30／21.33ms幾乎打平，但CPU peak RSS43.11／55.93MiB較低。這些是compact表示；大圖建議配`responseMode=1`，小圖保留八圖比較。64程序／192次、144正常GT姿態兩後端皆零FP／FN；原提案127/128與尺度負控制失敗仍保留。完整[CPU／Metal對照](SPARSE_CPU_METAL_zh-TW.md)。此選項尚未接GUI，不能用其結論改寫以下通用金字塔基準。
+**最新固定尺度稀疏研究路徑，按場景選CPU／Metal前段：** 第19輪已將方向建圖、稀疏評分與局部選峰搬到Metal，候選整理仍在CPU，精修可獨立選後端。同建置比較：4096²全CPU142.08→Metal前段＋CPU精修15.66ms（9.07倍），RSS311.27→255.26MiB；128物件全CPU23.76→Metal前段＋Metal精修11.03ms（2.15倍），RSS43.58→50.21MiB。小圖全角CPU1.81ms仍優於混合CPU2.83ms與混合Metal5.82ms，細線與本輪實圖也先用CPU。`responseMode=1`、`searchBackend=1`選Metal前段，`backend=0/1`獨立選CPU／Metal精修；沒有通用自動分流門檻。
+
+64程序／192次正式量測的有序候選與工作量完全一致；144正常GT姿態皆零FP／FN，原提案127/128與尺度負控制失敗仍保留。Release32/32與相關ASan／UBSan、Metal驗證通過。完整[新前段實測與來源](SPARSE_METAL_FRONTEND_zh-TW.md)、[Liquid NN／固定運算圖研究](SPARSE_GPU_ARCHITECTURE_zh-TW.md)。此路徑尚未接GUI，不能用其結論改寫以下通用金字塔基準；前一輪[CPU前段＋CPU／Metal精修](SPARSE_CPU_METAL_zh-TW.md)的CPU建議保留為歷史比較。新GPU前段也使用預算方向LUT，而CPU尚用逐像素atan2；收益同時含數學化簡與平行化，還須補同LUT的優化CPU對照。
 
 **穩定基準：同圖共用金字塔 → Metal 批次粗／細搜尋 → CPU 精確選峰 → GPU 常駐姿態精修 → CPU 最終驗分與有預算救援。** 完整流程仍是 CPU＋GPU 異構；灰階尺度排程、NMS 與運算核心現在都有 C++／Metal 源碼，原 Python 排程保留對照。Fourier 原型尚未改寫成全 C++。
 
@@ -39,4 +41,4 @@ GUI 原生化已完成本輪驗證，但記憶體並非全面優於 Python：8K�
 
 原生 GUI 的使用、組合模式比較與有界持續運行結果見 [第14輪整合報告](GUI_INTEGRATION_AND_STABILITY_zh-TW.md)。
 
-人工 review 請從 [18 階段實驗總索引](EXPERIMENT_REVIEW_zh-TW.md) 開始：每一輪都保留原始資料、比較版本、失敗與採用決定。API 使用例在該索引開頭；完整建置與 GUI 說明見 [README](../README_zh-TW.md)。
+人工 review 請從 [19 階段實驗總索引](EXPERIMENT_REVIEW_zh-TW.md) 開始：每一輪都保留原始資料、比較版本、失敗與採用決定。API 使用例在該索引開頭；完整建置與 GUI 說明見 [README](../README_zh-TW.md)。
