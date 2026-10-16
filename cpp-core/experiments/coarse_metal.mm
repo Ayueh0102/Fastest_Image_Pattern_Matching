@@ -3,6 +3,7 @@
 #include "coarse_metal_source.hpp"
 #include "fine_sampling.hpp"
 #include "fine_request_profile.hpp"
+#include "fine_statistics_repair.hpp"
 #import <Foundation/Foundation.h>
 #import <Metal/Metal.h>
 #include <algorithm>
@@ -12,6 +13,7 @@
 #include <cmath>
 #include <cstring>
 #include <limits>
+#include <optional>
 #include <stdexcept>
 
 namespace fpm_coarse_detail {
@@ -69,6 +71,8 @@ class MetalBackend final : public Backend {
     FpmFineReuseMetricsV1 fineReuse_{};
     bool fineProfiling_ = false, fineAngleReuse_ = false;
     FpmFineSearchMetricsV1 fineSearch_{};
+    bool fineFused_ = false;
+    FpmFineFusionMetricsV1 fineFusion_{};
     FineRequestProfiler fineRequestProfiler_;
     id<MTLBuffer> fineRows_;
     id<MTLBuffer> source_, batchSource_, template_, workspace_;
@@ -238,7 +242,7 @@ public:
     void resetMetrics() override {
         drainCoarseBatches();
         metrics_ = {}; executionMetrics_ = {}; fineMetrics_ = {}; fineReuse_ = {};
-        fineSearch_ = {}; fineRequestProfiler_.reset();
+        fineSearch_ = {}; fineRequestProfiler_.reset(); fineFusion_ = {};
         overlapMetrics_ = {}; firstCoarseGpuStart_ = lastCoarseGpuEnd_ = 0;
         // A shared frame may visit new pattern objects at recycled addresses.
         // Revalidate template content once per model; source-frame identities
@@ -248,7 +252,7 @@ public:
     void invalidateFineSource() override {
         drainCoarseBatches();
         fineSources_.clear(); nextFineSourceBuffer_ = 0;
-        fineSearch_ = {}; fineRequestProfiler_.reset();
+        fineSearch_ = {}; fineRequestProfiler_.reset(); fineFusion_ = {};
     }
     void setCoarseOptimization(int peakMode, int nccMode) override {
         requireCoarseIdle();
@@ -371,9 +375,19 @@ public:
     void setFineSearchOptions(bool profiling, bool reuse) override {
         requireCoarseIdle();
         if (profiling != fineProfiling_ || reuse != fineAngleReuse_) {
-            fineSearch_ = {}; fineRequestProfiler_.reset();
+            fineSearch_ = {}; fineRequestProfiler_.reset(); fineFusion_ = {};
         }
         fineProfiling_ = profiling; fineAngleReuse_ = reuse;
+    }
+    void setFineFused(bool enabled) override {
+        requireCoarseIdle();
+        if (enabled != fineFused_) { fineFusion_ = {}; fineSearch_ = {}; fineRequestProfiler_.reset(); }
+        fineFused_ = enabled;
+    }
+    FpmFineFusionMetricsV1 fineFusionMetrics() const override {
+        auto m = fineFusion_; m.version = 1; m.struct_bytes = sizeof(m); m.enabled = fineFused_;
+        if (!m.fused_batches) m.fused_device_ms = -1;
+        return m;
     }
     bool fineAngleReuseEnabled() const override { return fineAngleReuse_; }
     void recordFineAngleReuse(uint64_t requested, uint64_t reused, uint64_t cacheBytes) override {
@@ -383,6 +397,7 @@ public:
     FpmFineSearchMetricsV1 fineSearchMetrics() const override {
         auto m = fineSearch_; m.version = 1; m.struct_bytes = sizeof(m);
         m.profiling_enabled = fineProfiling_; m.angle_reuse_enabled = fineAngleReuse_;
+        if (fineFused_) m.warp_device_ms = -1; // Combined command has no separate warp timestamp.
         if (fineProfiling_) {
             const auto s = fineRequestProfiler_.stats();
             m.calls = s.calls; m.requests = s.requests;
@@ -395,6 +410,7 @@ public:
     }
     FpmFineReuseMetricsV1 fineReuseMetrics() const override {
         auto m = fineReuse_; m.version = 1; m.struct_bytes = sizeof(m); m.ncc_mode = fineNccMode_;
+        if (fineFused_) m.stats_device_ms = -1; // Combined warp+NCC time is in fusion metrics.
         m.row_buffer_bytes = fineRows_ ? fineRows_.length : 0;
         return m;
     }
@@ -632,6 +648,64 @@ public:
                 if (fineProfiling_) fineSearch_.descriptor_ms += descriptorMs;
                 const FineWarpConfig warpConfig{uint32_t(source.width), uint32_t(source.height),
                     uint32_t(rw), uint32_t(rh), uint32_t(roiPixels), uint32_t(roiStride), uint32_t(count), 0};
+                auto encodeStatistics = [&](id<MTLCommandBuffer> statsCommand) {
+                    const auto nccEncode = Clock::now();
+                    const id<MTLComputePipelineState> pipeline = fineNccMode_ >= 2 ?
+                        (use32 ? fineStrip32_[fineNccMode_ - 2] : fineStrip64_[fineNccMode_ - 2]) :
+                        (fineNccMode_ == 1 ? (use32 ? fineShared32_ : fineShared64_) : (use32 ? fineStats32_ : fineStats64_));
+                    const NSUInteger simdWidth = pipeline.threadExecutionWidth;
+                    if (!simdWidth || simdWidth > 1024 || pipeline.maxTotalThreadsPerThreadgroup < simdWidth)
+                        throw std::runtime_error("fine NCC SIMD width exceeds exact reduction limits");
+                    const NSUInteger groupsPerThreadgroup = std::min<NSUInteger>(8,
+                        pipeline.maxTotalThreadsPerThreadgroup / simdWidth);
+                    const FineStatsConfig statsConfig{uint32_t(rw), uint32_t(tw), uint32_t(th), uint32_t(outputWidth),
+                        uint32_t(roiStride), uint32_t(windowsPerMap), uint32_t(count), 0};
+                    if (fineNccMode_ == 1) {
+                        const auto rowPipeline = use32 ? fineRows32_ : fineRows64_;
+                        const auto rowWidth = rowPipeline.threadExecutionWidth;
+                        const auto rowGroups = std::min<NSUInteger>(8, rowPipeline.maxTotalThreadsPerThreadgroup / rowWidth);
+                        const size_t groups = (count * size_t(rh) + rowGroups - 1) / rowGroups;
+                        if (groups > std::numeric_limits<uint32_t>::max() / (rowGroups * rowWidth))
+                            throw std::invalid_argument("fine row dispatch exceeds uint32 indices");
+                        id<MTLComputeCommandEncoder> rowEncoder = [statsCommand computeCommandEncoder];
+                        if (!rowEncoder) throw std::runtime_error("fine row encoder creation failed");
+                        [rowEncoder setComputePipelineState:rowPipeline];
+                        [rowEncoder setBuffer:fineRois_ offset:0 atIndex:0];
+                        [rowEncoder setBuffer:fineRows_ offset:0 atIndex:1];
+                        [rowEncoder setBytes:&statsConfig length:sizeof(statsConfig) atIndex:2];
+                        [rowEncoder dispatchThreadgroups:MTLSizeMake(groups,1,1)
+                            threadsPerThreadgroup:MTLSizeMake(rowGroups * rowWidth,1,1)];
+                        [rowEncoder endEncoding];
+                        ++fineReuse_.row_dispatches;
+                        // Shared buffers use tracked hazards. A following encoder
+                        // in the SAME command buffer observes the completed rows;
+                        // neither a second commit nor a CPU wait is needed.
+                    }
+                    id<MTLComputeCommandEncoder> statsEncoder = [statsCommand computeCommandEncoder];
+                    if (!statsEncoder) throw std::runtime_error("fine NCC encoder creation failed");
+                    [statsEncoder setComputePipelineState:pipeline];
+                    [statsEncoder setBuffer:fineRois_ offset:0 atIndex:0];
+                    [statsEncoder setBuffer:fineTemplate_ offset:0 atIndex:1];
+                    [statsEncoder setBuffer:fineStatistics_ offset:0 atIndex:2];
+                    [statsEncoder setBytes:&statsConfig length:sizeof(statsConfig) atIndex:3];
+                    if (fineNccMode_ == 1) [statsEncoder setBuffer:fineRows_ offset:0 atIndex:4];
+                    // Strip mode owns 4+3 windows per row: 14 complete groups/map.
+                    // Original modes own one window/group. Full threadgroups keep
+                    // reductions complete; padded groups return uniformly.
+                    static_assert(outputWidth == 7, "fine strip kernels require a 7x7 map");
+                    const size_t groupsPerMap = fineNccMode_ >= 2 ? size_t(outputWidth) * 2 : windowsPerMap;
+                    [statsEncoder dispatchThreadgroups:MTLSizeMake(
+                        (count * groupsPerMap + groupsPerThreadgroup - 1) / groupsPerThreadgroup, 1, 1)
+                        threadsPerThreadgroup:MTLSizeMake(groupsPerThreadgroup * simdWidth, 1, 1)];
+                    [statsEncoder endEncoding];
+                    const double nccEncodeMs = elapsed(nccEncode);
+                    fineMetrics_.encode_ms += nccEncodeMs;
+                    if (fineProfiling_) fineSearch_.ncc_encode_ms += nccEncodeMs;
+                    ++fineReuse_.statistics_dispatches;
+                };
+                const bool fused = fineFused_ && std::none_of(plans.begin(), plans.end(),
+                    [](const FineWarpPlan& p) { return p.descriptor.repairAll != 0; });
+                if (fineFused_ && !fused) ++fineFusion_.fallback_batches;
                 const auto warpEncode = Clock::now();
                 id<MTLCommandBuffer> warpCommand = [queue_ commandBuffer];
                 if (!warpCommand) throw std::runtime_error("fine warp command buffer creation failed");
@@ -649,13 +723,28 @@ public:
                 [warpEncoder endEncoding];
                 const double warpEncodeMs = elapsed(warpEncode);
                 fineMetrics_.encode_ms += warpEncodeMs;
+                // Tracked shared resources and separate encoders preserve
+                // warp -> statistics ordering within this single submission.
+                const auto fusedNccStart = Clock::now();
+                double fusedNccMs = 0;
+                if (fused) encodeStatistics(warpCommand);
                 const double beforeWarpWait = fineMetrics_.wait_ms;
-                finishFineCommand(warpCommand, "fine guarded warp execution");
+                finishFineCommand(warpCommand, fused ? "fine fused warp/NCC execution" : "fine guarded warp execution");
+                if (fused) {
+                    ++fineFusion_.fused_batches;
+                    fineFusion_.fused_wait_ms += fineMetrics_.wait_ms - beforeWarpWait;
+                    fusedNccMs = elapsed(fusedNccStart);
+                    fineMetrics_.ncc_ms += fusedNccMs;
+                    if (warpCommand.GPUEndTime > warpCommand.GPUStartTime && warpCommand.GPUStartTime > 0) {
+                        if (fineFusion_.fused_device_ms >= 0)
+                            fineFusion_.fused_device_ms += 1000 * (warpCommand.GPUEndTime - warpCommand.GPUStartTime);
+                    } else fineFusion_.fused_device_ms = -1;
+                }
                 if (fineProfiling_) {
                     fineSearch_.warp_encode_ms += warpEncodeMs;
-                    fineSearch_.warp_wait_ms += fineMetrics_.wait_ms - beforeWarpWait;
+                    if (!fused) fineSearch_.warp_wait_ms += fineMetrics_.wait_ms - beforeWarpWait;
                     ++fineSearch_.warp_batches;
-                    if (warpCommand.GPUEndTime > warpCommand.GPUStartTime && warpCommand.GPUStartTime > 0) {
+                    if (!fused && warpCommand.GPUEndTime > warpCommand.GPUStartTime && warpCommand.GPUStartTime > 0) {
                         if (fineSearch_.warp_device_ms >= 0)
                             fineSearch_.warp_device_ms += 1000 * (warpCommand.GPUEndTime - warpCommand.GPUStartTime);
                     } else fineSearch_.warp_device_ms = -1;
@@ -677,6 +766,12 @@ public:
                     fineSearch_.guard_words += guardWords;
                 }
                 const auto* guards = static_cast<const uint32_t*>(fineGuards_.contents);
+                std::array<uint32_t, 1024> changedCounts;
+                if (fused) std::fill_n(changedCounts.begin(), count, 0);
+                std::optional<FineStatisticsRepair> statisticsRepair;
+                if (fused) statisticsRepair.emplace(templ.image.view().data, tw, th, templ.image.view().stride);
+                auto* statistics32 = static_cast<Stats32*>(fineStatistics_.contents);
+                auto* statistics64 = static_cast<Stats64*>(fineStatistics_.contents);
                 for (size_t word = 0; word < guardWords; ++word) {
                     uint32_t bits = guards[word];
                     if (fineProfiling_ && bits) ++fineSearch_.nonzero_guard_words;
@@ -686,86 +781,58 @@ public:
                         const size_t map = index / roiPixels, pixel = index % roiPixels;
                         // Padding bits are initialized to zero and no shader
                         // invocation writes beyond count*roiPixels.
-                        roiData[map * roiStride + pixel] = sampleFineLegacyPixel(source, plans[map],
-                            int(pixel % rw), int(pixel / rw));
+                        auto& value = roiData[map * roiStride + pixel];
+                        const int x = int(pixel % rw), y = int(pixel / rw);
+                        const uint8_t repaired = sampleFineLegacyPixel(source, plans[map], x, y);
+                        if (fused && value != repaired) {
+                            ++fineFusion_.changed_pixels;
+                            if (++changedCounts[map] <= roiPixels / 8) {
+                                fineFusion_.corrected_windows += use32 ?
+                                    statisticsRepair->correctPixel(statistics32 + map * windowsPerMap, x, y, value, repaired) :
+                                    statisticsRepair->correctPixel(statistics64 + map * windowsPerMap, x, y, value, repaired);
+                            }
+                        }
+                        value = repaired;
                         ++fineMetrics_.repair_pixels;
                         bits &= bits - 1;
                     }
+                }
+                if (fused) {
+                    // Many actual changed bytes avoid O(changes * 49) scattered
+                    // updates. Recompute exact statistics after byte repair;
+                    // this rare CPU fallback does not add a GPU submission.
+                    for (size_t i = 0; i < count; ++i) if (changedCounts[i] > roiPixels / 8) {
+                        if (use32) statisticsRepair->recompute(statistics32 + i * windowsPerMap, roiData + i * roiStride, rw);
+                        else statisticsRepair->recompute(statistics64 + i * windowsPerMap, roiData + i * roiStride, rw);
+                        ++fineFusion_.dense_maps;
+                    }
+                    fineFusion_.correction_ms += elapsed(repair);
                 }
                 if (fineProfiling_) {
                     fineSearch_.guard_scan_ms += elapsed(scan);
                     if (fineMetrics_.repair_pixels == beforeRepairPixels) ++fineSearch_.zero_repair_batches;
                 }
                 fineMetrics_.repair_ms += elapsed(repair);
-                const double rotationElapsed = elapsed(rotation);
+                // In fused mode GPU work is charged to ncc_ms/combined metrics;
+                // rotation_ms retains planning, warp encode and CPU repair only.
+                const double rotationElapsed = elapsed(rotation) - fusedNccMs;
                 rotationTotal += rotationElapsed; fineMetrics_.rotation_ms += rotationElapsed;
                 fineMetrics_.roi_pixels += pixels;
 
                 const auto ncc = Clock::now();
-                const auto nccEncode = Clock::now();
-                const id<MTLComputePipelineState> pipeline = fineNccMode_ >= 2 ?
-                    (use32 ? fineStrip32_[fineNccMode_ - 2] : fineStrip64_[fineNccMode_ - 2]) :
-                    (fineNccMode_ == 1 ? (use32 ? fineShared32_ : fineShared64_) : (use32 ? fineStats32_ : fineStats64_));
-                const NSUInteger simdWidth = pipeline.threadExecutionWidth;
-                if (!simdWidth || simdWidth > 1024 || pipeline.maxTotalThreadsPerThreadgroup < simdWidth)
-                    throw std::runtime_error("fine NCC SIMD width exceeds exact reduction limits");
-                const NSUInteger groupsPerThreadgroup = std::min<NSUInteger>(8,
-                    pipeline.maxTotalThreadsPerThreadgroup / simdWidth);
-                const FineStatsConfig statsConfig{uint32_t(rw), uint32_t(tw), uint32_t(th), uint32_t(outputWidth),
-                    uint32_t(roiStride), uint32_t(windowsPerMap), uint32_t(count), 0};
-                id<MTLCommandBuffer> statsCommand = [queue_ commandBuffer];
-                if (!statsCommand) throw std::runtime_error("fine NCC command buffer creation failed");
-                if (fineNccMode_ == 1) {
-                    const auto rowPipeline = use32 ? fineRows32_ : fineRows64_;
-                    const auto rowWidth = rowPipeline.threadExecutionWidth;
-                    const auto rowGroups = std::min<NSUInteger>(8, rowPipeline.maxTotalThreadsPerThreadgroup / rowWidth);
-                    const size_t groups = (count * size_t(rh) + rowGroups - 1) / rowGroups;
-                    if (groups > std::numeric_limits<uint32_t>::max() / (rowGroups * rowWidth))
-                        throw std::invalid_argument("fine row dispatch exceeds uint32 indices");
-                    id<MTLComputeCommandEncoder> rowEncoder = [statsCommand computeCommandEncoder];
-                    if (!rowEncoder) throw std::runtime_error("fine row encoder creation failed");
-                    [rowEncoder setComputePipelineState:rowPipeline];
-                    [rowEncoder setBuffer:fineRois_ offset:0 atIndex:0];
-                    [rowEncoder setBuffer:fineRows_ offset:0 atIndex:1];
-                    [rowEncoder setBytes:&statsConfig length:sizeof(statsConfig) atIndex:2];
-                    [rowEncoder dispatchThreadgroups:MTLSizeMake(groups,1,1)
-                        threadsPerThreadgroup:MTLSizeMake(rowGroups * rowWidth,1,1)];
-                    [rowEncoder endEncoding];
-                    ++fineReuse_.row_dispatches;
-                    // Shared buffers use tracked hazards. A following encoder
-                    // in the SAME command buffer observes the completed rows;
-                    // neither a second commit nor a CPU wait is needed.
+                if (!fused) {
+                    id<MTLCommandBuffer> statsCommand = [queue_ commandBuffer];
+                    if (!statsCommand) throw std::runtime_error("fine NCC command buffer creation failed");
+                    encodeStatistics(statsCommand);
+                    const double beforeNccWait = fineMetrics_.wait_ms;
+                    // Legacy path: repaired shared ROI is visible before commit.
+                    finishFineCommand(statsCommand, "fine NCC execution");
+                    if (fineProfiling_) fineSearch_.ncc_wait_ms += fineMetrics_.wait_ms - beforeNccWait;
+                    if (statsCommand.GPUEndTime > statsCommand.GPUStartTime && statsCommand.GPUStartTime > 0) {
+                        if (fineReuse_.stats_device_ms >= 0)
+                            fineReuse_.stats_device_ms += 1000 * (statsCommand.GPUEndTime - statsCommand.GPUStartTime);
+                    } else fineReuse_.stats_device_ms = -1;
                 }
-                id<MTLComputeCommandEncoder> statsEncoder = [statsCommand computeCommandEncoder];
-                if (!statsEncoder) throw std::runtime_error("fine NCC encoder creation failed");
-                [statsEncoder setComputePipelineState:pipeline];
-                [statsEncoder setBuffer:fineRois_ offset:0 atIndex:0];
-                [statsEncoder setBuffer:fineTemplate_ offset:0 atIndex:1];
-                [statsEncoder setBuffer:fineStatistics_ offset:0 atIndex:2];
-                [statsEncoder setBytes:&statsConfig length:sizeof(statsConfig) atIndex:3];
-                if (fineNccMode_ == 1) [statsEncoder setBuffer:fineRows_ offset:0 atIndex:4];
-                // Strip mode owns 4+3 windows per row: 14 complete groups/map.
-                // Original modes own one window/group. Full threadgroups keep
-                // reductions complete; padded groups return uniformly.
-                static_assert(outputWidth == 7, "fine strip kernels require a 7x7 map");
-                const size_t groupsPerMap = fineNccMode_ >= 2 ? size_t(outputWidth) * 2 : windowsPerMap;
-                [statsEncoder dispatchThreadgroups:MTLSizeMake(
-                    (count * groupsPerMap + groupsPerThreadgroup - 1) / groupsPerThreadgroup, 1, 1)
-                    threadsPerThreadgroup:MTLSizeMake(groupsPerThreadgroup * simdWidth, 1, 1)];
-                [statsEncoder endEncoding];
-                const double nccEncodeMs = elapsed(nccEncode);
-                fineMetrics_.encode_ms += nccEncodeMs;
-                if (fineProfiling_) fineSearch_.ncc_encode_ms += nccEncodeMs;
-                const double beforeNccWait = fineMetrics_.wait_ms;
-                // CPU repairs are complete before this commit, so shared ROI
-                // writes are visible to the following GPU statistics dispatch.
-                finishFineCommand(statsCommand, "fine NCC execution");
-                if (fineProfiling_) fineSearch_.ncc_wait_ms += fineMetrics_.wait_ms - beforeNccWait;
-                ++fineReuse_.statistics_dispatches;
-                if (statsCommand.GPUEndTime > statsCommand.GPUStartTime && statsCommand.GPUStartTime > 0) {
-                    if (fineReuse_.stats_device_ms >= 0)
-                        fineReuse_.stats_device_ms += 1000 * (statsCommand.GPUEndTime - statsCommand.GPUStartTime);
-                } else fineReuse_.stats_device_ms = -1;
                 const auto normalization = Clock::now();
                 const bool degenerate = templ.norm * templ.norm / double(area) < DBL_EPSILON;
                 for (size_t i = 0; i < count; ++i) {

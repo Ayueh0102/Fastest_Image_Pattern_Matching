@@ -91,6 +91,17 @@ QJsonObject record(const Result& r,bool outputs) {
         diagnostics.append(d);
     }
     o["fine_search"]=diagnostics;
+    QJsonArray fusion;
+    for (const auto& p:r.fineFusion) {
+        QJsonObject d;
+#define FPM_FUSION_FIELD(name) d[#name]=double(p.name)
+        FPM_FUSION_FIELD(enabled); FPM_FUSION_FIELD(correction_ms); FPM_FUSION_FIELD(fused_wait_ms);
+        FPM_FUSION_FIELD(fused_device_ms); FPM_FUSION_FIELD(fused_batches); FPM_FUSION_FIELD(fallback_batches);
+        FPM_FUSION_FIELD(dense_maps); FPM_FUSION_FIELD(changed_pixels); FPM_FUSION_FIELD(corrected_windows);
+#undef FPM_FUSION_FIELD
+        fusion.append(d);
+    }
+    o["fine_fusion"]=fusion;
     QJsonArray work;for(size_t i=0;i<r.coarse.size();++i) {
         auto a=r.coarse[i];auto b=r.fine[i];auto c=r.overlapMetrics[i];
         const auto d=r.fineReuse[i];
@@ -162,6 +173,7 @@ int main(int argc,char** argv) {
         settings.cpuThreads=j["cpu_threads"].toInt(8);settings.sparse.cpuThreads=settings.cpuThreads;
         Options o;o.nccMode=j["ncc_mode"].toInt();o.overlap=j["overlap_enabled"].toBool();o.refine=j["refine"].toBool(true);
         o.fineNccMode=j["fine_ncc_mode"].toInt(0);
+        o.fineFused=j["fine_fused"].toBool(false);
         o.fineProfiling=j["fine_profiling"].toBool(false); o.fineAngleReuse=j["fine_angle_reuse"].toBool(false);
         o.match.maxTargets=j["limit"].toInt(70);o.match.minScore=j["score"].toDouble(.8);o.match.maxOverlap=j["overlap"].toDouble(.2);o.match.toleranceAngle=j["angle"].toDouble(180);
         o.match.stopLayer=j["stop_layer"].toInt(1);o.match.subpixel=j["subpixel"].toBool();o.match.invertSource=j["invert_source"].toBool();

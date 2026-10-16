@@ -1,0 +1,85 @@
+{
+  "complete": true,
+  "checked_utc": "2026-10-16T04:55:20.891416+00:00",
+  "valid_512_workers": 8,
+  "valid_512_algorithm_calls": 16,
+  "checks": [
+    {
+      "directory": "build/fine-memory-512-v2-0-off",
+      "calls": 2,
+      "outputs_exact": true,
+      "retained_capacities_exact": true,
+      "frozen_hashes_valid": true,
+      "result_sha256": "1ad79a5b541f3842371392f2367c276923455f9c6bf4565f27f56ea1fc2c010e",
+      "trace_sha256": "32456762bbd026c37e8e8472c4e4157a51fd3802d4fc1d802c56ada922a35477"
+    },
+    {
+      "directory": "build/fine-memory-512-v2-1-reuse",
+      "calls": 2,
+      "outputs_exact": true,
+      "retained_capacities_exact": true,
+      "frozen_hashes_valid": true,
+      "result_sha256": "a884dffd559198c220e8acec4930c3baabe97fcee6aaaa068dc4b17332fa78e1",
+      "trace_sha256": "1438288cfcff597882fbb9dff4196bff692f2e4b1df20a55a27a93a75112d0f4"
+    },
+    {
+      "directory": "build/fine-memory-512-v2-2-reuse",
+      "calls": 2,
+      "outputs_exact": true,
+      "retained_capacities_exact": true,
+      "frozen_hashes_valid": true,
+      "result_sha256": "4d8df9dac50e5403e248687cda134b4c9294700b480cf9226e819d24c1789593",
+      "trace_sha256": "ac4e7eb4cc3c7b6aeb4b23d33d82741a9135ac163fd9c2b4eb020907b6ca896b"
+    },
+    {
+      "directory": "build/fine-memory-512-v2-3-off",
+      "calls": 2,
+      "outputs_exact": true,
+      "retained_capacities_exact": true,
+      "frozen_hashes_valid": true,
+      "result_sha256": "4705aff7c6b0b3f9706d5f08d9fc33c0036658c2e92bb0deca54627e290649a5",
+      "trace_sha256": "24c53dc40fa27064bd66a290a3945607280515a7ffb2efbe7e4e5839190380e1"
+    },
+    {
+      "directory": "build/fine-memory-512-control-off",
+      "calls": 2,
+      "outputs_exact": true,
+      "retained_capacities_exact": true,
+      "frozen_hashes_valid": true,
+      "result_sha256": "0691e5489b4473bddaf61a81161e37e8ecd7f6c43a2407da0d56a20574acade1",
+      "trace_sha256": "4c3eadd30f1ab117e1bd4c409bb10265072261babd61acc054a5fdb0b0c27fb9"
+    },
+    {
+      "directory": "build/fine-memory-512-control-reuse",
+      "calls": 2,
+      "outputs_exact": true,
+      "retained_capacities_exact": true,
+      "frozen_hashes_valid": true,
+      "result_sha256": "0c19ba63c9b7cd9ffb024245613b87f4ace7f0089d00911dc32cd5db4e2310d9",
+      "trace_sha256": "270f030a4f348d9158a00902b309e56c9edb7c2b02917cdc57b7bb9fedbe0113"
+    },
+    {
+      "directory": "build/fine-memory-512-classification-off",
+      "calls": 2,
+      "outputs_exact": true,
+      "retained_capacities_exact": true,
+      "frozen_hashes_valid": true,
+      "result_sha256": "f8c93956f3470469625d02919a47045a0cc5f57924076c0a959eca9a2017949e",
+      "trace_sha256": "e092ff62bf520810311015d635a5ebe4cd83adc6c42fe8e304a1a3e241b9826b"
+    },
+    {
+      "directory": "build/fine-memory-512-classification-reuse",
+      "calls": 2,
+      "outputs_exact": true,
+      "retained_capacities_exact": true,
+      "frozen_hashes_valid": true,
+      "result_sha256": "ccd36f8abba3b27611c419d4cd95634c18d6d9d200adb434d5de75d4c9113f4b",
+      "trace_sha256": "df9c8271fb5d75794cfce0d70f35501ef07c5a868035e89d614c6082685e7363"
+    }
+  ],
+  "all_exact": true,
+  "failed_first_attempt_excluded_and_retained": "build/fine-memory-512-0-off",
+  "control_metadata_revision": "build/fine-memory-control-summary-revision.json",
+  "pre_control_analysis_snapshot": "build/fine-memory-512-analysis.pre-control.json",
+  "pre_control_analysis_sha256": "6ba60f8555f96e3d02e8d8f31d8004c2c1fe25fc241e0cb37c4a7e7d86800e4a"
+}

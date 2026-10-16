@@ -246,6 +246,34 @@ int fpm_frame_get_fine_reuse_metrics(fpm_frame_handle* frame, FpmFineReuseMetric
     catch (...) { message(error, capacity, "unknown fine reuse metrics exception"); }
     return FPM_ERROR;
 }
+int fpm_frame_set_fine_fused(fpm_frame_handle* frame, int32_t enabled, char* error, size_t capacity)
+{
+    message(error, capacity, "");
+    try {
+        if (!frame || enabled < 0 || enabled > 1)
+            throw std::invalid_argument("valid frame and boolean fine fusion required");
+        if (frame->backend) frame->backend->setFineFused(enabled != 0);
+        else if (enabled) throw std::invalid_argument("fine fusion requires Metal");
+        return FPM_OK;
+    } catch (const std::exception& e) { message(error, capacity, e.what()); }
+    catch (...) { message(error, capacity, "unknown fine fusion exception"); }
+    return FPM_ERROR;
+}
+int fpm_frame_get_fine_fusion_metrics(fpm_frame_handle* frame, FpmFineFusionMetricsV1* metrics,
+    size_t bytes, char* error, size_t capacity)
+{
+    static_assert(sizeof(FpmFineFusionMetricsV1) == 80, "fine fusion v1 ABI changed");
+    message(error, capacity, "");
+    try {
+        if (!frame || !metrics || bytes != sizeof(*metrics))
+            throw std::invalid_argument("valid frame and exact fine fusion metrics size required");
+        FpmFineFusionMetricsV1 value{}; value.version = 1; value.struct_bytes = sizeof(value); value.fused_device_ms = -1;
+        if (frame->backend) value = frame->backend->fineFusionMetrics();
+        *metrics = value; return FPM_OK;
+    } catch (const std::exception& e) { message(error, capacity, e.what()); }
+    catch (...) { message(error, capacity, "unknown fine fusion metrics exception"); }
+    return FPM_ERROR;
+}
 int fpm_frame_set_fine_search_options(fpm_frame_handle* frame, int32_t profiling,
     int32_t reuse, char* error, size_t capacity)
 {

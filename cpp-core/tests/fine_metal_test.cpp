@@ -49,15 +49,18 @@ int main(int argc, char** argv)
     try {
         auto backend = fpm_coarse_detail::makeMetalBackend();
         int mode = 0;
-        if (argc == 2) {
+        const bool fused = argc == 3 && std::string(argv[2]) == "--fused";
+        if (argc == 2 || fused) {
             const std::string argument = argv[1];
-            if (argument == "--shared") mode = 1;
+            if (argument == "--original") mode = 0;
+            else if (argument == "--shared") mode = 1;
             else if (argument == "--strip32") mode = 2;
             else if (argument == "--strip16") mode = 3;
             else throw std::invalid_argument("unknown fine NCC test mode");
         } else if (argc != 1) throw std::invalid_argument("expected at most one fine NCC test mode");
         const bool shared = mode == 1;
         backend->setFineNccMode(mode);
+        backend->setFineFused(fused);
         backend->setFineBatchSize(7);
         FpmCoarseExecutionConfigV1 config{}; fpm_coarse_execution_default_config(&config);
         std::mt19937 generator(81731); std::uniform_real_distribution<double> angle(-180, 180);
@@ -122,7 +125,7 @@ int main(int argc, char** argv)
                 const auto counters = backend->fineMetrics();
                 const auto reuse = backend->fineReuseMetrics();
                 require(counters.maps == requests.size() && counters.peak_batch_maps == 7 &&
-                    counters.command_buffers == 6 && reuse.statistics_dispatches == 3,
+                    counters.command_buffers == (fused ? 3 : 6) && reuse.statistics_dispatches == 3,
                     "fine strip boundary test omitted batch tail or changed submissions");
                 require(shared ? reuse.row_dispatches == 3 : reuse.row_dispatches == 0,
                     "fine strip boundary test dispatched wrong statistics route");
@@ -140,7 +143,40 @@ int main(int argc, char** argv)
             backend->invalidateFineSource(); backend->resetMetrics();
             compare(*backend, source.view(), templ, {{{3., 3.}, 0.}, {{3.5, 3.5}, 0.}});
             compare(*backend, source.view(), templ, {{{std::numeric_limits<double>::max(), 0.}, 0.}});
+            if (fused) require(backend->fineFusionMetrics().fallback_batches == 1, "repairAll did not fall back");
             require(backend->fineMetrics().repair_all_maps == 1, "out-of-range pose repair was not counted");
+        }
+        if (fused) {
+            const auto source = raster(47, 43, 99, 1);
+            const auto templ = fpm::detail::learnLevel(raster(17, 19, 104));
+            backend->invalidateFineSource(); backend->resetMetrics();
+            compare(*backend, source.view(), templ, {{{6.5, 7.}, 0.}});
+            require(backend->fineFusionMetrics().dense_maps == 0 && backend->fineFusionMetrics().changed_pixels == 0,
+                "unchanged half-integer pixels unnecessarily recomputed");
+            backend->resetMetrics();
+            compare(*backend, source.view(), templ, {{{6.5-1e-10, 7.}, 0.}});
+            const auto d = backend->fineFusionMetrics();
+            require(d.dense_maps > 0 && d.fused_batches == 1 && d.fallback_batches == 0,
+                "dense uncertainty fallback omitted");
+            require(backend->fineMetrics().command_buffers == 1, "dense repair added GPU wait");
+            fpm::Image impulse(47,43);
+            impulse.row(15)[14] = 255;
+            backend->invalidateFineSource(); backend->resetMetrics();
+            compare(*backend, impulse.view(), templ, {{{6.5-1e-10,7.},0.}});
+            const auto sparse = backend->fineFusionMetrics();
+            require(sparse.changed_pixels > 0 && sparse.corrected_windows > 0 && sparse.dense_maps == 0,
+                "sparse actual-change correction omitted");
+            backend->resetMetrics();
+            compare(*backend, impulse.view(), templ, {{{6.5-1e-10,7.},0.},
+                {{std::numeric_limits<double>::max(),0.},0.}});
+            require(backend->fineFusionMetrics().fallback_batches == 1 &&
+                backend->fineFusionMetrics().fused_batches == 0 && backend->fineMetrics().command_buffers == 2,
+                "mixed repairAll batch did not use exact legacy fallback");
+            backend->setFineFused(false); backend->resetMetrics();
+            compare(*backend, source.view(), templ, {{{6.5, 7.}, 0.}});
+            require(!backend->fineFusionMetrics().enabled && backend->fineMetrics().command_buffers == 2,
+                "fusion mode switch failed");
+            backend->setFineFused(true);
         }
         require(repaired && used64, "test omitted uncertainty repair or uint64 NCC coverage");
         // Adjacent template sizes straddle the exact uint32 square bound.
@@ -153,7 +189,7 @@ int main(int argc, char** argv)
         }
         const auto reuse = backend->fineReuseMetrics();
         require(reuse.version == 1 && reuse.struct_bytes == sizeof(reuse) && reuse.ncc_mode == mode, "invalid fine reuse metadata");
-        require(reuse.statistics_dispatches > 0 && backend->fineMetrics().command_buffers == 2*reuse.statistics_dispatches,
+        require(reuse.statistics_dispatches > 0 && backend->fineMetrics().command_buffers == (fused ? 1 : 2)*reuse.statistics_dispatches,
             "fine reuse introduced extra command submissions");
         require(shared ? (reuse.row_buffer_bytes > 0 && reuse.row_dispatches == reuse.statistics_dispatches) :
             (!reuse.row_buffer_bytes && !reuse.row_dispatches), "fine row dispatch/memory accounting incorrect");
@@ -166,7 +202,7 @@ int main(int argc, char** argv)
         const auto reset = backend->fineReuseMetrics();
         require(reset.ncc_mode == mode && reset.row_buffer_bytes == reuse.row_buffer_bytes,
             "fine metrics reset changed mode or retained row allocation");
-        require(!reset.row_dispatches && !reset.statistics_dispatches && reset.stats_device_ms == 0,
+        require(!reset.row_dispatches && !reset.statistics_dispatches && reset.stats_device_ms == (fused ? -1 : 0),
             "fine metrics reset retained dispatch counts or timing");
         if (shared) {
             // A narrow ROI stays below the 64 MiB source arena while its
@@ -198,7 +234,7 @@ int main(int argc, char** argv)
             compare(*backend, source.view(), templ, requests);
             const auto strip = backend->fineReuseMetrics();
             require(strip.ncc_mode == stripMode && !strip.row_buffer_bytes && !strip.row_dispatches &&
-                strip.statistics_dispatches == 1 && backend->fineMetrics().command_buffers == 2,
+                strip.statistics_dispatches == 1 && backend->fineMetrics().command_buffers == (fused ? 1 : 2),
                 "switch from row reuse to strip mode changed dispatch/memory contract");
         }
         backend->setFineNccMode(0);

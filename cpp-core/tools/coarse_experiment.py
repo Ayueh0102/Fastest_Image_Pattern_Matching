@@ -245,6 +245,13 @@ class FineReuseMetricsV1(C.Structure):
         ('stats_device_ms', C.c_double)]
 
 
+class FineFusionMetricsV1(C.Structure):
+    _fields_ = [('version', C.c_uint32), ('struct_bytes', C.c_uint32),
+                ('enabled', C.c_int32), ('reserved', C.c_int32)] + [
+        (name, C.c_double) for name in ('correction_ms', 'fused_wait_ms', 'fused_device_ms')] + [
+        (name, C.c_uint64) for name in ('fused_batches', 'fallback_batches', 'dense_maps', 'changed_pixels', 'corrected_windows')]
+
+
 class FineSearchMetricsV1(C.Structure):
     _fields_ = [('version', C.c_uint32), ('struct_bytes', C.c_uint32),
                 ('profiling_enabled', C.c_int32), ('angle_reuse_enabled', C.c_int32)] + [
@@ -407,6 +414,26 @@ class SourceFrame:
                              C.POINTER(C.c_char), C.c_size_t]
         function.restype = C.c_int
         metrics = FineReuseMetricsV1()
+        self._check(function(self.handle, C.byref(metrics), C.sizeof(metrics), self.error, len(self.error)))
+        return _fields_snapshot(metrics)
+
+    def set_fine_fused(self, enabled=False):
+        if not self.handle:
+            raise ValueError('frame is closed')
+        if type(enabled) is not bool:
+            raise ValueError('fine fusion must be boolean')
+        function = self.dll.fpm_frame_set_fine_fused
+        function.argtypes = [C.c_void_p, C.c_int32, C.POINTER(C.c_char), C.c_size_t]
+        function.restype = C.c_int
+        self._check(function(self.handle, enabled, self.error, len(self.error)))
+
+    def fine_fusion_metrics(self):
+        if not self.handle:
+            raise ValueError('frame is closed')
+        function = self.dll.fpm_frame_get_fine_fusion_metrics
+        function.argtypes = [C.c_void_p, C.POINTER(FineFusionMetricsV1), C.c_size_t, C.POINTER(C.c_char), C.c_size_t]
+        function.restype = C.c_int
+        metrics = FineFusionMetricsV1()
         self._check(function(self.handle, C.byref(metrics), C.sizeof(metrics), self.error, len(self.error)))
         return _fields_snapshot(metrics)
 

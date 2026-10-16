@@ -1,0 +1,30 @@
+{
+  "reason": "After formal measurements, repair analysis-only aggregation of unavailable per-model GPU timestamps: any -1 remains -1 rather than -3 or a mixed sum. Native binaries, algorithms, jobs, raw results, output accuracy and performance decisions unchanged. Original measured analysis source and summary retained.",
+  "changed_files": [
+    {
+      "path": "cpp-core/tests/test_fine_fused_harness.py",
+      "measured_sha256": "f435ba4ed1ad3913ac8032a72c8eedc535cb20e96081547c8764b0eda16ee622",
+      "final_sha256": "4bf211d24087099667410667d4ac59536655a9a5e2a31dcf17d1c20bba8768cc"
+    },
+    {
+      "path": "cpp-core/tests/test_fine_memory_profile.py",
+      "measured_sha256": "a32d56b049cf4e1d00ec9663910c0220c6614481ecb3f8c548e0cb9992211046",
+      "final_sha256": "c0506b265eab5dab53abfe3207b695125954f5f3df946d41f207f0b991504dd5"
+    },
+    {
+      "path": "cpp-core/tools/benchmark_fine_fused.py",
+      "measured_sha256": "be58ea74cb4618eb3dcdb4d21663053a98234dffd7b52ceb9a1877ba96d623bc",
+      "final_sha256": "7359393da1d184a334dbf0d9eb9a2c8d8e3790920695c45628fbd9c38a9dfe7b"
+    },
+    {
+      "path": "cpp-core/tools/profile_fine_memory.py",
+      "measured_sha256": "dce8d8cc78e49b4bdf0f616702f0e35f047f699b3cc7afb68fc344ef24ad03b9",
+      "final_sha256": "f3a59b1894cc723b13615b76814d429f37aeb66c936a73f08b4fc9bfd0f3d07f"
+    }
+  ],
+  "all_headline_values_and_decisions_unchanged": true,
+  "formal_end_unchanged": true,
+  "native_binaries_still_unchanged": true,
+  "memory_tool_revision": "A first diagnostic reconstruction used runner flags for research_pipeline.cpp, missing -ffp-contract=off; strict equality rejected it. Tool now loads each target flags independently and retains them. Invalid attempt retained, new predeclared diagnostic protocol reruns the memory workers. No native benchmark library or algorithm source changed.",
+  "future_protocol_metadata_revision": "Frozen baseline_commit is now fixed to verified stage29 66d362e; current checkout HEAD is separately working_tree_commit, so future runs after committing do not mislabel the frozen binary. Formal saved protocol is unchanged."
+}

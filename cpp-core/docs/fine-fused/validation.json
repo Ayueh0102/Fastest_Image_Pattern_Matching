@@ -1,0 +1,58 @@
+{
+  "stage": 30,
+  "baseline_commit": "66d362e8a45f829a915cd09e697e598cc22280bc",
+  "formal_workers": 54,
+  "formal_calls": 162,
+  "correctness_passed": true,
+  "all_performance_tolerances_passed": true,
+  "time_and_rss_pairs_passed": 54,
+  "known_capacity_comparisons": 648,
+  "release_tests": 49,
+  "additional_focused_tests": 5,
+  "asan_ubsan_tests": 8,
+  "asan_detect_leaks": false,
+  "metal_api_and_shader_validation": true,
+  "python_binding_tests": 2,
+  "harness_tests": 26,
+  "memory_tool_tests": 11,
+  "archive_fresh_build": {
+    "fresh_build": true,
+    "ctest_passed": 2,
+    "small_ordered_outputs_exact": true,
+    "small_frame_capacities_exact": true,
+    "replay_byte_identical": true,
+    "measured_source_hashes_verified": 226,
+    "diagnostic_only": true,
+    "development_note": "First replay invocation resolved the Python venv symlink to its base interpreter and failed; using the original venv executable succeeded. Not a native or output gate failure."
+  },
+  "valid_large_memory_workers": 8,
+  "valid_large_memory_calls": 16,
+  "memory_probe_failed_first_attempt_retained": true,
+  "logs": {
+    "full-tests.log": "4de394ac2f45bd5c0aeb12acd44fe17f71efcb35f1e20dc3be5b674905395c95",
+    "focused-final-tests.log": "89b393314db81e080b4f45e949c4df4c7fc028603b0d5670f14ce079a55d46ee",
+    "asan-tests.log": "3730b3f91a0a0a1871e4a9962e71d01e31e953e595e3fa6e086631bd3a13d0a0",
+    "shader-validation.log": "757b0aca73b0e31801fd8ae99ee57e944bd243c34ce4ce7895e67c4884be61ad",
+    "binding-tests.log": "807f3482c6464a2f417c9d102b74ddec0f816d45281d867df7e98937f47904ed",
+    "harness-tests-final.log": "6fcd57a218fc734b83a0ddc4cca184744c990f16557e9d52982201c031cc5d9b",
+    "memory-tool-tests-final.log": "53ec6bfd32b426a23950e2fbbff5aba6e95df6d3ed7324d3edb40dd8151e63f8",
+    "archive-configure.log": "3e26eff960a8e2215090ea52b4ba0f34a9df36bbb6b7ac3b22284026eb805143",
+    "archive-build.log": "d60c9caace321ce57a98c103a1a1ccb53e0ca33ca765cbb88c5da46e5e3f8cb5",
+    "archive-tests.log": "56480b938c550d0d15147f7fa848a50f4aac057ae2ea4ff42a5c5859a6d03d4e"
+  },
+  "limits": [
+    "Existing synthetic scenes; no new real-camera generalization evidence.",
+    "8K few-candidate scene showed no reliable total speedup.",
+    "Dense and repairAll fallbacks are covered by forced tests, not exercised in formal workers.",
+    "The historical88.20MiB difference cannot be attributed byte-for-byte retroactively.",
+    "No CUDA/Windows/long soak validation this round."
+  ],
+  "archive": {
+    "path": "raw-results.tar.gz",
+    "sha256": "9482197b30d2767c31d3d6bd90211d3dc257fd0eb143a6e97d6bba04abef95c7",
+    "bytes": 61188993,
+    "manifest_files": 942,
+    "all_extracted_hashes_verified": true,
+    "extracted_summary_byte_identical": true
+  }
+}

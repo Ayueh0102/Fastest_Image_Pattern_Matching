@@ -28,6 +28,7 @@ struct Options {
     int fineNccMode = 0; // Metal: 0 original; 1 shared rows; 2/3 strip with chunks 32/16.
     bool fineProfiling = false; // Bounded exact request observation; adds host overhead.
     bool fineAngleReuse = false; // Previous angle planes within one state/layer/pass only.
+    bool fineFused = false; // One warp+NCC submission with exact CPU statistics repair.
     bool overlap = false;
     bool refine = true;
     double proposalScore = .5; // capped at final minScore; ignored without refine
@@ -52,6 +53,7 @@ struct Result {
     std::vector<FpmFineMetricsV1> fine;
     std::vector<FpmFineReuseMetricsV1> fineReuse;
     std::vector<FpmFineSearchMetricsV1> fineSearch;
+    std::vector<FpmFineFusionMetricsV1> fineFusion;
     std::vector<FpmCoarseOverlapMetricsV1> overlapMetrics;
 };
 // Public for cross-language parity checks; zero extension, width/2 center,

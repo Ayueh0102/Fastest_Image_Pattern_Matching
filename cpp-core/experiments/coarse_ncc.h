@@ -138,6 +138,16 @@ typedef struct FpmFineSearchMetricsV1 {
     uint64_t logical_requests, reused_maps, cache_peak_bytes;
     uint64_t warp_batches, zero_repair_batches, guard_words, nonzero_guard_words;
 } FpmFineSearchMetricsV1;
+/* Fusion preserves integer NCC statistics. Timings overlap fine wall/wait;
+ * fused_device_ms includes BOTH warp and NCC, not a separate NCC timestamp.
+ * Dense guard maps are repaired then fully recomputed on CPU; repairAll plans
+ * use the original two-command path. All defaults remain unchanged. */
+typedef struct FpmFineFusionMetricsV1 {
+    uint32_t version, struct_bytes;
+    int32_t enabled, reserved;
+    double correction_ms, fused_wait_ms, fused_device_ms;
+    uint64_t fused_batches, fallback_batches, dense_maps, changed_pixels, corrected_windows;
+} FpmFineFusionMetricsV1;
 /* A frame owns one immutable source pyramid and execution backend, reused by
  * any number of template/scale handles. Explicit prepare ALWAYS refreshes pixels;
  * input pointer/dimensions alone never imply content identity. One caller at a
@@ -157,6 +167,10 @@ FPM_API int fpm_frame_set_fine_search_options(fpm_frame_handle* frame,
     int32_t profiling, int32_t angle_reuse, char* error, size_t error_capacity);
 FPM_API int fpm_frame_get_fine_search_metrics(fpm_frame_handle* frame,
     FpmFineSearchMetricsV1* metrics, size_t metrics_bytes, char* error, size_t error_capacity);
+FPM_API int fpm_frame_set_fine_fused(fpm_frame_handle* frame, int32_t enabled,
+    char* error, size_t error_capacity);
+FPM_API int fpm_frame_get_fine_fusion_metrics(fpm_frame_handle* frame,
+    FpmFineFusionMetricsV1* metrics, size_t metrics_bytes, char* error, size_t error_capacity);
 typedef struct FpmFrameConfigV1 {
     uint32_t version, struct_bytes;
     int32_t backend, pyramid_mode, batch_angles, fine_batch_size;

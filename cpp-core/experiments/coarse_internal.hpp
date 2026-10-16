@@ -20,6 +20,13 @@ public:
         FpmFineReuseMetricsV1 value{}; value.version = 1; value.struct_bytes = sizeof(value);
         value.stats_device_ms = -1; return value;
     }
+    virtual void setFineFused(bool enabled) {
+        if (enabled) throw std::invalid_argument("fine fusion requires Metal");
+    }
+    virtual FpmFineFusionMetricsV1 fineFusionMetrics() const {
+        FpmFineFusionMetricsV1 value{}; value.version = 1; value.struct_bytes = sizeof(value);
+        value.fused_device_ms = -1; return value;
+    }
     virtual void setFineSearchOptions(bool profiling, bool reuse) {
         if (profiling || reuse) throw std::invalid_argument("fine search options require Metal");
     }
