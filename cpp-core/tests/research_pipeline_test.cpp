@@ -88,6 +88,42 @@ int main(int argc,char**) {
                     require(!reuse.row_buffer_bytes && !reuse.row_dispatches,"pipeline strip switch retained row work/storage");
             }
         }
+        if(metal) {
+            auto settings=s;settings.minReducedArea=64;
+            Session measured(source.view(),templ.view(),settings);
+            Options options=o;options.match.subpixel=true;options.match.minScore=.6;options.fineNccMode=2;
+            const auto reference=measured.run(options);
+            for(bool profiling:{false,true}) for(bool reuse:{false,true}) {
+                options.fineProfiling=profiling;options.fineAngleReuse=reuse;
+                const auto actual=measured.run(options);same(reference,actual);
+                require(actual.fineSearch.size()==reference.fine.size(),"fine search metrics missing");
+                uint64_t hits=0;
+                for(size_t i=0;i<actual.fineSearch.size();++i) {
+                    const auto& d=actual.fineSearch[i];const auto& f=actual.fine[i];
+                    require(d.profiling_enabled==profiling && d.angle_reuse_enabled==reuse,"fine search option ignored");
+                    if(reuse) {
+                        require(d.logical_requests==reference.fine[i].maps && d.reused_maps+f.maps==d.logical_requests,
+                            "reuse changed logical angle work");
+                        hits+=d.reused_maps;
+                    }
+                    if(profiling) {
+                        require(d.requests==f.maps && d.requests==d.within_call_duplicates+d.cross_call_duplicates+
+                            d.tracked_unique_keys+d.untracked_call_keys,"request observation accounting differs");
+                        require(d.tracked_unique_keys<=65536 && d.warp_batches==actual.fineReuse[i].statistics_dispatches,
+                            "fine diagnostic limit or batches differ");
+                        require(std::abs(d.warp_wait_ms+d.ncc_wait_ms-f.wait_ms)<1e-7,"split waits do not sum to measured wait");
+                    }
+                }
+                require(!reuse || hits>0,"reuse integration omitted hits");same(actual,measured.run(options));
+            }
+            options.fineProfiling=false;options.fineAngleReuse=false;same(reference,measured.run(options));
+        } else {
+            for(bool profiling:{false,true}) {
+                Options invalid=o;invalid.fineProfiling=profiling;invalid.fineAngleReuse=!profiling;bool caught=false;
+                try{session.run(invalid);}catch(const std::invalid_argument&){caught=true;}
+                require(caught,"CPU accepted Metal fine search options");
+            }
+        }
         for(int mode:{-1,4}) {
             Options invalid=o;invalid.fineNccMode=mode;bool caught=false;
             try{session.run(invalid);}catch(const std::invalid_argument&){caught=true;}

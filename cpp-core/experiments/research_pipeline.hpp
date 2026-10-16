@@ -26,6 +26,8 @@ struct Options {
     MatchConfig match;
     int nccMode = 0;
     int fineNccMode = 0; // Metal: 0 original; 1 shared rows; 2/3 strip with chunks 32/16.
+    bool fineProfiling = false; // Bounded exact request observation; adds host overhead.
+    bool fineAngleReuse = false; // Previous angle planes within one state/layer/pass only.
     bool overlap = false;
     bool refine = true;
     double proposalScore = .5; // capped at final minScore; ignored without refine
@@ -49,6 +51,7 @@ struct Result {
     std::vector<FpmCoarseMetrics> coarse;
     std::vector<FpmFineMetricsV1> fine;
     std::vector<FpmFineReuseMetricsV1> fineReuse;
+    std::vector<FpmFineSearchMetricsV1> fineSearch;
     std::vector<FpmCoarseOverlapMetricsV1> overlapMetrics;
 };
 // Public for cross-language parity checks; zero extension, width/2 center,

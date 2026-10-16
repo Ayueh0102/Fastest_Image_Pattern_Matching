@@ -79,7 +79,7 @@ void validateOptions(const Options& o,int backend) {
        !std::isfinite(c.toleranceAngle) || c.toleranceAngle<0 || c.toleranceAngle>180 ||
        (c.stopLayer!=0 && c.stopLayer!=1) || !std::isfinite(o.proposalScore) || o.proposalScore<0 || o.proposalScore>1 ||
        o.nccMode<0 || o.nccMode>3 || o.fineNccMode<0 || o.fineNccMode>3 ||
-       (backend==0 && (o.nccMode || o.fineNccMode || o.overlap)))
+       (backend==0 && (o.nccMode || o.fineNccMode || o.fineProfiling || o.fineAngleReuse || o.overlap)))
         throw std::invalid_argument("Invalid matching options or GPU option selected for CPU");
     if(c.coarseNccPruning) throw std::invalid_argument("Research frame does not support coarse pruning");
     for(auto r:c.angleRanges) if(!std::isfinite(r.min) || !std::isfinite(r.max) || r.min>r.max || r.min< -180 || r.max>180)
@@ -176,7 +176,7 @@ Result Session::run(const Options& o) {
     if(s.sparse) {
         // Orientation similarity is not NCC and cannot be used as a final
         // confidence. Keep all raw proposals visible for recall auditing.
-        if(!o.refine || o.match.stopLayer!=0 || o.nccMode || o.fineNccMode || o.overlap)
+        if(!o.refine || o.match.stopLayer!=0 || o.nccMode || o.fineNccMode || o.fineProfiling || o.fineAngleReuse || o.overlap)
             throw std::invalid_argument("Sparse orientation requires full NCC refinement, stopLayer=0, nccMode=0, fineNccMode=0 and overlap scheduling off");
         auto result=s.sparse->search(s.source.view(),o.match);
         r.sparseEnabled=true;r.sparse=result.metrics;
@@ -190,6 +190,7 @@ Result Session::run(const Options& o) {
             FpmCoarseOverlapConfigV1 optOverlap{1,sizeof(optOverlap),int(o.overlap),0,0,0};
             check(fpm_frame_set_coarse_overlap(s.frame.get(),&optOverlap,sizeof(optOverlap),error,sizeof(error)),error);
             check(fpm_frame_set_fine_ncc_mode(s.frame.get(),o.fineNccMode,error,sizeof(error)),error);
+            check(fpm_frame_set_fine_search_options(s.frame.get(),o.fineProfiling,o.fineAngleReuse,error,sizeof(error)),error);
         }
         std::vector<fpm_coarse_handle*> models;for(auto& p:s.patterns) models.push_back(p.get());
         const auto prepare=Clock::now();
@@ -207,6 +208,9 @@ Result Session::run(const Options& o) {
             FpmFineReuseMetricsV1 fineReuse{};
             check(fpm_frame_get_fine_reuse_metrics(s.frame.get(),&fineReuse,sizeof(fineReuse),error,sizeof(error)),error);
             r.fineReuse.push_back(fineReuse);
+            FpmFineSearchMetricsV1 fineSearch{};
+            check(fpm_frame_get_fine_search_metrics(s.frame.get(),&fineSearch,sizeof(fineSearch),error,sizeof(error)),error);
+            r.fineSearch.push_back(fineSearch);
             r.coarse.push_back(coarse);r.fine.push_back(fine);r.overlapMetrics.push_back(overlapMetrics);
             for(size_t j=0;j<count;++j) {
                 const auto& m=output[j];double scale=s.settings.scales[i];

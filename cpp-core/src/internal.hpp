@@ -42,6 +42,13 @@ public:
 	virtual ~CoarseNccProvider() = default;
 	virtual void invalidateFineSource() {}
 	virtual std::size_t fineBatchSize() const { return 0; }
+	virtual bool fineAngleReuseEnabled() const { return false; }
+	// Successful evaluation-round totals: logical requested maps and exact
+	// previous-round reuse hits. cacheBytes is peak live cache-owned allocation
+	// capacity (angle identities, previous maps), excluding current maps and
+	// allocator overhead. It is not process RSS or a net allocation delta.
+	virtual void recordFineAngleReuse(std::uint64_t requested, std::uint64_t reused,
+		std::uint64_t cacheBytes) { (void)requested; (void)reused; (void)cacheBytes; }
 	// Called once per match with immutable frame levels. Providers may cache
 	// resources only within the explicitly prepared frame lifetime.
 	virtual void beginFineMatch(const std::vector<Image>&) {}

@@ -1,0 +1,306 @@
+{
+  "stage": 29,
+  "baseline_commit": "b31c1439e1d33c6dafb725a7306d3b4d4b9b47e1",
+  "correctness_passed": true,
+  "formal_manifest_unchanged": true,
+  "workers": 72,
+  "formal_calls": 312,
+  "existing_distinct_gt_poses": 666,
+  "configuration_gt_pairs": 1312,
+  "all_main_performance_tolerances_pass": false,
+  "main_performance_failures": [
+    {
+      "case": "many128_pose_fullres_subpixel",
+      "comparison": "current_vs_frozen",
+      "block": 0,
+      "time_delta_percent": 16.296582616696465,
+      "time_tolerance_pass": false,
+      "rss_delta_bytes": -3080192,
+      "rss_tolerance_pass": true
+    },
+    {
+      "case": "many512_pose_fullres_subpixel",
+      "comparison": "reuse_vs_current",
+      "block": 0,
+      "time_delta_percent": -39.39913801987682,
+      "time_tolerance_pass": true,
+      "rss_delta_bytes": 99483648,
+      "rss_tolerance_pass": false
+    },
+    {
+      "case": "many512_pose_fullres_subpixel",
+      "comparison": "reuse_vs_current",
+      "block": 1,
+      "time_delta_percent": -38.897871263998475,
+      "time_tolerance_pass": true,
+      "rss_delta_bytes": 85491712,
+      "rss_tolerance_pass": false
+    },
+    {
+      "case": "many512_pose_fullres_subpixel",
+      "comparison": "reuse_vs_frozen",
+      "block": 1,
+      "time_delta_percent": -37.55789998796873,
+      "time_tolerance_pass": true,
+      "rss_delta_bytes": 88997888,
+      "rss_tolerance_pass": false
+    }
+  ],
+  "release_tests": {
+    "passed": 44,
+    "total": 44
+  },
+  "asan_ubsan_tests": {
+    "passed": 8,
+    "total": 8,
+    "build_type": "RelWithDebInfo",
+    "detect_leaks": false
+  },
+  "metal_api_shader_validation": true,
+  "new_binding_tests": 2,
+  "existing_binding_tests": 2,
+  "harness_tests": 11,
+  "memory_recheck": {
+    "complete": true,
+    "unchanged": true,
+    "workers": 4,
+    "algorithm_calls": 8,
+    "results": [
+      {
+        "method": "current",
+        "index": 0,
+        "job": "0-current.json",
+        "job_sha256": "fcbd367e0e14fb7fc0c857617c2a056c30ebdc833dcd40979bed314307a2c13c",
+        "result": "0-current.result.json",
+        "result_sha256": "0d53d6af4767b9d875d9548c2e17514be378704894b405986b7f470db0a316fc",
+        "exact": true,
+        "peak_rss_bytes": 834502656,
+        "first_ms": 25785.783959,
+        "repeat_ms": 25542.876208,
+        "first_memory": {
+          "current_rss_bytes": 823574528,
+          "peak_rss_bytes": 823574528
+        },
+        "repeat_memory": {
+          "current_rss_bytes": 834486272,
+          "peak_rss_bytes": 834486272
+        }
+      },
+      {
+        "method": "reuse",
+        "index": 1,
+        "job": "1-reuse.json",
+        "job_sha256": "ba9cb301e67f160723f6770e59114129ef6ffd9e9a74583894009b0788d42e4e",
+        "result": "1-reuse.result.json",
+        "result_sha256": "968d3eabf95b36bb3b3118710590787b5b43b8d6054571aacf660ba82dbce168",
+        "exact": true,
+        "peak_rss_bytes": 832880640,
+        "first_ms": 16061.712875,
+        "repeat_ms": 15735.804166,
+        "first_memory": {
+          "current_rss_bytes": 824082432,
+          "peak_rss_bytes": 824082432
+        },
+        "repeat_memory": {
+          "current_rss_bytes": 832880640,
+          "peak_rss_bytes": 832880640
+        }
+      },
+      {
+        "method": "reuse",
+        "index": 2,
+        "job": "2-reuse.json",
+        "job_sha256": "ba9cb301e67f160723f6770e59114129ef6ffd9e9a74583894009b0788d42e4e",
+        "result": "2-reuse.result.json",
+        "result_sha256": "4f6e97087fc47a6e6351c873e6dc9f7bb762cf3b70ee5287a9e9e947e9e8230f",
+        "exact": true,
+        "peak_rss_bytes": 835846144,
+        "first_ms": 15846.303541,
+        "repeat_ms": 15941.497417,
+        "first_memory": {
+          "current_rss_bytes": 826032128,
+          "peak_rss_bytes": 826032128
+        },
+        "repeat_memory": {
+          "current_rss_bytes": 835829760,
+          "peak_rss_bytes": 835829760
+        }
+      },
+      {
+        "method": "current",
+        "index": 3,
+        "job": "3-current.json",
+        "job_sha256": "fcbd367e0e14fb7fc0c857617c2a056c30ebdc833dcd40979bed314307a2c13c",
+        "result": "3-current.result.json",
+        "result_sha256": "947ddd8405d8d7818ae543911b38e81554c5a1d8391499ae08a89a71d7f66ed0",
+        "exact": true,
+        "peak_rss_bytes": 834486272,
+        "first_ms": 25695.164375,
+        "repeat_ms": 25512.916959,
+        "first_memory": {
+          "current_rss_bytes": 823099392,
+          "peak_rss_bytes": 823099392
+        },
+        "repeat_memory": {
+          "current_rss_bytes": 834469888,
+          "peak_rss_bytes": 834469888
+        }
+      }
+    ],
+    "comparisons": [
+      {
+        "rss_delta_bytes": -1622016,
+        "rss_tolerance_pass": true
+      },
+      {
+        "rss_delta_bytes": 1359872,
+        "rss_tolerance_pass": true
+      }
+    ],
+    "all_exact": true
+  },
+  "default_recheck": {
+    "complete": true,
+    "unchanged": true,
+    "workers": 4,
+    "formal_calls": 12,
+    "all_exact": true,
+    "results": [
+      {
+        "method": "frozen",
+        "index": 0,
+        "job": "0-frozen.json",
+        "job_sha256": "d858ab1be6bd0518c6845bfd6ff810116f028f4dc5f6a830cb9654dc2dd71599",
+        "result": "0-frozen.result.json",
+        "result_sha256": "8eea9904f9e5ad9a5325503316934643b0323e99b6b7c0ecb2dd0d202b9db640",
+        "exact": true,
+        "median_ms": 6744.254791,
+        "peak_rss_bytes": 440516608
+      },
+      {
+        "method": "current",
+        "index": 1,
+        "job": "1-current.json",
+        "job_sha256": "6eee8921c91d2fe2e4bb55f95e0d8a272c9df35a4fc147ba49e3f8569cf348dc",
+        "result": "1-current.result.json",
+        "result_sha256": "94c156745ddd00e5f4c176df41fa5bc47ee80c4dfe1008361155b3870e466cfd",
+        "exact": true,
+        "median_ms": 6841.534666,
+        "peak_rss_bytes": 437288960
+      },
+      {
+        "method": "current",
+        "index": 2,
+        "job": "2-current.json",
+        "job_sha256": "6eee8921c91d2fe2e4bb55f95e0d8a272c9df35a4fc147ba49e3f8569cf348dc",
+        "result": "2-current.result.json",
+        "result_sha256": "68b2f39e041fb206a69c0ce05f7dc2eb5d5401b06e2d560a27beea2d3253f5da",
+        "exact": true,
+        "median_ms": 6852.941125,
+        "peak_rss_bytes": 436961280
+      },
+      {
+        "method": "frozen",
+        "index": 3,
+        "job": "3-frozen.json",
+        "job_sha256": "d858ab1be6bd0518c6845bfd6ff810116f028f4dc5f6a830cb9654dc2dd71599",
+        "result": "3-frozen.result.json",
+        "result_sha256": "2879ca9bf4fb0b3800604e9eeeffa2ca48fda3869fcba0fa2ba633ec212ba8c6",
+        "exact": true,
+        "median_ms": 6757.513375,
+        "peak_rss_bytes": 437370880
+      }
+    ],
+    "comparisons": [
+      {
+        "time_delta_percent": 1.4424110300490955,
+        "time_tolerance_pass": true
+      },
+      {
+        "time_delta_percent": 1.4121725656221829,
+        "time_tolerance_pass": true
+      }
+    ]
+  },
+  "rebuild": {
+    "source_build": true,
+    "scheduler_and_profiler_tests": 2,
+    "small_fullres_reuse_exact": true,
+    "reuse_maps": 36,
+    "scope": "Rebuilt from archive staging source with tests enabled. Two focused tests and one complete small search; not another full benchmark."
+  },
+  "additional_validation": {
+    "relocated_summary_byte_equal": true,
+    "duplicate_rejected": true,
+    "worker_truth_rejected": true,
+    "hash_mismatch_rejected": true,
+    "logical_counter_mismatch_rejected": true,
+    "all_missed_recorded_without_exception": true
+  },
+  "source_extras": {
+    "reason": "C source test omitted from formal source suffix list; included in archive and verified byte-identical to frozen commit. Measured algorithm source hashes unchanged.",
+    "sha256": {
+      "cpp-core/tests/c_api_test.c": "cd2353e706994b5e46963d775f09054696382caf6e6c8612a402f0334426a905",
+      "cpp-core/tools/metal_cost_instrumentation.patch": "8243169cce0c04ebae2e0d57637cd68cc5da61eacd5dedd8958cbf17665337c0"
+    }
+  },
+  "retained_failed_attempts": [
+    {
+      "phase": "first build",
+      "reason": "test mixed auto declaration deduced size_t and uint64_t as different macOS types",
+      "fix": "Split oldRequests and oldRounds into separate const auto declarations",
+      "measured_implementation_changed": false
+    },
+    {
+      "phase": "native integration fixture",
+      "reason": "score .9 rejected all candidates before layer0, so positive-hit assertion failed",
+      "evidence": "debug-native.log records zero final matches and logical == physical maps",
+      "fix": "Use .6 in designated positive fixture; compare identical inputs/options with reuse off/on",
+      "measured_implementation_changed": false
+    },
+    {
+      "phase": "harness fixture",
+      "reason": "Python list reused one run object five times, so mutation modified aliased fixture entries repeatedly",
+      "fix": "Deep-copy each synthetic run",
+      "measured_implementation_changed": false
+    },
+    {
+      "phase": "ASan Debug run interrupted",
+      "reason": "Unoptimized CPU integration took 178.29 seconds; seven tests passed, final Metal integration interrupted before completion to use same optimized sanitizer configuration as stage28",
+      "fix": "Reconfigured RelWithDebInfo with ASan/UBSan enabled and reran all eight selected tests",
+      "not_a_test_pass": true
+    },
+    {
+      "phase": "archive source configure",
+      "reason": "formal source hash suffix list omitted unchanged tests/c_api_test.c; tests-ON archive configure failed",
+      "fix": "Include unchanged C test in archive, verify byte-identical to b31c143 and add supplementary content hash; rerun configure/build. No measured source/binary change."
+    }
+  ],
+  "agent_review": {
+    "agents": {
+      "fine_request_profile": "Implemented bounded exact-key profiler and focused tests; benchmark followup failed before writing files because application network permission was revoked. Parent wrote benchmark and harness tests.",
+      "fine_warp_review": "Implemented rolling angle reuse and scheduler tests; independently reviewed host/API and measurement tool."
+    },
+    "review_findings_addressed": [
+      "Original five regression configurations cannot hit layer0 subpixel reuse; add three positive fullres variants and mandatory hit/zero-hit checks.",
+      "Parameterize repeats before formal protocol freeze.",
+      "Validate finite clocks, nonnegative integral counters, disabled diagnostics, duplicate names, logical workload and capacities.",
+      "Label guard scan as scan plus actual CPU pixel repair."
+    ],
+    "parent_fixes": [
+      "Mixed-auto macOS test declaration",
+      "Positive integration fixture reaches layer0",
+      "Deep-copy harness synthetic runs"
+    ],
+    "scope": "No independent final review of later report or archive. Agent work is not a substitute for measured runtime tests."
+  },
+  "archive": {
+    "file": "raw-results.tar.gz",
+    "sha256": "4a30c54cd511f02c377b0a8e99516d730860182e2ac0f1092cb65dc5d7120024",
+    "bytes": 54727152,
+    "hashed_files": 736,
+    "extracted_content_verified": true,
+    "extracted_replay_byte_equal": true
+  },
+  "adoption": "Optional full-resolution subpixel reuse; preserve fast stopLayer1 baseline and GUI defaults. 512 deployment memory validation remains required; rechecks do not erase main failures."
+}

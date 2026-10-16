@@ -20,6 +20,13 @@ public:
         FpmFineReuseMetricsV1 value{}; value.version = 1; value.struct_bytes = sizeof(value);
         value.stats_device_ms = -1; return value;
     }
+    virtual void setFineSearchOptions(bool profiling, bool reuse) {
+        if (profiling || reuse) throw std::invalid_argument("fine search options require Metal");
+    }
+    virtual FpmFineSearchMetricsV1 fineSearchMetrics() const {
+        FpmFineSearchMetricsV1 value{}; value.version = 1; value.struct_bytes = sizeof(value);
+        value.warp_device_ms = -1; return value;
+    }
     virtual void setCoarseOptimization(int peakMode, int nccMode) {
         if (peakMode || nccMode) throw std::invalid_argument("coarse optimization is unavailable");
     }

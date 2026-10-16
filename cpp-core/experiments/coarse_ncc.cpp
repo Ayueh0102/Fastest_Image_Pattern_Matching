@@ -246,6 +246,35 @@ int fpm_frame_get_fine_reuse_metrics(fpm_frame_handle* frame, FpmFineReuseMetric
     catch (...) { message(error, capacity, "unknown fine reuse metrics exception"); }
     return FPM_ERROR;
 }
+int fpm_frame_set_fine_search_options(fpm_frame_handle* frame, int32_t profiling,
+    int32_t reuse, char* error, size_t capacity)
+{
+    message(error, capacity, "");
+    try {
+        if (!frame || profiling < 0 || profiling > 1 || reuse < 0 || reuse > 1)
+            throw std::invalid_argument("valid frame and boolean fine search options required");
+        if (frame->backend) frame->backend->setFineSearchOptions(profiling != 0, reuse != 0);
+        else if (profiling || reuse) throw std::invalid_argument("fine search options require Metal");
+        return FPM_OK;
+    } catch (const std::exception& e) { message(error, capacity, e.what()); }
+    catch (...) { message(error, capacity, "unknown fine search options exception"); }
+    return FPM_ERROR;
+}
+int fpm_frame_get_fine_search_metrics(fpm_frame_handle* frame, FpmFineSearchMetricsV1* metrics,
+    size_t bytes, char* error, size_t capacity)
+{
+    static_assert(sizeof(FpmFineSearchMetricsV1) == 232, "fine search metrics v1 ABI changed");
+    message(error, capacity, "");
+    try {
+        if (!frame || !metrics || bytes != sizeof(*metrics))
+            throw std::invalid_argument("valid frame and exact fine search metrics size required");
+        FpmFineSearchMetricsV1 value{}; value.version = 1; value.struct_bytes = sizeof(value); value.warp_device_ms = -1;
+        if (frame->backend) value = frame->backend->fineSearchMetrics();
+        *metrics = value; return FPM_OK;
+    } catch (const std::exception& e) { message(error, capacity, e.what()); }
+    catch (...) { message(error, capacity, "unknown fine search metrics exception"); }
+    return FPM_ERROR;
+}
 int fpm_frame_set_coarse_optimization(fpm_frame_handle* frame,
     const FpmCoarseOptimizationConfigV1* config, size_t bytes, char* error, size_t capacity)
 {

@@ -245,6 +245,19 @@ class FineReuseMetricsV1(C.Structure):
         ('stats_device_ms', C.c_double)]
 
 
+class FineSearchMetricsV1(C.Structure):
+    _fields_ = [('version', C.c_uint32), ('struct_bytes', C.c_uint32),
+                ('profiling_enabled', C.c_int32), ('angle_reuse_enabled', C.c_int32)] + [
+        (name, C.c_double) for name in ('observe_ms', 'plan_ms', 'descriptor_ms',
+            'warp_encode_ms', 'warp_wait_ms', 'warp_device_ms', 'repair_all_ms',
+            'guard_scan_ms', 'ncc_encode_ms', 'ncc_wait_ms')] + [
+        (name, C.c_uint64) for name in ('calls', 'requests', 'within_call_duplicates',
+            'cross_call_duplicates', 'untracked_call_keys', 'tracked_unique_keys',
+            'history_limit_keys', 'history_key_payload_bytes', 'history_bucket_count',
+            'peak_call_key_capacity_bytes', 'logical_requests', 'reused_maps',
+            'cache_peak_bytes', 'warp_batches', 'zero_repair_batches', 'guard_words', 'nonzero_guard_words')]
+
+
 class CoarseOptimizationConfigV1(C.Structure):
     _fields_ = [('version', C.c_uint32), ('struct_bytes', C.c_uint32),
                 ('peak_mode', C.c_int32), ('ncc_mode', C.c_int32),
@@ -394,6 +407,31 @@ class SourceFrame:
                              C.POINTER(C.c_char), C.c_size_t]
         function.restype = C.c_int
         metrics = FineReuseMetricsV1()
+        self._check(function(self.handle, C.byref(metrics), C.sizeof(metrics), self.error, len(self.error)))
+        return _fields_snapshot(metrics)
+
+    def set_fine_search_options(self, *, profiling=False, angle_reuse=False):
+        if not self.handle:
+            raise ValueError('frame is closed')
+        if type(profiling) is not bool or type(angle_reuse) is not bool:
+            raise ValueError('fine search options must be booleans')
+        if not hasattr(self.dll, 'fpm_frame_set_fine_search_options'):
+            raise RuntimeError('Fine search options unavailable; rebuild experimental library')
+        function = self.dll.fpm_frame_set_fine_search_options
+        function.argtypes = [C.c_void_p, C.c_int32, C.c_int32, C.POINTER(C.c_char), C.c_size_t]
+        function.restype = C.c_int
+        self._check(function(self.handle, profiling, angle_reuse, self.error, len(self.error)))
+
+    def fine_search_metrics(self):
+        if not self.handle:
+            raise ValueError('frame is closed')
+        if not hasattr(self.dll, 'fpm_frame_get_fine_search_metrics'):
+            raise RuntimeError('Fine search metrics unavailable; rebuild experimental library')
+        function = self.dll.fpm_frame_get_fine_search_metrics
+        function.argtypes = [C.c_void_p, C.POINTER(FineSearchMetricsV1), C.c_size_t,
+                             C.POINTER(C.c_char), C.c_size_t]
+        function.restype = C.c_int
+        metrics = FineSearchMetricsV1()
         self._check(function(self.handle, C.byref(metrics), C.sizeof(metrics), self.error, len(self.error)))
         return _fields_snapshot(metrics)
 

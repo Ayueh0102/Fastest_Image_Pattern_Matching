@@ -41,10 +41,19 @@ SourcePyramid prepare(ImageView source, std::size_t depth, bool inverted)
 class ExactProvider : public CoarseNccProvider {
 public:
     std::size_t batch, maxRequests = 0, requests = 0, calls = 0, begins = 0, invalidations = 0, builds = 0;
+    bool reuseAngles = false;
+    std::uint64_t logicalRequests = 0, reusedMaps = 0, reusePeakBytes = 0, reuseRounds = 0;
     int malformed = 0;
     explicit ExactProvider(std::size_t size) : batch(size) {}
     ScoreMap compute(ImageView source, const TemplateLevel& templ) override { return ncc(source, templ, Backend::Auto); }
     std::size_t fineBatchSize() const override { return batch; }
+    bool fineAngleReuseEnabled() const override { return reuseAngles; }
+    void recordFineAngleReuse(std::uint64_t requested, std::uint64_t reused, std::uint64_t cacheBytes) override
+    {
+        require(reuseAngles && reused <= requested && requested > 0, "invalid angle reuse callback");
+        logicalRequests += requested; reusedMaps += reused; ++reuseRounds;
+        reusePeakBytes = std::max(reusePeakBytes, cacheBytes);
+    }
     void invalidateFineSource() override { ++invalidations; }
     void beginFineMatch(const std::vector<Image>& levels) override { require(!levels.empty(), "beginFineMatch has no source"); ++begins; }
     bool buildPyramid(std::vector<Image>&, int) override { ++builds; return false; }
@@ -111,6 +120,8 @@ void compare(ImageView source, const Pattern& pattern, const MatchConfig& config
             require(provider.begins == (batch ? 1u : 0u), "fine lifecycle hook called in wrong mode");
             require(provider.requests == (batch ? profile.fine_maps : 0u) && provider.maxRequests <= batch,
                 "provider work counters differ from fine requests");
+            require(provider.reuseRounds == 0 && provider.reusePeakBytes == 0,
+                "disabled angle reuse invoked cache accounting");
             if (shared) require(profile.source_copy_bytes == 0 && profile.pyramid_generated_bytes == 0 &&
                 profile.source_copy_invert_ms == 0 && profile.pyramid_ms == 0, "prepared match repeated source preparation");
             else require(profile.source_copy_bytes == referenceProfile.source_copy_bytes &&
@@ -182,12 +193,88 @@ void validationAndSnapshot()
         rejects<std::runtime_error>([&] { matchWithCoarseNcc(templ.view(), Pattern(templ.view()), config, &malformed); });
     }
 }
+void compareReuse(ImageView source, const Pattern& pattern, const MatchConfig& config,
+    ExactProvider& cached, bool requireHit, bool requireNoHit, const SourcePyramid* prepared = nullptr)
+{
+    ExactProvider ordinary(cached.batch);
+    MatchStageProfile referenceProfile, actualProfile;
+    const auto reference = matchWithCoarseNcc(source, pattern, config, &ordinary, &referenceProfile, prepared);
+    const auto oldLogical = cached.logicalRequests, oldHits = cached.reusedMaps;
+    const auto oldRequests = cached.requests; const auto oldRounds = cached.reuseRounds;
+    const auto actual = matchWithCoarseNcc(source, pattern, config, &cached, &actualProfile, prepared);
+    equalMatches(actual, reference); profileAccounting(actualProfile);
+    const auto hits = cached.reusedMaps-oldHits;
+    require(cached.logicalRequests-oldLogical == ordinary.requests,
+        "angle reuse changed logical request count");
+    require(cached.requests-oldRequests+hits == ordinary.requests &&
+        actualProfile.fine_maps+hits == referenceProfile.fine_maps &&
+        actualProfile.fine_windows+hits*49 == referenceProfile.fine_windows,
+        "angle reuse physical work does not equal logical requests minus hits");
+    require(actualProfile.coarse_candidates == referenceProfile.coarse_candidates &&
+        actualProfile.fine_layer_visits == referenceProfile.fine_layer_visits &&
+        actualProfile.fine_passes == referenceProfile.fine_passes &&
+        actualProfile.refined_candidates == referenceProfile.refined_candidates,
+        "angle reuse changed search control work");
+    if (requireHit) require(hits > 0 && cached.requests-oldRequests < ordinary.requests,
+        "angle reuse positive fixture did not avoid any maps");
+    if (requireNoHit) require(hits == 0, "angle reuse escaped its state/layer/pass lifetime");
+    if (ordinary.requests) require(cached.reuseRounds > oldRounds && cached.reusePeakBytes > 0,
+        "angle reuse omitted live cache capacity accounting");
+    require(cached.maxRequests <= cached.batch, "angle reuse exceeded batch bound");
+}
+void angleReuse()
+{
+    // Different model scales and layer depths share one source snapshot and
+    // provider; cache identities must remain local to state/layer/pass/match.
+    auto base = noise(33, 29, 9031);
+    std::vector<Image> templates;
+    templates.emplace_back(base.view()); templates.push_back(pyrDown(base.view()));
+    templates.push_back(pyrDown(templates.back().view()));
+    auto source = noise(145, 137, 9221);
+    paste(source, templates[0], 9, 11); paste(source, templates[1], 81, 79);
+    paste(source, templates[2], 113, 101);
+    auto rotated = rotateCanvas(base.view(), base.width(), base.height(), 17.25, 0);
+    paste(source, rotated.image, 68, 17);
+    MatchConfig config; config.maxTargets = 5; config.minScore = .65;
+    config.maxOverlap = .25; config.toleranceAngle = 35; config.subpixel = true;
+    for (std::size_t batch : {1u, 7u, 32u}) {
+        ExactProvider cached(batch); cached.reuseAngles = true;
+        auto prepared = prepare(source.view(), 6, false);
+        for (const auto& templ : templates) {
+            Pattern pattern(templ.view(), 64);
+            compareReuse(source.view(), pattern, config, cached, true, false, &prepared);
+            // Repeated calls exercise lifetime clearing, including an unchanged
+            // source/template pointer that would conceal a stale global cache.
+            compareReuse(source.view(), pattern, config, cached, true, false, &prepared);
+            auto noSubpixel = config; noSubpixel.subpixel = false;
+            compareReuse(source.view(), pattern, noSubpixel, cached, false, true, &prepared);
+            auto stopped = config; stopped.stopLayer = 1;
+            compareReuse(source.view(), pattern, stopped, cached, false, true, &prepared);
+        }
+        Pattern pattern(base.view(), 64);
+        auto wrapped = config; wrapped.angleRanges = {{-180, -172}, {-2, 3}, {174, 180}};
+        compareReuse(source.view(), pattern, wrapped, cached, false, false, &prepared);
+        // Change bytes in place and use a fresh match. The reused provider must
+        // not keep maps from an earlier frame with the same address/dimensions.
+        Image changed(source.view());
+        compareReuse(changed.view(), pattern, config, cached, true, false);
+        const auto replacement = noise(changed.width(), changed.height(), 9301);
+        std::copy_n(replacement.row(0), size_t(changed.width())*changed.height(), changed.row(0));
+        paste(changed, base, 51, 61);
+        compareReuse(changed.view(), pattern, config, cached, true, false);
+    }
+    // Equal-valued maps still retain original angle ordering and peak ties.
+    Image flatTemplate(3, 3), flatSource(17, 19);
+    MatchConfig ties; ties.maxTargets = 7; ties.minScore = .9; ties.maxOverlap = .5; ties.subpixel = true;
+    ExactProvider tied(7); tied.reuseAngles = true;
+    compareReuse(flatSource.view(), Pattern(flatTemplate.view(), 64), ties, tied, false, false);
+}
 }
 int main()
 {
     try {
-        equivalence(); validationAndSnapshot();
-        std::cout << "Fine wavefront/prepared source preserve exact outputs, work counts, ordering and exclusive profiles\n";
+        equivalence(); validationAndSnapshot(); angleReuse();
+        std::cout << "Fine wavefront/prepared source and exact angle reuse preserve outputs, ordering and exclusive profiles\n";
         return 0;
     } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }
 }

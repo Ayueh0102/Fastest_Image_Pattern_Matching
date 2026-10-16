@@ -118,6 +118,26 @@ typedef struct FpmFineReuseMetricsV1 {
     uint64_t row_buffer_bytes, row_dispatches, statistics_dispatches;
     double stats_device_ms;
 } FpmFineReuseMetricsV1;
+/* Optional fine-search diagnostics, reset per model. Duplicate observation is
+ * bounded at 65536 keys and is disabled by default; untracked_call_keys counts
+ * unadmitted distinct keys, NOT proven unique requests. Within/cross-call counts
+ * are disjoint. Keys use exact pose bits and source/ROI identity, not Q28 equality.
+ * Host timings overlap existing wall/rotation/wait metrics. GPU time is -1 if
+ * unavailable. History memory fields describe payload/buckets, not allocator RSS.
+ * Angle reuse keeps only previous-round planes within one state/layer/pass.
+ * cache_peak_bytes counts cache-owned allocation capacities, excluding ordinary
+ * current maps and allocator metadata; it is not an exact RSS delta. */
+typedef struct FpmFineSearchMetricsV1 {
+    uint32_t version, struct_bytes;
+    int32_t profiling_enabled, angle_reuse_enabled;
+    double observe_ms, plan_ms, descriptor_ms, warp_encode_ms, warp_wait_ms;
+    double warp_device_ms, repair_all_ms, guard_scan_ms, ncc_encode_ms, ncc_wait_ms;
+    uint64_t calls, requests, within_call_duplicates, cross_call_duplicates;
+    uint64_t untracked_call_keys, tracked_unique_keys, history_limit_keys;
+    uint64_t history_key_payload_bytes, history_bucket_count, peak_call_key_capacity_bytes;
+    uint64_t logical_requests, reused_maps, cache_peak_bytes;
+    uint64_t warp_batches, zero_repair_batches, guard_words, nonzero_guard_words;
+} FpmFineSearchMetricsV1;
 /* A frame owns one immutable source pyramid and execution backend, reused by
  * any number of template/scale handles. Explicit prepare ALWAYS refreshes pixels;
  * input pointer/dimensions alone never imply content identity. One caller at a
@@ -130,6 +150,13 @@ FPM_API int fpm_frame_set_fine_ncc_mode(fpm_frame_handle* frame, int32_t mode,
     char* error, size_t error_capacity);
 FPM_API int fpm_frame_get_fine_reuse_metrics(fpm_frame_handle* frame,
     FpmFineReuseMetricsV1* metrics, size_t metrics_bytes, char* error, size_t error_capacity);
+/* Boolean options, Metal only; CPU accepts (0,0). No public layout changes.
+ * Profiling observes physical requests; enabling reuse changes physical work but
+ * preserves logical angle ordering and output values. Both default to zero. */
+FPM_API int fpm_frame_set_fine_search_options(fpm_frame_handle* frame,
+    int32_t profiling, int32_t angle_reuse, char* error, size_t error_capacity);
+FPM_API int fpm_frame_get_fine_search_metrics(fpm_frame_handle* frame,
+    FpmFineSearchMetricsV1* metrics, size_t metrics_bytes, char* error, size_t error_capacity);
 typedef struct FpmFrameConfigV1 {
     uint32_t version, struct_bytes;
     int32_t backend, pyramid_mode, batch_angles, fine_batch_size;

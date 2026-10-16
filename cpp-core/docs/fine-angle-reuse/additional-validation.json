@@ -1,0 +1,8 @@
+{
+  "relocated_summary_byte_equal": true,
+  "duplicate_rejected": true,
+  "worker_truth_rejected": true,
+  "hash_mismatch_rejected": true,
+  "logical_counter_mismatch_rejected": true,
+  "all_missed_recorded_without_exception": true
+}

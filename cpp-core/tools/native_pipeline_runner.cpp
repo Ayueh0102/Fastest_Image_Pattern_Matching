@@ -74,6 +74,23 @@ QJsonObject record(const Result& r,bool outputs) {
     o["refinement_wait_ms"]=r.resident.wait_ms;
     o["refinement_verify_ms"]=r.resident.cpu_verify_ms;
     o["refinement_device_ms"]=r.pose.device_ms;
+    QJsonArray diagnostics;
+    for(const auto& p:r.fineSearch) {
+        QJsonObject d;
+#define FPM_FINE_FIELD(name) d[#name]=double(p.name)
+        FPM_FINE_FIELD(profiling_enabled); FPM_FINE_FIELD(angle_reuse_enabled);
+        FPM_FINE_FIELD(observe_ms); FPM_FINE_FIELD(plan_ms); FPM_FINE_FIELD(descriptor_ms);
+        FPM_FINE_FIELD(warp_encode_ms); FPM_FINE_FIELD(warp_wait_ms); FPM_FINE_FIELD(warp_device_ms);
+        FPM_FINE_FIELD(repair_all_ms); FPM_FINE_FIELD(guard_scan_ms); FPM_FINE_FIELD(ncc_encode_ms); FPM_FINE_FIELD(ncc_wait_ms);
+        FPM_FINE_FIELD(calls); FPM_FINE_FIELD(requests); FPM_FINE_FIELD(within_call_duplicates); FPM_FINE_FIELD(cross_call_duplicates);
+        FPM_FINE_FIELD(untracked_call_keys); FPM_FINE_FIELD(tracked_unique_keys); FPM_FINE_FIELD(history_limit_keys);
+        FPM_FINE_FIELD(history_key_payload_bytes); FPM_FINE_FIELD(history_bucket_count); FPM_FINE_FIELD(peak_call_key_capacity_bytes);
+        FPM_FINE_FIELD(logical_requests); FPM_FINE_FIELD(reused_maps); FPM_FINE_FIELD(cache_peak_bytes);
+        FPM_FINE_FIELD(warp_batches); FPM_FINE_FIELD(zero_repair_batches); FPM_FINE_FIELD(guard_words); FPM_FINE_FIELD(nonzero_guard_words);
+#undef FPM_FINE_FIELD
+        diagnostics.append(d);
+    }
+    o["fine_search"]=diagnostics;
     QJsonArray work;for(size_t i=0;i<r.coarse.size();++i) {
         auto a=r.coarse[i];auto b=r.fine[i];auto c=r.overlapMetrics[i];
         const auto d=r.fineReuse[i];
@@ -145,6 +162,7 @@ int main(int argc,char** argv) {
         settings.cpuThreads=j["cpu_threads"].toInt(8);settings.sparse.cpuThreads=settings.cpuThreads;
         Options o;o.nccMode=j["ncc_mode"].toInt();o.overlap=j["overlap_enabled"].toBool();o.refine=j["refine"].toBool(true);
         o.fineNccMode=j["fine_ncc_mode"].toInt(0);
+        o.fineProfiling=j["fine_profiling"].toBool(false); o.fineAngleReuse=j["fine_angle_reuse"].toBool(false);
         o.match.maxTargets=j["limit"].toInt(70);o.match.minScore=j["score"].toDouble(.8);o.match.maxOverlap=j["overlap"].toDouble(.2);o.match.toleranceAngle=j["angle"].toDouble(180);
         o.match.stopLayer=j["stop_layer"].toInt(1);o.match.subpixel=j["subpixel"].toBool();o.match.invertSource=j["invert_source"].toBool();
         o.proposalScore=j["proposal_score"].toDouble(.5);

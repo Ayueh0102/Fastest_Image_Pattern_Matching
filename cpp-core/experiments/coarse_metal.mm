@@ -2,6 +2,7 @@
 #include "coarse_internal.hpp"
 #include "coarse_metal_source.hpp"
 #include "fine_sampling.hpp"
+#include "fine_request_profile.hpp"
 #import <Foundation/Foundation.h>
 #import <Metal/Metal.h>
 #include <algorithm>
@@ -66,6 +67,9 @@ class MetalBackend final : public Backend {
     std::array<id<MTLComputePipelineState>, 2> fineStrip32_{}, fineStrip64_{};
     int fineNccMode_ = 0;
     FpmFineReuseMetricsV1 fineReuse_{};
+    bool fineProfiling_ = false, fineAngleReuse_ = false;
+    FpmFineSearchMetricsV1 fineSearch_{};
+    FineRequestProfiler fineRequestProfiler_;
     id<MTLBuffer> fineRows_;
     id<MTLBuffer> source_, batchSource_, template_, workspace_;
     id<MTLBuffer> pyramidInput_, pyramidOutput_, pyramidScratch_;
@@ -234,6 +238,7 @@ public:
     void resetMetrics() override {
         drainCoarseBatches();
         metrics_ = {}; executionMetrics_ = {}; fineMetrics_ = {}; fineReuse_ = {};
+        fineSearch_ = {}; fineRequestProfiler_.reset();
         overlapMetrics_ = {}; firstCoarseGpuStart_ = lastCoarseGpuEnd_ = 0;
         // A shared frame may visit new pattern objects at recycled addresses.
         // Revalidate template content once per model; source-frame identities
@@ -243,6 +248,7 @@ public:
     void invalidateFineSource() override {
         drainCoarseBatches();
         fineSources_.clear(); nextFineSourceBuffer_ = 0;
+        fineSearch_ = {}; fineRequestProfiler_.reset();
     }
     void setCoarseOptimization(int peakMode, int nccMode) override {
         requireCoarseIdle();
@@ -361,6 +367,31 @@ public:
         }
         fineNccMode_ = mode;
         if (mode != 1) fineRows_ = nil;
+    }
+    void setFineSearchOptions(bool profiling, bool reuse) override {
+        requireCoarseIdle();
+        if (profiling != fineProfiling_ || reuse != fineAngleReuse_) {
+            fineSearch_ = {}; fineRequestProfiler_.reset();
+        }
+        fineProfiling_ = profiling; fineAngleReuse_ = reuse;
+    }
+    bool fineAngleReuseEnabled() const override { return fineAngleReuse_; }
+    void recordFineAngleReuse(uint64_t requested, uint64_t reused, uint64_t cacheBytes) override {
+        fineSearch_.logical_requests += requested; fineSearch_.reused_maps += reused;
+        fineSearch_.cache_peak_bytes = std::max(fineSearch_.cache_peak_bytes, cacheBytes);
+    }
+    FpmFineSearchMetricsV1 fineSearchMetrics() const override {
+        auto m = fineSearch_; m.version = 1; m.struct_bytes = sizeof(m);
+        m.profiling_enabled = fineProfiling_; m.angle_reuse_enabled = fineAngleReuse_;
+        if (fineProfiling_) {
+            const auto s = fineRequestProfiler_.stats();
+            m.calls = s.calls; m.requests = s.requests;
+            m.within_call_duplicates = s.within_call_duplicates; m.cross_call_duplicates = s.cross_call_duplicates;
+            m.untracked_call_keys = s.untracked_call_keys; m.tracked_unique_keys = s.tracked_unique_keys;
+            m.history_limit_keys = s.history_limit_keys; m.history_key_payload_bytes = s.history_key_payload_bytes;
+            m.history_bucket_count = s.history_bucket_count; m.peak_call_key_capacity_bytes = s.peak_call_key_capacity_bytes;
+        } else m.warp_device_ms = -1;
+        return m;
     }
     FpmFineReuseMetricsV1 fineReuseMetrics() const override {
         auto m = fineReuse_; m.version = 1; m.struct_bytes = sizeof(m); m.ncc_mode = fineNccMode_;
@@ -573,6 +604,11 @@ public:
                 fineMetrics_.upload_ms += elapsed(upload);
                 uploadedFineTemplate_ = &templ;
             }
+            if (fineProfiling_) {
+                const auto observation = Clock::now();
+                fineRequestProfiler_.observe(source, templ, requests);
+                fineSearch_.observe_ms += elapsed(observation);
+            }
             double rotationTotal = 0;
             for (size_t first = 0; first < requests.size(); first += maxMaps) {
                 const size_t count = std::min(maxMaps, requests.size() - first);
@@ -586,11 +622,14 @@ public:
                 std::vector<FineWarpPlan> plans;
                 plans.reserve(count);
                 for (size_t i = 0; i < count; ++i) plans.push_back(prepareFineWarp(requests[first + i], rw, rh));
+                if (fineProfiling_) fineSearch_.plan_ms += elapsed(rotation);
                 const auto upload = Clock::now();
                 auto* descriptors = static_cast<FineWarpDescriptor*>(fineDescriptors_.contents);
                 for (size_t i = 0; i < count; ++i) descriptors[i] = plans[i].descriptor;
                 std::memset(fineGuards_.contents, 0, guardWords * sizeof(uint32_t));
-                fineMetrics_.upload_ms += elapsed(upload);
+                const double descriptorMs = elapsed(upload);
+                fineMetrics_.upload_ms += descriptorMs;
+                if (fineProfiling_) fineSearch_.descriptor_ms += descriptorMs;
                 const FineWarpConfig warpConfig{uint32_t(source.width), uint32_t(source.height),
                     uint32_t(rw), uint32_t(rh), uint32_t(roiPixels), uint32_t(roiStride), uint32_t(count), 0};
                 const auto warpEncode = Clock::now();
@@ -608,10 +647,22 @@ public:
                     threadsPerThreadgroup:MTLSizeMake(std::min<NSUInteger>(256,
                         fineWarp_.maxTotalThreadsPerThreadgroup), 1, 1)];
                 [warpEncoder endEncoding];
-                fineMetrics_.encode_ms += elapsed(warpEncode);
+                const double warpEncodeMs = elapsed(warpEncode);
+                fineMetrics_.encode_ms += warpEncodeMs;
+                const double beforeWarpWait = fineMetrics_.wait_ms;
                 finishFineCommand(warpCommand, "fine guarded warp execution");
+                if (fineProfiling_) {
+                    fineSearch_.warp_encode_ms += warpEncodeMs;
+                    fineSearch_.warp_wait_ms += fineMetrics_.wait_ms - beforeWarpWait;
+                    ++fineSearch_.warp_batches;
+                    if (warpCommand.GPUEndTime > warpCommand.GPUStartTime && warpCommand.GPUStartTime > 0) {
+                        if (fineSearch_.warp_device_ms >= 0)
+                            fineSearch_.warp_device_ms += 1000 * (warpCommand.GPUEndTime - warpCommand.GPUStartTime);
+                    } else fineSearch_.warp_device_ms = -1;
+                }
 
                 const auto repair = Clock::now();
+                const uint64_t beforeRepairPixels = fineMetrics_.repair_pixels;
                 auto* roiData = static_cast<uint8_t*>(fineRois_.contents);
                 for (size_t i = 0; i < count; ++i) if (plans[i].descriptor.repairAll) {
                     ++fineMetrics_.repair_all_maps;
@@ -620,9 +671,15 @@ public:
                         output[size_t(y) * rw + x] = sampleFineLegacyPixel(source, plans[i], x, y);
                     fineMetrics_.repair_pixels += roiPixels;
                 }
+                const auto scan = fineProfiling_ ? Clock::now() : Clock::time_point{};
+                if (fineProfiling_) {
+                    fineSearch_.repair_all_ms += std::chrono::duration<double, std::milli>(scan - repair).count();
+                    fineSearch_.guard_words += guardWords;
+                }
                 const auto* guards = static_cast<const uint32_t*>(fineGuards_.contents);
                 for (size_t word = 0; word < guardWords; ++word) {
                     uint32_t bits = guards[word];
+                    if (fineProfiling_ && bits) ++fineSearch_.nonzero_guard_words;
                     while (bits) {
                         const unsigned bit = unsigned(__builtin_ctz(bits));
                         const size_t index = word * 32 + bit;
@@ -634,6 +691,10 @@ public:
                         ++fineMetrics_.repair_pixels;
                         bits &= bits - 1;
                     }
+                }
+                if (fineProfiling_) {
+                    fineSearch_.guard_scan_ms += elapsed(scan);
+                    if (fineMetrics_.repair_pixels == beforeRepairPixels) ++fineSearch_.zero_repair_batches;
                 }
                 fineMetrics_.repair_ms += elapsed(repair);
                 const double rotationElapsed = elapsed(rotation);
@@ -692,10 +753,14 @@ public:
                     (count * groupsPerMap + groupsPerThreadgroup - 1) / groupsPerThreadgroup, 1, 1)
                     threadsPerThreadgroup:MTLSizeMake(groupsPerThreadgroup * simdWidth, 1, 1)];
                 [statsEncoder endEncoding];
-                fineMetrics_.encode_ms += elapsed(nccEncode);
+                const double nccEncodeMs = elapsed(nccEncode);
+                fineMetrics_.encode_ms += nccEncodeMs;
+                if (fineProfiling_) fineSearch_.ncc_encode_ms += nccEncodeMs;
+                const double beforeNccWait = fineMetrics_.wait_ms;
                 // CPU repairs are complete before this commit, so shared ROI
                 // writes are visible to the following GPU statistics dispatch.
                 finishFineCommand(statsCommand, "fine NCC execution");
+                if (fineProfiling_) fineSearch_.ncc_wait_ms += fineMetrics_.wait_ms - beforeNccWait;
                 ++fineReuse_.statistics_dispatches;
                 if (statsCommand.GPUEndTime > statsCommand.GPUStartTime && statsCommand.GPUStartTime > 0) {
                     if (fineReuse_.stats_device_ms >= 0)

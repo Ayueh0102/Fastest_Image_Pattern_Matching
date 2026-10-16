@@ -5,6 +5,7 @@
 #include <cmath>
 #include <climits>
 #include <chrono>
+#include <cstring>
 #include <stdexcept>
 
 namespace fpm {
@@ -505,11 +506,17 @@ std::vector<Match> detail::matchWithCoarseNcc(ImageView source, const Pattern& p
 			std::vector<Peak> peaks;
 			Match output;
 		};
+		const bool reuseAngles = provider->fineAngleReuseEnabled();
 		// A bounded candidate group retains the angle planes needed by the
 		// existing quadratic fit. GPU requests are bounded separately below.
 		for (std::size_t first = 0; first < candidates.size(); first += fineBatchSize) {
 			const std::size_t count = std::min(fineBatchSize, candidates.size()-first);
 			std::vector<FineState> states(count);
+			// Only the immediately preceding evaluation is retained. Identities
+			// are separate from FineState so disabled reuse allocates no cache.
+			std::vector<std::vector<double>> evaluatedAngles;
+			if (reuseAngles) evaluatedAngles.resize(count);
+			std::uint64_t angleCacheBytes = evaluatedAngles.capacity()*sizeof(std::vector<double>);
 			for (std::size_t index = 0; index < count; ++index) {
 				const auto& candidate = candidates[first+index]; auto& state = states[index];
 				state.point = candidate.point; state.angle = candidate.angle;
@@ -526,6 +533,9 @@ std::vector<Match> detail::matchWithCoarseNcc(ImageView source, const Pattern& p
 				const int passes = config.subpixel && layer == 0 ? 3 : 1;
 				if (profile) for (const auto& state : states) if (state.active) ++profile->fine_layer_visits;
 				for (int pass = 0; pass < passes; ++pass) {
+					// Every pass can move the anchor; a layer also changes source and
+					// template pixels. Never carry identities across either boundary.
+					for (auto& angles : evaluatedAngles) angles.clear();
 					for (auto& state : states) {
 						state.evaluating = state.active;
 						if (!state.active) continue;
@@ -537,6 +547,7 @@ std::vector<Match> detail::matchWithCoarseNcc(ImageView source, const Pattern& p
 						state.resolution = 0; state.attempt = 0;
 					}
 					while (std::any_of(states.begin(), states.end(), [](const FineState& state) { return state.evaluating; })) {
+						std::uint64_t logicalRequests = 0, reusedMaps = 0, peakCacheBytes = angleCacheBytes;
 						std::vector<FineRequest> requests;
 						std::vector<std::pair<std::size_t, std::size_t>> destinations;
 						requests.reserve(fineBatchSize); destinations.reserve(fineBatchSize);
@@ -578,14 +589,44 @@ std::vector<Match> detail::matchWithCoarseNcc(ImageView source, const Pattern& p
 						for (std::size_t index = 0; index < count; ++index) {
 							auto& state = states[index];
 							if (!state.evaluating) continue;
+							std::vector<ScoreMap> previousMaps;
+							if (reuseAngles && !evaluatedAngles[index].empty())
+								previousMaps = std::move(state.maps);
 							state.maps.clear(); state.maps.resize(state.testAngles.size());
 							state.peaks.clear(); state.best = -1;
+							auto previousMapBytes = [&] {
+								std::uint64_t bytes = previousMaps.capacity()*sizeof(ScoreMap);
+								for (const auto& map : previousMaps) bytes += map.values.capacity()*sizeof(double);
+								return bytes;
+							};
+							if (reuseAngles) {
+								logicalRequests += state.testAngles.size();
+								peakCacheBytes = std::max(peakCacheBytes, angleCacheBytes+previousMapBytes());
+							}
 							for (std::size_t angle = 0; angle < state.testAngles.size(); ++angle) {
+								bool reused = false;
+								if (reuseAngles) for (std::size_t old = 0; old < evaluatedAngles[index].size(); ++old) {
+									// Angle quantization, epsilon equality, and modulo-360
+									// folding can change legacy sampling near half integers.
+									if (std::memcmp(&evaluatedAngles[index][old], &state.testAngles[angle], sizeof(double)) == 0) {
+										state.maps[angle] = std::move(previousMaps[old]);
+										++reusedMaps; reused = true; break;
+									}
+								}
+								if (reused) continue;
 								requests.push_back({state.anchor, state.testAngles[angle]}); destinations.push_back({index, angle});
 								if (requests.size() == fineBatchSize) flush();
 							}
+							if (reuseAngles) {
+								auto& angles = evaluatedAngles[index];
+								angleCacheBytes -= angles.capacity()*sizeof(double);
+								angles = state.testAngles;
+								angleCacheBytes += angles.capacity()*sizeof(double);
+								peakCacheBytes = std::max(peakCacheBytes, angleCacheBytes+previousMapBytes());
+							}
 						}
 						flush();
+						if (reuseAngles) provider->recordFineAngleReuse(logicalRequests, reusedMaps, peakCacheBytes);
 						for (auto& state : states) {
 							if (!state.evaluating) continue;
 							{
