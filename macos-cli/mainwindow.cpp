@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include <QCheckBox>
 #include <QComboBox>
+#include <QColorSpace>
 #include <QDoubleSpinBox>
 #include <QDragEnterEvent>
 #include <QDropEvent>
@@ -30,6 +31,7 @@
 #include <QtConcurrent/QtConcurrentRun>
 #include <algorithm>
 #include <cmath>
+#include <utility>
 
 namespace {
 fpm::ImageView imageView(const QImage& image)
@@ -41,7 +43,16 @@ QImage readGray(const QString& path)
 	QImageReader reader(path);
 	// Keep stored pixel orientation, matching the reference image coordinates.
 	reader.setAutoTransform(false);
-	const auto rgb = reader.read().convertToFormat(QImage::Format_RGB888);
+	auto rgb = reader.read();
+	// Already gray8: equal RGB channels would round back to the same byte.
+	// Retain the decoder's stride and stored orientation without an RGB copy.
+	if (rgb.format() == QImage::Format_Grayscale8) {
+		// Match the display metadata of the old newly allocated gray image.
+		rgb.setDevicePixelRatio(1);
+		rgb.setColorSpace(QColorSpace{});
+		return rgb;
+	}
+	rgb = std::move(rgb).convertToFormat(QImage::Format_RGB888);
 	if (rgb.isNull()) return {};
 	QImage gray(rgb.size(), QImage::Format_Grayscale8);
 	for (int y = 0; y < rgb.height(); ++y)
@@ -126,7 +137,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent)
 	loadSource_->setObjectName("loadSource"); loadTemplate_->setObjectName("loadTemplate");
 	side->addWidget(loadSource_); sourceInfo_ = new QLabel; side->addWidget(sourceInfo_);
 	side->addWidget(loadTemplate_); templateInfo_ = new QLabel; side->addWidget(templateInfo_);
-	templatePreview_ = new QLabel; templatePreview_->setMinimumHeight(120); templatePreview_->setMaximumHeight(150);
+	templatePreview_ = new QLabel; templatePreview_->setObjectName("templatePreview"); templatePreview_->setMinimumHeight(120); templatePreview_->setMaximumHeight(150);
 	templatePreview_->setAlignment(Qt::AlignCenter); side->addWidget(templatePreview_);
 	parameters_ = new QGroupBox; auto* form = new QFormLayout(parameters_);
 	engine_ = new QComboBox; engine_->setObjectName("engine"); engine_->addItem("",0);

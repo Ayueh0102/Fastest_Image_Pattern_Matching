@@ -7,7 +7,24 @@ import tempfile
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
-from profile_fine_memory import replace_once, summarize, target_compile_flags, ROOT
+from profile_fine_memory import (copy_runner_headers, instrument_runner, replace_once,
+                                 sha, summarize, target_compile_flags, ROOT)
+
+
+def runner_fixture(load):
+    return '\n'.join((
+        '#include "research_pipeline.hpp"',
+        'QCoreApplication app(argc,argv);',
+        load,
+        'const double construct=ms(start);',
+        'Result first=session->run(o);QJsonObject firstRecord=record(first,true);',
+        'while(ms(start)<warm*1000) {auto r=session->run(o);exact&=equal(r,first);warmups.append(r.totalMs);}',
+        'for(int i=0;i<repeats;++i) {auto r=session->run(o);exact&=equal(r,first);runs.append(record(r,true));}',
+    ))
+
+
+LEGACY_LOAD = 'tmp=read(j["template"].toString());Settings settings;'
+GRAY_LOAD = 'const double decodeMs=ms(loadStart);const auto afterLoadMemory=memory();'
 
 
 class FineMemoryProfileTest(unittest.TestCase):
@@ -45,6 +62,39 @@ class FineMemoryProfileTest(unittest.TestCase):
         for text in ("none", "twice twice"):
             with self.assertRaises(ValueError):
                 replace_once(text, "twice", "once")
+
+    def test_frozen_runner_load_anchor_remains_supported(self):
+        instrumented = instrument_runner(runner_fixture(LEGACY_LOAD))
+        self.assertIn('tmp=read(j["template"].toString()); fpm_memory::stage("images_decoded"); Settings settings;', instrumented)
+        self.assertEqual(instrumented.count('stage("images_decoded")'), 1)
+
+    def test_gray_loader_probe_preserves_native_measurement_boundaries(self):
+        instrumented = instrument_runner(runner_fixture(GRAY_LOAD))
+        self.assertIn(GRAY_LOAD + ' fpm_memory::stage("images_decoded");', instrumented)
+        self.assertEqual(instrumented.count('stage("images_decoded")'), 1)
+
+    def test_unknown_or_ambiguous_load_layout_fails_closed(self):
+        for load in ("unknown load", LEGACY_LOAD + GRAY_LOAD, LEGACY_LOAD * 2, GRAY_LOAD * 2):
+            with self.subTest(load=load), self.assertRaises(ValueError):
+                instrument_runner(runner_fixture(load))
+
+    def test_runner_header_comes_from_selected_source_and_is_hashed(self):
+        frozen = self.root / "frozen"
+        header = frozen / "cpp-core/tools/qt_gray_loader.hpp"
+        header.parent.mkdir(parents=True)
+        header.write_text("// frozen loader contents\n")
+        source = self.root / "source"
+        source.mkdir()
+        originals = copy_runner_headers(frozen, source, '#include "qt_gray_loader.hpp"')
+        self.assertEqual((source / header.name).read_bytes(), header.read_bytes())
+        self.assertEqual(originals, {str(header): sha(header)})
+
+    def test_legacy_runner_does_not_need_new_loader_header(self):
+        self.assertEqual(copy_runner_headers(self.root, self.root, runner_fixture(LEGACY_LOAD)), {})
+
+    def test_missing_selected_loader_header_fails_closed(self):
+        with self.assertRaises(FileNotFoundError):
+            copy_runner_headers(self.root, self.root, '#include "qt_gray_loader.hpp"')
 
     def test_each_target_keeps_its_floating_point_contract(self):
         for target, options in (("runner", "-O3 -std=c++17"),

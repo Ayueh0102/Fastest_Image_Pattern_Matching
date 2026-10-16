@@ -2,6 +2,7 @@
 // JSON job runner for the SAME native Session used by the GUI. Qt only decodes
 // images and serializes audit records; all matching is C++/Metal.
 #include "research_pipeline.hpp"
+#include "qt_gray_loader.hpp"
 #include <QCoreApplication>
 #include <QFile>
 #include <QImage>
@@ -19,15 +20,6 @@
 using namespace fpm::research;
 using Clock=std::chrono::steady_clock;
 double ms(Clock::time_point t) { return std::chrono::duration<double,std::milli>(Clock::now()-t).count(); }
-fpm::Image read(const QString& path) {
-    QImage image(path);image=image.convertToFormat(QImage::Format_RGB888);
-    if(image.isNull()) throw std::invalid_argument("Cannot decode image");
-    fpm::Image out(image.width(),image.height());
-    for(int y=0;y<image.height();++y) for(int x=0;x<image.width();++x) {
-        auto p=image.constScanLine(y)+3*x;out.row(y)[x]=fpm::grayFromRgb(p[0],p[1],p[2]);
-    }
-    return out;
-}
 QJsonObject memory() {
     rusage usage{};if(getrusage(RUSAGE_SELF,&usage)) throw std::runtime_error("RSS unavailable");
     double peak=usage.ru_maxrss;
@@ -149,7 +141,16 @@ int main(int argc,char** argv) {
         QFile file(QString::fromLocal8Bit(argv[1]));if(!file.open(QIODevice::ReadOnly)) throw std::invalid_argument("Cannot open job");
         const auto j=QJsonDocument::fromJson(file.readAll()).object();
         if(j.isEmpty() || j.contains("truth")) throw std::invalid_argument("Expected job without ground truth");
-        auto src=read(j["source"].toString()),tmp=read(j["template"].toString());Settings settings;
+        const auto loadModeName=j["gray_load_mode"].toString("direct_gray8");
+        if(loadModeName!="direct_gray8" && loadModeName!="legacy_rgb") throw std::invalid_argument("Invalid gray load mode");
+        const auto loadMode=loadModeName=="direct_gray8"?fpm::io::GrayLoadMode::DirectGray8:fpm::io::GrayLoadMode::LegacyRgb;
+        fpm::io::GrayLoadInfo sourceLoad,templateLoad;auto loadStart=Clock::now();
+        auto src=fpm::io::readGrayImage(j["source"].toString(),loadMode,&sourceLoad);
+        auto tmp=fpm::io::readGrayImage(j["template"].toString(),loadMode,&templateLoad);
+        const double decodeMs=ms(loadStart);const auto afterLoadMemory=memory();
+        auto loadInfo=[](const fpm::io::GrayLoadInfo& info) {return QJsonObject{{"direct_gray8",info.directGray8},{"rgb_temporary_bytes",double(info.rgbTemporaryBytes)}};};
+        const QJsonObject load{{"mode",loadModeName},{"decode_ms",decodeMs},{"source",loadInfo(sourceLoad)},{"template",loadInfo(templateLoad)}};
+        Settings settings;
         settings.backend=j["backend"].toInt(1);settings.minReducedArea=j["min_area"].toInt(256);settings.scales.clear();
         settings.poseStorageMode=j["pose_storage_mode"].toInt(0);
         settings.poseInputMode=j["pose_input_mode"].toInt(0);
@@ -201,10 +202,12 @@ int main(int argc,char** argv) {
                 ++calls;if(!exact || !drained) throw std::runtime_error("Soak output or drain mismatch");
             }
             QJsonObject summary{{"calls",calls},{"contexts_recreated",recreated},{"duration_ms",ms(soakStart)},{"before",before},{"after",memory()},{"exact",exact},{"drained",drained},{"construct_ms",construct},{"first",firstRecord}};
+            summary["load"]=load;summary["after_load_memory"]=afterLoadMemory;
             std::cout<<QJsonDocument(summary).toJson(QJsonDocument::Compact).constData()<<'\n';return exact&&drained?0:1;
         }
         for(int i=0;i<repeats;++i) {auto r=session->run(o);exact&=equal(r,first);runs.append(record(r,true));}
         QJsonObject out{{"construct_ms",construct},{"first",firstRecord},{"warmups_ms",warmups},{"runs",runs},{"exact_repeat",exact},{"final_memory",memory()}};
+        out["load"]=load;out["after_load_memory"]=afterLoadMemory;
         std::cout<<QJsonDocument(out).toJson(QJsonDocument::Compact).constData()<<'\n';return exact?0:1;
     }catch(const std::exception& e) {std::cerr<<e.what()<<'\n';return 1;}
 }

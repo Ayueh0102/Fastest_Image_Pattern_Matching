@@ -36,11 +36,22 @@ def replace_once(text, old, new):
 
 
 def instrument_runner(text):
+    # Keep frozen stage29 runners usable alongside the explicit gray loader.
+    # For the new runner, sample only after its own decode timing and memory
+    # snapshot, so instrumentation cannot inflate either native measurement.
+    load_anchors = (
+        ('tmp=read(j["template"].toString());Settings settings;',
+         'tmp=read(j["template"].toString()); fpm_memory::stage("images_decoded"); Settings settings;'),
+        ('const double decodeMs=ms(loadStart);const auto afterLoadMemory=memory();',
+         'const double decodeMs=ms(loadStart);const auto afterLoadMemory=memory(); fpm_memory::stage("images_decoded");'),
+    )
+    recognized = [(old, new) for old, new in load_anchors if old in text]
+    if len(recognized) != 1:
+        raise ValueError("Unsupported or ambiguous runner image-load layout")
+    text = replace_once(text, *recognized[0])
     pairs = [
         ('#include "research_pipeline.hpp"', '#include "research_pipeline.hpp"\n#include "fine_memory_probe.hpp"'),
         ('QCoreApplication app(argc,argv);', 'QCoreApplication app(argc,argv); fpm_memory::Probe memoryProbe;'),
-        ('tmp=read(j["template"].toString());Settings settings;',
-         'tmp=read(j["template"].toString()); fpm_memory::stage("images_decoded"); Settings settings;'),
         ('const double construct=ms(start);', 'const double construct=ms(start); fpm_memory::stage("session_constructed");'),
         ('Result first=session->run(o);QJsonObject firstRecord=record(first,true);',
          'fpm_memory::beginCall("first"); Result first=session->run(o); fpm_memory::stage("after_run"); QJsonObject firstRecord=record(first,true); fpm_memory::stage("after_serialization");'),
@@ -54,6 +65,17 @@ def instrument_runner(text):
     for old, new in pairs:
         text = replace_once(text, old, new)
     return text
+
+
+def copy_runner_headers(source_root, source, runner_text):
+    """Copy runner-local dependencies from the selected, possibly frozen tree."""
+    originals = {}
+    for name in ("qt_gray_loader.hpp",):
+        if '#include "' + name + '"' in runner_text:
+            path = source_root / "cpp-core/tools" / name
+            (source / name).write_bytes(path.read_bytes())
+            originals[str(path)] = sha(path)
+    return originals
 
 
 def instrument_pipeline(text):
@@ -103,6 +125,8 @@ def prepare(build, dest, source_root=ROOT):
         (source / (path.name + ".diff")).write_text("".join(difflib.unified_diff(
             original.splitlines(True), changed.splitlines(True), fromfile=str(path), tofile=path.name)))
         originals[str(path)] = sha(path)
+        if path.name == "native_pipeline_runner.cpp":
+            originals.update(copy_runner_headers(source_root, source, original))
     for folder in ("include", "src", "experiments"):
         for path in (source_root / "cpp-core" / folder).rglob("*"):
             if path.is_file() and path.suffix in (".h", ".hpp"):

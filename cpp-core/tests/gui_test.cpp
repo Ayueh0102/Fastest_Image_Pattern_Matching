@@ -3,6 +3,7 @@
 #include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QFile>
+#include <QImageReader>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
@@ -20,6 +21,29 @@
 class GuiTest : public QObject {
 	Q_OBJECT
 private slots:
+	void grayHighDpiPreview()
+	{
+		QTemporaryDir dir; QVERIFY(dir.isValid());
+		QImage gray(31,23,QImage::Format_Grayscale8);
+		for(int y=0;y<gray.height();++y) for(int x=0;x<gray.width();++x)
+			gray.scanLine(y)[x]=uchar((17*x+31*y)%256);
+		const auto path=dir.filePath("template@2x.png"); QVERIFY(gray.save(path));
+		QImageReader reader(path); reader.setAutoTransform(false);
+		const auto decoded=reader.read(); QCOMPARE(decoded.format(),QImage::Format_Grayscale8);
+		QCOMPARE(decoded.devicePixelRatio(),qreal(2));
+		// The original GUI allocated a new gray image, dropping DPR/color tags.
+		const auto rgb=decoded.convertToFormat(QImage::Format_RGB888);
+		QImage reference(rgb.size(),QImage::Format_Grayscale8);
+		for(int y=0;y<rgb.height();++y) for(int x=0;x<rgb.width();++x) {
+			const auto* p=rgb.constScanLine(y)+3*x;
+			reference.scanLine(y)[x]=fpm::grayFromRgb(p[0],p[1],p[2]);
+		}
+		const auto expected=QPixmap::fromImage(reference).scaled(290,135,Qt::KeepAspectRatio,Qt::SmoothTransformation);
+		MainWindow window; QVERIFY(window.loadTemplate(path));
+		const auto preview=window.findChild<QLabel*>("templatePreview"); QVERIFY(preview);
+		const auto actual=preview->pixmap(); QCOMPARE(actual.devicePixelRatio(),qreal(1));
+		QCOMPARE(actual.size(),expected.size()); QCOMPARE(actual.toImage(),expected.toImage());
+	}
 	void rotorRotationAndOverlap()
 	{
 		MainWindow window;

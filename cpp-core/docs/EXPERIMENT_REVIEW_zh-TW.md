@@ -403,3 +403,9 @@ Metal Shader Validation另發現導數kernel插裝後共享記憶體超過32KiB�
 **第30輪：多候選金字塔細搜尋可優先試`fineFused=true`，搭配fine mode2與適用時的角度重用。** [旋轉與NCC提交融合](FINE_FUSED_SUBMISSION_zh-TW.md)每批由兩次提交／等待減為一次，保留CPU精確整數統計修補。54程序／162次，九設定三路兩block，全部有序結果一致、所有事前性能容忍通過；128／512快速設定914.20→834.33ms／2616.86→2388.29ms，完整次像素4352.49→4009.85ms／15827.85→14718.34ms。8K少候選250.38→254.78ms稍慢，因此仍是手動選項，不宣稱全面最快。512完整RSS中位數786.66→793.66MiB，所有顯式容量相同；這不撤回第29輪88MiB失敗。Release49/49、相關ASan／UBSan8/8與Metal驗證通過。獨立512診斷以實際位址確認：已釋放的96MiB讀圖RGB暫存仍可能駐留，與pose大配置重疊，解釋新診斷的大部分差距；無法追溯證明舊88MiB每一byte的來源。讀圖後強制回收無效，原紀錄保留。
 
 [事前協定](fine-fused/protocol.json)、[完整摘要](fine-fused/summary.json)、[驗證](fine-fused/validation.json)、[原始資料與完整來源](fine-fused/raw-results.tar.gz)。單command先Q28旋轉＋NCC，CPU對實際變動byte精確修正S/Q/P；密集變動／repairAll退路及原有模式保留。changed不是guard數；combined GPU時間不能與舊單獨NCC時間直接相除。量測後只修正分析工具把GPU缺值-1相加的問題，原工具與摘要保留，所有headline數值／判定相同。512記憶體原因另以隔離診斷追查，不混入正式速度。
+
+### 31. 灰階直接讀取與程序記憶體（2026-10-16）
+
+**第31輪已改善灰階讀圖的暫存記憶體。** [直接讀取gray8](GRAY_LOAD_MEMORY_zh-TW.md)已套用native runner與GUI；彩色／調色盤／16-bit沿用舊轉換。512快速／完整次像素程序RSS中位數786.16→687.02MiB／791.99→697.28MiB，約省99／95MiB，讀圖約快20–23%。18程序／36次有序結果與算法容量一致；新路徑各對照通過，但舊讀法控制的一筆repeat慢48.34%，整體性能門檻為false並保留。完整次像素repeat約慢1.42%，沒有NCC加速主張；GUI記憶體未另量測。算法推薦仍沿用第30輪。
+
+[事前協定](gray-loader/protocol.json)、[正式摘要](gray-loader/summary.json)、[驗證](gray-loader/validation.json)、[全部來源與原始資料](gray-loader/raw-results.tar.gz)。讀圖與算法時間分列；50項Release、最終loader／GUI重測及loader ASan通過，23項harness與17項診斷工具測試通過。
