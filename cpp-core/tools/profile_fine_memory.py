@@ -49,19 +49,50 @@ def instrument_runner(text):
     if len(recognized) != 1:
         raise ValueError("Unsupported or ambiguous runner image-load layout")
     text = replace_once(text, *recognized[0])
+    # Select an entire first/repeat layout, not the two anchors independently:
+    # a partially migrated or duplicated runner must never be instrumented.
+    # Resource snapshots finish before our phase sample; beginCall runs before
+    # their probe starts. Pipeline instrumentation still perturbs runtime, so
+    # resource records from this diagnostic are not speed benchmark evidence.
+    release = ('\n        fpm_memory::stage("before_session_release"); fpm_memory::pressureRelief("session_alive_relief");\n'
+               '        session.reset(); fpm_memory::stage("after_session_release"); fpm_memory::pressureRelief("session_released_relief");')
+    call_layouts = {
+        "legacy": (
+            ('Result first=session->run(o);QJsonObject firstRecord=record(first,true);',
+             'fpm_memory::beginCall("first"); Result first=session->run(o); fpm_memory::stage("after_run"); QJsonObject firstRecord=record(first,true); fpm_memory::stage("after_serialization");'),
+            ('for(int i=0;i<repeats;++i) {auto r=session->run(o);exact&=equal(r,first);runs.append(record(r,true));}',
+             'for(int i=0;i<repeats;++i) {fpm_memory::beginCall("repeat"); auto r=session->run(o); fpm_memory::stage("after_run"); exact&=equal(r,first);runs.append(record(r,true)); fpm_memory::stage("after_serialization");}' + release),
+        ),
+        "run_resource_probe": (
+            ('fpm::diagnostics::RunResourceProbe firstProbe(resourceDiagnostics);\n'
+             '        Result first=session->run(o);const auto firstResources=firstProbe.finish();QJsonObject firstRecord=record(first,true);',
+             'fpm_memory::beginCall("first"); fpm::diagnostics::RunResourceProbe firstProbe(resourceDiagnostics);\n'
+             '        Result first=session->run(o);const auto firstResources=firstProbe.finish(); fpm_memory::stage("after_run"); QJsonObject firstRecord=record(first,true); fpm_memory::stage("after_serialization");'),
+            ('for(int i=0;i<repeats;++i) {\n'
+             '            fpm::diagnostics::RunResourceProbe probe(resourceDiagnostics);\n'
+             '            auto r=session->run(o);const auto runResources=probe.finish();exact&=equal(r,first);\n'
+             '            auto row=record(r,true);if(resourceDiagnostics) row["resources"]=resources(runResources);runs.append(row);\n'
+             '        }',
+             'for(int i=0;i<repeats;++i) {\n'
+             '            fpm_memory::beginCall("repeat"); fpm::diagnostics::RunResourceProbe probe(resourceDiagnostics);\n'
+             '            auto r=session->run(o);const auto runResources=probe.finish(); fpm_memory::stage("after_run"); exact&=equal(r,first);\n'
+             '            auto row=record(r,true);if(resourceDiagnostics) row["resources"]=resources(runResources);runs.append(row); fpm_memory::stage("after_serialization");\n'
+             '        }' + release),
+        ),
+    }
+    present = [name for name, anchors in call_layouts.items()
+               if any(old in text for old, _ in anchors)]
+    if (len(present) != 1 or
+            any(text.count(old) != 1 for old, _ in call_layouts[present[0]])):
+        raise ValueError("Unsupported or ambiguous runner first/repeat layout")
     pairs = [
         ('#include "research_pipeline.hpp"', '#include "research_pipeline.hpp"\n#include "fine_memory_probe.hpp"'),
         ('QCoreApplication app(argc,argv);', 'QCoreApplication app(argc,argv); fpm_memory::Probe memoryProbe;'),
         ('const double construct=ms(start);', 'const double construct=ms(start); fpm_memory::stage("session_constructed");'),
-        ('Result first=session->run(o);QJsonObject firstRecord=record(first,true);',
-         'fpm_memory::beginCall("first"); Result first=session->run(o); fpm_memory::stage("after_run"); QJsonObject firstRecord=record(first,true); fpm_memory::stage("after_serialization");'),
         ('while(ms(start)<warm*1000) {auto r=session->run(o);exact&=equal(r,first);warmups.append(r.totalMs);}',
          'while(ms(start)<warm*1000) {fpm_memory::beginCall("warmup"); auto r=session->run(o); fpm_memory::stage("after_run"); exact&=equal(r,first);warmups.append(r.totalMs); fpm_memory::stage("after_serialization");}'),
-        ('for(int i=0;i<repeats;++i) {auto r=session->run(o);exact&=equal(r,first);runs.append(record(r,true));}',
-         'for(int i=0;i<repeats;++i) {fpm_memory::beginCall("repeat"); auto r=session->run(o); fpm_memory::stage("after_run"); exact&=equal(r,first);runs.append(record(r,true)); fpm_memory::stage("after_serialization");}\n'
-         '        fpm_memory::stage("before_session_release"); fpm_memory::pressureRelief("session_alive_relief");\n'
-         '        session.reset(); fpm_memory::stage("after_session_release"); fpm_memory::pressureRelief("session_released_relief");'),
     ]
+    pairs.extend(call_layouts[present[0]])
     for old, new in pairs:
         text = replace_once(text, old, new)
     return text
@@ -70,7 +101,7 @@ def instrument_runner(text):
 def copy_runner_headers(source_root, source, runner_text):
     """Copy runner-local dependencies from the selected, possibly frozen tree."""
     originals = {}
-    for name in ("qt_gray_loader.hpp",):
+    for name in ("qt_gray_loader.hpp", "run_resource_probe.hpp"):
         if '#include "' + name + '"' in runner_text:
             path = source_root / "cpp-core/tools" / name
             (source / name).write_bytes(path.read_bytes())

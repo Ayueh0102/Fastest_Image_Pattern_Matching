@@ -1,0 +1,73 @@
+{
+  "release": {
+    "passed": 51,
+    "total": 51,
+    "log": "logs/run-diagnostics-tests.log"
+  },
+  "asan_ubsan": {
+    "passed": 1,
+    "total": 1,
+    "scope": "new resource probe test",
+    "detect_leaks": false,
+    "log": "logs/run-diagnostics-asan-tests.log"
+  },
+  "python": {
+    "diagnostics_harness": 28,
+    "memory_profile": 25
+  },
+  "pilot": {
+    "diagnostic_records": true,
+    "ordered_exact": true,
+    "warmup_soak_rejection": true
+  },
+  "memory_profile_compatibility": "build-only; no GPU rerun",
+  "core_kernel_changes": false,
+  "new_default_changes": false,
+  "reviews": {
+    "resource_probe_integration": "independent read-only review passed; no blocking issues",
+    "formal_evidence": "independent raw hash/output/work/capacity/GT/time/RSS review passed"
+  },
+  "limitations": [
+    "Only two fresh processes per method/case; repeats within process correlated",
+    "Two pose settings reuse one synthetic 512-instance scene",
+    "Historical +48.34% root cause not established",
+    "No new camera stream, RGB whole-image, CUDA, Windows/Linux execution or soak evidence"
+  ],
+  "formal": {
+    "reproduction": {
+      "workers": 12,
+      "algorithm_calls": 48,
+      "correctness_passed": true,
+      "all_performance_tolerances_passed": true,
+      "unchanged": true,
+      "performance_failures": []
+    },
+    "pose_memory": {
+      "workers": 16,
+      "algorithm_calls": 32,
+      "correctness_passed": true,
+      "all_performance_tolerances_passed": true,
+      "unchanged": true,
+      "performance_failures": []
+    }
+  },
+  "archive_checks": {
+    "fresh_source_tests": {
+      "passed": 3,
+      "total": 3
+    },
+    "small_exact_modes": [
+      "current_direct",
+      "probe_direct",
+      "combined"
+    ],
+    "relocated_replays_byte_identical": true
+  },
+  "archive": {
+    "file": "raw-results.tar.gz",
+    "bytes": 54910110,
+    "sha256": "b52ae81002c5b2058d7bf1513ec80bcd81230e95157ffdc4972e5b0b55d2cc72",
+    "verified_manifest_files": 674,
+    "extracted_replays_byte_identical": true
+  }
+}

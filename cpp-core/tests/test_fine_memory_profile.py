@@ -25,6 +25,19 @@ def runner_fixture(load):
 
 LEGACY_LOAD = 'tmp=read(j["template"].toString());Settings settings;'
 GRAY_LOAD = 'const double decodeMs=ms(loadStart);const auto afterLoadMemory=memory();'
+LEGACY_FIRST = 'Result first=session->run(o);QJsonObject firstRecord=record(first,true);'
+LEGACY_REPEAT = 'for(int i=0;i<repeats;++i) {auto r=session->run(o);exact&=equal(r,first);runs.append(record(r,true));}'
+RESOURCE_FIRST = ('fpm::diagnostics::RunResourceProbe firstProbe(resourceDiagnostics);\n'
+                  '        Result first=session->run(o);const auto firstResources=firstProbe.finish();QJsonObject firstRecord=record(first,true);')
+RESOURCE_REPEAT = ('for(int i=0;i<repeats;++i) {\n'
+                   '            fpm::diagnostics::RunResourceProbe probe(resourceDiagnostics);\n'
+                   '            auto r=session->run(o);const auto runResources=probe.finish();exact&=equal(r,first);\n'
+                   '            auto row=record(r,true);if(resourceDiagnostics) row["resources"]=resources(runResources);runs.append(row);\n'
+                   '        }')
+
+
+def resource_runner_fixture():
+    return runner_fixture(GRAY_LOAD).replace(LEGACY_FIRST, RESOURCE_FIRST).replace(LEGACY_REPEAT, RESOURCE_REPEAT)
 
 
 class FineMemoryProfileTest(unittest.TestCase):
@@ -78,6 +91,39 @@ class FineMemoryProfileTest(unittest.TestCase):
             with self.subTest(load=load), self.assertRaises(ValueError):
                 instrument_runner(runner_fixture(load))
 
+    def test_resource_runner_preserves_native_probe_boundaries(self):
+        instrumented = instrument_runner(resource_runner_fixture())
+        self.assertIn('fpm_memory::beginCall("first"); fpm::diagnostics::RunResourceProbe firstProbe(', instrumented)
+        self.assertIn('firstProbe.finish(); fpm_memory::stage("after_run");', instrumented)
+        self.assertIn('fpm_memory::beginCall("repeat"); fpm::diagnostics::RunResourceProbe probe(', instrumented)
+        self.assertIn('probe.finish(); fpm_memory::stage("after_run");', instrumented)
+        self.assertIn('runs.append(row); fpm_memory::stage("after_serialization");', instrumented)
+        self.assertEqual(instrumented.count('stage("before_session_release")'), 1)
+        self.assertEqual(instrumented.count('stage("after_session_release")'), 1)
+
+    def test_mixed_call_layouts_fail_closed(self):
+        old = runner_fixture(GRAY_LOAD)
+        for text in (old.replace(LEGACY_FIRST, RESOURCE_FIRST),
+                     old.replace(LEGACY_REPEAT, RESOURCE_REPEAT),
+                     old + RESOURCE_FIRST + RESOURCE_REPEAT):
+            with self.subTest(text=text), self.assertRaisesRegex(ValueError, "first/repeat layout"):
+                instrument_runner(text)
+
+    def test_missing_or_duplicate_call_anchors_fail_closed(self):
+        for text, anchors in ((runner_fixture(LEGACY_LOAD), (LEGACY_FIRST, LEGACY_REPEAT)),
+                              (resource_runner_fixture(), (RESOURCE_FIRST, RESOURCE_REPEAT))):
+            for anchor in anchors:
+                for replacement in ("unknown call", anchor * 2):
+                    with self.subTest(anchor=anchor, replacement=replacement), self.assertRaisesRegex(ValueError, "first/repeat layout"):
+                        instrument_runner(text.replace(anchor, replacement))
+
+    def test_current_runner_layout_is_supported(self):
+        runner = (ROOT / "cpp-core/tools/native_pipeline_runner.cpp").read_text()
+        instrumented = instrument_runner(runner)
+        self.assertEqual(instrumented.count('beginCall("first")'), 1)
+        self.assertEqual(instrumented.count('beginCall("repeat")'), 1)
+        self.assertEqual(instrumented.count('beginCall("warmup")'), 1)
+
     def test_runner_header_comes_from_selected_source_and_is_hashed(self):
         frozen = self.root / "frozen"
         header = frozen / "cpp-core/tools/qt_gray_loader.hpp"
@@ -95,6 +141,45 @@ class FineMemoryProfileTest(unittest.TestCase):
     def test_missing_selected_loader_header_fails_closed(self):
         with self.assertRaises(FileNotFoundError):
             copy_runner_headers(self.root, self.root, '#include "qt_gray_loader.hpp"')
+
+    def test_resource_header_comes_from_selected_source_and_is_hashed(self):
+        frozen = self.root / "frozen"
+        header = frozen / "cpp-core/tools/run_resource_probe.hpp"
+        header.parent.mkdir(parents=True)
+        header.write_text("// selected source resource probe\n")
+        source = self.root / "source"
+        source.mkdir()
+        originals = copy_runner_headers(frozen, source, '#include "run_resource_probe.hpp"')
+        self.assertEqual((source / header.name).read_bytes(), header.read_bytes())
+        self.assertEqual(originals, {str(header): sha(header)})
+
+    def test_missing_selected_resource_header_fails_closed(self):
+        # The live tree has this header; a missing selected/frozen header must
+        # not silently fall back to ROOT or an already-existing output copy.
+        (self.root / "run_resource_probe.hpp").write_text("// stale output\n")
+        with self.assertRaises(FileNotFoundError):
+            copy_runner_headers(self.root, self.root, '#include "run_resource_probe.hpp"')
+
+    def test_both_runner_dependencies_are_copied_and_hashed(self):
+        frozen = self.root / "frozen"
+        folder = frozen / "cpp-core/tools"
+        folder.mkdir(parents=True)
+        source = self.root / "source"
+        source.mkdir()
+        names = ("qt_gray_loader.hpp", "run_resource_probe.hpp")
+        for name in names:
+            (folder / name).write_text("// selected " + name + "\n")
+        originals = copy_runner_headers(frozen, source, '\n'.join('#include "' + name + '"' for name in names))
+        self.assertEqual(originals, {str(folder / name): sha(folder / name) for name in names})
+        for name in names:
+            self.assertEqual((source / name).read_bytes(), (folder / name).read_bytes())
+
+    def test_second_required_dependency_cannot_be_omitted(self):
+        folder = self.root / "cpp-core/tools"
+        folder.mkdir(parents=True)
+        (folder / "qt_gray_loader.hpp").write_text("// loader\n")
+        with self.assertRaises(FileNotFoundError):
+            copy_runner_headers(self.root, self.root, '#include "qt_gray_loader.hpp"\n#include "run_resource_probe.hpp"')
 
     def test_each_target_keeps_its_floating_point_contract(self):
         for target, options in (("runner", "-O3 -std=c++17"),

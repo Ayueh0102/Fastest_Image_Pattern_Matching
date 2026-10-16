@@ -3,6 +3,7 @@
 // images and serializes audit records; all matching is C++/Metal.
 #include "research_pipeline.hpp"
 #include "qt_gray_loader.hpp"
+#include "run_resource_probe.hpp"
 #include <QCoreApplication>
 #include <QFile>
 #include <QImage>
@@ -32,6 +33,14 @@ QJsonObject memory() {
     if(task_info(mach_task_self(),MACH_TASK_BASIC_INFO,reinterpret_cast<task_info_t>(&info),&count)==KERN_SUCCESS) resident=info.resident_size;
 #endif
     return {{"peak_rss_bytes",peak},{"current_rss_bytes",resident}};
+}
+QJsonObject resources(const fpm::diagnostics::RunResourceRecord& r) {
+    return {{"available",r.available},{"wall_ms",r.wall_ms},
+        {"process_user_ms",r.process_user_ms},{"process_system_ms",r.process_system_ms},
+        {"minor_faults",double(r.minor_faults)},{"major_faults",double(r.major_faults)},
+        {"voluntary_switches",double(r.voluntary_switches)},{"involuntary_switches",double(r.involuntary_switches)},
+        {"host_load_available",r.host_load_available},{"host_busy_ticks",double(r.host_busy_ticks)},
+        {"host_idle_ticks",double(r.host_idle_ticks)}};
 }
 QJsonArray matches(const std::vector<fpm::Match>& ms,const std::vector<double>& scales) {
     QJsonArray out;for(size_t i=0;i<ms.size();++i) {
@@ -181,8 +190,12 @@ int main(int argc,char** argv) {
         o.proposalScore=j["proposal_score"].toDouble(.5);
         const int repeats=j["repeats"].toInt(5);const double warm=j["warmup_seconds"].toDouble(1.),soak=j["soak_seconds"].toDouble(0);
         if(repeats<1 || repeats>10000 || !std::isfinite(warm) || warm<0 || warm>60 || !std::isfinite(soak) || soak<0 || soak>3600) throw std::invalid_argument("Invalid repetitions or duration");
+        const bool resourceDiagnostics=j["run_resource_diagnostics"].toBool(false);
+        if(resourceDiagnostics && (warm>0 || soak>0)) throw std::invalid_argument("Run resource diagnostics require first/repeat mode without warmup or soak");
         auto start=Clock::now();auto session=std::make_unique<Session>(src.view(),tmp.view(),settings);const double construct=ms(start);
-        Result first=session->run(o);QJsonObject firstRecord=record(first,true);QJsonArray warmups,runs;
+        fpm::diagnostics::RunResourceProbe firstProbe(resourceDiagnostics);
+        Result first=session->run(o);const auto firstResources=firstProbe.finish();QJsonObject firstRecord=record(first,true);QJsonArray warmups,runs;
+        if(resourceDiagnostics) firstRecord["resources"]=resources(firstResources);
         bool exact=true,drained=true;start=Clock::now();
         while(ms(start)<warm*1000) {auto r=session->run(o);exact&=equal(r,first);warmups.append(r.totalMs);}
         if(soak>0) {
@@ -205,7 +218,11 @@ int main(int argc,char** argv) {
             summary["load"]=load;summary["after_load_memory"]=afterLoadMemory;
             std::cout<<QJsonDocument(summary).toJson(QJsonDocument::Compact).constData()<<'\n';return exact&&drained?0:1;
         }
-        for(int i=0;i<repeats;++i) {auto r=session->run(o);exact&=equal(r,first);runs.append(record(r,true));}
+        for(int i=0;i<repeats;++i) {
+            fpm::diagnostics::RunResourceProbe probe(resourceDiagnostics);
+            auto r=session->run(o);const auto runResources=probe.finish();exact&=equal(r,first);
+            auto row=record(r,true);if(resourceDiagnostics) row["resources"]=resources(runResources);runs.append(row);
+        }
         QJsonObject out{{"construct_ms",construct},{"first",firstRecord},{"warmups_ms",warmups},{"runs",runs},{"exact_repeat",exact},{"final_memory",memory()}};
         out["load"]=load;out["after_load_memory"]=afterLoadMemory;
         std::cout<<QJsonDocument(out).toJson(QJsonDocument::Compact).constData()<<'\n';return exact?0:1;
