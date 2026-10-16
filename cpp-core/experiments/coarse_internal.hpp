@@ -13,6 +13,13 @@ public:
     virtual void setFineBatchSize(std::size_t count) {
         if (count) throw std::invalid_argument("fine GPU batching is unavailable");
     }
+    virtual void setFineNccMode(int mode) {
+        if (mode) throw std::invalid_argument("fine normalization reuse requires Metal");
+    }
+    virtual FpmFineReuseMetricsV1 fineReuseMetrics() const {
+        FpmFineReuseMetricsV1 value{}; value.version = 1; value.struct_bytes = sizeof(value);
+        value.stats_device_ms = -1; return value;
+    }
     virtual void setCoarseOptimization(int peakMode, int nccMode) {
         if (peakMode || nccMode) throw std::invalid_argument("coarse optimization is unavailable");
     }

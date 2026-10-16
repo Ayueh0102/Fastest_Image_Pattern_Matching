@@ -62,6 +62,10 @@ class MetalBackend final : public Backend {
     int coarsePeakMode_ = 0, coarseNccMode_ = 0;
     id<MTLComputePipelineState> pyramidDirect_, pyramidHorizontal_, pyramidVertical_;
     id<MTLComputePipelineState> fineWarp_, fineStats32_, fineStats64_;
+    id<MTLComputePipelineState> fineRows32_, fineRows64_, fineShared32_, fineShared64_;
+    int fineNccMode_ = 0;
+    FpmFineReuseMetricsV1 fineReuse_{};
+    id<MTLBuffer> fineRows_;
     id<MTLBuffer> source_, batchSource_, template_, workspace_;
     id<MTLBuffer> pyramidInput_, pyramidOutput_, pyramidScratch_;
     const fpm::TemplateLevel* uploadedTemplate_ = nullptr;
@@ -228,7 +232,7 @@ public:
     }
     void resetMetrics() override {
         drainCoarseBatches();
-        metrics_ = {}; executionMetrics_ = {}; fineMetrics_ = {};
+        metrics_ = {}; executionMetrics_ = {}; fineMetrics_ = {}; fineReuse_ = {};
         overlapMetrics_ = {}; firstCoarseGpuStart_ = lastCoarseGpuEnd_ = 0;
         // A shared frame may visit new pattern objects at recycled addresses.
         // Revalidate template content once per model; source-frame identities
@@ -315,6 +319,36 @@ public:
         fineBatchSize_ = count;
     }
     size_t fineBatchSize() const override { return fineBatchSize_; }
+    void setFineNccMode(int mode) override {
+        requireCoarseIdle();
+        if (mode < 0 || mode > 1) throw std::invalid_argument("fine NCC mode must be 0 or 1");
+        if (mode == 1 && !fineRows32_) {
+            @autoreleasepool {
+                NSError* error = nil;
+                auto make = [&](NSString* name) {
+                    id<MTLComputePipelineState> pipeline = [device_ newComputePipelineStateWithFunction:
+                        [library_ newFunctionWithName:name] error:&error];
+                    if (!pipeline) throw metalError("fine shared statistics pipeline", error);
+                    const auto width = pipeline.threadExecutionWidth;
+                    if (!width || width > 1024 || pipeline.maxTotalThreadsPerThreadgroup < width)
+                        throw std::runtime_error("fine shared statistics SIMD width exceeds exact reduction limits");
+                    return pipeline;
+                };
+                // Publish only after all four pipelines are available.
+                auto row32 = make(@"fine_rows32"), row64 = make(@"fine_rows64");
+                auto stats32 = make(@"fine_shared_stats32"), stats64 = make(@"fine_shared_stats64");
+                fineRows32_ = row32; fineRows64_ = row64;
+                fineShared32_ = stats32; fineShared64_ = stats64;
+            }
+        }
+        fineNccMode_ = mode;
+        if (!mode) fineRows_ = nil;
+    }
+    FpmFineReuseMetricsV1 fineReuseMetrics() const override {
+        auto m = fineReuse_; m.version = 1; m.struct_bytes = sizeof(m); m.ncc_mode = fineNccMode_;
+        m.row_buffer_bytes = fineRows_ ? fineRows_.length : 0;
+        return m;
+    }
     void beginFineMatch(const std::vector<fpm::Image>&) override {
         // Each new model must upload its template even if its address was reused.
         // Do not invalidate immutable source levels shared by other scale models.
@@ -328,7 +362,8 @@ public:
         m.roi_buffer_bytes = fineRois_ ? fineRois_.length : 0;
         m.guard_buffer_bytes = fineGuards_ ? fineGuards_.length : 0;
         m.descriptor_buffer_bytes = fineDescriptors_ ? fineDescriptors_.length : 0;
-        m.statistics_buffer_bytes = fineStatistics_ ? fineStatistics_.length : 0;
+        m.statistics_buffer_bytes = (fineStatistics_ ? fineStatistics_.length : 0) +
+            (fineRows_ ? fineRows_.length : 0);
         m.template_buffer_bytes = fineTemplate_ ? fineTemplate_.length : 0;
         m.retained_gpu_bytes = m.source_buffer_bytes + m.roi_buffer_bytes + m.guard_buffer_bytes +
             m.descriptor_buffer_bytes + m.statistics_buffer_bytes + m.template_buffer_bytes;
@@ -500,8 +535,12 @@ public:
             constexpr size_t windowsPerMap = size_t(outputWidth) * outputWidth;
             const bool use32 = area <= std::numeric_limits<uint32_t>::max() / uint64_t(65025);
             const size_t itemBytes = use32 ? sizeof(Stats32) : sizeof(Stats64);
+            const size_t rowBytesPerMap = size_t(rh) * outputWidth * (use32 ? 8 : 16);
+            if (fineNccMode_ && rowBytesPerMap > WORKSPACE_LIMIT)
+                throw std::invalid_argument("fine row statistics exceed the 16 MiB arena limit");
             const size_t maxMaps = std::min({fineBatchSize_, SOURCE_ARENA_LIMIT / roiStride,
-                WORKSPACE_LIMIT / (windowsPerMap * itemBytes)});
+                WORKSPACE_LIMIT / (windowsPerMap * itemBytes),
+                fineNccMode_ ? WORKSPACE_LIMIT / rowBytesPerMap : fineBatchSize_});
             std::vector<fpm::detail::ScoreMap> maps;
             maps.reserve(requests.size());
             if (requests.empty()) {
@@ -524,6 +563,7 @@ public:
                 ensure(fineGuards_, guardWords * sizeof(uint32_t), &fineMetrics_.setup_ms);
                 ensure(fineDescriptors_, count * sizeof(FineWarpDescriptor), &fineMetrics_.setup_ms);
                 ensure(fineStatistics_, count * windowsPerMap * itemBytes, &fineMetrics_.setup_ms);
+                if (fineNccMode_) ensure(fineRows_, count * rowBytesPerMap, &fineMetrics_.setup_ms);
                 const auto rotation = Clock::now();
                 std::vector<FineWarpPlan> plans;
                 plans.reserve(count);
@@ -584,7 +624,8 @@ public:
 
                 const auto ncc = Clock::now();
                 const auto nccEncode = Clock::now();
-                const id<MTLComputePipelineState> pipeline = use32 ? fineStats32_ : fineStats64_;
+                const id<MTLComputePipelineState> pipeline = fineNccMode_ ?
+                    (use32 ? fineShared32_ : fineShared64_) : (use32 ? fineStats32_ : fineStats64_);
                 const NSUInteger simdWidth = pipeline.threadExecutionWidth;
                 if (!simdWidth || simdWidth > 1024 || pipeline.maxTotalThreadsPerThreadgroup < simdWidth)
                     throw std::runtime_error("fine NCC SIMD width exceeds exact reduction limits");
@@ -594,6 +635,27 @@ public:
                     uint32_t(roiStride), uint32_t(windowsPerMap), uint32_t(count), 0};
                 id<MTLCommandBuffer> statsCommand = [queue_ commandBuffer];
                 if (!statsCommand) throw std::runtime_error("fine NCC command buffer creation failed");
+                if (fineNccMode_) {
+                    const auto rowPipeline = use32 ? fineRows32_ : fineRows64_;
+                    const auto rowWidth = rowPipeline.threadExecutionWidth;
+                    const auto rowGroups = std::min<NSUInteger>(8, rowPipeline.maxTotalThreadsPerThreadgroup / rowWidth);
+                    const size_t groups = (count * size_t(rh) + rowGroups - 1) / rowGroups;
+                    if (groups > std::numeric_limits<uint32_t>::max() / (rowGroups * rowWidth))
+                        throw std::invalid_argument("fine row dispatch exceeds uint32 indices");
+                    id<MTLComputeCommandEncoder> rowEncoder = [statsCommand computeCommandEncoder];
+                    if (!rowEncoder) throw std::runtime_error("fine row encoder creation failed");
+                    [rowEncoder setComputePipelineState:rowPipeline];
+                    [rowEncoder setBuffer:fineRois_ offset:0 atIndex:0];
+                    [rowEncoder setBuffer:fineRows_ offset:0 atIndex:1];
+                    [rowEncoder setBytes:&statsConfig length:sizeof(statsConfig) atIndex:2];
+                    [rowEncoder dispatchThreadgroups:MTLSizeMake(groups,1,1)
+                        threadsPerThreadgroup:MTLSizeMake(rowGroups * rowWidth,1,1)];
+                    [rowEncoder endEncoding];
+                    ++fineReuse_.row_dispatches;
+                    // Shared buffers use tracked hazards. A following encoder
+                    // in the SAME command buffer observes the completed rows;
+                    // neither a second commit nor a CPU wait is needed.
+                }
                 id<MTLComputeCommandEncoder> statsEncoder = [statsCommand computeCommandEncoder];
                 if (!statsEncoder) throw std::runtime_error("fine NCC encoder creation failed");
                 [statsEncoder setComputePipelineState:pipeline];
@@ -601,6 +663,7 @@ public:
                 [statsEncoder setBuffer:fineTemplate_ offset:0 atIndex:1];
                 [statsEncoder setBuffer:fineStatistics_ offset:0 atIndex:2];
                 [statsEncoder setBytes:&statsConfig length:sizeof(statsConfig) atIndex:3];
+                if (fineNccMode_) [statsEncoder setBuffer:fineRows_ offset:0 atIndex:4];
                 // Full threadgroups guarantee every valid window receives a
                 // complete SIMD group, including the last dispatch tail. The
                 // extra groups uniformly return before their reductions.
@@ -612,6 +675,11 @@ public:
                 // CPU repairs are complete before this commit, so shared ROI
                 // writes are visible to the following GPU statistics dispatch.
                 finishFineCommand(statsCommand, "fine NCC execution");
+                ++fineReuse_.statistics_dispatches;
+                if (statsCommand.GPUEndTime > statsCommand.GPUStartTime && statsCommand.GPUStartTime > 0) {
+                    if (fineReuse_.stats_device_ms >= 0)
+                        fineReuse_.stats_device_ms += 1000 * (statsCommand.GPUEndTime - statsCommand.GPUStartTime);
+                } else fineReuse_.stats_device_ms = -1;
                 const auto normalization = Clock::now();
                 const bool degenerate = templ.norm * templ.norm / double(area) < DBL_EPSILON;
                 for (size_t i = 0; i < count; ++i) {

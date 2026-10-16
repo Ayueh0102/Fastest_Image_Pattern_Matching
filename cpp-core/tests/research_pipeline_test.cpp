@@ -36,6 +36,34 @@ int main(int argc,char**) {
         // Source/template snapshots are owned; caller changes must not leak in.
         source.row(30)[40]^=255;templ.row(0)[0]^=255;same(baseline,session.run(o));
         source.row(30)[40]^=255;templ.row(0)[0]^=255;
+        if(metal) {
+            // Reduced levels are required to actually visit the fine scheduler.
+            auto fineSettings=s;fineSettings.minReducedArea=64;
+            Session fineSession(source.view(),templ.view(),fineSettings);
+            Options fineOptions=o;fineOptions.match.subpixel=true;
+            const auto original=fineSession.run(fineOptions);
+            fineOptions.fineNccMode=1;
+            const auto shared=fineSession.run(fineOptions);same(original,shared);
+            bool ran=false;
+            for(size_t i=0;i<shared.fineReuse.size();++i) {
+                const auto& reuse=shared.fineReuse[i];
+                require(reuse.ncc_mode==1 && reuse.row_dispatches==reuse.statistics_dispatches,"shared fine route ignored");
+                require(shared.fine[i].command_buffers==original.fine[i].command_buffers,"extra fine waits introduced");
+                ran|=reuse.row_dispatches>0;
+            }
+            require(ran,"full pipeline test omitted fine dispatches");
+            fineOptions.fineNccMode=0;same(original,fineSession.run(fineOptions));
+        }
+        for(int mode:{-1,2}) {
+            Options invalid=o;invalid.fineNccMode=mode;bool caught=false;
+            try{session.run(invalid);}catch(const std::invalid_argument&){caught=true;}
+            require(caught,"invalid fine mode accepted");
+        }
+        if(!metal) {
+            Options invalid=o;invalid.fineNccMode=1;bool caught=false;
+            try{session.run(invalid);}catch(const std::invalid_argument&){caught=true;}
+            require(caught,"CPU accepted Metal fine mode");
+        }
         if(metal) for(int mode:{0,2,3}) for(bool overlap:{false,true}) {
             o.nccMode=mode;o.overlap=overlap;const auto r=session.run(o);same(baseline,r);
             for(auto m:r.overlapMetrics) require(m.submitted_batches==m.completed_batches,"undrained async batches");

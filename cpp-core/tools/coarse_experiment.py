@@ -238,6 +238,13 @@ class FineMetricsV1(C.Structure):
             'retained_gpu_bytes', 'peak_batch_maps')]
 
 
+class FineReuseMetricsV1(C.Structure):
+    _fields_ = [('version', C.c_uint32), ('struct_bytes', C.c_uint32),
+                ('ncc_mode', C.c_int32), ('reserved', C.c_int32)] + [
+        (name, C.c_uint64) for name in ('row_buffer_bytes', 'row_dispatches', 'statistics_dispatches')] + [
+        ('stats_device_ms', C.c_double)]
+
+
 class CoarseOptimizationConfigV1(C.Structure):
     _fields_ = [('version', C.c_uint32), ('struct_bytes', C.c_uint32),
                 ('peak_mode', C.c_int32), ('ncc_mode', C.c_int32),
@@ -363,6 +370,31 @@ class SourceFrame:
         self._check(self.dll.fpm_frame_prepare(self.handle, image, handles, len(models), int(bool(invert_source)),
             C.byref(metrics), self.error, len(self.error)))
         self._ready = True
+        return _fields_snapshot(metrics)
+
+    def set_fine_ncc_mode(self, mode=0):
+        if not self.handle:
+            raise ValueError('frame is closed')
+        if type(mode) is not int or mode not in (0, 1):
+            raise ValueError('fine NCC mode must be integer 0 or 1')
+        if not hasattr(self.dll, 'fpm_frame_set_fine_ncc_mode'):
+            raise RuntimeError('Fine reuse API unavailable; rebuild experimental library')
+        function = self.dll.fpm_frame_set_fine_ncc_mode
+        function.argtypes = [C.c_void_p, C.c_int32, C.POINTER(C.c_char), C.c_size_t]
+        function.restype = C.c_int
+        self._check(function(self.handle, mode, self.error, len(self.error)))
+
+    def fine_reuse_metrics(self):
+        if not self.handle:
+            raise ValueError('frame is closed')
+        if not hasattr(self.dll, 'fpm_frame_get_fine_reuse_metrics'):
+            raise RuntimeError('Fine reuse metrics unavailable; rebuild experimental library')
+        function = self.dll.fpm_frame_get_fine_reuse_metrics
+        function.argtypes = [C.c_void_p, C.POINTER(FineReuseMetricsV1), C.c_size_t,
+                             C.POINTER(C.c_char), C.c_size_t]
+        function.restype = C.c_int
+        metrics = FineReuseMetricsV1()
+        self._check(function(self.handle, C.byref(metrics), C.sizeof(metrics), self.error, len(self.error)))
         return _fields_snapshot(metrics)
 
     def set_coarse_optimization(self, *, peak_mode=0, ncc_mode=0):

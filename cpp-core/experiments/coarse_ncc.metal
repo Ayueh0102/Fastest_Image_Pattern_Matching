@@ -345,6 +345,85 @@ kernel void fine_stats64(device const uchar* rois [[buffer(0)]],
     if (lane == 0) output[index] = {sum, square, product};
 }
 
+// Optional fine normalization reuse. One SIMD group computes the first
+// horizontal window of a ROI row, then rolls the seven neighboring sums.
+// Rows are independent; vertical accumulation happens in the following pass.
+struct FineRow32 { uint sum, square; };
+struct FineRow64 { ulong sum, square; };
+inline uint fine_reduce(uint value) { return simd_sum(value); }
+inline ulong fine_reduce(ulong value) { return fine_simd_sum64(value); }
+
+template<typename Acc, typename Row>
+inline void fine_rows(device const uchar* rois, device Row* rows,
+    constant FineStatsConfig& cfg, uint gid, uint lane, uint simdWidth)
+{
+    const uint height = cfg.template_height + cfg.windows_per_map / cfg.output_width - 1;
+    const uint row = gid / simdWidth, map = row / height, y = row % height;
+    if (map >= cfg.count) return; // Uniform for the entire SIMD group.
+    const ulong base = ulong(map) * cfg.roi_stride + ulong(y) * cfg.roi_width;
+    Acc sum = 0, square = 0;
+    for (uint x = lane; x < cfg.template_width; x += simdWidth) {
+        const Acc value = rois[base + x]; sum += value; square += value * value;
+    }
+    sum = fine_reduce(sum); square = fine_reduce(square);
+    if (lane == 0) {
+        rows[ulong(row) * cfg.output_width] = {sum, square};
+        for (uint x = 1; x < cfg.output_width; ++x) {
+            const Acc old = rois[base + x - 1], next = rois[base + x + cfg.template_width - 1];
+            // Subtract first: each intermediate stays nonnegative and below
+            // the host's COMPLETE-window uint32/uint64 bound.
+            sum -= old; sum += next;
+            square -= old * old; square += next * next;
+            rows[ulong(row) * cfg.output_width + x] = {sum, square};
+        }
+    }
+}
+
+template<typename Acc, typename Row, typename Stats>
+inline void fine_shared_stats(device const uchar* rois, device const uchar* templ,
+    device Stats* output, constant FineStatsConfig& cfg, device const Row* rows,
+    uint gid, uint lane, uint simdWidth)
+{
+    const uint index = gid / simdWidth;
+    const uint map = index / cfg.windows_per_map, window = index % cfg.windows_per_map;
+    if (map >= cfg.count) return;
+    const ulong y = window / cfg.output_width, x = window % cfg.output_width;
+    const ulong base = ulong(map) * cfg.roi_stride;
+    const uint area = cfg.template_width * cfg.template_height;
+    Acc product = 0, sum = 0, square = 0;
+    for (uint pixel = lane; pixel < area; pixel += simdWidth) {
+        const uint ty = pixel / cfg.template_width, tx = pixel % cfg.template_width;
+        product += Acc(rois[base + (y + ty) * cfg.roi_width + x + tx]) * Acc(templ[pixel]);
+    }
+    const uint height = cfg.template_height + cfg.windows_per_map / cfg.output_width - 1;
+    const ulong rowBase = (ulong(map) * height + y) * cfg.output_width + x;
+    for (uint ty = lane; ty < cfg.template_height; ty += simdWidth) {
+        const Row r = rows[rowBase + ulong(ty) * cfg.output_width];
+        sum += r.sum; square += r.square;
+    }
+    product = fine_reduce(product); sum = fine_reduce(sum); square = fine_reduce(square);
+    if (lane == 0) output[index] = {sum, square, product};
+}
+
+kernel void fine_rows32(device const uchar* rois [[buffer(0)]], device FineRow32* rows [[buffer(1)]],
+    constant FineStatsConfig& cfg [[buffer(2)]], uint gid [[thread_position_in_grid]],
+    uint lane [[thread_index_in_simdgroup]], uint width [[threads_per_simdgroup]])
+{ fine_rows<uint,FineRow32>(rois,rows,cfg,gid,lane,width); }
+kernel void fine_rows64(device const uchar* rois [[buffer(0)]], device FineRow64* rows [[buffer(1)]],
+    constant FineStatsConfig& cfg [[buffer(2)]], uint gid [[thread_position_in_grid]],
+    uint lane [[thread_index_in_simdgroup]], uint width [[threads_per_simdgroup]])
+{ fine_rows<ulong,FineRow64>(rois,rows,cfg,gid,lane,width); }
+kernel void fine_shared_stats32(device const uchar* rois [[buffer(0)]], device const uchar* templ [[buffer(1)]],
+    device Coarse32* output [[buffer(2)]], constant FineStatsConfig& cfg [[buffer(3)]],
+    device const FineRow32* rows [[buffer(4)]], uint gid [[thread_position_in_grid]],
+    uint lane [[thread_index_in_simdgroup]], uint width [[threads_per_simdgroup]])
+{ fine_shared_stats<uint,FineRow32,Coarse32>(rois,templ,output,cfg,rows,gid,lane,width); }
+kernel void fine_shared_stats64(device const uchar* rois [[buffer(0)]], device const uchar* templ [[buffer(1)]],
+    device Coarse64* output [[buffer(2)]], constant FineStatsConfig& cfg [[buffer(3)]],
+    device const FineRow64* rows [[buffer(4)]], uint gid [[thread_position_in_grid]],
+    uint lane [[thread_index_in_simdgroup]], uint width [[threads_per_simdgroup]])
+{ fine_shared_stats<ulong,FineRow64,Coarse64>(rois,templ,output,cfg,rows,gid,lane,width); }
+
 // Optional coarse path: a complete SIMD group cooperates on one NCC window.
 // The host still uses the identical bounded statistics workspace, chunk/window
 // ordering and binary64 normalization. All terms are nonnegative and the host

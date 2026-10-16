@@ -219,6 +219,33 @@ int fpm_frame_coarse_overlap_metrics(fpm_frame_handle* frame,
     catch (...) { message(error, capacity, "unknown coarse overlap metrics exception"); }
     return FPM_ERROR;
 }
+int fpm_frame_set_fine_ncc_mode(fpm_frame_handle* frame, int32_t mode, char* error, size_t capacity)
+{
+    message(error, capacity, "");
+    try {
+        if (!frame || mode < 0 || mode > 1) throw std::invalid_argument("valid frame and fine NCC mode 0..1 required");
+        if (frame->backend) frame->backend->setFineNccMode(mode);
+        else if (mode) throw std::invalid_argument("fine normalization reuse requires Metal");
+        return FPM_OK;
+    } catch (const std::exception& e) { message(error, capacity, e.what()); }
+    catch (...) { message(error, capacity, "unknown fine optimization exception"); }
+    return FPM_ERROR;
+}
+int fpm_frame_get_fine_reuse_metrics(fpm_frame_handle* frame, FpmFineReuseMetricsV1* metrics,
+    size_t bytes, char* error, size_t capacity)
+{
+    static_assert(sizeof(FpmFineReuseMetricsV1) == 48, "fine reuse metrics v1 ABI changed");
+    message(error, capacity, "");
+    try {
+        if (!frame || !metrics || bytes != sizeof(*metrics))
+            throw std::invalid_argument("valid frame and exact fine reuse metrics size required");
+        FpmFineReuseMetricsV1 value{}; value.version = 1; value.struct_bytes = sizeof(value); value.stats_device_ms = -1;
+        if (frame->backend) value = frame->backend->fineReuseMetrics();
+        *metrics = value; return FPM_OK;
+    } catch (const std::exception& e) { message(error, capacity, e.what()); }
+    catch (...) { message(error, capacity, "unknown fine reuse metrics exception"); }
+    return FPM_ERROR;
+}
 int fpm_frame_set_coarse_optimization(fpm_frame_handle* frame,
     const FpmCoarseOptimizationConfigV1* config, size_t bytes, char* error, size_t capacity)
 {

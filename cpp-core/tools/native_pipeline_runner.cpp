@@ -76,7 +76,15 @@ QJsonObject record(const Result& r,bool outputs) {
     o["refinement_device_ms"]=r.pose.device_ms;
     QJsonArray work;for(size_t i=0;i<r.coarse.size();++i) {
         auto a=r.coarse[i];auto b=r.fine[i];auto c=r.overlapMetrics[i];
+        const auto d=r.fineReuse[i];
         work.append(QJsonObject{{"maps",double(a.score_maps)},{"windows",double(a.windows)},{"fine_maps",double(b.maps)},
+            {"fine_ncc_mode",d.ncc_mode},{"fine_row_bytes",double(d.row_buffer_bytes)},
+            {"fine_row_dispatches",double(d.row_dispatches)},{"fine_stats_dispatches",double(d.statistics_dispatches)},
+            {"fine_stats_device_ms",d.stats_device_ms},{"fine_rotation_ms",b.rotation_ms},{"fine_repair_ms",b.repair_ms},
+            {"fine_ncc_ms",b.ncc_ms},{"fine_normalization_ms",b.normalization_ms},{"fine_wait_ms",b.wait_ms},
+            {"fine_commands",double(b.command_buffers)},{"fine_uploads",double(b.source_uploads)},
+            {"fine_upload_bytes",double(b.source_upload_bytes)},{"fine_roi_pixels",double(b.roi_pixels)},
+            {"fine_repair_pixels",double(b.repair_pixels)},{"fine_peak_batch",double(b.peak_batch_maps)},
             {"device_ms",a.device_ms},{"wait_ms",a.wait_ms},{"copy_ms",a.upload_ms},{"normalization_ms",a.normalization_ms},
             {"async_submitted",double(c.submitted_batches)},{"async_completed",double(c.completed_batches)},
             {"async_maps",double(c.submitted_maps)},{"async_fallback_maps",double(c.fallback_maps)},{"async_max_pending",double(c.max_pending)},
@@ -136,6 +144,7 @@ int main(int argc,char** argv) {
         settings.residentMode=j["pose_resident_mode"].toInt(0);
         settings.cpuThreads=j["cpu_threads"].toInt(8);settings.sparse.cpuThreads=settings.cpuThreads;
         Options o;o.nccMode=j["ncc_mode"].toInt();o.overlap=j["overlap_enabled"].toBool();o.refine=j["refine"].toBool(true);
+        o.fineNccMode=j["fine_ncc_mode"].toInt(0);
         o.match.maxTargets=j["limit"].toInt(70);o.match.minScore=j["score"].toDouble(.8);o.match.maxOverlap=j["overlap"].toDouble(.2);o.match.toleranceAngle=j["angle"].toDouble(180);
         o.match.stopLayer=j["stop_layer"].toInt(1);o.match.subpixel=j["subpixel"].toBool();o.match.invertSource=j["invert_source"].toBool();
         o.proposalScore=j["proposal_score"].toDouble(.5);

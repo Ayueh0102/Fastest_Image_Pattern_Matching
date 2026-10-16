@@ -44,10 +44,12 @@ void compare(fpm_coarse_detail::Backend& backend, fpm::ImageView source,
         m.descriptor_buffer_bytes+m.statistics_buffer_bytes+m.template_buffer_bytes, "fine retained memory counts differ");
 }
 }
-int main()
+int main(int argc, char** argv)
 {
     try {
         auto backend = fpm_coarse_detail::makeMetalBackend();
+        const bool shared = argc == 2 && std::string(argv[1]) == "--shared";
+        backend->setFineNccMode(shared ? 1 : 0);
         backend->setFineBatchSize(7);
         FpmCoarseExecutionConfigV1 config{}; fpm_coarse_execution_default_config(&config);
         std::mt19937 generator(81731); std::uniform_real_distribution<double> angle(-180, 180);
@@ -111,6 +113,65 @@ int main()
             require(backend->fineMetrics().repair_all_maps == 1, "out-of-range pose repair was not counted");
         }
         require(repaired && used64, "test omitted uncertainty repair or uint64 NCC coverage");
+        // Adjacent template sizes straddle the exact uint32 square bound.
+        for (int height : {257,258}) {
+            auto source = raster(269,271,31), patch = raster(257,height,32);
+            for (int y=0;y<271;++y) for (int x=0;x<269;++x) source.row(y)[x]=255-((x+3*y)%131==0);
+            for (int y=0;y<height;++y) for (int x=0;x<257;++x) patch.row(y)[x]=255-((x+3*y)%131==0);
+            backend->invalidateFineSource(); backend->resetMetrics();
+            compare(*backend, source.view(), fpm::detail::learnLevel(std::move(patch)), {{{3.,3.},0.},{{3.5,3.5},0.}});
+        }
+        const auto reuse = backend->fineReuseMetrics();
+        require(reuse.version == 1 && reuse.struct_bytes == sizeof(reuse) && reuse.ncc_mode == int(shared), "invalid fine reuse metadata");
+        require(reuse.statistics_dispatches > 0 && backend->fineMetrics().command_buffers == 2*reuse.statistics_dispatches,
+            "fine reuse introduced extra command submissions");
+        require(shared ? (reuse.row_buffer_bytes > 0 && reuse.row_dispatches == reuse.statistics_dispatches) :
+            (!reuse.row_buffer_bytes && !reuse.row_dispatches), "fine row dispatch/memory accounting incorrect");
+        for (int invalid : {-1, 2}) {
+            bool rejected = false;
+            try { backend->setFineNccMode(invalid); } catch (const std::invalid_argument&) { rejected = true; }
+            require(rejected && backend->fineReuseMetrics().ncc_mode == int(shared), "invalid mode changed state");
+        }
+        backend->resetMetrics();
+        const auto reset = backend->fineReuseMetrics();
+        require(reset.ncc_mode == int(shared) && reset.row_buffer_bytes == reuse.row_buffer_bytes,
+            "fine metrics reset changed mode or retained row allocation");
+        require(!reset.row_dispatches && !reset.statistics_dispatches && reset.stats_device_ms == 0,
+            "fine metrics reset retained dispatch counts or timing");
+        if (shared) {
+            // A narrow ROI stays below the 64 MiB source arena while its
+            // uint64 row statistics exceed their independent 16 MiB limit.
+            constexpr size_t rowArenaBytes = 16 * 1024 * 1024;
+            const int height = int(rowArenaBytes / (7 * 2 * sizeof(uint64_t))) - 6 + 1;
+            const auto tall = fpm::detail::learnLevel(raster(1, height, 719));
+            const auto source = raster(1, 1, 817);
+            bool rejected = false;
+            try { backend->computeFineBatch(source.view(), tall, {}, nullptr); }
+            catch (const std::invalid_argument& e) {
+                rejected = std::string(e.what()).find("row statistics exceed") != std::string::npos;
+            }
+            require(rejected, "oversized fine row arena was not rejected");
+            const auto after = backend->fineReuseMetrics();
+            require(after.row_buffer_bytes == reset.row_buffer_bytes && !after.row_dispatches &&
+                !after.statistics_dispatches, "oversized fine row arena allocated or dispatched work");
+        }
+        backend->setFineNccMode(0);
+        require(backend->fineReuseMetrics().row_buffer_bytes == 0, "disabled fine reuse retains row buffer");
+        for (int device : {0,1}) {
+            FpmFrameConfigV1 cfg{};fpm_frame_default_config(&cfg);
+            cfg.backend=device;cfg.pyramid_mode=0;cfg.batch_angles=1;cfg.fine_batch_size=device?7:0;
+            fpm_frame_handle* frame=nullptr;char error[1024]{};
+            require(fpm_frame_create(&cfg,sizeof(cfg),&frame,error,sizeof(error))==FPM_OK,"fine API frame creation failed");
+            require(fpm_frame_set_fine_ncc_mode(frame,1,error,sizeof(error))==(device?FPM_OK:FPM_ERROR),"fine API backend gate failed");
+            FpmFineReuseMetricsV1 metrics{};
+            require(fpm_frame_get_fine_reuse_metrics(frame,&metrics,sizeof(metrics),error,sizeof(error))==FPM_OK && metrics.ncc_mode==device,"fine API metrics mode differs");
+            require(fpm_frame_get_fine_reuse_metrics(frame,&metrics,sizeof(metrics)-1,error,sizeof(error))==FPM_ERROR,"short metrics accepted");
+            require(fpm_frame_get_fine_reuse_metrics(frame,nullptr,sizeof(metrics),error,sizeof(error))==FPM_ERROR,"null metrics accepted");
+            require(fpm_frame_set_fine_ncc_mode(frame,2,error,sizeof(error))==FPM_ERROR,"bad mode accepted");
+            require(fpm_frame_set_fine_ncc_mode(frame,0,error,sizeof(error))==FPM_OK,"mode reset failed");
+            fpm_frame_destroy(frame);
+        }
+        require(fpm_frame_set_fine_ncc_mode(nullptr,0,nullptr,0)==FPM_ERROR,"null frame accepted");
         std::cout << "Guarded Q28 Metal warp and batched NCC equal CPU at borders, half pixels, large/flat templates and changed frames\n";
         return 0;
     } catch (const std::exception& e) {

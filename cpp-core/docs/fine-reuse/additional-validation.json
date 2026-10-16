@@ -1,0 +1,13 @@
+{
+  "full_counts_equal": {
+    "controlled6": "exact counts across both modes, both blocks and first/formal calls",
+    "heldout12": "exact counts across both modes, both blocks and first/formal calls",
+    "8k_t256_angle180_3scales": "exact counts across both modes, both blocks and first/formal calls",
+    "small_fullres": "exact counts across both modes, both blocks and first/formal calls",
+    "many128_pose": "exact counts across both modes, both blocks and first/formal calls",
+    "many512_pose": "exact counts across both modes, both blocks and first/formal calls"
+  },
+  "relocated_replay_byte_equal": true,
+  "all_missed_negative_control_rejected": true,
+  "measurement_summary_unchanged_after_fixes": true
+}

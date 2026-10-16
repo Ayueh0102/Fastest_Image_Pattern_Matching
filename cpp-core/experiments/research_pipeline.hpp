@@ -25,6 +25,7 @@ struct Settings {
 struct Options {
     MatchConfig match;
     int nccMode = 0;
+    int fineNccMode = 0; // 0 original; 1 shared horizontal sum/square rows, Metal only.
     bool overlap = false;
     bool refine = true;
     double proposalScore = .5; // capped at final minScore; ignored without refine
@@ -47,6 +48,7 @@ struct Result {
     SparseOrientationMetrics sparse{};
     std::vector<FpmCoarseMetrics> coarse;
     std::vector<FpmFineMetricsV1> fine;
+    std::vector<FpmFineReuseMetricsV1> fineReuse;
     std::vector<FpmCoarseOverlapMetricsV1> overlapMetrics;
 };
 // Public for cross-language parity checks; zero extension, width/2 center,

@@ -107,11 +107,27 @@ typedef struct FpmFineMetricsV1 {
     uint64_t descriptor_buffer_bytes, statistics_buffer_bytes, template_buffer_bytes;
     uint64_t retained_gpu_bytes, peak_batch_maps;
 } FpmFineMetricsV1;
+/* Opt-in fine normalization reuse diagnostics. row_buffer_bytes is INCLUDED
+ * in FineMetricsV1.statistics_buffer_bytes, not additional to it. The new row
+ * and dot dispatches share one command buffer; no extra CPU wait is introduced.
+ * stats_device_ms measures that full command (not an isolated kernel). */
+typedef struct FpmFineReuseMetricsV1 {
+    uint32_t version, struct_bytes;
+    int32_t ncc_mode, reserved;
+    uint64_t row_buffer_bytes, row_dispatches, statistics_dispatches;
+    double stats_device_ms;
+} FpmFineReuseMetricsV1;
 /* A frame owns one immutable source pyramid and execution backend, reused by
  * any number of template/scale handles. Explicit prepare ALWAYS refreshes pixels;
  * input pointer/dimensions alone never imply content identity. One caller at a
  * time. No asynchronous access or ownership of pattern handles is retained. */
 typedef struct fpm_frame_handle fpm_frame_handle;
+/* 0 original SIMD/window; 1 shared horizontal sum/square statistics. Idle
+ * frame only. CPU accepts only 0. Public structs/defaults remain unchanged. */
+FPM_API int fpm_frame_set_fine_ncc_mode(fpm_frame_handle* frame, int32_t mode,
+    char* error, size_t error_capacity);
+FPM_API int fpm_frame_get_fine_reuse_metrics(fpm_frame_handle* frame,
+    FpmFineReuseMetricsV1* metrics, size_t metrics_bytes, char* error, size_t error_capacity);
 typedef struct FpmFrameConfigV1 {
     uint32_t version, struct_bytes;
     int32_t backend, pyramid_mode, batch_angles, fine_batch_size;
