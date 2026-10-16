@@ -1,0 +1,539 @@
+{
+  "review_version": 1,
+  "scope": "Read-only source, stored metadata, pixel reconstruction, affine geometry, and 8 saved pilot jobs/results. No GPU execution, no compilation, no image/source edits; only this JSON written. Formal stage33 worker jobs have not yet been reviewed because they are not yet available.",
+  "blocking_findings": [],
+  "overall": "GT與實際生成變換一致，未發現需要改圖或調threshold的bug；pilot normal/challenge失敗必須保留並讓絕對準確度狀態為false。",
+  "counting": {
+    "new_scene_geometry_groups": 2,
+    "new_distinct_synthetic_truth_poses": 24,
+    "additional_degraded_pose_conditions": 12,
+    "degraded_geometry_exact_same_as_texture": true,
+    "empty_truth_count": 0,
+    "generation_declares_24": true,
+    "interpretation": "24個新抽樣的不同合成姿態，來自兩個既有模板與兩個seed；不是36個獨立姿態、24個獨立相機照片或新模板實拍。degraded為同12姿態附加條件。"
+  },
+  "mathematics": {
+    "template_center": "(width/2, height/2)",
+    "linear_transform": "scale * [[cos(theta), sin(theta)], [-sin(theta), cos(theta)]]",
+    "roi_translation": "[pos_x-x0, pos_y-y0] - linear @ [width/2,height/2]",
+    "check": "Checked OpenCV getRotationMatrix2D matrix applied to four local corners against stored GT, independent of matcher output. Maximum discrepancy about 1.14e-13 px.",
+    "occlusion": "Template-local left strip, columns=round(width*fraction), transformed with the same affine matrix. It changes visible pixels, not true object pose. Fractions are nominal strip widths, not measured post-interpolation image-area fractions.",
+    "degradation_order": "render_scene with no noise -> round/clip to uint8 -> back to float32 -> transformed strip blending with background150 -> Gaussian blur -> Gaussian noise -> final round/clip to uint8."
+  },
+  "scene_checks": [
+    {
+      "case": "new_texture12",
+      "validity": "normal",
+      "source": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/resident-multiscale-inputs/new_texture12.png",
+      "template": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/resident-multiscale-inputs/new_texture12-template.png",
+      "metadata": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/resident-multiscale-inputs/new_texture12.json",
+      "source_shape": [
+        768,
+        1024
+      ],
+      "template_shape": [
+        102,
+        140
+      ],
+      "truth_count": 12,
+      "placement": {
+        "object_count": 12,
+        "all_inside": true,
+        "no_overlap": true,
+        "pairwise_roi_checks": 66,
+        "min_roi_boundary_px": 28,
+        "min_roi_separation_px": 56.0
+      },
+      "cv_affine_corner_max_error_px": 1.1368683772161603e-13,
+      "image_exact_after_regeneration": true,
+      "truth_exact_after_regeneration": true,
+      "metadata_truth_matches_case": true,
+      "source_sha256_matches": true,
+      "template_sha256_matches": true,
+      "fixture_sha256_matches": true,
+      "pixel_sha256_matches": true
+    },
+    {
+      "case": "new_small12",
+      "validity": "normal",
+      "source": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/resident-multiscale-inputs/new_small12.png",
+      "template": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/resident-multiscale-inputs/new_small12-template.png",
+      "metadata": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/resident-multiscale-inputs/new_small12.json",
+      "source_shape": [
+        384,
+        512
+      ],
+      "template_shape": [
+        17,
+        33
+      ],
+      "truth_count": 12,
+      "placement": {
+        "object_count": 12,
+        "all_inside": true,
+        "no_overlap": true,
+        "pairwise_roi_checks": 66,
+        "min_roi_boundary_px": 35,
+        "min_roi_separation_px": 74.0
+      },
+      "cv_affine_corner_max_error_px": 5.684341886080802e-14,
+      "image_exact_after_regeneration": true,
+      "truth_exact_after_regeneration": true,
+      "metadata_truth_matches_case": true,
+      "source_sha256_matches": true,
+      "template_sha256_matches": true,
+      "fixture_sha256_matches": true,
+      "pixel_sha256_matches": true
+    },
+    {
+      "case": "degraded12",
+      "validity": "challenge",
+      "source": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/resident-multiscale-inputs/degraded12.png",
+      "template": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/resident-multiscale-inputs/degraded12-template.png",
+      "metadata": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/resident-multiscale-inputs/degraded12.json",
+      "source_shape": [
+        768,
+        1024
+      ],
+      "template_shape": [
+        102,
+        140
+      ],
+      "truth_count": 12,
+      "placement": {
+        "object_count": 12,
+        "all_inside": true,
+        "no_overlap": true,
+        "pairwise_roi_checks": 66,
+        "min_roi_boundary_px": 28,
+        "min_roi_separation_px": 56.0
+      },
+      "cv_affine_corner_max_error_px": 1.1368683772161603e-13,
+      "image_exact_after_regeneration": true,
+      "truth_exact_after_regeneration": true,
+      "metadata_truth_matches_case": true,
+      "source_sha256_matches": true,
+      "template_sha256_matches": true,
+      "fixture_sha256_matches": true,
+      "pixel_sha256_matches": true
+    },
+    {
+      "case": "empty_scene",
+      "validity": "negative",
+      "source": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/resident-multiscale-inputs/empty_scene.png",
+      "template": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/resident-multiscale-inputs/empty_scene-template.png",
+      "metadata": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/resident-multiscale-inputs/empty_scene.json",
+      "source_shape": [
+        768,
+        1024
+      ],
+      "template_shape": [
+        102,
+        140
+      ],
+      "truth_count": 0,
+      "placement": {
+        "object_count": 0,
+        "all_inside": true,
+        "no_overlap": true,
+        "pairwise_roi_checks": 0,
+        "min_roi_boundary_px": null,
+        "min_roi_separation_px": null
+      },
+      "cv_affine_corner_max_error_px": 0.0,
+      "image_exact_after_regeneration": true,
+      "truth_exact_after_regeneration": true,
+      "metadata_truth_matches_case": true,
+      "source_sha256_matches": true,
+      "template_sha256_matches": true,
+      "fixture_sha256_matches": true,
+      "pixel_sha256_matches": true
+    }
+  ],
+  "saved_pilot_checks": [
+    {
+      "case": "new_texture12",
+      "mode": 0,
+      "job": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/resident-multiscale-pilot/new_texture12-mode0.json",
+      "job_sha256": "346fbddb92f7a0b686505c6d7c78a5be34436beebf78c111ba84c3c4bcd77b94",
+      "result": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/resident-multiscale-pilot/new_texture12-mode0.result.json",
+      "result_sha256": "f6942326c8efee9802e337282ac6e0bf5dd85cc524fca086eac17e0b48fecb48",
+      "job_keys": [
+        "source",
+        "template",
+        "scales",
+        "angle",
+        "limit",
+        "proposal_score",
+        "score",
+        "overlap",
+        "stop_layer",
+        "subpixel",
+        "backend",
+        "min_area",
+        "ncc_mode",
+        "overlap_enabled",
+        "refine",
+        "invert_source",
+        "repeats",
+        "warmup_seconds",
+        "fine_ncc_mode",
+        "fine_angle_reuse",
+        "fine_fused",
+        "pose_input_mode",
+        "pose_storage_mode",
+        "pose_resident_mode",
+        "run_resource_diagnostics"
+      ],
+      "contains_only_search_config": true,
+      "contains_truth_metadata_or_geometry": false,
+      "strict_accuracy": {
+        "tp": 12,
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    {
+      "case": "new_texture12",
+      "mode": 2,
+      "job": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/resident-multiscale-pilot/new_texture12-mode2.json",
+      "job_sha256": "a2bd4fc981118ef7388a5c55625e684b3798ea1c5c3901ea1026535510c11fdc",
+      "result": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/resident-multiscale-pilot/new_texture12-mode2.result.json",
+      "result_sha256": "3e3010a63003baf3399eb6be33b3a57b93d7ddd027a8e6dcf146f6875a7ccbd4",
+      "job_keys": [
+        "source",
+        "template",
+        "scales",
+        "angle",
+        "limit",
+        "proposal_score",
+        "score",
+        "overlap",
+        "stop_layer",
+        "subpixel",
+        "backend",
+        "min_area",
+        "ncc_mode",
+        "overlap_enabled",
+        "refine",
+        "invert_source",
+        "repeats",
+        "warmup_seconds",
+        "fine_ncc_mode",
+        "fine_angle_reuse",
+        "fine_fused",
+        "pose_input_mode",
+        "pose_storage_mode",
+        "pose_resident_mode",
+        "run_resource_diagnostics"
+      ],
+      "contains_only_search_config": true,
+      "contains_truth_metadata_or_geometry": false,
+      "strict_accuracy": {
+        "tp": 12,
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    {
+      "case": "new_small12",
+      "mode": 0,
+      "job": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/resident-multiscale-pilot/new_small12-mode0.json",
+      "job_sha256": "8eb92b8e069a1bbb846a352a13d9aed32486b05dead9e7e199f3c2371f1dc0f1",
+      "result": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/resident-multiscale-pilot/new_small12-mode0.result.json",
+      "result_sha256": "301083348b5e7f54af65f57673fbf30356702fcfad72539f4b4bbc50e5b1cb3e",
+      "job_keys": [
+        "source",
+        "template",
+        "scales",
+        "angle",
+        "limit",
+        "proposal_score",
+        "score",
+        "overlap",
+        "stop_layer",
+        "subpixel",
+        "backend",
+        "min_area",
+        "ncc_mode",
+        "overlap_enabled",
+        "refine",
+        "invert_source",
+        "repeats",
+        "warmup_seconds",
+        "fine_ncc_mode",
+        "fine_angle_reuse",
+        "fine_fused",
+        "pose_input_mode",
+        "pose_storage_mode",
+        "pose_resident_mode",
+        "run_resource_diagnostics"
+      ],
+      "contains_only_search_config": true,
+      "contains_truth_metadata_or_geometry": false,
+      "strict_accuracy": {
+        "tp": 7,
+        "fp": 5,
+        "fn": 5
+      }
+    },
+    {
+      "case": "new_small12",
+      "mode": 2,
+      "job": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/resident-multiscale-pilot/new_small12-mode2.json",
+      "job_sha256": "f8b13853a7b5a4f614a79bdfb7a8891e094db15d93a281e18d90c412acdffe98",
+      "result": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/resident-multiscale-pilot/new_small12-mode2.result.json",
+      "result_sha256": "13efce7fed8f514c1501094566b1d264fc75fe7d03656f81dbce8d845220d90b",
+      "job_keys": [
+        "source",
+        "template",
+        "scales",
+        "angle",
+        "limit",
+        "proposal_score",
+        "score",
+        "overlap",
+        "stop_layer",
+        "subpixel",
+        "backend",
+        "min_area",
+        "ncc_mode",
+        "overlap_enabled",
+        "refine",
+        "invert_source",
+        "repeats",
+        "warmup_seconds",
+        "fine_ncc_mode",
+        "fine_angle_reuse",
+        "fine_fused",
+        "pose_input_mode",
+        "pose_storage_mode",
+        "pose_resident_mode",
+        "run_resource_diagnostics"
+      ],
+      "contains_only_search_config": true,
+      "contains_truth_metadata_or_geometry": false,
+      "strict_accuracy": {
+        "tp": 7,
+        "fp": 5,
+        "fn": 5
+      }
+    },
+    {
+      "case": "degraded12",
+      "mode": 0,
+      "job": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/resident-multiscale-pilot/degraded12-mode0.json",
+      "job_sha256": "586790878fe009d7c46ba2520566774f33a5ba65a12b6375e6b71308fece1721",
+      "result": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/resident-multiscale-pilot/degraded12-mode0.result.json",
+      "result_sha256": "823deb62d540df1e9d6b34d3ed023a0fc28b1fd65b746e85d04f4cded52f1364",
+      "job_keys": [
+        "source",
+        "template",
+        "scales",
+        "angle",
+        "limit",
+        "proposal_score",
+        "score",
+        "overlap",
+        "stop_layer",
+        "subpixel",
+        "backend",
+        "min_area",
+        "ncc_mode",
+        "overlap_enabled",
+        "refine",
+        "invert_source",
+        "repeats",
+        "warmup_seconds",
+        "fine_ncc_mode",
+        "fine_angle_reuse",
+        "fine_fused",
+        "pose_input_mode",
+        "pose_storage_mode",
+        "pose_resident_mode",
+        "run_resource_diagnostics"
+      ],
+      "contains_only_search_config": true,
+      "contains_truth_metadata_or_geometry": false,
+      "strict_accuracy": {
+        "tp": 4,
+        "fp": 3,
+        "fn": 8
+      }
+    },
+    {
+      "case": "degraded12",
+      "mode": 2,
+      "job": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/resident-multiscale-pilot/degraded12-mode2.json",
+      "job_sha256": "a090659866cc0f42995edeb3e19e37c3c391612e8e94f44bf149385b091fb99f",
+      "result": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/resident-multiscale-pilot/degraded12-mode2.result.json",
+      "result_sha256": "586400b7ac39797a0a30ca26eb31f8491fa913106aa0b0b85e8f668645b363d0",
+      "job_keys": [
+        "source",
+        "template",
+        "scales",
+        "angle",
+        "limit",
+        "proposal_score",
+        "score",
+        "overlap",
+        "stop_layer",
+        "subpixel",
+        "backend",
+        "min_area",
+        "ncc_mode",
+        "overlap_enabled",
+        "refine",
+        "invert_source",
+        "repeats",
+        "warmup_seconds",
+        "fine_ncc_mode",
+        "fine_angle_reuse",
+        "fine_fused",
+        "pose_input_mode",
+        "pose_storage_mode",
+        "pose_resident_mode",
+        "run_resource_diagnostics"
+      ],
+      "contains_only_search_config": true,
+      "contains_truth_metadata_or_geometry": false,
+      "strict_accuracy": {
+        "tp": 4,
+        "fp": 3,
+        "fn": 8
+      }
+    },
+    {
+      "case": "empty_scene",
+      "mode": 0,
+      "job": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/resident-multiscale-pilot/empty_scene-mode0.json",
+      "job_sha256": "3ced45112bbc387265b6a49e1c48b7828385403f2a93e47b1ec1e829eb5cb4fb",
+      "result": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/resident-multiscale-pilot/empty_scene-mode0.result.json",
+      "result_sha256": "4b9e7c299ce25b3a7c46b6a6c34685ffb9c533589ec08e0fe92569c2ccbb8265",
+      "job_keys": [
+        "source",
+        "template",
+        "scales",
+        "angle",
+        "limit",
+        "proposal_score",
+        "score",
+        "overlap",
+        "stop_layer",
+        "subpixel",
+        "backend",
+        "min_area",
+        "ncc_mode",
+        "overlap_enabled",
+        "refine",
+        "invert_source",
+        "repeats",
+        "warmup_seconds",
+        "fine_ncc_mode",
+        "fine_angle_reuse",
+        "fine_fused",
+        "pose_input_mode",
+        "pose_storage_mode",
+        "pose_resident_mode",
+        "run_resource_diagnostics"
+      ],
+      "contains_only_search_config": true,
+      "contains_truth_metadata_or_geometry": false,
+      "strict_accuracy": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    {
+      "case": "empty_scene",
+      "mode": 2,
+      "job": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/resident-multiscale-pilot/empty_scene-mode2.json",
+      "job_sha256": "2fac4c7cde042407933d593a9fae053fb0e3f4b0745073f9e3cab0b5caf9b123",
+      "result": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/resident-multiscale-pilot/empty_scene-mode2.result.json",
+      "result_sha256": "c171540f8c105d00849d39cd45adb8cbfb0f5e83aaf917aaf6d72966b64f59ce",
+      "job_keys": [
+        "source",
+        "template",
+        "scales",
+        "angle",
+        "limit",
+        "proposal_score",
+        "score",
+        "overlap",
+        "stop_layer",
+        "subpixel",
+        "backend",
+        "min_area",
+        "ncc_mode",
+        "overlap_enabled",
+        "refine",
+        "invert_source",
+        "repeats",
+        "warmup_seconds",
+        "fine_ncc_mode",
+        "fine_angle_reuse",
+        "fine_fused",
+        "pose_input_mode",
+        "pose_storage_mode",
+        "pose_resident_mode",
+        "run_resource_diagnostics"
+      ],
+      "contains_only_search_config": true,
+      "contains_truth_metadata_or_geometry": false,
+      "strict_accuracy": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0
+      }
+    }
+  ],
+  "nonblocking_documentation_findings": [
+    {
+      "id": "held_out_wording",
+      "path": "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/resident_validation_scenes.py",
+      "line": 1,
+      "issue": "檔頭稱held-out；目前已看mode0/2 pilot，正式重跑不是完全未觀察盲測。新seed且未據結果調參仍具新驗證價值。",
+      "recommendation": "報告稱預先固定的新合成驗證場景，明示先看pilot但未改threshold/classification/inputs；不要稱獨立真實盲測。"
+    },
+    {
+      "id": "renderer_quantization_description",
+      "path": "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/resident_validation_scenes.py",
+      "line": 101,
+      "issue": "renderer描述affine→strip→blur/noise省略了render_scene先量化/clip成u8。對現在固定GT不是錯誤，但重現者若照文字在float直接接blur會不同。",
+      "recommendation": "報告補完整降質順序；不用改圖或重新製造輸入來掩蓋pilot。metadata後續若修正需保留原版本/新hash。"
+    },
+    {
+      "id": "independence_level",
+      "path": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/resident-multiscale-inputs/generation.json",
+      "issue": "new_independent_truth_poses=24不可解讀為24個獨立來源影像/模板。",
+      "recommendation": "以24個不同合成姿態、2個模板/geometry banks、4個條件場景報告。不要將degraded重算成新姿態。"
+    },
+    {
+      "id": "occlusion_scope",
+      "path": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/resident-multiscale-inputs/degraded12.json",
+      "issue": "只有局部左側條帶遮罩，物件ROIs仍分離；不是多物件互相遮擋或真實遮擋資料集。",
+      "recommendation": "沿用metadata nominal_occlusion_fractions、occlusion_columns與limitations，分列clean/degraded結果。"
+    },
+    {
+      "id": "pending_formal_job_audit",
+      "path": "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/benchmark_native_pipeline.py",
+      "line": 36,
+      "issue": "native_job白名單與8個已存pilot均無GT洩漏；正式harness/jobs未產生，不能在此報告宣稱正式也逐一已驗。",
+      "recommendation": "正式凍結前/離線摘要時再次檢查job僅search keys，不含truth、metadata、幾何、生成seed。"
+    }
+  ],
+  "failure_interpretation": {
+    "new_small12": "normal保留。TP7 FP5 FN5代表模式共同未滿足絕對GT要求，不應改成challenge/放寬gate。",
+    "degraded12": "challenge預先宣告；TP4 FP3 FN8須明列，不能因屬challenge就說全部圖準確度通過。",
+    "mode_parity": "pilot mode0與mode2同TPFPFN可支持相同失敗，但不能將相同輸出寫成絕對準確。"
+  },
+  "reviewed_sha256": {
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/resident_validation_scenes.py": "24de680690672202a31ee89b2318dc8851b0e85702cdc1671a7ae7998175bd44",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tests/test_resident_validation_scenes.py": "1bc0a56919cf49b7a4fdb6d66ab4113566c31e7cfbdbcaa910b4f3e32be63bdc",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/many_object_scenes.py": "86fa55ac2b532bc689d595dfd4d1afdcb4695ee6641d4ed0cc483f63c54d0c0a",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/tools/benchmark_native_pipeline.py": "fa8f074de71e67f4b5d0fe5d8b24c9cad40f3621b9cee41aaba0419bd4adf875",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/resident-multiscale-inputs/cases.json": "259cb860db1600fdca5e01623cb5f916258de11fd76f102cf1b46309d99bbceb",
+    "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/resident-multiscale-inputs/generation.json": "eed3f8dbba0993dd2a6da2d50784d8333714dec3b8834f87e4b69b1a74f59036"
+  }
+}

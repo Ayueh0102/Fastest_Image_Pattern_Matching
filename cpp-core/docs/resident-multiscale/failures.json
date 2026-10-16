@@ -1,0 +1,122 @@
+{
+  "accuracy_failures": [
+    {
+      "case": "new_small12",
+      "method": "resident0",
+      "validity": "normal",
+      "origin": "new",
+      "max_fp": 5,
+      "max_fn": 5
+    },
+    {
+      "case": "new_small12",
+      "method": "fused256",
+      "validity": "normal",
+      "origin": "new",
+      "max_fp": 5,
+      "max_fn": 5
+    },
+    {
+      "case": "new_small12",
+      "method": "simd128",
+      "validity": "normal",
+      "origin": "new",
+      "max_fp": 5,
+      "max_fn": 5
+    },
+    {
+      "case": "degraded12",
+      "method": "resident0",
+      "validity": "challenge",
+      "origin": "new",
+      "max_fp": 3,
+      "max_fn": 8
+    },
+    {
+      "case": "degraded12",
+      "method": "fused256",
+      "validity": "challenge",
+      "origin": "new",
+      "max_fp": 3,
+      "max_fn": 8
+    },
+    {
+      "case": "degraded12",
+      "method": "simd128",
+      "validity": "challenge",
+      "origin": "new",
+      "max_fp": 3,
+      "max_fn": 8
+    }
+  ],
+  "performance_failures": [
+    {
+      "case": "controlled6",
+      "comparison": "fused256_vs_resident0",
+      "block": 1,
+      "failed_time_phases": [
+        "first",
+        "repeat1"
+      ],
+      "rss_failed": false
+    },
+    {
+      "case": "controlled6",
+      "comparison": "simd128_vs_resident0",
+      "block": 1,
+      "failed_time_phases": [
+        "first",
+        "repeat1"
+      ],
+      "rss_failed": false
+    },
+    {
+      "case": "degraded12",
+      "comparison": "fused256_vs_resident0",
+      "block": 0,
+      "failed_time_phases": [
+        "first",
+        "repeat1"
+      ],
+      "rss_failed": false
+    },
+    {
+      "case": "degraded12",
+      "comparison": "fused256_vs_resident0",
+      "block": 1,
+      "failed_time_phases": [
+        "first",
+        "repeat1"
+      ],
+      "rss_failed": false
+    },
+    {
+      "case": "degraded12",
+      "comparison": "simd128_vs_resident0",
+      "block": 0,
+      "failed_time_phases": [
+        "repeat1"
+      ],
+      "rss_failed": false
+    },
+    {
+      "case": "degraded12",
+      "comparison": "simd128_vs_resident0",
+      "block": 1,
+      "failed_time_phases": [
+        "first",
+        "repeat1"
+      ],
+      "rss_failed": false
+    },
+    {
+      "case": "empty_scene",
+      "comparison": "fused256_vs_resident0",
+      "block": 1,
+      "failed_time_phases": [
+        "repeat1"
+      ],
+      "rss_failed": false
+    }
+  ]
+}
