@@ -1,0 +1,140 @@
+{
+  "archives": [
+    {
+      "file": "raw-results.tar.gz",
+      "sha256": "ac1c7268820d3c1b0439fa1b1c4bd9c8247228e7915457969b37cfcfb1978085",
+      "bytes": 65743632
+    },
+    {
+      "file": "source-and-fixtures.tar.gz",
+      "sha256": "5bfc41ee1aa54a4e3ef72a32ca668e1ab363ce709c50c04a46f83b84c7b582b3",
+      "bytes": 54046631
+    }
+  ],
+  "content_files": 1895,
+  "payload_hashes_passed": true,
+  "summary_replay": [
+    {
+      "suite": "stage34-backends-results",
+      "exact": true,
+      "flags": {
+        "complete": true,
+        "integrity_passed": true,
+        "paired_final_passed": true,
+        "accuracy_passed": false,
+        "correctness_passed": false,
+        "all_time_tolerances_passed": false,
+        "all_rss_tolerances_passed": true,
+        "all_performance_tolerances_passed": false
+      }
+    },
+    {
+      "suite": "stage34-scale-support-results",
+      "exact": true,
+      "flags": {
+        "complete": true,
+        "unchanged": true,
+        "integrity_passed": true,
+        "all_support_accuracy_passed": false,
+        "all_time_tolerances_passed": false,
+        "all_rss_tolerances_passed": true
+      }
+    },
+    {
+      "suite": "stage34-challenge",
+      "exact": true,
+      "flags": {
+        "complete": true,
+        "evidence_integrity_passed": true,
+        "unchanged": true,
+        "all_strict_passed": false,
+        "all_performance_passed": false
+      }
+    },
+    {
+      "suite": "stage34-blender/results",
+      "exact": true,
+      "flags": {
+        "complete": true,
+        "evidence_integrity_passed": true,
+        "unchanged": true,
+        "all_strict_passed": false,
+        "all_performance_passed": false
+      }
+    },
+    {
+      "suite": "stage34-sequence-pilot",
+      "exact": true,
+      "flags": {
+        "complete": true,
+        "unchanged": true,
+        "routes_passed": true,
+        "repeat_exact": true,
+        "fresh_reuse_ordered_exact": true,
+        "logical_work_exact": true,
+        "accuracy_passed": true,
+        "passed": true
+      }
+    },
+    {
+      "suite": "stage34-soak",
+      "exact": true,
+      "flags": {
+        "all_outputs_exact": true,
+        "async_drained": true,
+        "generation_valid": true,
+        "routes_passed": true,
+        "logical_work_constant": true,
+        "retained_capacity_constant": true,
+        "unchanged": true,
+        "passed": true
+      }
+    }
+  ],
+  "trace_target_replay": true,
+  "rebuild": {
+    "rebuilt_from_extracted_source": true,
+    "cpu_ctest_passed": 2,
+    "native_replays": [
+      {
+        "case": "controlled6",
+        "ordered_outputs_exact": true,
+        "logical_work_exact": true,
+        "job_sha256": "1c5d53e6f02eeb563616010eabefebeb1e21107f4ab911cc154f78e7bec4fd1d",
+        "raw_sha256": "a8a05963b562cc756372c26023ccc1d735c0b2a6fe32f2dc2530bea190618481"
+      },
+      {
+        "case": "small_cpu_support",
+        "ordered_outputs_exact": true,
+        "logical_work_exact": true,
+        "job_sha256": "4610c21ecb6f1bf28365ee02af81c31dd20ef440aa36e091dfdd7b92957c27c9",
+        "raw_sha256": "ab2827043d48eedf5c78edbfcd674ca8d731bfd531d4d246cf0c35427609c08c"
+      }
+    ],
+    "passed": true,
+    "note": "Rebuild/replay is a portability and evidence check, not another performance measurement."
+  },
+  "targeted_followup": [
+    {
+      "case": "new_small12",
+      "cpu_metal_support_failed_pairs": 24,
+      "rss_all_passed": true
+    },
+    {
+      "case": "Dst4-2026101702-5-area4",
+      "cpu_metal_support_failed_pairs": 0,
+      "rss_all_passed": true
+    },
+    {
+      "case": "Dst3-2026101701-1-area4",
+      "cpu_metal_support_failed_pairs": 0,
+      "rss_all_passed": true
+    }
+  ],
+  "logs": {
+    "file": "validation-logs.tar.gz",
+    "sha256": "653fdd4d14bd4e07655af3756919d9ea737b37ca8756721abdeaac49e8f4690c",
+    "bytes": 45457
+  },
+  "scope": "Integrity/rebuild passed. Accuracy/performance and cross-backend score failures remain in the evidence; not all algorithms passed."
+}

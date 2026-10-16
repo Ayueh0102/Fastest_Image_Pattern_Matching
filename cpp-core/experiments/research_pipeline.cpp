@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: BSD-2-Clause
 #include "research_pipeline.hpp"
+#include "scale_support_refine.hpp"
 #include <algorithm>
 #include <chrono>
 #include <cmath>
@@ -110,13 +111,17 @@ struct Session::Impl {
     std::unique_ptr<void,decltype(&fpm_pose_destroy)> pose{nullptr,fpm_pose_destroy};
     std::unique_ptr<SparseOrientationPattern> sparse;
     bool poseInvert=false;
+    uint64_t sourceGeneration=0;
+    int refinementBackend() const { return settings.refinementBackend<0?settings.backend:settings.refinementBackend; }
     Impl(ImageView src,ImageView tmp,const Settings& s):source(src),templ(tmp),settings(s) {
         if(s.backend<0 || s.backend>1 || s.minReducedArea<1 || s.cpuThreads<1 || s.cpuThreads>256 || s.scales.empty() || s.scales.size()>64)
             throw std::invalid_argument("Invalid backend, reduced area, threads or scale bank");
+        if(s.refinementBackend< -1 || s.refinementBackend>1)
+            throw std::invalid_argument("Invalid refinement backend");
         if(s.residentMode<0 || s.residentMode>2 ||
-            (s.residentMode && (s.backend!=1 || uint64_t(tmp.width)*tmp.height>16384)))
+            (s.residentMode && (refinementBackend()!=1 || uint64_t(tmp.width)*tmp.height>16384)))
             throw std::invalid_argument("Fused refinement requires Metal and a template with <=16384 pixels");
-        if(s.poseStorageMode<0 || s.poseStorageMode>1 || (s.poseStorageMode && s.backend!=1))
+        if(s.poseStorageMode<0 || s.poseStorageMode>1 || (s.poseStorageMode && refinementBackend()!=1))
             throw std::invalid_argument("Shared pose storage requires Metal refinement");
         if(s.poseInputMode<0 || s.poseInputMode>1)
             throw std::invalid_argument("Invalid pose input mode");
@@ -152,9 +157,9 @@ struct Session::Impl {
             for(int y=0;y<source.height();++y) for(int x=0;x<source.width();++x) src[size_t(y)*source.width()+x]=(invert?255-source.row(y)[x]:source.row(y)[x])/255.f;
             for(int y=0;y<templ.height();++y) for(int x=0;x<templ.width();++x) tmp[size_t(y)*templ.width()+x]=templ.row(y)[x]/255.f;
             temporaryBytes=(src.capacity()+tmp.capacity())*sizeof(float);
-            pose.reset(fpm_pose_create_with_storage(settings.backend,settings.cpuThreads,src.data(),source.width(),source.height(),tmp.data(),templ.width(),templ.height(),1,settings.poseStorageMode,error,sizeof(error)));
+            pose.reset(fpm_pose_create_with_storage(refinementBackend(),settings.cpuThreads,src.data(),source.width(),source.height(),tmp.data(),templ.width(),templ.height(),1,settings.poseStorageMode,error,sizeof(error)));
         } else {
-            pose.reset(fpm_pose_create_u8(settings.backend,settings.cpuThreads,source.view().data,source.width(),source.height(),source.view().stride,
+            pose.reset(fpm_pose_create_u8(refinementBackend(),settings.cpuThreads,source.view().data,source.width(),source.height(),source.view().stride,
                 templ.view().data,templ.width(),templ.height(),templ.view().stride,1,int(invert),settings.poseStorageMode,error,sizeof(error)));
         }
         if(!pose) throw std::runtime_error(error);
@@ -167,9 +172,23 @@ Session::Session(ImageView source,ImageView templ,const Settings& settings) {
     validateImage(source);validateImage(templ);impl_=std::make_unique<Impl>(source,templ,settings);
 }
 Session::~Session()=default;
+SourceUpdate Session::updateSource(ImageView source) {
+    const auto start=Clock::now();validateImage(source);
+    Image replacement(source); // Complete the potentially throwing copy before mutation.
+    auto& s=*impl_;SourceUpdate update;
+    update.dimensionsChanged=source.width!=s.source.width() || source.height!=s.source.height();
+    update.poseInvalidated=bool(s.pose);
+    update.retainedModels=s.sparse?1:s.patterns.size();
+    update.copiedBytes=uint64_t(source.width)*source.height;
+    s.pose.reset(); // Current API binds both images; never leave stale pixels in a pose context.
+    s.source=std::move(replacement);
+    update.generation=++s.sourceGeneration;update.updateMs=ms(start);return update;
+}
 Result Session::run(const Options& o) {
     auto& s=*impl_;validateOptions(o,s.settings.backend);Result r;char error[1024]{};const auto start=Clock::now();
+    r.scaleSupportEnabled=o.scaleSupportRefine;
     r.refinementMode=s.settings.residentMode;
+    r.configuredRefinementBackend=s.refinementBackend();r.sourceGeneration=s.sourceGeneration;
     r.poseStorage.mode=s.settings.poseStorageMode;
     r.poseInputMode=s.settings.poseInputMode;
     std::vector<fpm_angle_range> ranges;for(auto a:o.match.angleRanges) ranges.push_back({a.min,a.max});
@@ -226,7 +245,7 @@ Result Session::run(const Options& o) {
     auto candidates=r.proposals;auto scales=r.proposalScales;
     if(o.refine && !candidates.empty()) {
         const auto t=Clock::now();r.poseCreateMs=s.ensurePose(o.match.invertSource,r.poseConversionTemporaryBytes);
-        const size_t n=candidates.size();
+        const size_t n=candidates.size();r.refinementCandidates=n;
         if(n>65536) throw std::invalid_argument("Refinement accepts at most 65536 proposals; reduce scale bank or target count");
         std::vector<float> seeds(n*4),refined(n*4),scores(n);
         for(size_t i=0;i<n;++i) {
@@ -235,7 +254,7 @@ Result Session::run(const Options& o) {
         }
         FpmPoseRefineConfig config{};fpm_pose_refine_default_config(&config);
         config.optimize_scale=s.settings.scales.size()>1;config.optimize_angle=o.match.toleranceAngle!=0 || !ranges.empty();
-        FpmPoseRescueConfig rescue{};fpm_pose_rescue_default_config(&rescue);rescue.backend=s.settings.backend;
+        FpmPoseRescueConfig rescue{};fpm_pose_rescue_default_config(&rescue);rescue.backend=s.refinementBackend();
         rescue.trigger_score=std::min(rescue.trigger_score,o.match.minScore);rescue.trigger_min_score=std::min(rescue.trigger_min_score,rescue.trigger_score);
         if(fpm_pose_refine_rescue(s.pose.get(),seeds.data(),int(n),&config,&rescue,refined.data(),scores.data(),nullptr,&r.rescue,&r.pose,error,sizeof(error))) throw std::runtime_error(error);
         if(fpm_pose_last_resident_metrics(s.pose.get(),&r.resident)) throw std::runtime_error("Cannot read refinement metrics");
@@ -247,6 +266,22 @@ Result Session::run(const Options& o) {
             const float cx=refined[4*i]+float(s.source.width()/2.),cy=float(s.source.height()/2.)-refined[4*i+1];
             float a=std::fmod(refined[4*i+2]+180.f,360.f);if(a<0) a+=360.f;a-=180.f;
             scales[i]=std::exp(double(refined[4*i+3]));candidates[i]=makeMatch({cx,cy},a,scales[i],s.templ.width(),s.templ.height(),scores[i]);
+        }
+        if(o.scaleSupportRefine && config.optimize_scale) {
+            const auto supportStart=Clock::now();
+            for(size_t i=0;i<n;++i) {
+                const auto update=refineScaleSupport(s.source.view(),s.templ.view(),candidates[i].center,
+                    candidates[i].angle,scales[i],o.match.invertSource);
+                r.scaleSupportEligible+=update.eligible;r.scaleSupportBoundary+=update.boundaryOptimum;
+                r.scaleSupportEvaluations+=update.evaluations;r.scaleSupportSamples+=update.samples;
+                if(update.candidate) {
+                    scales[i]=update.candidate->scale;
+                    candidates[i]=makeMatch(candidates[i].center,candidates[i].angle,scales[i],
+                        s.templ.width(),s.templ.height(),update.candidate->score);
+                    ++r.scaleSupportChanged;
+                }
+            }
+            r.scaleSupportMs=ms(supportStart);
         }
         r.refineMs=ms(t);
     }

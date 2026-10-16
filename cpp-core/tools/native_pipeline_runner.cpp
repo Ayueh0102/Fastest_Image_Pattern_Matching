@@ -54,7 +54,17 @@ QJsonObject record(const Result& r,bool outputs) {
         {"frame_host_bytes",double(r.frame.host_pyramid_bytes)},{"frame_coarse_gpu_bytes",double(r.frame.coarse_gpu_bytes)},{"frame_fine_gpu_bytes",double(r.frame.fine_gpu_bytes)},
         {"pose_host_bytes",double(r.pose.host_buffer_bytes)},{"pose_gpu_bytes",double(r.pose.gpu_buffer_bytes)},
         {"selected_refinement_backend",r.rescue.selected_backend},{"rescued_seeds",double(r.rescue.selected_seeds)},{"memory",memory()}};
+    o["scale_support_enabled"]=r.scaleSupportEnabled;
+    o["scale_support_refine_ms"]=r.scaleSupportMs;
+    o["scale_support_eligible"]=double(r.scaleSupportEligible);
+    o["scale_support_changed"]=double(r.scaleSupportChanged);
+    o["scale_support_boundary"]=double(r.scaleSupportBoundary);
+    o["scale_support_evaluations"]=double(r.scaleSupportEvaluations);
+    o["scale_support_samples"]=double(r.scaleSupportSamples);
     o["refinement_mode"]=r.refinementMode;
+    o["configured_refinement_backend"]=r.configuredRefinementBackend;
+    o["refinement_candidates"]=double(r.refinementCandidates);
+    o["source_generation"]=double(r.sourceGeneration);
     o["pose_storage_mode"]=r.poseStorage.mode;
     o["pose_host_image_bytes"]=double(r.poseStorage.host_image_bytes);
     o["pose_gpu_image_bytes"]=double(r.poseStorage.gpu_image_bytes);
@@ -154,13 +164,18 @@ int main(int argc,char** argv) {
         if(loadModeName!="direct_gray8" && loadModeName!="legacy_rgb") throw std::invalid_argument("Invalid gray load mode");
         const auto loadMode=loadModeName=="direct_gray8"?fpm::io::GrayLoadMode::DirectGray8:fpm::io::GrayLoadMode::LegacyRgb;
         fpm::io::GrayLoadInfo sourceLoad,templateLoad;auto loadStart=Clock::now();
-        auto src=fpm::io::readGrayImage(j["source"].toString(),loadMode,&sourceLoad);
+        const auto sourceFrames=j["source_frames"].toArray();
+        if(j.contains("source_frames") && (sourceFrames.isEmpty() || sourceFrames.size()>64))
+            throw std::invalid_argument("source_frames must contain 1..64 image paths");
+        for(const auto& path:sourceFrames) if(!path.isString() || path.toString().isEmpty())
+            throw std::invalid_argument("source_frames paths must be nonempty strings");
+        auto src=fpm::io::readGrayImage(sourceFrames.isEmpty()?j["source"].toString():sourceFrames[0].toString(),loadMode,&sourceLoad);
         auto tmp=fpm::io::readGrayImage(j["template"].toString(),loadMode,&templateLoad);
         const double decodeMs=ms(loadStart);const auto afterLoadMemory=memory();
         auto loadInfo=[](const fpm::io::GrayLoadInfo& info) {return QJsonObject{{"direct_gray8",info.directGray8},{"rgb_temporary_bytes",double(info.rgbTemporaryBytes)}};};
         const QJsonObject load{{"mode",loadModeName},{"decode_ms",decodeMs},{"source",loadInfo(sourceLoad)},{"template",loadInfo(templateLoad)}};
         Settings settings;
-        settings.backend=j["backend"].toInt(1);settings.minReducedArea=j["min_area"].toInt(256);settings.scales.clear();
+        settings.backend=j["backend"].toInt(1);settings.refinementBackend=j["refinement_backend"].toInt(-1);settings.minReducedArea=j["min_area"].toInt(256);settings.scales.clear();
         settings.poseStorageMode=j["pose_storage_mode"].toInt(0);
         settings.poseInputMode=j["pose_input_mode"].toInt(0);
         for(auto s:j["scales"].toArray()) settings.scales.push_back(s.toDouble());
@@ -188,10 +203,66 @@ int main(int argc,char** argv) {
         o.match.maxTargets=j["limit"].toInt(70);o.match.minScore=j["score"].toDouble(.8);o.match.maxOverlap=j["overlap"].toDouble(.2);o.match.toleranceAngle=j["angle"].toDouble(180);
         o.match.stopLayer=j["stop_layer"].toInt(1);o.match.subpixel=j["subpixel"].toBool();o.match.invertSource=j["invert_source"].toBool();
         o.proposalScore=j["proposal_score"].toDouble(.5);
+        o.scaleSupportRefine=j["scale_support_refine"].toBool(false);
         const int repeats=j["repeats"].toInt(5);const double warm=j["warmup_seconds"].toDouble(1.),soak=j["soak_seconds"].toDouble(0);
         if(repeats<1 || repeats>10000 || !std::isfinite(warm) || warm<0 || warm>60 || !std::isfinite(soak) || soak<0 || soak>3600) throw std::invalid_argument("Invalid repetitions or duration");
         const bool resourceDiagnostics=j["run_resource_diagnostics"].toBool(false);
         if(resourceDiagnostics && (warm>0 || soak>0)) throw std::invalid_argument("Run resource diagnostics require first/repeat mode without warmup or soak");
+        if(!sourceFrames.isEmpty()) {
+            const auto mode=j["sequence_mode"].toString("reuse");
+            if(mode!="reuse" && mode!="fresh") throw std::invalid_argument("sequence_mode must be reuse or fresh");
+            if(warm>0 || resourceDiagnostics) throw std::invalid_argument("Source sequences require warmup_seconds=0 and resource diagnostics disabled");
+            QFile stream;
+            if(soak>0) {
+                stream.setFileName(j["stream_path"].toString());
+                if(!stream.open(QIODevice::WriteOnly|QIODevice::Truncate)) throw std::invalid_argument("Cannot open sequence soak stream");
+            }
+            std::unique_ptr<Session> session;
+            std::vector<Result> reference(size_t(sourceFrames.size()));
+            QJsonArray rows;bool exact=true,drained=true;int calls=0,cycle=0;
+            const auto sequenceStart=Clock::now();
+            do {
+                for(int index=0;index<sourceFrames.size();++index) {
+                    double decode=0;
+                    if(calls) {const auto t=Clock::now();src=fpm::io::readGrayImage(sourceFrames[index].toString(),loadMode);decode=ms(t);}
+                    const auto frameStart=Clock::now();
+                    double release=0,construct=0;SourceUpdate update;const bool create=mode=="fresh" || !session;
+                    if(create) {
+                        const auto t=Clock::now();session.reset();release=ms(t);
+                        const auto c=Clock::now();session=std::make_unique<Session>(src.view(),tmp.view(),settings);construct=ms(c);
+                    } else update=session->updateSource(src.view());
+                    auto result=session->run(o);const double frameWall=ms(frameStart);
+                    bool valid=true;
+                    if(cycle==0) reference[size_t(index)]=result;
+                    else valid=equal(result,reference[size_t(index)]);
+                    exact&=valid;
+                    for(auto m:result.overlapMetrics) drained&=m.submitted_batches==m.completed_batches;
+                    auto row=record(result,soak<=0);
+                    row["source_index"]=index;row["sequence_cycle"]=cycle;row["call"]=calls;
+                    row["source_path"]=sourceFrames[index];row["source_width"]=src.width();row["source_height"]=src.height();
+                    row["source_decode_ms"]=decode;row["release_ms"]=release;row["construct_ms"]=construct;
+                    row["source_update_ms"]=update.updateMs;row["source_copy_bytes"]=double(update.copiedBytes);
+                    row["retained_template_models"]=double(update.retainedModels);row["pose_invalidated"]=update.poseInvalidated;
+                    row["source_dimensions_changed"]=update.dimensionsChanged;row["frame_wall_ms"]=frameWall;
+                    row["exact_sequence_repeat"]=valid;row["reference_cycle"]=cycle==0;
+                    row["elapsed_ms"]=ms(sequenceStart);
+                    if(soak>0) {
+                        const auto bytes=QJsonDocument(row).toJson(QJsonDocument::Compact)+'\n';
+                        if(stream.write(bytes)!=bytes.size() || !stream.flush()) throw std::runtime_error("Cannot persist source sequence sample");
+                    } else rows.append(row);
+                    ++calls;if(!exact || !drained) throw std::runtime_error("Source sequence output or drain mismatch");
+                }
+                ++cycle;
+            } while(cycle<repeats || (soak>0 && ms(sequenceStart)<soak*1000));
+            QJsonObject out{{"sequence_mode",mode},{"source_frames",sourceFrames},{"cycles",cycle},{"calls",calls},
+                {"duration_ms",ms(sequenceStart)},{"runs",rows},{"exact_sequence_repeat",exact},{"drained",drained},
+                {"load",load},{"after_load_memory",afterLoadMemory},{"final_memory",memory()},
+                {"comparison_reference","first cycle per frame index; independent fresh/reuse comparison belongs to parent harness"},
+                {"frame_wall_scope","source update or release+construct and run; excludes image decode, comparison, JSON and output"}};
+            const auto releaseStart=Clock::now();session.reset();out["final_release_ms"]=ms(releaseStart);
+            out["after_release_memory"]=memory();
+            std::cout<<QJsonDocument(out).toJson(QJsonDocument::Compact).constData()<<'\n';return exact&&drained?0:1;
+        }
         auto start=Clock::now();auto session=std::make_unique<Session>(src.view(),tmp.view(),settings);const double construct=ms(start);
         fpm::diagnostics::RunResourceProbe firstProbe(resourceDiagnostics);
         Result first=session->run(o);const auto firstResources=firstProbe.finish();QJsonObject firstRecord=record(first,true);QJsonArray warmups,runs;
