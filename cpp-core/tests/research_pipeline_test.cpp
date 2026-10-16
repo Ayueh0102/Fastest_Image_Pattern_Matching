@@ -53,14 +53,48 @@ int main(int argc,char**) {
             }
             require(ran,"full pipeline test omitted fine dispatches");
             fineOptions.fineNccMode=0;same(original,fineSession.run(fineOptions));
+            for(int mode:{2,3}) {
+                // Independent sessions start with the same empty arenas as
+                // the original run, so compare high-water capacities fairly.
+                Session stripSession(source.view(),templ.view(),fineSettings);
+                fineOptions.fineNccMode=mode;
+                const auto strip=stripSession.run(fineOptions);same(original,strip);
+                require(strip.fineReuse.size()==original.fineReuse.size(),"fine scale metrics missing");
+                bool stripRan=false;
+                for(size_t i=0;i<strip.fineReuse.size();++i) {
+                    const auto& reuse=strip.fineReuse[i];
+                    const auto& actual=strip.fine[i];const auto& expected=original.fine[i];
+                    require(reuse.ncc_mode==mode && !reuse.row_dispatches && !reuse.row_buffer_bytes,
+                        "strip fine route ignored or retained unused row storage");
+                    require(reuse.statistics_dispatches==original.fineReuse[i].statistics_dispatches &&
+                        actual.command_buffers==expected.command_buffers && actual.maps==expected.maps &&
+                        actual.peak_batch_maps==expected.peak_batch_maps,"strip route changed fine work or waits");
+                    require(actual.source_buffer_bytes==expected.source_buffer_bytes &&
+                        actual.roi_buffer_bytes==expected.roi_buffer_bytes && actual.guard_buffer_bytes==expected.guard_buffer_bytes &&
+                        actual.descriptor_buffer_bytes==expected.descriptor_buffer_bytes &&
+                        actual.statistics_buffer_bytes==expected.statistics_buffer_bytes &&
+                        actual.template_buffer_bytes==expected.template_buffer_bytes &&
+                        actual.retained_gpu_bytes==expected.retained_gpu_bytes,"strip route changed arena capacity");
+                    require(actual.roi_pixels==expected.roi_pixels && actual.repair_pixels==expected.repair_pixels,
+                        "strip route changed guarded rotation");
+                    stripRan|=reuse.statistics_dispatches>0;
+                }
+                require(stripRan,"full pipeline strip test omitted fine dispatches");
+                same(strip,stripSession.run(fineOptions));
+                fineOptions.fineNccMode=1;same(original,stripSession.run(fineOptions));
+                fineOptions.fineNccMode=mode;
+                const auto switched=stripSession.run(fineOptions);same(original,switched);
+                for(const auto& reuse:switched.fineReuse)
+                    require(!reuse.row_buffer_bytes && !reuse.row_dispatches,"pipeline strip switch retained row work/storage");
+            }
         }
-        for(int mode:{-1,2}) {
+        for(int mode:{-1,4}) {
             Options invalid=o;invalid.fineNccMode=mode;bool caught=false;
             try{session.run(invalid);}catch(const std::invalid_argument&){caught=true;}
             require(caught,"invalid fine mode accepted");
         }
-        if(!metal) {
-            Options invalid=o;invalid.fineNccMode=1;bool caught=false;
+        if(!metal) for(int mode:{1,2,3}) {
+            Options invalid=o;invalid.fineNccMode=mode;bool caught=false;
             try{session.run(invalid);}catch(const std::invalid_argument&){caught=true;}
             require(caught,"CPU accepted Metal fine mode");
         }

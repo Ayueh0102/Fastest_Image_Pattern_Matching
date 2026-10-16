@@ -223,9 +223,9 @@ int fpm_frame_set_fine_ncc_mode(fpm_frame_handle* frame, int32_t mode, char* err
 {
     message(error, capacity, "");
     try {
-        if (!frame || mode < 0 || mode > 1) throw std::invalid_argument("valid frame and fine NCC mode 0..1 required");
+        if (!frame || mode < 0 || mode > 3) throw std::invalid_argument("valid frame and fine NCC mode 0..3 required");
         if (frame->backend) frame->backend->setFineNccMode(mode);
-        else if (mode) throw std::invalid_argument("fine normalization reuse requires Metal");
+        else if (mode) throw std::invalid_argument("fine NCC reuse requires Metal");
         return FPM_OK;
     } catch (const std::exception& e) { message(error, capacity, e.what()); }
     catch (...) { message(error, capacity, "unknown fine optimization exception"); }

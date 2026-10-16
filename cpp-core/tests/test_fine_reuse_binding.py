@@ -20,9 +20,11 @@ class FineReuseBindingTest(unittest.TestCase):
         with SourceFrame(BUILD, backend='cpu') as frame:
             frame.set_fine_ncc_mode(0)
             self.assertEqual(frame.fine_reuse_metrics()['ncc_mode'], 0)
-            with self.assertRaises(RuntimeError):
-                frame.set_fine_ncc_mode(1)
-            for mode in (-1, 2, .0, True, '1'):
+            for mode in (1, 2, 3):
+                with self.assertRaises(RuntimeError):
+                    frame.set_fine_ncc_mode(mode)
+                self.assertEqual(frame.fine_reuse_metrics()['ncc_mode'], 0)
+            for mode in (-1, 4, .0, True, '1'):
                 with self.assertRaises(ValueError):
                     frame.set_fine_ncc_mode(mode)
         with self.assertRaises(ValueError):
@@ -41,14 +43,27 @@ class FineReuseBindingTest(unittest.TestCase):
             config = Config(8,.8,.2,20,1,0,0,0,None,0)
             before = frame.match(pattern, config)
             self.assertGreater(len(before), 0)
-            frame.set_fine_ncc_mode(1)
-            after = frame.match(pattern, config)
-            self.assertEqual(before, after)
-            metrics = frame.fine_reuse_metrics()
-            self.assertEqual(metrics['ncc_mode'], 1)
-            self.assertGreater(metrics['row_buffer_bytes'], 0)
-            self.assertEqual(metrics['row_dispatches'], metrics['statistics_dispatches'])
-            self.assertGreater(metrics['row_dispatches'], 0)
+            original = frame.fine_reuse_metrics()
+            self.assertGreater(original['statistics_dispatches'], 0)
+            for mode in (2, 3):
+                frame.set_fine_ncc_mode(1)
+                self.assertEqual(before, frame.match(pattern, config))
+                metrics = frame.fine_reuse_metrics()
+                self.assertEqual(metrics['ncc_mode'], 1)
+                self.assertGreater(metrics['row_buffer_bytes'], 0)
+                self.assertEqual(metrics['row_dispatches'], metrics['statistics_dispatches'])
+                self.assertGreater(metrics['row_dispatches'], 0)
+                frame.set_fine_ncc_mode(mode)
+                self.assertEqual(frame.fine_reuse_metrics()['row_buffer_bytes'], 0)
+                self.assertEqual(before, frame.match(pattern, config))
+                metrics = frame.fine_reuse_metrics()
+                self.assertEqual(metrics['ncc_mode'], mode)
+                self.assertEqual(metrics['row_buffer_bytes'], 0)
+                self.assertEqual(metrics['row_dispatches'], 0)
+                self.assertEqual(metrics['statistics_dispatches'], original['statistics_dispatches'])
+                with self.assertRaises(ValueError):
+                    frame.set_fine_ncc_mode(4)
+                self.assertEqual(frame.fine_reuse_metrics()['ncc_mode'], mode)
             frame.set_fine_ncc_mode(0)
             self.assertEqual(frame.fine_reuse_metrics()['row_buffer_bytes'], 0)
             self.assertEqual(frame.match(pattern, config), before)

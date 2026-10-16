@@ -424,6 +424,100 @@ kernel void fine_shared_stats64(device const uchar* rois [[buffer(0)]], device c
     uint lane [[thread_index_in_simdgroup]], uint width [[threads_per_simdgroup]])
 { fine_shared_stats<ulong,FineRow64,Coarse64>(rois,templ,output,cfg,rows,gid,lane,width); }
 
+// Optional fine-search strip path. A complete SIMD group owns either the
+// four left windows or the three right windows of one 7-wide output row.
+// Its lanes partition the template into independent row/chunk jobs. Within
+// each job, one template byte serves all Outputs windows and the source
+// register strip advances by one byte. This reuses PIXEL LOADS, not dot-product
+// values: every output still accumulates its own exact S, Q and P terms.
+//
+// A chunk of n template columns loads n template bytes and n+Outputs-1 source
+// bytes, versus n*Outputs of each in independent window traversal. Chunk
+// boundaries reload their short halos; neither threadgroup memory/barriers
+// nor a separate global workspace is needed. Chunk length is a compile-time
+// experiment parameter, not the SIMD width.
+template<uint Chunk, uint Outputs, typename Acc, typename Stats>
+inline void fine_strip_chunk(device const uchar* rois, device const uchar* templ,
+    device Stats* output, constant FineStatsConfig& cfg, uint map, uint y,
+    uint x, uint lane, uint simdWidth)
+{
+    Acc sum[Outputs] = {}, square[Outputs] = {}, product[Outputs] = {};
+    const uint chunksPerRow = (cfg.template_width - 1) / Chunk + 1;
+    const ulong jobs = ulong(chunksPerRow) * cfg.template_height;
+    const ulong mapBase = ulong(map) * cfg.roi_stride;
+    for (ulong job = lane; job < jobs; job += simdWidth) {
+        const ulong ty = job / chunksPerRow;
+        const uint tx = uint(job % chunksPerRow) * Chunk;
+        const uint length = min(Chunk, cfg.template_width - tx);
+        const ulong sourceBase = mapBase + (y + ty) * cfg.roi_width + x + tx;
+        const ulong templateBase = ty * cfg.template_width + tx;
+        uint values[Outputs];
+        for (uint o = 0; o < Outputs; ++o) values[o] = rois[sourceBase + o];
+        for (uint p = 0; p < length; ++p) {
+            const uint t = templ[templateBase + p];
+            for (uint o = 0; o < Outputs; ++o) {
+                const uint value = values[o];
+                sum[o] += value;
+                square[o] += value * value;
+                product[o] += value * t;
+            }
+            // Bound the read itself, not just the eventual output write.
+            // The final chunk may be short. The right strip has exactly
+            // three values, so it never reads or computes an eighth window.
+            if (p + 1 < length) {
+                for (uint o = 0; o + 1 < Outputs; ++o) values[o] = values[o + 1];
+                values[Outputs - 1] = rois[sourceBase + p + Outputs];
+            }
+        }
+    }
+    const ulong outputBase = ulong(map) * cfg.windows_per_map + y * cfg.output_width + x;
+    // All lanes, including lanes without a row/chunk job, take every
+    // reduction. The complete nonnegative statistics obey the same host
+    // uint32 area bound / uint64 limb-reduction bound as fine_stats32/64.
+    for (uint o = 0; o < Outputs; ++o) {
+        const Acc s = fine_reduce(sum[o]);
+        const Acc q = fine_reduce(square[o]);
+        const Acc p = fine_reduce(product[o]);
+        if (lane == 0) output[outputBase + o] = {s, q, p};
+    }
+}
+
+template<uint Chunk, typename Acc, typename Stats>
+inline void fine_strip_dispatch(device const uchar* rois, device const uchar* templ,
+    device Stats* output, constant FineStatsConfig& cfg, uint gid, uint lane, uint simdWidth)
+{
+    // Host contract: 7x7 outputs, 14 complete SIMD groups per map. The two
+    // strip branches and the padding return are uniform within each group.
+    const uint group = gid / simdWidth, map = group / 14, local = group % 14;
+    if (map >= cfg.count) return;
+    const uint y = local / 2;
+    if ((local & 1) == 0)
+        fine_strip_chunk<Chunk,4,Acc,Stats>(rois,templ,output,cfg,map,y,0,lane,simdWidth);
+    else
+        fine_strip_chunk<Chunk,3,Acc,Stats>(rois,templ,output,cfg,map,y,4,lane,simdWidth);
+}
+
+kernel void fine_strip_chunk32_stats32(device const uchar* rois [[buffer(0)]],
+    device const uchar* templ [[buffer(1)]], device Coarse32* output [[buffer(2)]],
+    constant FineStatsConfig& cfg [[buffer(3)]], uint gid [[thread_position_in_grid]],
+    uint lane [[thread_index_in_simdgroup]], uint width [[threads_per_simdgroup]])
+{ fine_strip_dispatch<32,uint,Coarse32>(rois,templ,output,cfg,gid,lane,width); }
+kernel void fine_strip_chunk32_stats64(device const uchar* rois [[buffer(0)]],
+    device const uchar* templ [[buffer(1)]], device Coarse64* output [[buffer(2)]],
+    constant FineStatsConfig& cfg [[buffer(3)]], uint gid [[thread_position_in_grid]],
+    uint lane [[thread_index_in_simdgroup]], uint width [[threads_per_simdgroup]])
+{ fine_strip_dispatch<32,ulong,Coarse64>(rois,templ,output,cfg,gid,lane,width); }
+kernel void fine_strip_chunk16_stats32(device const uchar* rois [[buffer(0)]],
+    device const uchar* templ [[buffer(1)]], device Coarse32* output [[buffer(2)]],
+    constant FineStatsConfig& cfg [[buffer(3)]], uint gid [[thread_position_in_grid]],
+    uint lane [[thread_index_in_simdgroup]], uint width [[threads_per_simdgroup]])
+{ fine_strip_dispatch<16,uint,Coarse32>(rois,templ,output,cfg,gid,lane,width); }
+kernel void fine_strip_chunk16_stats64(device const uchar* rois [[buffer(0)]],
+    device const uchar* templ [[buffer(1)]], device Coarse64* output [[buffer(2)]],
+    constant FineStatsConfig& cfg [[buffer(3)]], uint gid [[thread_position_in_grid]],
+    uint lane [[thread_index_in_simdgroup]], uint width [[threads_per_simdgroup]])
+{ fine_strip_dispatch<16,ulong,Coarse64>(rois,templ,output,cfg,gid,lane,width); }
+
 // Optional coarse path: a complete SIMD group cooperates on one NCC window.
 // The host still uses the identical bounded statistics workspace, chunk/window
 // ordering and binary64 normalization. All terms are nonnegative and the host

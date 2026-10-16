@@ -14,7 +14,7 @@ public:
         if (count) throw std::invalid_argument("fine GPU batching is unavailable");
     }
     virtual void setFineNccMode(int mode) {
-        if (mode) throw std::invalid_argument("fine normalization reuse requires Metal");
+        if (mode) throw std::invalid_argument("fine NCC reuse requires Metal");
     }
     virtual FpmFineReuseMetricsV1 fineReuseMetrics() const {
         FpmFineReuseMetricsV1 value{}; value.version = 1; value.struct_bytes = sizeof(value);

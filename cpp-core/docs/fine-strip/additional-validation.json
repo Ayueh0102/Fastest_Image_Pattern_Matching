@@ -1,0 +1,7 @@
+{
+  "relocated_replay_byte_equal": true,
+  "all_missed_recorded_and_rejected": true,
+  "counter_mismatch_rejected": true,
+  "hash_mismatch_rejected": true,
+  "duplicate_worker_rejected": true
+}

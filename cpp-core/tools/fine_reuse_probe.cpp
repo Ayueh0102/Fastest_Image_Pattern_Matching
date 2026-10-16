@@ -51,7 +51,7 @@ int main(int argc,char** argv) {
         if(argc!=8) throw std::invalid_argument("Usage: fine_probe mode tw th count batch repeats warm_ms");
         const int mode=std::stoi(argv[1]),tw=std::stoi(argv[2]),th=std::stoi(argv[3]),count=std::stoi(argv[4]),batch=std::stoi(argv[5]),repeats=std::stoi(argv[6]);
         const double warm=std::stod(argv[7]);
-        if(mode<0 || mode>1 || tw<1 || th<1 || tw>4096 || th>4096 || count<1 || count>4096 || batch<1 || batch>1024 || repeats<1 || repeats>1000 || !std::isfinite(warm) || warm<0 || warm>60000)
+        if(mode<0 || mode>3 || tw<1 || th<1 || tw>4096 || th>4096 || count<1 || count>4096 || batch<1 || batch>1024 || repeats<1 || repeats>1000 || !std::isfinite(warm) || warm<0 || warm>60000)
             throw std::invalid_argument("Invalid probe settings");
         const auto setup=Clock::now();
         auto source=raster(std::max(640,tw+20),std::max(512,th+20),731);

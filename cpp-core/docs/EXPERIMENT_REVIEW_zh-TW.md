@@ -1,8 +1,10 @@
 # Template Matching 研究總索引與人工審查指南
 
-整理日期：2026-10-16。前12階段整理 repository 已保存的報告、protocol 與結果；第13階段為 NCC tiling 正式量測，第14階段接入原生尺度 GUI 並驗證組合模式與持續運行，第15階段比較固定尺度的金字塔與原解析度搜尋，第16階段實作稀疏方向全圖提案並比較128物件，第17階段驗證等價回應壓縮，第18階段比較稀疏全CPU與Metal精修，第19階段實作並驗證Metal稀疏前段，第20階段補相同方向LUT的CPU對照以拆開數學化簡與GPU收益，第21階段驗證GPU建圖與首批搜尋合併提交但保留效能失敗，第22階段完成灰階GPU精修融合與四路效能比較，第23階段再驗證SIMD128群組內加總與共享暫存優化，第24階段減少CPU／Metal精修影像副本並擴充8K24物件，第25階段以直接8-bit入口移除初始化float暫存並比較CPU／Metal，第26階段回到原始NCC，完成自適應矩形上界的C++原型與CPU比較但不採用為金字塔粗搜尋預設，第27階段實作Metal fine統計重用並保留未達加速目標的結果。各數字是各輪的證據快照，不是同一輪連續量測；不要將不同輪次的加速比相乘。快速設定摘要見 [目前建議方案](CURRENT_BEST_zh-TW.md)，整體完成範圍與待辦見 [專案狀態](PROJECT_STATUS_zh-TW.md)。
+整理日期：2026-10-16。前12階段整理 repository 已保存的報告、protocol 與結果；第13階段為 NCC tiling 正式量測，第14階段接入原生尺度 GUI 並驗證組合模式與持續運行，第15階段比較固定尺度的金字塔與原解析度搜尋，第16階段實作稀疏方向全圖提案並比較128物件，第17階段驗證等價回應壓縮，第18階段比較稀疏全CPU與Metal精修，第19階段實作並驗證Metal稀疏前段，第20階段補相同方向LUT的CPU對照以拆開數學化簡與GPU收益，第21階段驗證GPU建圖與首批搜尋合併提交但保留效能失敗，第22階段完成灰階GPU精修融合與四路效能比較，第23階段再驗證SIMD128群組內加總與共享暫存優化，第24階段減少CPU／Metal精修影像副本並擴充8K24物件，第25階段以直接8-bit入口移除初始化float暫存並比較CPU／Metal，第26階段回到原始NCC，完成自適應矩形上界的C++原型與CPU比較但不採用為金字塔粗搜尋預設，第27階段實作Metal fine統計重用並保留未達加速目標的結果，第28階段以SIMD strip共用相鄰點積載入並取得多候選流程加速。各數字是各輪的證據快照，不是同一輪連續量測；不要將不同輪次的加速比相乘。快速設定摘要見 [目前建議方案](CURRENT_BEST_zh-TW.md)，整體完成範圍與待辦見 [專案狀態](PROJECT_STATUS_zh-TW.md)。
 
 ## 目前推薦方案
+
+第28輪新增[Metal fine點積載入重用](FINE_NCC_STRIP_zh-TW.md)：120程序／960次，585,648個CPU窗口比較逐位一致、666既有GT姿態零FP／FN；128／512完整時間約快22%／23%。本機多候選金字塔工作可手動優先試`fineNccMode=2`，顯式buffer與提交數不變，原預設保留。8K少候選總時間沒有收益；以下第27輪結論保留作為歷史對照。
 
 第27輪新增[Metal fine窗口統計重用](FINE_NCC_REUSE_zh-TW.md)：80程序／620次、365,344個CPU窗口逐位一致，666個既有GT姿態零FP／FN。128／512物件1152.31→1181.34ms／3372.58→3424.14ms，高瘦模板另有明顯退步，因此保持原fine模式0；完整數據及來源見第27節。
 
@@ -373,3 +375,13 @@ Metal Shader Validation另發現導數kernel插裝後共享記憶體超過32KiB�
 - 128／512原版→共享1152.31→1181.34ms／3372.58→3424.14ms；8K268.53→267.37ms，但fine GPU統計變慢，不能據總時間聲稱kernel加速。高瘦1×1024×291為1.070→2.441ms、2→4提交；共4個性能容忍失敗、0個RSS容忍失敗。
 - Release41/41、相關ASan／UBSan9/9、Metal API／Shader Validation、Python binding2項與工具7項通過。獨立agent審查完成，正式前移除暖機紀錄累積的RSS干擾，正式後摘要失敗處理修正與原始工具均保留。
 - 保持fine模式0與GUI預設；下一步B2在單kernel共用相鄰點積載入，尚未實作。此輪不增加獨立真實場景、RGB、全GPU、Windows或長時間穩定性證據。
+
+## 28. Metal fine SIMD strip載入重用
+
+[完整報告](FINE_NCC_STRIP_zh-TW.md)、[事前協定](fine-strip/protocol.json)、[完整摘要](fine-strip/summary.json)、[驗證](fine-strip/validation.json)、[完整來源與原始封存](fine-strip/raw-results.tar.gz)。
+
+- 每map由49個SIMD群改為14群，各群算3／4相鄰輸出，lane負責模板行片段；新增chunk32／16模式，來源及模板載入重用，仍做49個完整整數點積。沒有row pass、額外全域／threadgroup暫存、encoder或CPU等待。
+- 12種孤立工作量、6個全流程，120串行新程序／960正式呼叫；585,648個CPU窗口比較逐位相同，提案／結果與凍結版精確一致，既有666合成姿態零FP／FN。
+- 128／512原版→strip32為1170.67→915.60ms／3422.74→2619.62ms；fine GPU統計379.96→135.27ms／1221.29→430.74ms。RSS411.23→411.22MiB／797.02→802.37MiB，顯式buffer容量與工作量相同。8K少候選262.73→264.66ms，極小ROI稍慢。
+- 新模式相對原版／凍結版時間容忍全通過，chunk16對chunk32另有5個孤立block時間失敗；所有RSS容忍通過。chunk32可手動優先試，不宣稱普遍最快或改GUI預設。
+- Release43/43、相關ASan／UBSan11/11、兩種strip Metal API／Shader Validation、Python binding2項、工具9項通過。Agent完成kernel與測試，後續複查及量測委派中斷，由主agent補全；不宣稱獨立agent最終複查完成。無新RGB／CUDA／全GPU／soak證據。

@@ -375,8 +375,8 @@ class SourceFrame:
     def set_fine_ncc_mode(self, mode=0):
         if not self.handle:
             raise ValueError('frame is closed')
-        if type(mode) is not int or mode not in (0, 1):
-            raise ValueError('fine NCC mode must be integer 0 or 1')
+        if type(mode) is not int or mode not in (0, 1, 2, 3):
+            raise ValueError('fine NCC mode must be integer in 0..3')
         if not hasattr(self.dll, 'fpm_frame_set_fine_ncc_mode'):
             raise RuntimeError('Fine reuse API unavailable; rebuild experimental library')
         function = self.dll.fpm_frame_set_fine_ncc_mode

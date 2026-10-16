@@ -1,0 +1,125 @@
+{
+  "stage": 28,
+  "baseline_commit": "57bd600be410aba34fc50bf60007c525d88d2942",
+  "formal_correctness_passed": true,
+  "formal_manifest_unchanged": true,
+  "frozen_binary_verified": {
+    "fpm_native_pipeline_runner": "69d5966f5cf8841d139b345435899bcc0e0661ee7e840b4ae4c5d0391f4a80f4",
+    "libfpm_coarse_experiment.dylib": "78062848d78b8fba177fb62cb61929aab565675e803ce04f4acdeaf56a335268",
+    "libfpm_pose_experiment.dylib": "96bf0077d751fd100ac0b25aee4fa81105861e374531f5b92881ba634e584f68"
+  },
+  "workers": 120,
+  "formal_calls": 960,
+  "cpu_reference_window_comparisons": 585648,
+  "unique_existing_synthetic_gt_poses": 666,
+  "release_tests": {
+    "passed": 43,
+    "total": 43,
+    "log": "logs/full-tests.log"
+  },
+  "asan_ubsan_tests": {
+    "passed": 11,
+    "total": 11,
+    "leak_detection": false,
+    "log": "logs/asan-tests.log"
+  },
+  "python_binding_tests": {
+    "passed": 2,
+    "total": 2
+  },
+  "benchmark_harness_tests": {
+    "passed": 9,
+    "total": 9
+  },
+  "metal_api_shader_validation_modes": [
+    2,
+    3
+  ],
+  "rebuild": {
+    "probe_mode2_exit": 0,
+    "probe_mode3_exit": 0,
+    "native_small_fullres_exact": true,
+    "matches": 2,
+    "source_build_success": true,
+    "scope": "Archive staging source rebuilt both runners; modes2/3 probe and mode2 small full pipeline checked. Not a repeat performance benchmark.",
+    "probe_mode2_cpu_bitwise_equal": true,
+    "probe_mode3_cpu_bitwise_equal": true
+  },
+  "additional_validation": {
+    "relocated_replay_byte_equal": true,
+    "all_missed_recorded_and_rejected": true,
+    "counter_mismatch_rejected": true,
+    "hash_mismatch_rejected": true,
+    "duplicate_worker_rejected": true
+  },
+  "performance_tolerance_failures": [
+    {
+      "suite": "micro",
+      "case": "medium512",
+      "comparison": "strip16_vs_strip32",
+      "block": 1,
+      "time_delta_percent": 11.660224827379029,
+      "time_tolerance_pass": false,
+      "rss_delta_bytes": -32768,
+      "rss_tolerance_pass": true
+    },
+    {
+      "suite": "micro",
+      "case": "uint32_edge",
+      "comparison": "strip16_vs_strip32",
+      "block": 0,
+      "time_delta_percent": 20.389016915220903,
+      "time_tolerance_pass": false,
+      "rss_delta_bytes": 49152,
+      "rss_tolerance_pass": true
+    },
+    {
+      "suite": "micro",
+      "case": "uint32_edge",
+      "comparison": "strip16_vs_strip32",
+      "block": 1,
+      "time_delta_percent": 15.541637499060702,
+      "time_tolerance_pass": false,
+      "rss_delta_bytes": 163840,
+      "rss_tolerance_pass": true
+    },
+    {
+      "suite": "micro",
+      "case": "tail513",
+      "comparison": "strip16_vs_strip32",
+      "block": 0,
+      "time_delta_percent": 44.22661194570918,
+      "time_tolerance_pass": false,
+      "rss_delta_bytes": 49152,
+      "rss_tolerance_pass": true
+    },
+    {
+      "suite": "micro",
+      "case": "tail513",
+      "comparison": "strip16_vs_strip32",
+      "block": 1,
+      "time_delta_percent": 39.43668988614715,
+      "time_tolerance_pass": false,
+      "rss_delta_bytes": -49152,
+      "rss_tolerance_pass": true
+    }
+  ],
+  "archive": {
+    "file": "raw-results.tar.gz",
+    "sha256": "a726abc3ce64a10e40e9739a040a429669bd481ad71e0f5b2907d1108ef826cd",
+    "bytes": 41776579,
+    "hashed_files": 806,
+    "extraction_content_hashes_verified": true,
+    "extracted_offline_summary_byte_equal": true
+  },
+  "retained_failed_attempts": [
+    "additional-validation-attempt1.json",
+    "archive-staging-attempt1.json"
+  ],
+  "agent_review": {
+    "kernel_and_test_agents_completed": true,
+    "benchmark_agent_interrupted": "Tool network permission was revoked; parent completed benchmark implementation.",
+    "independent_final_review_completed": false,
+    "reason": "Kernel reviewer follow-up interrupted by service usage limit; parent reviewed integration."
+  }
+}

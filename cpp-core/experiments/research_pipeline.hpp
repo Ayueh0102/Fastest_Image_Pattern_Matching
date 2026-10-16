@@ -25,7 +25,7 @@ struct Settings {
 struct Options {
     MatchConfig match;
     int nccMode = 0;
-    int fineNccMode = 0; // 0 original; 1 shared horizontal sum/square rows, Metal only.
+    int fineNccMode = 0; // Metal: 0 original; 1 shared rows; 2/3 strip with chunks 32/16.
     bool overlap = false;
     bool refine = true;
     double proposalScore = .5; // capped at final minScore; ignored without refine

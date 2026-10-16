@@ -63,6 +63,7 @@ class MetalBackend final : public Backend {
     id<MTLComputePipelineState> pyramidDirect_, pyramidHorizontal_, pyramidVertical_;
     id<MTLComputePipelineState> fineWarp_, fineStats32_, fineStats64_;
     id<MTLComputePipelineState> fineRows32_, fineRows64_, fineShared32_, fineShared64_;
+    std::array<id<MTLComputePipelineState>, 2> fineStrip32_{}, fineStrip64_{};
     int fineNccMode_ = 0;
     FpmFineReuseMetricsV1 fineReuse_{};
     id<MTLBuffer> fineRows_;
@@ -321,7 +322,7 @@ public:
     size_t fineBatchSize() const override { return fineBatchSize_; }
     void setFineNccMode(int mode) override {
         requireCoarseIdle();
-        if (mode < 0 || mode > 1) throw std::invalid_argument("fine NCC mode must be 0 or 1");
+        if (mode < 0 || mode > 3) throw std::invalid_argument("fine NCC mode must be in 0..3");
         if (mode == 1 && !fineRows32_) {
             @autoreleasepool {
                 NSError* error = nil;
@@ -341,8 +342,25 @@ public:
                 fineShared32_ = stats32; fineShared64_ = stats64;
             }
         }
+        if (mode >= 2 && !fineStrip32_[mode - 2]) {
+            @autoreleasepool {
+                auto make = [&](NSString* name) {
+                    NSError* error = nil;
+                    id<MTLComputePipelineState> pipeline = [device_ newComputePipelineStateWithFunction:
+                        [library_ newFunctionWithName:name] error:&error];
+                    if (!pipeline) throw metalError("fine strip statistics pipeline", error);
+                    const auto width = pipeline.threadExecutionWidth;
+                    if (!width || width > 1024 || pipeline.maxTotalThreadsPerThreadgroup < width)
+                        throw std::runtime_error("fine strip SIMD width exceeds exact reduction limits");
+                    return pipeline;
+                };
+                auto stats32 = make(mode == 2 ? @"fine_strip_chunk32_stats32" : @"fine_strip_chunk16_stats32");
+                auto stats64 = make(mode == 2 ? @"fine_strip_chunk32_stats64" : @"fine_strip_chunk16_stats64");
+                fineStrip32_[mode - 2] = stats32; fineStrip64_[mode - 2] = stats64;
+            }
+        }
         fineNccMode_ = mode;
-        if (!mode) fineRows_ = nil;
+        if (mode != 1) fineRows_ = nil;
     }
     FpmFineReuseMetricsV1 fineReuseMetrics() const override {
         auto m = fineReuse_; m.version = 1; m.struct_bytes = sizeof(m); m.ncc_mode = fineNccMode_;
@@ -536,11 +554,11 @@ public:
             const bool use32 = area <= std::numeric_limits<uint32_t>::max() / uint64_t(65025);
             const size_t itemBytes = use32 ? sizeof(Stats32) : sizeof(Stats64);
             const size_t rowBytesPerMap = size_t(rh) * outputWidth * (use32 ? 8 : 16);
-            if (fineNccMode_ && rowBytesPerMap > WORKSPACE_LIMIT)
+            if (fineNccMode_ == 1 && rowBytesPerMap > WORKSPACE_LIMIT)
                 throw std::invalid_argument("fine row statistics exceed the 16 MiB arena limit");
             const size_t maxMaps = std::min({fineBatchSize_, SOURCE_ARENA_LIMIT / roiStride,
                 WORKSPACE_LIMIT / (windowsPerMap * itemBytes),
-                fineNccMode_ ? WORKSPACE_LIMIT / rowBytesPerMap : fineBatchSize_});
+                fineNccMode_ == 1 ? WORKSPACE_LIMIT / rowBytesPerMap : fineBatchSize_});
             std::vector<fpm::detail::ScoreMap> maps;
             maps.reserve(requests.size());
             if (requests.empty()) {
@@ -563,7 +581,7 @@ public:
                 ensure(fineGuards_, guardWords * sizeof(uint32_t), &fineMetrics_.setup_ms);
                 ensure(fineDescriptors_, count * sizeof(FineWarpDescriptor), &fineMetrics_.setup_ms);
                 ensure(fineStatistics_, count * windowsPerMap * itemBytes, &fineMetrics_.setup_ms);
-                if (fineNccMode_) ensure(fineRows_, count * rowBytesPerMap, &fineMetrics_.setup_ms);
+                if (fineNccMode_ == 1) ensure(fineRows_, count * rowBytesPerMap, &fineMetrics_.setup_ms);
                 const auto rotation = Clock::now();
                 std::vector<FineWarpPlan> plans;
                 plans.reserve(count);
@@ -624,8 +642,9 @@ public:
 
                 const auto ncc = Clock::now();
                 const auto nccEncode = Clock::now();
-                const id<MTLComputePipelineState> pipeline = fineNccMode_ ?
-                    (use32 ? fineShared32_ : fineShared64_) : (use32 ? fineStats32_ : fineStats64_);
+                const id<MTLComputePipelineState> pipeline = fineNccMode_ >= 2 ?
+                    (use32 ? fineStrip32_[fineNccMode_ - 2] : fineStrip64_[fineNccMode_ - 2]) :
+                    (fineNccMode_ == 1 ? (use32 ? fineShared32_ : fineShared64_) : (use32 ? fineStats32_ : fineStats64_));
                 const NSUInteger simdWidth = pipeline.threadExecutionWidth;
                 if (!simdWidth || simdWidth > 1024 || pipeline.maxTotalThreadsPerThreadgroup < simdWidth)
                     throw std::runtime_error("fine NCC SIMD width exceeds exact reduction limits");
@@ -635,7 +654,7 @@ public:
                     uint32_t(roiStride), uint32_t(windowsPerMap), uint32_t(count), 0};
                 id<MTLCommandBuffer> statsCommand = [queue_ commandBuffer];
                 if (!statsCommand) throw std::runtime_error("fine NCC command buffer creation failed");
-                if (fineNccMode_) {
+                if (fineNccMode_ == 1) {
                     const auto rowPipeline = use32 ? fineRows32_ : fineRows64_;
                     const auto rowWidth = rowPipeline.threadExecutionWidth;
                     const auto rowGroups = std::min<NSUInteger>(8, rowPipeline.maxTotalThreadsPerThreadgroup / rowWidth);
@@ -663,12 +682,14 @@ public:
                 [statsEncoder setBuffer:fineTemplate_ offset:0 atIndex:1];
                 [statsEncoder setBuffer:fineStatistics_ offset:0 atIndex:2];
                 [statsEncoder setBytes:&statsConfig length:sizeof(statsConfig) atIndex:3];
-                if (fineNccMode_) [statsEncoder setBuffer:fineRows_ offset:0 atIndex:4];
-                // Full threadgroups guarantee every valid window receives a
-                // complete SIMD group, including the last dispatch tail. The
-                // extra groups uniformly return before their reductions.
+                if (fineNccMode_ == 1) [statsEncoder setBuffer:fineRows_ offset:0 atIndex:4];
+                // Strip mode owns 4+3 windows per row: 14 complete groups/map.
+                // Original modes own one window/group. Full threadgroups keep
+                // reductions complete; padded groups return uniformly.
+                static_assert(outputWidth == 7, "fine strip kernels require a 7x7 map");
+                const size_t groupsPerMap = fineNccMode_ >= 2 ? size_t(outputWidth) * 2 : windowsPerMap;
                 [statsEncoder dispatchThreadgroups:MTLSizeMake(
-                    (count * windowsPerMap + groupsPerThreadgroup - 1) / groupsPerThreadgroup, 1, 1)
+                    (count * groupsPerMap + groupsPerThreadgroup - 1) / groupsPerThreadgroup, 1, 1)
                     threadsPerThreadgroup:MTLSizeMake(groupsPerThreadgroup * simdWidth, 1, 1)];
                 [statsEncoder endEncoding];
                 fineMetrics_.encode_ms += elapsed(nccEncode);

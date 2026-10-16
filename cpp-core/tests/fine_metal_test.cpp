@@ -48,8 +48,16 @@ int main(int argc, char** argv)
 {
     try {
         auto backend = fpm_coarse_detail::makeMetalBackend();
-        const bool shared = argc == 2 && std::string(argv[1]) == "--shared";
-        backend->setFineNccMode(shared ? 1 : 0);
+        int mode = 0;
+        if (argc == 2) {
+            const std::string argument = argv[1];
+            if (argument == "--shared") mode = 1;
+            else if (argument == "--strip32") mode = 2;
+            else if (argument == "--strip16") mode = 3;
+            else throw std::invalid_argument("unknown fine NCC test mode");
+        } else if (argc != 1) throw std::invalid_argument("expected at most one fine NCC test mode");
+        const bool shared = mode == 1;
+        backend->setFineNccMode(mode);
         backend->setFineBatchSize(7);
         FpmCoarseExecutionConfigV1 config{}; fpm_coarse_execution_default_config(&config);
         std::mt19937 generator(81731); std::uniform_real_distribution<double> angle(-180, 180);
@@ -98,6 +106,28 @@ int main(int argc, char** argv)
             const auto templ = fpm::detail::learnLevel(raster(2, 3, 341));
             compare(*backend, levels[0].view(), templ, {{{-.5, -.5}, 0.}, {{.5, .5}, 45.}});
         }
+        // Exercise strip chunk tails on both sides of the 16/32-pixel
+        // boundaries, a one-row template and odd heights. Fifteen maps with
+        // batch size seven also leave a one-map final batch.
+        for (int width : {1, 15, 16, 17, 31, 32, 33, 63, 64, 65}) {
+            for (int height : {1, 3, 17}) {
+                const auto source = raster(109, 83, 913 + width + height);
+                const auto templ = fpm::detail::learnLevel(raster(width, height, 517 + width));
+                std::vector<fpm::detail::FineRequest> requests;
+                for (int i = 0; i < 15; ++i)
+                    requests.push_back({{double((i*23)%115)-3.5, double((i*17)%89)-2.125},
+                        i == 0 ? 0. : i == 1 ? 90. : double(i*29%360)-180.});
+                backend->invalidateFineSource(); backend->resetMetrics();
+                compare(*backend, source.view(), templ, requests);
+                const auto counters = backend->fineMetrics();
+                const auto reuse = backend->fineReuseMetrics();
+                require(counters.maps == requests.size() && counters.peak_batch_maps == 7 &&
+                    counters.command_buffers == 6 && reuse.statistics_dispatches == 3,
+                    "fine strip boundary test omitted batch tail or changed submissions");
+                require(shared ? reuse.row_dispatches == 3 : reuse.row_dispatches == 0,
+                    "fine strip boundary test dispatched wrong statistics route");
+            }
+        }
         // Large, nearly saturated values force actual square/product sums
         // above UINT32_MAX, not just selection of the uint64 kernel branch.
         {
@@ -122,19 +152,19 @@ int main(int argc, char** argv)
             compare(*backend, source.view(), fpm::detail::learnLevel(std::move(patch)), {{{3.,3.},0.},{{3.5,3.5},0.}});
         }
         const auto reuse = backend->fineReuseMetrics();
-        require(reuse.version == 1 && reuse.struct_bytes == sizeof(reuse) && reuse.ncc_mode == int(shared), "invalid fine reuse metadata");
+        require(reuse.version == 1 && reuse.struct_bytes == sizeof(reuse) && reuse.ncc_mode == mode, "invalid fine reuse metadata");
         require(reuse.statistics_dispatches > 0 && backend->fineMetrics().command_buffers == 2*reuse.statistics_dispatches,
             "fine reuse introduced extra command submissions");
         require(shared ? (reuse.row_buffer_bytes > 0 && reuse.row_dispatches == reuse.statistics_dispatches) :
             (!reuse.row_buffer_bytes && !reuse.row_dispatches), "fine row dispatch/memory accounting incorrect");
-        for (int invalid : {-1, 2}) {
+        for (int invalid : {-1, 4}) {
             bool rejected = false;
             try { backend->setFineNccMode(invalid); } catch (const std::invalid_argument&) { rejected = true; }
-            require(rejected && backend->fineReuseMetrics().ncc_mode == int(shared), "invalid mode changed state");
+            require(rejected && backend->fineReuseMetrics().ncc_mode == mode, "invalid mode changed state");
         }
         backend->resetMetrics();
         const auto reset = backend->fineReuseMetrics();
-        require(reset.ncc_mode == int(shared) && reset.row_buffer_bytes == reuse.row_buffer_bytes,
+        require(reset.ncc_mode == mode && reset.row_buffer_bytes == reuse.row_buffer_bytes,
             "fine metrics reset changed mode or retained row allocation");
         require(!reset.row_dispatches && !reset.statistics_dispatches && reset.stats_device_ms == 0,
             "fine metrics reset retained dispatch counts or timing");
@@ -155,6 +185,22 @@ int main(int argc, char** argv)
             require(after.row_buffer_bytes == reset.row_buffer_bytes && !after.row_dispatches &&
                 !after.statistics_dispatches, "oversized fine row arena allocated or dispatched work");
         }
+        for (int stripMode : {2, 3}) {
+            const auto source = raster(109, 83, 712);
+            const auto templ = fpm::detail::learnLevel(raster(33, 17, 713));
+            const std::vector<fpm::detail::FineRequest> requests = {{{12.5, 19.125}, 13.}, {{-.5, -.5}, -91.}};
+            backend->setFineNccMode(1); backend->resetMetrics();
+            compare(*backend, source.view(), templ, requests);
+            require(backend->fineReuseMetrics().row_buffer_bytes > 0, "mode switch test omitted row allocation");
+            backend->setFineNccMode(stripMode);
+            require(backend->fineReuseMetrics().row_buffer_bytes == 0, "strip mode retains unused row buffer");
+            backend->resetMetrics();
+            compare(*backend, source.view(), templ, requests);
+            const auto strip = backend->fineReuseMetrics();
+            require(strip.ncc_mode == stripMode && !strip.row_buffer_bytes && !strip.row_dispatches &&
+                strip.statistics_dispatches == 1 && backend->fineMetrics().command_buffers == 2,
+                "switch from row reuse to strip mode changed dispatch/memory contract");
+        }
         backend->setFineNccMode(0);
         require(backend->fineReuseMetrics().row_buffer_bytes == 0, "disabled fine reuse retains row buffer");
         for (int device : {0,1}) {
@@ -162,12 +208,17 @@ int main(int argc, char** argv)
             cfg.backend=device;cfg.pyramid_mode=0;cfg.batch_angles=1;cfg.fine_batch_size=device?7:0;
             fpm_frame_handle* frame=nullptr;char error[1024]{};
             require(fpm_frame_create(&cfg,sizeof(cfg),&frame,error,sizeof(error))==FPM_OK,"fine API frame creation failed");
-            require(fpm_frame_set_fine_ncc_mode(frame,1,error,sizeof(error))==(device?FPM_OK:FPM_ERROR),"fine API backend gate failed");
             FpmFineReuseMetricsV1 metrics{};
-            require(fpm_frame_get_fine_reuse_metrics(frame,&metrics,sizeof(metrics),error,sizeof(error))==FPM_OK && metrics.ncc_mode==device,"fine API metrics mode differs");
+            for (int apiMode : {1,2,3}) {
+                require(fpm_frame_set_fine_ncc_mode(frame,apiMode,error,sizeof(error))==(device?FPM_OK:FPM_ERROR),"fine API backend gate failed");
+                require(fpm_frame_get_fine_reuse_metrics(frame,&metrics,sizeof(metrics),error,sizeof(error))==FPM_OK && metrics.ncc_mode==(device?apiMode:0),"fine API metrics mode differs");
+            }
             require(fpm_frame_get_fine_reuse_metrics(frame,&metrics,sizeof(metrics)-1,error,sizeof(error))==FPM_ERROR,"short metrics accepted");
             require(fpm_frame_get_fine_reuse_metrics(frame,nullptr,sizeof(metrics),error,sizeof(error))==FPM_ERROR,"null metrics accepted");
-            require(fpm_frame_set_fine_ncc_mode(frame,2,error,sizeof(error))==FPM_ERROR,"bad mode accepted");
+            for (int invalid : {-1,4}) {
+                require(fpm_frame_set_fine_ncc_mode(frame,invalid,error,sizeof(error))==FPM_ERROR,"bad mode accepted");
+                require(fpm_frame_get_fine_reuse_metrics(frame,&metrics,sizeof(metrics),error,sizeof(error))==FPM_OK && metrics.ncc_mode==(device?3:0),"bad mode changed API state");
+            }
             require(fpm_frame_set_fine_ncc_mode(frame,0,error,sizeof(error))==FPM_OK,"mode reset failed");
             fpm_frame_destroy(frame);
         }

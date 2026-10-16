@@ -107,9 +107,10 @@ typedef struct FpmFineMetricsV1 {
     uint64_t descriptor_buffer_bytes, statistics_buffer_bytes, template_buffer_bytes;
     uint64_t retained_gpu_bytes, peak_batch_maps;
 } FpmFineMetricsV1;
-/* Opt-in fine normalization reuse diagnostics. row_buffer_bytes is INCLUDED
- * in FineMetricsV1.statistics_buffer_bytes, not additional to it. The new row
- * and dot dispatches share one command buffer; no extra CPU wait is introduced.
+/* Opt-in fine NCC reuse diagnostics. row_buffer_bytes is INCLUDED
+ * in FineMetricsV1.statistics_buffer_bytes, not additional to it. Mode 1 row
+ * and dot dispatches share one command buffer per batch; its row arena can
+ * reduce batch size. Modes 2/3 need no row buffer or extra dispatch/wait.
  * stats_device_ms measures that full command (not an isolated kernel). */
 typedef struct FpmFineReuseMetricsV1 {
     uint32_t version, struct_bytes;
@@ -122,7 +123,8 @@ typedef struct FpmFineReuseMetricsV1 {
  * input pointer/dimensions alone never imply content identity. One caller at a
  * time. No asynchronous access or ownership of pattern handles is retained. */
 typedef struct fpm_frame_handle fpm_frame_handle;
-/* 0 original SIMD/window; 1 shared horizontal sum/square statistics. Idle
+/* 0 original SIMD/window; 1 shared horizontal sum/square statistics;
+ * 2/3 SIMD strip3/4 with row chunks of 32/16 template pixels. Idle
  * frame only. CPU accepts only 0. Public structs/defaults remain unchanged. */
 FPM_API int fpm_frame_set_fine_ncc_mode(fpm_frame_handle* frame, int32_t mode,
     char* error, size_t error_capacity);
