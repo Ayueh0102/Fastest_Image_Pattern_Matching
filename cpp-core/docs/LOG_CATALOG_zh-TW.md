@@ -1,0 +1,100 @@
+# 實驗與實作 Log 分類索引
+
+本索引讓外部審查者從一個結論追到量測條件、正式執行、失敗、驗證與當時源碼。歷史檔案保留原名、原路徑及原內容，避免移動後破壞報告連結與來源雜湊；分類透過新增索引完成。
+
+先看[專案閱讀指南](../../docs/PROJECT_GUIDE_zh-TW.md)與[實驗總索引](EXPERIMENT_REVIEW_zh-TW.md)，再用下表找證據。最新建議以[目前建議方案](CURRENT_BEST_zh-TW.md)為準；資料夾裡有 `validation.json` 並不表示該輪速度、記憶體與精度全部達標。
+
+## 檔案依用途分類
+
+| 類別 | 典型名稱與位置 | 用途 |
+|---|---|---|
+| `protocol` 事前規格 | `protocol.json`、`baseline-protocol.json` | 輸入、參數、工作預算、量測順序及門檻；先讀這類再解讀結果 |
+| `pilot` 先導探索 | `pilot/`、`pilot-diagnosis/` | 供設定選擇與問題診斷，不當正式性能結果 |
+| `calibration` 閾值校準 | `calibration.json` | 保存正常校準值、無候選與暫定狀態，先於heldout |
+| `formal` 正式量測 | 封存內 `formal/`、`formal-workers/`、`formal-jobs/` | 可重算的逐程序／逐次結果；不同 worker 不能只挑較快的 |
+| `raw` 原始紀錄 | `raw-results.tar.gz`、stdout、stderr、trace、`.log` | 保留當時完整輸出；檔名為 raw 的封存也可能包含來源與輸入 |
+| `summary` 彙整 | `summary.json`、`results.json`、分析與複查結果 | 供閱讀及比對；不能取代正式 worker |
+| `failure_review` 失敗與修正歷史 | `performance-failures.json`、clipped、interrupted、attempt 等 | 需讀上下文的反例或早期執行，不因後來複查成功而刪除 |
+| `false_gate` 明示未通過門檻 | JSON 中 `*_pass: false`、`*_passed: false` 等 | 索引保存精確 JSON pointer，方便定位；可能是負控制或重播歷史失敗，不能直接當作目前程式故障 |
+| `validation` 驗證 | Release／ASan／UBSan／Metal logs、`validation.json`、archive replay | 區分演算法測試、資源生命週期、封存完整性與統計重播 |
+| `source` 源碼與執行腳本 | 封存的 `source/`、`baseline-source.tar`、C++／Metal／Python 檔 | 對應當時版本；今日 HEAD 與封存版本可能不同 |
+| `provenance` 來源與雜湊 | `artifact-sha256.json`、manifest、build provenance | 核對檔案、建置條件及環境；雜湊一致不等於方法正確 |
+| `input` 與 `visual` 輸入及圖表 | fixtures、inputs、GT、`.npz`、PNG、Blender | 圖片不一定是輸入或 ground truth；回到報告確認標註語意 |
+
+同一檔案可有多種角色。例如原始封存含正式結果、失敗與來源；圖表可能只是視覺摘要。分類由路徑規則產生，不自動判定一輪實驗採用或不採用。
+
+## 歷次資料入口
+
+| 階段 | 主題 | 資料入口 |
+|---|---|---|
+| 1 | 原版稽核、旋轉與模式 | [validation](validation.json)、[模式比較](mode-benchmark.json)、[旋轉方向](rotation-direction-validation.json) |
+| 2 | Fourier、RGB scorer 與實圖 | [pose benchmark](pose-experiment-benchmark.json)、[實圖](real-image-experiments.json)、[實圖素材](real-image-experiments/) |
+| 3–4 | CPU 連續精修、混合 GPU 精修 | [performance-accuracy](performance-accuracy/)、[gpu-refinement](gpu-refinement/) |
+| 5–7 | 分流、成本、GPU 常駐、錯峰救援 | [pose-routing](pose-routing/)、[metal-cost-profile](metal-cost-profile/)、[resident-refinement](resident-refinement/)、[ncc-rescue](ncc-rescue/) |
+| 8–10 | 分段量測、共享金字塔、精確選峰 | [pipeline-stages](pipeline-stages/)、[shared-fine](shared-fine/)、[coarse-next](coarse-next/) |
+| 11–14 | 大量物件、重疊、分塊、GUI 與持續運行 | [many-objects](many-objects/)、[coarse-overlap](coarse-overlap/)、[coarse-tiling](coarse-tiling/)、[gui-integration](gui-integration/)、[stability-30min](stability-30min/) |
+| 15–18 | 固定尺度、稀疏前段、回應壓縮與後端比較 | [fixed-scale](fixed-scale/)、[sparse-orientation](sparse-orientation/)、[sparse-compact](sparse-compact/)、[sparse-backends](sparse-backends/) |
+| 19–21 | Metal 前段、CPU LUT 與提交合併 | [sparse-metal](sparse-metal/)、[sparse-cpu-lut](sparse-cpu-lut/)、[sparse-metal-merge](sparse-metal-merge/) |
+| 22–25 | 融合精修、SIMD、影像共用與 u8 初始化 | [pose-fused](pose-fused/)、[pose-simd](pose-simd/)、[pose-shared](pose-shared/)、[pose-u8](pose-u8/) |
+| 26–28 | 原 NCC 上界、細搜尋統計與點積重用 | [adaptive-ncc](adaptive-ncc/)、[fine-reuse](fine-reuse/)、[fine-strip](fine-strip/) |
+| 29–31 | 角度圖重用、旋轉與 NCC 合併、讀圖記憶體 | [fine-angle-reuse](fine-angle-reuse/)、[fine-fused](fine-fused/)、[gray-loader](gray-loader/) |
+| 32–34 | 慢樣本、精修組合、新場景與階段驗收 | [run-diagnostics](run-diagnostics/)、[resident-multiscale](resident-multiscale/)、[stage34-closure](stage34-closure/) |
+| 35 | 密集實拍、RGB驗色與小模板召回 | [stage35-real-rgb](stage35-real-rgb/)、[報告](STAGE35_REAL_RGB_zh-TW.md) |
+
+新一輪正式結果由[實驗總索引](EXPERIMENT_REVIEW_zh-TW.md)連接，重新產生機器索引即可列出新增資料。沒有階段對照的目錄保留 `stage: null`，不猜測輪次或把它算成通過項目。
+
+## 使用機器索引查詢
+
+- [log-catalog.json](log-catalog.json)：逐檔路徑、bytes、SHA256、角色、資料夾與階段；獨立 JSON 的明示 false gate 以 JSON pointer 保留。
+- [log-archive-members.json.gz](log-archive-members.json.gz)：壓縮的 JSON，列出每個 `.tar.gz` 內一般檔案的名稱、大小與角色。完整成員路徑可用來查特定實作或 log，無須先把所有封存解壓。
+- [產生工具](../tools/build_log_catalog.py)：只使用 Python 標準函式庫，不修改實驗資料、不執行 benchmark、不解壓封存。
+
+從 repository 根目錄更新或核對：
+
+```sh
+python3 cpp-core/tools/build_log_catalog.py
+python3 cpp-core/tools/build_log_catalog.py --check
+```
+
+查出所有獨立 JSON 的明示失敗門檻：
+
+```python
+import json
+from pathlib import Path
+
+catalog = json.loads(Path("cpp-core/docs/log-catalog.json").read_text())
+for artifact in catalog["artifacts"]:
+    for pointer in artifact.get("explicit_false_gates", []):
+        print(artifact["path"], pointer)
+```
+
+查出封存內與驗證相關的紀錄：
+
+```python
+import gzip
+import json
+
+with gzip.open("cpp-core/docs/log-archive-members.json.gz", "rt") as handle:
+    index = json.load(handle)
+for member in index["members"]:
+    if "validation" in member["roles"]:
+        print(member["archive"], member["path"])
+```
+
+索引雜湊涵蓋 `cpp-core/docs` 的一般非隱藏檔案，排除兩份生成索引自身；沒有追蹤 build 暫存或 Python 虛擬環境。archive member 索引只讀 tar header，不深入巢狀封存、不判讀每個內部 JSON 的 gate；因此「沒有列出 false gate」不能當作全通過證據。需要數值重算時使用該輪報告的 replay 工具。
+
+## 審查一筆結論的最短順序
+
+1. 找到報告中的場景、方法、採用決定與限制；確認是本輪還是歷史比較。
+2. 打開 protocol，核對精度門檻與速度／記憶體容忍是否事先定義。
+3. 用 summary 找到對應 worker，再查看原始 JSON、stderr 與建置來源。
+4. 查看同場景失敗、負控制、早期修正及獨立複查，避免只讀成功摘要。
+5. 核對測試／封存／統計重播的範圍。需要在新硬體採用時，另跑相同輸入與設定。
+
+第34輪可作完整範例：[報告](STAGE34_CLOSURE_zh-TW.md) → [封存清單](stage34-closure/archive.json) → [重播與重建驗證](stage34-closure/validation.json)。資料與來源分成兩份封存，須依報告解壓到同一目錄；驗證紀錄成功保留了某些精度與速度 gate 為 false 的原結果，沒有把失敗改寫為成功。
+
+## 後續紀錄規則
+
+每輪保留 protocol、逐程序正式結果、彙整、來源與輸入雜湊、驗證 log，以及採用／不採用的理由。先導資料、正式量測、修正前失敗與重跑各用不同檔名，避免覆蓋。外部資料集另附來源、版本、標註語意與使用條件；真實、半合成、純合成分開列示。
+
+新增資料後先產生索引，再執行 `--check`。索引檔的時間與記憶體分類只提供查詢入口；不將不同輪次結果直接合併成一個總速度，也不把歷史失敗從目錄隱藏。

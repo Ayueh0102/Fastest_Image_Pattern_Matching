@@ -1,0 +1,112 @@
+{
+  "rule": "max of valid normal image maxima plus 1e-6; strict greater-than; fewer than three valid images provisional; none uncalibrated",
+  "names": [
+    "capsules_normal_200",
+    "capsules_normal_400",
+    "capsules_normal_050"
+  ],
+  "methods": {
+    "geometry": {
+      "normal_image_values": [
+        0.3327074646949768,
+        null,
+        null
+      ],
+      "threshold": 0.3327084646949768,
+      "valid_images": [
+        "capsules_normal_200"
+      ],
+      "abstained_images": [
+        "capsules_normal_400",
+        "capsules_normal_050"
+      ],
+      "valid_image_count": 1,
+      "abstained_image_count": 2,
+      "coverage": 0.3333333333333333,
+      "provisional": true,
+      "uncalibrated": false
+    },
+    "rgb_cpu": {
+      "normal_image_values": [
+        0.2933366894721985,
+        null,
+        null
+      ],
+      "threshold": 0.29333768947219846,
+      "valid_images": [
+        "capsules_normal_200"
+      ],
+      "abstained_images": [
+        "capsules_normal_400",
+        "capsules_normal_050"
+      ],
+      "valid_image_count": 1,
+      "abstained_image_count": 2,
+      "coverage": 0.3333333333333333,
+      "provisional": true,
+      "uncalibrated": false
+    },
+    "rgb_metal": {
+      "normal_image_values": [
+        0.2933366298675537,
+        null,
+        null
+      ],
+      "threshold": 0.2933376298675537,
+      "valid_images": [
+        "capsules_normal_200"
+      ],
+      "abstained_images": [
+        "capsules_normal_400",
+        "capsules_normal_050"
+      ],
+      "valid_image_count": 1,
+      "abstained_image_count": 2,
+      "coverage": 0.3333333333333333,
+      "provisional": true,
+      "uncalibrated": false
+    },
+    "chroma": {
+      "normal_image_values": [
+        0.4219698839792644,
+        null,
+        null
+      ],
+      "threshold": 0.42197088397926436,
+      "valid_images": [
+        "capsules_normal_200"
+      ],
+      "abstained_images": [
+        "capsules_normal_400",
+        "capsules_normal_050"
+      ],
+      "valid_image_count": 1,
+      "abstained_image_count": 2,
+      "coverage": 0.3333333333333333,
+      "provisional": true,
+      "uncalibrated": false
+    },
+    "geometry_original": {
+      "normal_image_values": [
+        0.3326929211616516,
+        null,
+        null
+      ],
+      "threshold": 0.3326939211616516,
+      "valid_images": [
+        "capsules_normal_200"
+      ],
+      "abstained_images": [
+        "capsules_normal_400",
+        "capsules_normal_050"
+      ],
+      "valid_image_count": 1,
+      "abstained_image_count": 2,
+      "coverage": 0.3333333333333333,
+      "provisional": true,
+      "uncalibrated": false
+    }
+  },
+  "uses_anomalous_labels": false,
+  "uses_heldout": false
+}

@@ -1,72 +1,20 @@
 # Template Matching 研究總索引與人工審查指南
 
-整理日期：2026-10-16。前12階段整理 repository 已保存的報告、protocol 與結果；第13階段為 NCC tiling 正式量測，第14階段接入原生尺度 GUI 並驗證組合模式與持續運行，第15階段比較固定尺度的金字塔與原解析度搜尋，第16階段實作稀疏方向全圖提案並比較128物件，第17階段驗證等價回應壓縮，第18階段比較稀疏全CPU與Metal精修，第19階段實作並驗證Metal稀疏前段，第20階段補相同方向LUT的CPU對照以拆開數學化簡與GPU收益，第21階段驗證GPU建圖與首批搜尋合併提交但保留效能失敗，第22階段完成灰階GPU精修融合與四路效能比較，第23階段再驗證SIMD128群組內加總與共享暫存優化，第24階段減少CPU／Metal精修影像副本並擴充8K24物件，第25階段以直接8-bit入口移除初始化float暫存並比較CPU／Metal，第26階段回到原始NCC，完成自適應矩形上界的C++原型與CPU比較但不採用為金字塔粗搜尋預設，第27階段實作Metal fine統計重用並保留未達加速目標的結果，第28階段以SIMD strip共用相鄰點積載入並取得多候選流程加速。第29階段量測旋轉同步及精確重用上一輪角度圖，完整次像素加速但保留RSS／時間失敗與複查。第30階段融合細搜尋旋轉與NCC提交並定位讀圖暫存，第31階段移除明確灰階輸入的RGB中間圖，第32階段追查慢48%樣本並驗證精修共用／直接入口與多尺度512流程的組合。第33階段補原resident／融合／SIMD與最新多尺度的同binary組合，並以新模板姿態、降質與無目標場景揭露共同精度失敗。各數字是各輪的證據快照，不是同一輪連續量測；不要將不同輪次的加速比相乘。快速設定摘要見 [目前建議方案](CURRENT_BEST_zh-TW.md)，整體完成範圍與待辦見 [專案狀態](PROJECT_STATUS_zh-TW.md)。
+更新：2026-10-17。此頁按第1–35輪列出問題、證據與採用決定。數字是各輪的證據快照，不是同一套輸入的連續加速曲線；不同輪次倍率不能相乘。最新輪次見頁末，第一次閱讀先看[外部導覽](../../docs/PROJECT_GUIDE_zh-TW.md)。
 
 ## 目前推薦方案
 
-**第34輪：五項缺口已完成階段驗證，改善與失敗均保留。** [完整結果與Blender素材](STAGE34_CLOSURE_zh-TW.md)：同一Metal前段下，128／512物件用Metal精修完整時間比CPU約快12%／15%；小模板尺度支撐修正使既有7/12→12/12、新小模板16/24→24/24。針對性CPU精修＋修正為92.42ms、原Metal89.94ms，RSS34.56／36.23MiB；但有一個分數差略超原後端門檻，保持研究選項、預設關閉。新影格192次fresh／reuse完全一致；最新512設定30分鐘745次、7次重建通過，RSS中位僅增加3.02MiB。Blender中性／變光通過，遮擋與相似負例仍失敗，擴搜方案不採用；無實拍GT及完整RGB驗收。完整源碼、原始數據及失敗均封存。
+[目前建議方案](CURRENT_BEST_zh-TW.md)是唯一的現行設定摘要；[專案狀態](PROJECT_STATUS_zh-TW.md)區分已完成與研究缺口。下文每輪的「採用／下一步」是當時決定，可能由後續實驗取代。
 
-**第33輪歷史：多尺度仍保留原resident0，優先處理新增的尺度精度缺口。** [三路組合與新場景比較](RESIDENT_MULTISCALE_zh-TW.md)完成48程序／96次，前段、有序結果及路徑一致，但準確度與整體性能未全過：7個性能配對失敗、RSS全過；512快速原版／SIMD完整時間2342.54／2402.90ms，精修206.18／240.13ms，不升mode2為通用預設。新增小模板12個都定位正確，5個因尺度偏小超過2%而strict失敗；12條固定GT幾何的NCC尺度曲線都偏好較小尺度，另有遮擋錯方向與缺候選。這些共同失敗完整保留，不能用舊512全過推論所有場景可靠。後續先做取樣／抗混疊精度實驗；完整[實驗缺口審查](EXPERIMENT_GAPS_zh-TW.md)另列新影格、真實GT、CPU公平比較與統計限制。
-
-**第32輪：慢48%未重現，精修配置合用可再省約37%記憶體。** [追查與512物件整合報告](RUN_VARIABILITY_POSE_MEMORY_zh-TW.md)：12程序／48次交錯對照未見可重現退化；原慢樣本97.92%的額外時間在前段搜尋，結果／工作量相同，但缺少當時系統紀錄，根因仍未確認，原失敗保留。另16程序／32次比較已有`poseInputMode=1`＋`poseStorageMode=1`與新多尺度流程的組合：快速RSS689.47→431.02MiB、完整次像素697.88→440.09MiB；repeat時間−0.21%／+0.56%，有序結果相同、512個GT零FP／FN，所有事前容忍通過。可手動搭配fine mode2／融合／適用時角度重用，本輪residentMode保持0；沒有NCC新加速、預設或GUI選單變更。
-
-第29輪新增[精確角度圖重用](FINE_ANGLE_REUSE_zh-TW.md)：同候選／層級／pass僅重用上一輪位元相同角度的分數圖，6／128／512完整次像素時間縮短約32%／33%／39%，完整結果相同。原快速stopLayer1設定零命中，不改其建議。主72程序／312次，有1個default速度及3個RSS配對門檻失敗；額外8程序複查未重現，所有證據保留。手動`fineAngleReuse=true`、診斷保持關閉；512仍需部署記憶體驗證。
-
-第28輪新增[Metal fine點積載入重用](FINE_NCC_STRIP_zh-TW.md)：120程序／960次，585,648個CPU窗口比較逐位一致、666既有GT姿態零FP／FN；128／512完整時間約快22%／23%。本機多候選金字塔工作可手動優先試`fineNccMode=2`，顯式buffer與提交數不變，原預設保留。8K少候選總時間沒有收益；以下第27輪結論保留作為歷史對照。
-
-第27輪新增[Metal fine窗口統計重用](FINE_NCC_REUSE_zh-TW.md)：80程序／620次、365,344個CPU窗口逐位一致，666個既有GT姿態零FP／FN。128／512物件1152.31→1181.34ms／3372.58→3424.14ms，高瘦模板另有明顯退步，因此保持原fine模式0；完整數據及來源見第27節。
-
-另見[原始金字塔／旋轉／NCC的下一輪研究](ORIGINAL_ALGORITHM_NEXT_zh-TW.md)：四項演算法實驗設計、自適應投影的推導，以及10模板／1860視窗的探索性探針。提案A後續已完成[第26輪C++實作與量測](ADAPTIVE_NCC_zh-TW.md)；完整搜尋變慢，不更改以下推薦方案。
-
-固定尺度的新稀疏研究路徑，第20輪CPU也採同樣LUT後，4096²的Metal前段＋CPU精修仍比查表CPU快8.36倍、128物件快1.42倍，小圖則CPU較快。查表CPU已保留可選模式，第19輪的Metal精修選項另留比較；尚無通用自動routing門檻。第21輪合併提交雖減少等待，128物件仍有速度回退，因此維持分開提交預設。第22輪融合精修在已測八場景快於原Metal精修；128可選融合，多數少候選場景仍選CPU精修，完整證據見第22節。第23輪新增SIMD128，128物件可優先試mode2：同輪fused256／SIMD128為10.52／8.56ms、複查10.37／8.55ms；多數少候選仍先CPU，完整比較與歸因限制見第23節。第24輪可加`poseStorageMode=1`：4K／8K各省約64／256MiB，數值不變；8K時間49.82／49.78ms幾乎持平，詳第24節。第25輪再加`poseInputMode=1`，8K峰值RSS 946.59→690.53MiB，初始化125.84→81.29ms；暖機無穩定加速，CPU慢樣本亦保留，見第25節。下表屬於原有金字塔流程，其推薦與新稀疏路徑分開判斷。
-
-在本機 Metal 金字塔研究流程，以**共享來源金字塔＋批次細搜尋＋精確選峰樹**作為下一次比較的基準：
-
-| 設定／階段 | 建議值 | 適用界線 |
-|---|---|---|
-| 來源 frame | 同張新圖 `prepare` 一次，各尺度共用 | 新影像必須重算；每張 prepare 包含在總時間 |
-| 金字塔 | `pyramid_mode=1` | 精確整數直接版；mode2 可分離版另外付出較大暫存 |
-| 粗搜尋角度批次 | `batch_angles=4` | 上限與尾批仍按容量拆分 |
-| 金字塔細搜尋 | `fine_batch_size=512` | Metal guarded warp＋整數 NCC；CPU repair／double normalization／搜尋控制仍存在 |
-| 粗選峰 | `peak_mode=1` | CPU 精確 tournament tree，保留原峰值順序 |
-| 粗 NCC | 通用基準 `ncc_mode=0`；大場景可選mode2 | mode2大場景有收益；小圖／重疊組合依第14輪結果判斷，mode1不推薦，mode3保留對照 |
-| CPU／GPU coarse overlap | 關閉，`enabled=False` | 完整實作已可用，但 512 物件效能混合且記憶體增加 |
-| 後段連續姿態 | resident refinement＋既有有預算 rescue | 使用 CPU 最終驗分；低分救援觸發上限配合實際接受門檻 |
-
-這是**已測研究組合的基準設定**，不是所有工作負載都最快的結論，Qt GUI 已能選用此原生尺度流程，但預設仍為 CPU 原有流程。小型局部精修有 CPU 勝過 Metal 的實測；歷史 auto routing 的門檻針對當時混合精修校準，未證實可直接套用至最新整條流程。
-
-GUI 與原生程式現可直接使用以下 C++ 排程；來源／模板為 `fpm::ImageView`，Session 自行持有像素、模型與 GPU 資源，一次只供一個呼叫者使用：
-
-```cpp
-#include "research_pipeline.hpp"
-fpm::research::Settings settings;
-settings.backend = 1; // Metal；CPU 為 0
-settings.scales = {.75, 1., 1.25};
-fpm::research::Session session(sourceView, templateView, settings);
-fpm::research::Options options;
-options.match.minScore = .8;
-options.match.maxTargets = 70;
-options.nccMode = 0;
-options.overlap = false;
-auto result = session.run(options); // 包含共享 frame、refine/rescue 與跨尺度 NMS
-```
-
-CMake 啟用實驗庫並連結 `fpm_research_pipeline`。完整建置及 GUI 操作見 [README](../README_zh-TW.md#原生尺度搜尋與-metal-gui)；舊 Python 排程繼續保留研究對照。
-
-已有 `models`（各尺度 `CoarsePattern`）、`source_view` 與 `config` 時，前段設定如下；跨尺度合併、pose 座標轉換、精修與最後 NMS 由研究排程完成：
-
-```python
-from coarse_experiment import SourceFrame
-
-with SourceFrame(build, backend='metal', pyramid_mode=1,
-                 batch_angles=4, fine_batch_size=512) as frame:
-    frame.set_coarse_optimization(peak_mode=1, ncc_mode=0)
-    frame.set_coarse_overlap(enabled=False)
-    frame.prepare(source_view, models)
-    proposals_by_scale = [frame.match(model, config) for model in models]
-```
-
-後段既有接口是 `Scorer.refine_rescue(seeds, resident=True, **policy)`，其中 `policy = rescue_policy_for_threshold(minimum_score=實際最終門檻)`；它包含原 resident 精修與必要的多起點，不必先重複呼叫一次 resident。保留預設每次最多 4 個救援 seeds 與原工作預算，不能為了比較速度暗中減少候選。完整座標／尺度／生命週期範例見 [共享 frame 使用方式](SHARED_FRAME_AND_FINE_METAL_zh-TW.md)、[rescue API](NCC_RESCUE_AND_METAL_COARSE_zh-TW.md)、[研究排程](../tools/real_image_experiments.py)。
+| 主題 | 閱讀入口 |
+|---|---|
+| 核心、GUI與語言移植 | 第1輪；[建置](../README_zh-TW.md)、[移植契約](PORTING_zh-TW.md) |
+| GPU並行、同步與記憶體 | 第5–14、19–25、28–34輪；依工作量看CPU／Metal對照 |
+| 固定尺度與稀疏前段 | 第15–21輪；與金字塔路徑分開比較 |
+| 原始NCC與旋轉細搜尋 | 第26–30輪；保留未加速與記憶體失敗 |
+| 新場景、Blender、新影格與穩定性 | [第34輪](STAGE34_CLOSURE_zh-TW.md) |
+| 密集實拍、RGB與顏色不同物件 | [第35輪](STAGE35_REAL_RGB_zh-TW.md)與[小模板候選漏失診斷](STAGE35_PYRAMID_DIAGNOSIS_zh-TW.md) |
+| 原始Log、失敗與完整源碼 | [分類索引](LOG_CATALOG_zh-TW.md)與各輪封存 |
 
 ## 先辨認比較的是哪一層
 
@@ -433,3 +381,12 @@ Metal Shader Validation另發現導數kernel插裝後共享記憶體超過32KiB�
 **第34輪：五項缺口已完成階段驗證，改善與失敗均保留。** [完整結果與Blender素材](STAGE34_CLOSURE_zh-TW.md)：同一Metal前段下，128／512物件用Metal精修完整時間比CPU約快12%／15%；小模板尺度支撐修正使既有7/12→12/12、新小模板16/24→24/24。針對性CPU精修＋修正為92.42ms、原Metal89.94ms，RSS34.56／36.23MiB；但有一個分數差略超原後端門檻，保持研究選項、預設關閉。新影格192次fresh／reuse完全一致；最新512設定30分鐘745次、7次重建通過，RSS中位僅增加3.02MiB。Blender中性／變光通過，遮擋與相似負例仍失敗，擴搜方案不採用；無實拍GT及完整RGB驗收。完整源碼、原始數據及失敗均封存。
 
 Release 54/54、相關ASan／UBSan 2/2及Python工具75項通過。正式／有界比較384程序944次，另745次soak；所有原始失敗保留，數量不代表獨立場景。
+
+### 35. 密集實拍、49物件旋轉與RGB驗色（2026-10-17）
+
+- 問題：小模板旋轉召回、真實密集場景，以及同形異色能否被NCC區分。
+- 實作：同程序灰階搜尋＋RGB CPU／Metal NCC與CPU線性色度，完整C++源碼、獨立校準、真實／半合成標註界線及離線重播。
+- 正式25場景×五方法×四程序，共500程序／1000呼叫；55項Release、1項色度ASan／UBSan、5項runner契約、26項量測負控制通過。
+- 結果：小模板4/49→49/49，25.58→100.28ms；另一heldout模板原本49/49，調整只變慢。色度找出兩個異色控制，白平衡卻各誤報49個；VisA三張heldout異常全部零候選、FN3，六張拒答4張。
+- 決定：保留研究工具／手動小模板設定，不改GUI或核心預設。240個配對性能gate失敗完整保存；RGB Metal驗色採複製storage0，不能稱GPU記憶體最佳結果。
+- 證據：[正式報告](STAGE35_REAL_RGB_zh-TW.md)、[先導診斷](STAGE35_PYRAMID_DIAGNOSIS_zh-TW.md)、[資料與封存](stage35-real-rgb/)、[Log分類](LOG_CATALOG_zh-TW.md)。

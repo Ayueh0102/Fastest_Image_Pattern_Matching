@@ -1,0 +1,72 @@
+{
+  "archive_replay": {
+    "archive_hashes_passed": true,
+    "files_verified": 2213,
+    "summary_exact": true,
+    "workers": 500,
+    "algorithm_calls": 1000,
+    "integrity_passed": true,
+    "performance_failure_pairs": 240,
+    "real_color_accuracy_passed": false,
+    "note": "Evidence and replay pass while documented accuracy/performance failures remain unchanged."
+  },
+  "rebuilt_real_rgb": [
+    {
+      "method": "chroma",
+      "output_exact": true,
+      "poses": 2,
+      "archived_inputs": true
+    },
+    {
+      "method": "rgb_metal",
+      "output_exact": true,
+      "poses": 2,
+      "archived_inputs": true
+    }
+  ],
+  "release_ctest": {
+    "passed": 55,
+    "total": 55
+  },
+  "color_asan_ubsan": {
+    "passed": 1,
+    "total": 1,
+    "detect_leaks": false
+  },
+  "runner_contract": {
+    "passed": 5,
+    "total": 5,
+    "metal": true
+  },
+  "benchmark_negative_controls": {
+    "passed": 26,
+    "total": 26
+  },
+  "relocated_source_build": {
+    "success": true,
+    "scope": "All configured Release targets including Qt GUI and color runner"
+  },
+  "rebuilt_native_tests": {
+    "passed": 2,
+    "total": 2,
+    "tests": [
+      "portable_core",
+      "experimental_color_verify"
+    ]
+  },
+  "rebuilt_runner_contract": {
+    "passed": 5,
+    "total": 5,
+    "metal": true
+  },
+  "rebuilt_negative_controls": {
+    "passed": 26,
+    "total": 26
+  },
+  "interpretation": "Build/tests/hash/replay succeeded; real-color accuracy and some performance gates still fail. No GUI packaging or cross-hardware acceptance claim.",
+  "validation_archive": {
+    "bytes": 6993,
+    "sha256": "a9d178947abb56fe460fef8d1dc6f96b4d872f1548294386a402c9a19d8be29c",
+    "files": 23
+  }
+}

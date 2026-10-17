@@ -101,7 +101,7 @@ build/research-gui/fpm_gui.app/Contents/MacOS/fpm_gui --gui
 
 Metal 額外提供原版 NCC、相鄰輸出重用、共享記憶體實驗，以及 CPU／GPU 粗搜尋重疊選項。預設保留 CPU 原有流程；Metal 預設原版 NCC、重疊關閉。請依 [本輪比較與限制](docs/GUI_INTEGRATION_AND_STABILITY_zh-TW.md) 選擇，不保證所有組合更快。結果表新增尺度；JSON 匯出包含完成該次工作時的參數、各階段時間及結果，改動下一次參數不會改寫舊結果的紀錄。
 
-原生排程介面見 `experiments/research_pipeline.hpp`：`Session` 複製並持有來源／模板，一次只允許一個呼叫者。每次 `run` 重新準備同張來源的共用金字塔，尺度模型與 GPU 資源可以重用；新影像建立新 Session。尺度重採樣、跨尺度整併、姿態座標轉換與 NMS 都保留 C++ 源碼。既有穩定 C ABI 不變；這個實驗 C++ 排程尚未額外包成穩定 C ABI。
+原生排程介面見 `experiments/research_pipeline.hpp`：`Session` 複製並持有來源／模板，一次只允許一個呼叫者。每次 `run` 重新準備同張來源的共用金字塔，尺度模型與 GPU 資源可以重用；新影像可用 `Session::updateSource` 更新，保留模板模型及來源 frame 容量；來源綁定的 pose context 仍會重建。尺度重採樣、跨尺度整併、姿態座標轉換與 NMS 都保留 C++ 源碼。既有穩定 C ABI 不變；這個實驗 C++ 排程尚未額外包成穩定 C ABI。
 
 ## CLI
 
@@ -201,3 +201,9 @@ ctest --test-dir build/sanitized --output-on-failure
 新版不是逐位元複製 OpenCV：旋轉用雙精度雙線性取樣，角度範圍嚴格受限，次像素解有有效性檢查。預設 NEON／SSE2 直接相關保留完整源碼，但目前部分資料比舊版 OpenCV/DOTPROD 組合慢；精度與速度數據見稽核報告。
 
 原始專案及衍生程式遵循 repository 根目錄的 BSD-2-Clause `LICENSE`。CMake install 亦會安裝該授權文字。
+
+## 密集RGB場景與外部審查
+
+第35輪新增同程序「灰階定位→RGB／色度驗證」研究runner，並以FSC／VisA及49物件控制比較。這不是完整RGB全圖搜尋；實拍漏搜與白平衡誤報仍未通過。[場景與結論](docs/STAGE35_REAL_RGB_zh-TW.md)、[runner契約](docs/COLOR_VERIFY_RUNNER.md)。
+
+外部審查由[專案導覽](../docs/PROJECT_GUIDE_zh-TW.md)開始，現行設定見[目前建議方案](docs/CURRENT_BEST_zh-TW.md)，原始紀錄見[Log分類](docs/LOG_CATALOG_zh-TW.md)。

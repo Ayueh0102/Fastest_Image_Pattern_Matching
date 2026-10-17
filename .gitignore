@@ -57,3 +57,4 @@ Include/
 !/cpp-core/include/**
 !/cpp-core/README_zh-TW.md
 !/cpp-core/docs/*.md
+!/docs/PROJECT_GUIDE_zh-TW.md
