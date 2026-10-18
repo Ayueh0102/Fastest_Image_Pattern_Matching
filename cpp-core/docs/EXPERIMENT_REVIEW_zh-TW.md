@@ -401,3 +401,13 @@ Release 54/54、相關ASan／UBSan 2/2及Python工具75項通過。正式／有�
 - 決定：不採用通用預設，保留所有失敗與源碼。常駐範圍限粗NCC／正規化／選峰；CPU粗旋轉、細搜尋控制與最終NMS尚存，CUDA尚無實測。
 - 驗證：Release56／56、Metal API／Shader Validation、ASan／UBSan及量測負控制通過；封存來源與輸入逐檔核對、統計重播及乾淨重建另見[驗證紀錄](stage36-coarse-resident/validation.json)。
 - 證據：[完整報告](COARSE_RESIDENT_zh-TW.md)、[正式摘要](stage36-coarse-resident/formal-summary.json)、[封存清單](stage36-coarse-resident/archive.json)、[原始量測](stage36-coarse-resident/raw-results.tar.gz)。
+
+### 37. 完整Metal灰階搜尋資料路徑（2026-10-18）
+
+- 問題：先補完整條GPU資料路徑，再判斷性能，不能用第36輪局部常駐代替完整結論。
+- 實作：`full_gpu=true`，來源／模板金字塔、粗旋轉與NCC／選峰、細搜尋控制與subpixel、精修／救援、最終NMS與四角輸出，一次提交、最後一次等待；完整C++／Metal源碼保留。CPU負責靜態規劃與I/O，不含RGB驗色／稀疏路徑。
+- 正式九案例×兩方法×四交錯block，72新程序／288次首次及正式呼叫；所有GT零FP／FN、所有fullGPU呼叫符合常駐計數，同方法重複一致；不是與CPU double逐位相同。
+- 結果：8K六物件251.68→96.74ms（−61.6%）；128物件810.50→5548.85ms；512物件2340.24→22532.30ms。小圖5.44→11.22ms；五類場景20個配對性能gate失敗，保留研究開關，不改通用預設。
+- 記憶體：512程序RSS443.42→167.23MiB，新後端另持有227.69MiB自有Metal buffers；統一記憶體範圍不同不能相加。總GPU區間占主要耗時，不能把它算成CPU往返或明確輸入memcpy成本。
+- 驗證：Release58／58、Metal API／Shader Validation、ASan／UBSan、12項量測負控制通過；來源、輸入、原始結果與重播分開封存。Shader Validation使用4KiB快取，正式性能使用16KiB，演算法與取樣規則不變。
+- 證據：[完整報告](FULL_GPU_zh-TW.md)、[正式摘要](stage37-full-gpu/formal-summary.json)、[採用與失敗](stage37-full-gpu/decision-and-failures.json)、[完整源碼與封存](stage37-full-gpu/)。CUDA、實拍RGB全流程及新30分鐘長跑未驗收。

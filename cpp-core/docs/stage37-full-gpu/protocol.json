@@ -1,0 +1,53 @@
+{
+  "stage": 37,
+  "date": "2026-10-18",
+  "scope": "Complete dense gray8 multiscale Metal image-data path, from upload through pyramid, rotation, coarse and fine NCC, continuous refinement/rescue and final NMS; CPU static planning, encoding, input/output remain.",
+  "methods": [
+    "hybrid_best",
+    "full_gpu"
+  ],
+  "cases": [
+    "controlled6",
+    "heldout12",
+    "small_fullres",
+    "8k_t256_angle180_3scales",
+    "many128_pose",
+    "many512_pose",
+    "boundary_one",
+    "empty_scene",
+    "constant_source"
+  ],
+  "blocks": 4,
+  "measured_repeats_per_process": 3,
+  "warmup_seconds": 1,
+  "execution": "Serial fresh processes, alternating paired method order between blocks; all first/measured outputs independently evaluated.",
+  "accuracy": {
+    "one_to_one": true,
+    "position_px": 2,
+    "angle_deg": 1,
+    "relative_scale": 0.02,
+    "fp": 0,
+    "fn": 0
+  },
+  "performance_gate": "Every paired block: new <= baseline + max(2 ms, 10% baseline). Passing this is not proof of speedup.",
+  "memory_gate": "Maximum process peak RSS <= baseline + max(8 MiB, 10% baseline). Metal retained allocation reported separately, not added to RSS.",
+  "residency_gate": {
+    "command_buffers": 1,
+    "cpu_waits": 1,
+    "intermediate_readbacks": 0,
+    "cpu_algorithm_steps": 0,
+    "meaning": "Source-audited image-dependent computation only; not a hardware trace and excludes host static geometry/planning."
+  },
+  "numeric_contract": "Exact integer moments within bounded area; FP32 interpolation, normalization, optimization and geometry, not CPU-double bit identity. Final acceptance cutoff rounded upward to FP32.",
+  "exclusions": [
+    "RGB color verification",
+    "sparse orientation proposal route",
+    "CPU scale-support correction",
+    "CUDA hardware claims",
+    "camera pipeline throughput",
+    "universal real-scene generalization"
+  ],
+  "phase_timing": "Full path reports total, encode, final wait, device interval, explicit memcpy and final logical readback; split algorithm stage times unavailable, never interpreted as zero.",
+  "pilot": "9-case exploratory pilot retained separately; unit fixture shared failures, synchronization audit and threshold repairs precede frozen formal run.",
+  "default_policy": "No GUI/default route change. Keep code and negative results regardless of performance."
+}

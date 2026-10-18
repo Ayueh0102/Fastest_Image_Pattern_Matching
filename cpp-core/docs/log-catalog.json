@@ -26,44 +26,44 @@
     "metadata": "Filesystem sidecar metadata",
     "other": "No recognized role; inspect manually"
   },
-  "artifact_count": 429,
-  "artifact_bytes": 1267242207,
+  "artifact_count": 442,
+  "artifact_bytes": 1315128769,
   "artifact_role_counts": {
-    "archive": 63,
+    "archive": 67,
     "calibration": 4,
-    "failure_review": 7,
-    "false_gate": 39,
-    "formal": 6,
+    "failure_review": 8,
+    "false_gate": 41,
+    "formal": 7,
     "input": 21,
     "other": 38,
-    "protocol": 32,
-    "provenance": 32,
-    "raw": 47,
-    "report": 59,
-    "source": 4,
-    "summary": 93,
-    "validation": 64,
-    "visual": 63
+    "protocol": 33,
+    "provenance": 35,
+    "raw": 48,
+    "report": 60,
+    "source": 5,
+    "summary": 95,
+    "validation": 66,
+    "visual": 64
   },
-  "archive_member_count": 24143,
+  "archive_member_count": 24850,
   "archive_member_role_counts": {
     "archive": 26,
     "binary": 47,
     "calibration": 1,
-    "failure_review": 16,
-    "formal": 13306,
-    "input": 540,
+    "failure_review": 18,
+    "formal": 13663,
+    "input": 554,
     "metadata": 1292,
-    "other": 1207,
-    "pilot": 3526,
+    "other": 1216,
+    "pilot": 3600,
     "protocol": 109,
-    "provenance": 70,
-    "raw": 4904,
-    "report": 70,
-    "source": 8637,
-    "summary": 824,
-    "validation": 279,
-    "visual": 828
+    "provenance": 73,
+    "raw": 5133,
+    "report": 71,
+    "source": 8896,
+    "summary": 842,
+    "validation": 342,
+    "visual": 842
   },
   "artifacts": [
     {
@@ -140,8 +140,8 @@
       "path": "CURRENT_BEST_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 5392,
-      "sha256": "c2cec13fc52ae4c7e1486d86b1377eaf989cf207fed5925aea3e7da3e4899f18",
+      "bytes": 5985,
+      "sha256": "6cb18c62fdb01dc04a35504c7a891605ebe2a2ecba17fe0ca997849392c40255",
       "roles": [
         "report"
       ]
@@ -181,8 +181,8 @@
       "path": "EXPERIMENT_REVIEW_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 63400,
-      "sha256": "205c1e2e98545ba0120324e516039c24e2b9c4eca1eb3145260b8852ec3563be",
+      "bytes": 65050,
+      "sha256": "f54f5f174f10a05da84b371288443aa68e5a5087665145c3d6e929747bf6eb50",
       "roles": [
         "report"
       ]
@@ -248,6 +248,16 @@
       ]
     },
     {
+      "path": "FULL_GPU_zh-TW.md",
+      "group": "root",
+      "stage": null,
+      "bytes": 17742,
+      "sha256": "df7b68e962648ae07c792f4df39de9ef59fdfccef77bea911b3c874881cfc564",
+      "roles": [
+        "report"
+      ]
+    },
+    {
       "path": "GPU_REFINEMENT_zh-TW.md",
       "group": "root",
       "stage": null,
@@ -281,8 +291,8 @@
       "path": "LOG_CATALOG_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 9065,
-      "sha256": "d58b1a31809b475af48e47ede22d38d9ae798736acad386dccbf31b5131cb266",
+      "bytes": 9613,
+      "sha256": "4acd1c0d29be0e00c92d0c9aad9f60cf5fa565bd0cf975ce1b03398843017013",
       "roles": [
         "report"
       ]
@@ -442,8 +452,8 @@
       "path": "PROJECT_STATUS_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 4829,
-      "sha256": "43d9a1c01f13c46f827c2702dd95ad85155dbdd46dc44e5cb1596a7af05ae4e5",
+      "bytes": 5247,
+      "sha256": "7037ea59e3b851194acfe6ee2191087832b8f8a887ab5737a1bcec3d915623be",
       "roles": [
         "report"
       ]
@@ -5781,6 +5791,169 @@
       ]
     },
     {
+      "path": "stage37-full-gpu/archive.json",
+      "group": "stage37-full-gpu",
+      "stage": "37",
+      "bytes": 3869,
+      "sha256": "fb078106a9153ec2f4358cf135f884edd724a5aff8b316c0b0021daad1f0df47",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage37-full-gpu/comparison.png",
+      "group": "stage37-full-gpu",
+      "stage": "37",
+      "bytes": 85180,
+      "sha256": "82170efedb31978120e2babad0ff61bb5cc05e610f1e57cb37c324de3e22c37f",
+      "roles": [
+        "visual"
+      ]
+    },
+    {
+      "path": "stage37-full-gpu/decision-and-failures.json",
+      "group": "stage37-full-gpu",
+      "stage": "37",
+      "bytes": 9909,
+      "sha256": "f142f1e9b9a3e4c0505c158bf6105f409489bfc21f0b7772ede68bb87d8db4ef",
+      "roles": [
+        "failure_review"
+      ]
+    },
+    {
+      "path": "stage37-full-gpu/fixtures.tar.gz",
+      "group": "stage37-full-gpu",
+      "stage": "37",
+      "bytes": 26462078,
+      "sha256": "bffbdcb8afe328c4dc485c8392bea2e10d9be5c1aaf7c2648884ec0b046fa536",
+      "roles": [
+        "archive"
+      ],
+      "archive_file_count": 14,
+      "archive_role_counts": {
+        "formal": 13,
+        "input": 13,
+        "visual": 14
+      }
+    },
+    {
+      "path": "stage37-full-gpu/formal-summary.json",
+      "group": "stage37-full-gpu",
+      "stage": "37",
+      "bytes": 1183598,
+      "sha256": "d3d0b93331633cee761e0f157352957bdcba9ac16e0e5e39ec54a90e04517e83",
+      "roles": [
+        "false_gate",
+        "formal",
+        "summary"
+      ],
+      "explicit_false_gates": [
+        "/all_full_gpu_adoption_gates_pass"
+      ]
+    },
+    {
+      "path": "stage37-full-gpu/input-sha256.json",
+      "group": "stage37-full-gpu",
+      "stage": "37",
+      "bytes": 1742,
+      "sha256": "51f7f10ac783a8e5fac49cb3860da1ff708f3207716adf05ffb730b86605e217",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage37-full-gpu/protocol.json",
+      "group": "stage37-full-gpu",
+      "stage": "37",
+      "bytes": 2336,
+      "sha256": "cb70bccfa7c8d2ced2024f455ea65072ae82df56e078a7ac8e765d5dd8efb90d",
+      "roles": [
+        "protocol"
+      ]
+    },
+    {
+      "path": "stage37-full-gpu/raw-results.tar.gz",
+      "group": "stage37-full-gpu",
+      "stage": "37",
+      "bytes": 19265741,
+      "sha256": "c87409085810f3fa5291879accd12f340b3f1908ff69a1ff08bc4e02a0a8f8ca",
+      "roles": [
+        "archive",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 364,
+      "archive_role_counts": {
+        "formal": 344,
+        "pilot": 74,
+        "provenance": 2,
+        "raw": 182
+      }
+    },
+    {
+      "path": "stage37-full-gpu/source-sha256.json",
+      "group": "stage37-full-gpu",
+      "stage": "37",
+      "bytes": 30141,
+      "sha256": "5661dbf70c507c5a405c7c60649715700c2cfe490ee10dffd6d1a83d84da6119",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage37-full-gpu/source-snapshot.tar.gz",
+      "group": "stage37-full-gpu",
+      "stage": "37",
+      "bytes": 785915,
+      "sha256": "1bfb61d87863567fbba04dfc5b68bb0c4adc9025ffc95cf41e1702c38eeaa846",
+      "roles": [
+        "archive",
+        "source"
+      ],
+      "archive_file_count": 268,
+      "archive_role_counts": {
+        "input": 1,
+        "other": 9,
+        "provenance": 1,
+        "report": 1,
+        "source": 256,
+        "summary": 18,
+        "validation": 2
+      }
+    },
+    {
+      "path": "stage37-full-gpu/validation-logs.tar.gz",
+      "group": "stage37-full-gpu",
+      "stage": "37",
+      "bytes": 30091,
+      "sha256": "d290f1975f0f967a7526ceb4b78df9194a5ebc1489212df25cccc6a1168b381a",
+      "roles": [
+        "archive",
+        "validation"
+      ],
+      "archive_file_count": 61,
+      "archive_role_counts": {
+        "failure_review": 2,
+        "raw": 47,
+        "source": 3,
+        "validation": 61
+      }
+    },
+    {
+      "path": "stage37-full-gpu/validation.json",
+      "group": "stage37-full-gpu",
+      "stage": "37",
+      "bytes": 5011,
+      "sha256": "be3ef96ace10e67b3c001ef2d0f997c3bfa99e8f5760761ae7f4dfcc092cea39",
+      "roles": [
+        "false_gate",
+        "validation"
+      ],
+      "explicit_false_gates": [
+        "/formal/all_adoption_gates_pass"
+      ]
+    },
+    {
       "path": "validation-after-refinement.json",
       "group": "root",
       "stage": null,
@@ -5801,5 +5974,5 @@
       ]
     }
   ],
-  "archive_member_index_sha256": "e888d0f0d2e96cd6fa1beacb5f7efb9a827e26bf1fdde95764c6b81a34317652"
+  "archive_member_index_sha256": "fdcba8808aafe4129fe903f9769d3ffa2fae0b5d00cd3ac5e006fe845ccc5c72"
 }

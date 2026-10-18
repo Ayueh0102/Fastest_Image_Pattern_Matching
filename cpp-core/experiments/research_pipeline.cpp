@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BSD-2-Clause
 #include "research_pipeline.hpp"
 #include "scale_support_refine.hpp"
+#include "full_gpu.hpp"
 #include <algorithm>
 #include <chrono>
 #include <cmath>
@@ -111,6 +112,7 @@ struct Session::Impl {
     std::unique_ptr<fpm_frame_handle,decltype(&fpm_frame_destroy)> frame{nullptr,fpm_frame_destroy};
     std::unique_ptr<void,decltype(&fpm_pose_destroy)> pose{nullptr,fpm_pose_destroy};
     std::unique_ptr<SparseOrientationPattern> sparse;
+    std::unique_ptr<FullGpuPipeline> fullGpu;
     bool poseInvert=false;
     uint64_t sourceGeneration=0;
     int refinementBackend() const { return settings.refinementBackend<0?settings.backend:settings.refinementBackend; }
@@ -126,6 +128,12 @@ struct Session::Impl {
             throw std::invalid_argument("Shared pose storage requires Metal refinement");
         if(s.poseInputMode<0 || s.poseInputMode>1)
             throw std::invalid_argument("Invalid pose input mode");
+        if(s.fullGpu) {
+            if(s.backend!=1 || refinementBackend()!=1 || s.sparseOrientation)
+                throw std::invalid_argument("Complete GPU pipeline requires dense Metal search and refinement");
+            fullGpu=makeFullGpuPipeline(source.view(),templ.view(),s);
+            return;
+        }
         if(s.sparseOrientation) {
             if(s.scales.size()!=1 || s.scales.front()!=1.)
                 throw std::invalid_argument("Sparse orientation requires fixed scale {1}");
@@ -181,12 +189,14 @@ SourceUpdate Session::updateSource(ImageView source) {
     update.poseInvalidated=bool(s.pose);
     update.retainedModels=s.sparse?1:s.patterns.size();
     update.copiedBytes=uint64_t(source.width)*source.height;
+    if(s.fullGpu) { s.fullGpu->updateSource(replacement.view()); update.retainedModels=s.settings.scales.size(); }
     s.pose.reset(); // Current API binds both images; never leave stale pixels in a pose context.
     s.source=std::move(replacement);
     update.generation=++s.sourceGeneration;update.updateMs=ms(start);return update;
 }
 Result Session::run(const Options& o) {
     auto& s=*impl_;validateOptions(o,s.settings.backend);Result r;char error[1024]{};const auto start=Clock::now();
+    if(s.fullGpu) { r=s.fullGpu->run(o); r.sourceGeneration=s.sourceGeneration; return r; }
     r.scaleSupportEnabled=o.scaleSupportRefine;
     r.refinementMode=s.settings.residentMode;
     r.configuredRefinementBackend=s.refinementBackend();r.sourceGeneration=s.sourceGeneration;

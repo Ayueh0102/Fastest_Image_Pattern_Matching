@@ -41,6 +41,7 @@
 | 32–34 | 慢樣本、精修組合、新場景與階段驗收 | [run-diagnostics](run-diagnostics/)、[resident-multiscale](resident-multiscale/)、[stage34-closure](stage34-closure/) |
 | 35 | 密集實拍、RGB驗色與小模板召回 | [stage35-real-rgb](stage35-real-rgb/)、[報告](STAGE35_REAL_RGB_zh-TW.md) |
 | 36 | Metal常駐粗選峰、少／多候選的性能反例 | [stage36-coarse-resident](stage36-coarse-resident/)、[報告](COARSE_RESIDENT_zh-TW.md) |
+| 37 | 完整灰階Metal常駐、獨立GT、9場景與同步／門檻修正 | [stage37-full-gpu](stage37-full-gpu/)、[完整報告](FULL_GPU_zh-TW.md) |
 
 新一輪正式結果由[實驗總索引](EXPERIMENT_REVIEW_zh-TW.md)連接，重新產生機器索引即可列出新增資料。沒有階段對照的目錄保留 `stage: null`，不猜測輪次或把它算成通過項目。
 
@@ -101,3 +102,5 @@ for member in index["members"]:
 每輪保留 protocol、逐程序正式結果、彙整、來源與輸入雜湊、驗證 log，以及採用／不採用的理由。先導資料、正式量測、修正前失敗與重跑各用不同檔名，避免覆蓋。外部資料集另附來源、版本、標註語意與使用條件；真實、半合成、純合成分開列示。
 
 新增資料後先產生索引，再執行 `--check`。索引檔的時間與記憶體分類只提供查詢入口；不將不同輪次結果直接合併成一個總速度，也不把歷史失敗從目錄隱藏。
+
+第37輪將探索pilot、凍結來源的formal、單元測試早期失敗、共同金字塔失敗、Metal儀器化容量限制與修正、ASan／UBSan、審查紀錄分開保存。正式數據的源碼／binary／輸入hash與source snapshot對應；pilot保留當時hash與結果，不聲稱pilot具有獨立可重建的完整來源快照。詳細分類見本輪archive與validation索引。

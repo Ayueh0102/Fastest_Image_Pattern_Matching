@@ -1,0 +1,3 @@
+// SPDX-License-Identifier: BSD-2-Clause
+#pragma once
+inline constexpr const char* fpmFullGpuMetalSource = R"FPMFULLGPU(@FPM_FULL_GPU_SOURCE@)FPMFULLGPU";

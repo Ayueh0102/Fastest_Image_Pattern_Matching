@@ -1,0 +1,16 @@
+{
+  "Test Images/Dst3.bmp": "a6c18c9b93c4eb69488629778da0aa35a1485bc4b7c67d48ee8c02cfecf8fe9c",
+  "build/stage37-full-gpu/formal/inputs/8k_t256.png": "5dd89922d95054a7d4e730c69c213dc24a75ada0c8a7275a1f6e5e99f40ec4b1",
+  "build/stage37-full-gpu/formal/inputs/boundary_one.png": "2ed0202470987ee9b663b246cef02480dd76e32b078e3a38f696fa7395ad0242",
+  "build/stage37-full-gpu/formal/inputs/constant_source.png": "b08db67786fc282490d6925fa3c20e87d69304eb7c3691ce37e5b87fdea1ce4e",
+  "build/stage37-full-gpu/formal/inputs/controlled.png": "4d3f32bc6bfdafbba55fc50f0247d3ab042f6335e7f31a2b8619c5e53d64f59a",
+  "build/stage37-full-gpu/formal/inputs/edge_template.png": "de434d0cdaa79a54f3de6c4860372d1598b47797a19db01a9b4d42be1e0ae97e",
+  "build/stage37-full-gpu/formal/inputs/empty_scene.png": "77171fdf75701946edd930d059fd8356f2ff7389e82bdfbf7619c796a62e715f",
+  "build/stage37-full-gpu/formal/inputs/heldout.png": "060906a0be141a4c38a432a8fd25ceef79cb2d5d8745c5cf7be9ea4ed55a76cc",
+  "build/stage37-full-gpu/formal/inputs/many128_pose.png": "63c4e7127d06d3af55ad7b34ccd5a670ca043609c52d5b346d889a9cd74aa3e1",
+  "build/stage37-full-gpu/formal/inputs/many512_pose.png": "ba9fcf195fad771a44e183e541d83a9572b5ad7f4c0ca3f165a661920abe94dd",
+  "build/stage37-full-gpu/formal/inputs/many_template.png": "aa442887d704a53db0605c71dbb7648e0999fd8b792aa6ca30829722d4cc99ab",
+  "build/stage37-full-gpu/formal/inputs/small_fullres.png": "d0aaaafb344c096b0d0f11c8272582a6ce4e8d569b88cd13e84af0130bbc4ffc",
+  "build/stage37-full-gpu/formal/inputs/small_template.png": "a51862f39d0046e3e854a9feafe3112935cd29893ada8a76cee196657f2113a1",
+  "build/stage37-full-gpu/formal/inputs/template256.png": "90d7e76ad0e781b536440d92f5924e542545dac8e3458eff7b4838674f996502"
+}

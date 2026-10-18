@@ -1,0 +1,93 @@
+{
+  "stage": 37,
+  "date": "2026-10-18",
+  "path_base": "cpp-core/docs/stage37-full-gpu",
+  "all_archives_fully_read": true,
+  "artifacts": [
+    {
+      "path": "comparison.png",
+      "bytes": 85180,
+      "sha256": "82170efedb31978120e2babad0ff61bb5cc05e610f1e57cb37c324de3e22c37f",
+      "purpose": "Scientific figure: time and RSS comparison of six main cases."
+    },
+    {
+      "path": "decision-and-failures.json",
+      "bytes": 9909,
+      "sha256": "f142f1e9b9a3e4c0505c158bf6105f409489bfc21f0b7772ede68bb87d8db4ef",
+      "purpose": "Adoption decision and all 20 failed formal performance blocks."
+    },
+    {
+      "path": "fixtures.tar.gz",
+      "bytes": 26462078,
+      "sha256": "bffbdcb8afe328c4dc485c8392bea2e10d9be5c1aaf7c2648884ec0b046fa536",
+      "purpose": "14 unique formal input images, with original repository-relative paths.",
+      "regular_files": 14,
+      "uncompressed_bytes": 26592584,
+      "all_members_read_and_safe_paths": true
+    },
+    {
+      "path": "formal-summary.json",
+      "bytes": 1183598,
+      "sha256": "d3d0b93331633cee761e0f157352957bdcba9ac16e0e5e39ec54a90e04517e83",
+      "purpose": "Offline reproducible full nine-case formal summary."
+    },
+    {
+      "path": "input-sha256.json",
+      "bytes": 1742,
+      "sha256": "51f7f10ac783a8e5fac49cb3860da1ff708f3207716adf05ffb730b86605e217",
+      "purpose": "14 unique formal input SHA256 fingerprints."
+    },
+    {
+      "path": "protocol.json",
+      "bytes": 2336,
+      "sha256": "cb70bccfa7c8d2ced2024f455ea65072ae82df56e078a7ac8e765d5dd8efb90d",
+      "purpose": "Pre-formal workload definition and gates."
+    },
+    {
+      "path": "raw-results.tar.gz",
+      "bytes": 19265741,
+      "sha256": "c87409085810f3fa5291879accd12f340b3f1908ff69a1ff08bc4e02a0a8f8ca",
+      "purpose": "Pilot and formal process jobs, outputs, logs, manifests; formal fixture images are separate. Pilot historical source not independently snapshotted.",
+      "regular_files": 364,
+      "uncompressed_bytes": 82225660,
+      "all_members_read_and_safe_paths": true
+    },
+    {
+      "path": "source-sha256.json",
+      "bytes": 30141,
+      "sha256": "5661dbf70c507c5a405c7c60649715700c2cfe490ee10dffd6d1a83d84da6119",
+      "purpose": "267 frozen source SHA256 fingerprints."
+    },
+    {
+      "path": "source-snapshot.tar.gz",
+      "bytes": 785915,
+      "sha256": "1bfb61d87863567fbba04dfc5b68bb0c4adc9025ffc95cf41e1702c38eeaa846",
+      "purpose": "Frozen formal source including shader sources, tests and tools; 267 source files plus internal source hash manifest.",
+      "regular_files": 268,
+      "uncompressed_bytes": 3142500,
+      "all_members_read_and_safe_paths": true
+    },
+    {
+      "path": "validation-logs.tar.gz",
+      "bytes": 30091,
+      "sha256": "d290f1975f0f967a7526ceb4b78df9194a5ebc1489212df25cccc6a1168b381a",
+      "purpose": "Builds, early failures, regressions, sanitizer/Metal validation, audits, startup samples and clean rebuild/parity checks.",
+      "regular_files": 61,
+      "uncompressed_bytes": 190718,
+      "all_members_read_and_safe_paths": true
+    },
+    {
+      "path": "validation.json",
+      "bytes": 5011,
+      "sha256": "be3ef96ace10e67b3c001ef2d0f997c3bfa99e8f5760761ae7f4dfcc092cea39",
+      "purpose": "Validation scopes, results, initial startup timeouts and unchanged-binary retry."
+    }
+  ],
+  "notes": [
+    "This manifest excludes its own hash to avoid a circular digest.",
+    "Frozen formal algorithm source is retained; later documentation/index changes do not alter recorded performance.",
+    "Source/fixture SHA256 verification and summary replay are separate from archive readability.",
+    "Raw jobs retain original absolute paths. Redirect input paths when running an extracted job.",
+    "No CUDA results; no universal all-GPU adoption. Failed gates remain in summary and decision file."
+  ]
+}

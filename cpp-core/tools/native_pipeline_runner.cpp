@@ -54,6 +54,18 @@ QJsonObject record(const Result& r,bool outputs) {
         {"frame_host_bytes",double(r.frame.host_pyramid_bytes)},{"frame_coarse_gpu_bytes",double(r.frame.coarse_gpu_bytes)},{"frame_fine_gpu_bytes",double(r.frame.fine_gpu_bytes)},
         {"pose_host_bytes",double(r.pose.host_buffer_bytes)},{"pose_gpu_bytes",double(r.pose.gpu_buffer_bytes)},
         {"selected_refinement_backend",r.rescue.selected_backend},{"rescued_seeds",double(r.rescue.selected_seeds)},{"memory",memory()}};
+    const auto& gpu=r.fullGpu;
+    o["stage_timings_available"]=!gpu.enabled;
+    o["legacy_backend_metrics_available"]=!gpu.enabled;
+    o["full_gpu"]=QJsonObject{{"enabled",gpu.enabled},{"command_buffers",double(gpu.commandBuffers)},
+        {"cpu_waits",double(gpu.cpuWaits)},{"intermediate_readbacks",double(gpu.intermediateReadbacks)},
+        {"cpu_algorithm_steps",double(gpu.cpuAlgorithmSteps)},{"gpu_bytes",double(gpu.gpuBytes)},
+        {"upload_bytes",double(gpu.uploadBytes)},{"readback_bytes",double(gpu.readbackBytes)},
+        {"dispatches",double(gpu.dispatches)},{"encode_ms",gpu.encodeMs},{"wait_ms",gpu.waitMs},
+        {"fine_roi_cache_bytes",double(gpu.fineRoiCacheBytes)},
+        {"device_timestamp_available",gpu.enabled && gpu.deviceMs>=0},
+        {"device_ms",gpu.enabled && gpu.deviceMs>=0 ? QJsonValue(gpu.deviceMs):QJsonValue(QJsonValue::Null)},
+        {"upload_ms",gpu.uploadMs},{"readback_ms",gpu.readbackMs}};
     o["scale_support_enabled"]=r.scaleSupportEnabled;
     o["scale_support_refine_ms"]=r.scaleSupportMs;
     o["scale_support_eligible"]=double(r.scaleSupportEligible);
@@ -196,6 +208,8 @@ int main(int argc,char** argv) {
         settings.sparse.searchBackend=j["sparse_search_backend"].toInt(0);
         settings.sparse.cpuGradientMode=j["sparse_cpu_gradient_mode"].toInt(0);
         settings.sparse.metalSubmissionMode=j["sparse_metal_submission_mode"].toInt(0);
+        if(j.contains("full_gpu") && !j["full_gpu"].isBool()) throw std::invalid_argument("full_gpu must be boolean");
+        settings.fullGpu=j["full_gpu"].toBool(false);
         settings.residentMode=j["pose_resident_mode"].toInt(0);
         settings.cpuThreads=j["cpu_threads"].toInt(8);settings.sparse.cpuThreads=settings.cpuThreads;
         Options o;o.nccMode=j["ncc_mode"].toInt();o.overlap=j["overlap_enabled"].toBool();o.refine=j["refine"].toBool(true);

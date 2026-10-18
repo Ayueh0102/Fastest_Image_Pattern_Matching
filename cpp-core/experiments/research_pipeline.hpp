@@ -10,6 +10,7 @@ namespace fpm::research {
 // Native orchestration of the previously Python-driven gray8 experiment.
 // One caller at a time. Session owns image snapshots; updateSource replaces only the source.
 struct Settings {
+    bool fullGpu = false; // Experimental complete gray8 Metal data path; no intermediate host decisions.
     int backend = 1; // Proposal backend: 0 CPU, 1 Metal (explicit failure if unavailable)
     int refinementBackend = -1; // -1 inherits backend; 0 CPU, 1 Metal. Defaults unchanged.
     int minReducedArea = 256;
@@ -42,7 +43,14 @@ struct SourceUpdate {
     size_t retainedModels = 0; // Learned coarse models, or one sparse template model.
     bool dimensionsChanged = false, poseInvalidated = false;
 };
+struct FullGpuMetrics {
+    bool enabled = false;
+    uint64_t commandBuffers = 0, cpuWaits = 0, intermediateReadbacks = 0, cpuAlgorithmSteps = 0;
+    uint64_t gpuBytes = 0, uploadBytes = 0, readbackBytes = 0, dispatches = 0, fineRoiCacheBytes = 0;
+    double encodeMs = 0, waitMs = 0, deviceMs = 0, uploadMs = 0, readbackMs = 0;
+};
 struct Result {
+    FullGpuMetrics fullGpu;
     std::vector<Match> matches, proposals;
     std::vector<double> scales, proposalScales;
     double prepareMs = 0, proposalMs = 0, refineMs = 0, nmsMs = 0, totalMs = 0;
