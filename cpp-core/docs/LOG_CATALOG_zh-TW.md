@@ -40,6 +40,7 @@
 | 29–31 | 角度圖重用、旋轉與 NCC 合併、讀圖記憶體 | [fine-angle-reuse](fine-angle-reuse/)、[fine-fused](fine-fused/)、[gray-loader](gray-loader/) |
 | 32–34 | 慢樣本、精修組合、新場景與階段驗收 | [run-diagnostics](run-diagnostics/)、[resident-multiscale](resident-multiscale/)、[stage34-closure](stage34-closure/) |
 | 35 | 密集實拍、RGB驗色與小模板召回 | [stage35-real-rgb](stage35-real-rgb/)、[報告](STAGE35_REAL_RGB_zh-TW.md) |
+| 36 | Metal常駐粗選峰、少／多候選的性能反例 | [stage36-coarse-resident](stage36-coarse-resident/)、[報告](COARSE_RESIDENT_zh-TW.md) |
 
 新一輪正式結果由[實驗總索引](EXPERIMENT_REVIEW_zh-TW.md)連接，重新產生機器索引即可列出新增資料。沒有階段對照的目錄保留 `stage: null`，不猜測輪次或把它算成通過項目。
 
@@ -92,6 +93,8 @@ for member in index["members"]:
 5. 核對測試／封存／統計重播的範圍。需要在新硬體採用時，另跑相同輸入與設定。
 
 第34輪可作完整範例：[報告](STAGE34_CLOSURE_zh-TW.md) → [封存清單](stage34-closure/archive.json) → [重播與重建驗證](stage34-closure/validation.json)。資料與來源分成兩份封存，須依報告解壓到同一目錄；驗證紀錄成功保留了某些精度與速度 gate 為 false 的原結果，沒有把失敗改寫為成功。
+
+第36輪另保留pilot與正式結果、舊非法enum測試失敗與更新後56項通過、ASan初次未重設建置的失敗，以及360張map中FP32有序峰與double的差異。正式性能gate失敗不因封存、測試或重建通過而改寫；完整來源、原作者fixtures與生成輸入分成三份封存，原始量測與驗證log另存。
 
 ## 後續紀錄規則
 

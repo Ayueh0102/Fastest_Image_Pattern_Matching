@@ -1,0 +1,82 @@
+{
+  "stage": 36,
+  "adopt_as_default": false,
+  "retain_implementation": true,
+  "cuda_tested": false,
+  "reason": "Low-candidate 8K benefit, but 128/512 greedy selection cost fails performance budgets. Keep peak_mode=1 as recommended default.",
+  "cases": [
+    {
+      "name": "controlled6",
+      "accuracy_pass": true,
+      "memory_pass": true,
+      "performance_pass": false,
+      "adoption_gate_pass": false,
+      "elapsed_delta_percent": 10.943169628850047,
+      "failed_performance_blocks": [
+        0,
+        1,
+        3
+      ]
+    },
+    {
+      "name": "heldout12",
+      "accuracy_pass": true,
+      "memory_pass": true,
+      "performance_pass": false,
+      "adoption_gate_pass": false,
+      "elapsed_delta_percent": 40.44225385581179,
+      "failed_performance_blocks": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "name": "small_fullres",
+      "accuracy_pass": true,
+      "memory_pass": true,
+      "performance_pass": true,
+      "adoption_gate_pass": true,
+      "elapsed_delta_percent": -4.7291364202802,
+      "failed_performance_blocks": []
+    },
+    {
+      "name": "8k_t256_angle180_3scales",
+      "accuracy_pass": true,
+      "memory_pass": true,
+      "performance_pass": true,
+      "adoption_gate_pass": true,
+      "elapsed_delta_percent": -26.371370515008596,
+      "failed_performance_blocks": []
+    },
+    {
+      "name": "many128_pose",
+      "accuracy_pass": true,
+      "memory_pass": true,
+      "performance_pass": false,
+      "adoption_gate_pass": false,
+      "elapsed_delta_percent": 498.1427246296919,
+      "failed_performance_blocks": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "name": "many512_pose",
+      "accuracy_pass": true,
+      "memory_pass": true,
+      "performance_pass": false,
+      "adoption_gate_pass": false,
+      "elapsed_delta_percent": 1010.6138619687584,
+      "failed_performance_blocks": [
+        0,
+        1,
+        2,
+        3
+      ]
+    }
+  ]
+}

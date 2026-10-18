@@ -63,6 +63,13 @@ public:
 	virtual bool buildPyramid(std::vector<Image>&, int) { return false; }
 	virtual std::size_t coarseBatchAngles() const { return 1; }
 	virtual bool fastCoarsePeaks() const { return false; }
+	// Experimental compact response: statistics, normalization and greedy
+	// selection stay on the device. Scores need not be binary64-identical.
+	virtual bool residentCoarsePeaks() const { return false; }
+	virtual std::vector<std::vector<Peak>> computePeakBatch(const std::vector<ImageView>&,
+		const TemplateLevel&, int, double, double) {
+		throw std::runtime_error("resident coarse peaks are unavailable");
+	}
 	// A begin call must own all input bytes needed after it returns. Slots 0/1
 	// are consumed in submission order; finish releases a slot for reuse. Drain
 	// is mandatory on exceptional exits, and must not throw from destructors.

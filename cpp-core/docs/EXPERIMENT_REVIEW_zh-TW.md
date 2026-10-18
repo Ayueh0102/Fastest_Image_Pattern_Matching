@@ -1,6 +1,6 @@
 # Template Matching 研究總索引與人工審查指南
 
-更新：2026-10-17。此頁按第1–35輪列出問題、證據與採用決定。數字是各輪的證據快照，不是同一套輸入的連續加速曲線；不同輪次倍率不能相乘。最新輪次見頁末，第一次閱讀先看[外部導覽](../../docs/PROJECT_GUIDE_zh-TW.md)。
+更新：2026-10-18。此頁按第1–36輪列出問題、證據與採用決定。數字是各輪的證據快照，不是同一套輸入的連續加速曲線；不同輪次倍率不能相乘。最新輪次見頁末，第一次閱讀先看[外部導覽](../../docs/PROJECT_GUIDE_zh-TW.md)。
 
 ## 目前推薦方案
 
@@ -9,7 +9,7 @@
 | 主題 | 閱讀入口 |
 |---|---|
 | 核心、GUI與語言移植 | 第1輪；[建置](../README_zh-TW.md)、[移植契約](PORTING_zh-TW.md) |
-| GPU並行、同步與記憶體 | 第5–14、19–25、28–34輪；依工作量看CPU／Metal對照 |
+| GPU並行、同步與記憶體 | 第5–14、19–25、28–34、36輪；依工作量看CPU／Metal對照 |
 | 固定尺度與稀疏前段 | 第15–21輪；與金字塔路徑分開比較 |
 | 原始NCC與旋轉細搜尋 | 第26–30輪；保留未加速與記憶體失敗 |
 | 新場景、Blender、新影格與穩定性 | [第34輪](STAGE34_CLOSURE_zh-TW.md) |
@@ -390,3 +390,14 @@ Release 54/54、相關ASan／UBSan 2/2及Python工具75項通過。正式／有�
 - 結果：小模板4/49→49/49，25.58→100.28ms；另一heldout模板原本49/49，調整只變慢。色度找出兩個異色控制，白平衡卻各誤報49個；VisA三張heldout異常全部零候選、FN3，六張拒答4張。
 - 決定：保留研究工具／手動小模板設定，不改GUI或核心預設。240個配對性能gate失敗完整保存；RGB Metal驗色採複製storage0，不能稱GPU記憶體最佳結果。
 - 證據：[正式報告](STAGE35_REAL_RGB_zh-TW.md)、[先導診斷](STAGE35_PYRAMID_DIAGNOSIS_zh-TW.md)、[資料與封存](stage35-real-rgb/)、[Log分類](LOG_CATALOG_zh-TW.md)。
+
+### 36. Metal常駐粗NCC正規化、逐次選峰與停止（2026-10-18）
+
+- 問題：能否只讀回候選，減少粗搜尋的CPU正規化與等待；負面結果也須保留供未來CUDA比較。
+- 實作：`coarse_peak_mode=2`，整數中心化統計→FP32正規化→GPU逐次抑制選峰，同批提交。完整C++／Metal源碼，原CPU double／精確樹路徑與GUI預設保留。
+- 正式六案例×兩方法×四交錯block，48個新程序／192次首次及正式呼叫，另保留暖機。六案例皆零FP／FN，有序最終matches及post-fine proposals與對照相同；360張map數值測試仍記錄62個有序peak項目差異，不宣稱FP32與double逐位一致。
+- 結果：8K六物件255.17→187.88ms（−26.4%）；128物件834.79→4993.26ms；512物件2373.64→26361.99ms。RSS分別373.23→332.91、233.48→181.27、443.08→349.61MiB。8K與小圖為core-only，不能當含連續精修的同一工作量。
+- 診斷：512粗提交102→36，CPU密集正規化199.73→0ms，但GPU區間88.22→24493.50ms；host copy／參數準備2.29→2.45ms。主要待改善的是單工作群組依序選峰的平行粒度，不是把GPU等待全算成傳輸。
+- 決定：不採用通用預設，保留所有失敗與源碼。常駐範圍限粗NCC／正規化／選峰；CPU粗旋轉、細搜尋控制與最終NMS尚存，CUDA尚無實測。
+- 驗證：Release56／56、Metal API／Shader Validation、ASan／UBSan及量測負控制通過；封存來源與輸入逐檔核對、統計重播及乾淨重建另見[驗證紀錄](stage36-coarse-resident/validation.json)。
+- 證據：[完整報告](COARSE_RESIDENT_zh-TW.md)、[正式摘要](stage36-coarse-resident/formal-summary.json)、[封存清單](stage36-coarse-resident/archive.json)、[原始量測](stage36-coarse-resident/raw-results.tar.gz)。

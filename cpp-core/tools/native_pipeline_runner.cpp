@@ -125,6 +125,8 @@ QJsonObject record(const Result& r,bool outputs) {
             {"fine_upload_bytes",double(b.source_upload_bytes)},{"fine_roi_pixels",double(b.roi_pixels)},
             {"fine_repair_pixels",double(b.repair_pixels)},{"fine_peak_batch",double(b.peak_batch_maps)},
             {"device_ms",a.device_ms},{"wait_ms",a.wait_ms},{"copy_ms",a.upload_ms},{"normalization_ms",a.normalization_ms},
+            {"coarse_commands",double(a.command_buffers)},{"coarse_gpu_bytes",double(a.gpu_bytes)},
+            {"coarse_host_scoremap_peak_bytes",double(a.scoremap_peak_bytes)},
             {"async_submitted",double(c.submitted_batches)},{"async_completed",double(c.completed_batches)},
             {"async_maps",double(c.submitted_maps)},{"async_fallback_maps",double(c.fallback_maps)},{"async_max_pending",double(c.max_pending)},
             {"async_device_ms",c.device_ms},{"async_wait_ms",c.finish_wait_ms},{"async_copy_ms",c.copy_ms}});
@@ -197,6 +199,11 @@ int main(int argc,char** argv) {
         settings.residentMode=j["pose_resident_mode"].toInt(0);
         settings.cpuThreads=j["cpu_threads"].toInt(8);settings.sparse.cpuThreads=settings.cpuThreads;
         Options o;o.nccMode=j["ncc_mode"].toInt();o.overlap=j["overlap_enabled"].toBool();o.refine=j["refine"].toBool(true);
+        if (j.contains("coarse_peak_mode") && (!j["coarse_peak_mode"].isDouble() ||
+            j["coarse_peak_mode"].toDouble()!=j["coarse_peak_mode"].toInt(-1) ||
+            j["coarse_peak_mode"].toInt(-1)<0 || j["coarse_peak_mode"].toInt(-1)>2))
+            throw std::invalid_argument("coarse_peak_mode must be integer 0..2");
+        o.coarsePeakMode=j["coarse_peak_mode"].toInt(1);
         o.fineNccMode=j["fine_ncc_mode"].toInt(0);
         o.fineFused=j["fine_fused"].toBool(false);
         o.fineProfiling=j["fine_profiling"].toBool(false); o.fineAngleReuse=j["fine_angle_reuse"].toBool(false);

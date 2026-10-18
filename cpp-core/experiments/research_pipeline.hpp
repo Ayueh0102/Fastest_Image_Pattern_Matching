@@ -26,6 +26,7 @@ struct Settings {
 struct Options {
     MatchConfig match;
     int nccMode = 0;
+    int coarsePeakMode = 1; // 1 exact CPU tree; 2 experimental resident Metal FP32 peaks.
     int fineNccMode = 0; // Metal: 0 original; 1 shared rows; 2/3 strip with chunks 32/16.
     bool fineProfiling = false; // Bounded exact request observation; adds host overhead.
     bool fineAngleReuse = false; // Previous angle planes within one state/layer/pass only.

@@ -71,7 +71,7 @@ struct Frame {
             fpm_frame_set_coarse_optimization(value, &optimization, sizeof(optimization)-1, error, sizeof(error)) == FPM_ERROR &&
             fpm_frame_set_coarse_optimization(value, nullptr, sizeof(optimization), error, sizeof(error)) == FPM_ERROR,
             "invalid coarse optimization config accepted");
-        invalid = optimization; invalid.peak_mode = 2;
+        invalid = optimization; invalid.peak_mode = 3;
         require(fpm_frame_set_coarse_optimization(value, &invalid, sizeof(invalid), error, sizeof(error)) == FPM_ERROR,
             "invalid peak mode accepted");
         invalid = optimization; invalid.ncc_mode = -1;

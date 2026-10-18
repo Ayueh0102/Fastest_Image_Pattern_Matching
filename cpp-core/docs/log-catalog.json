@@ -26,44 +26,44 @@
     "metadata": "Filesystem sidecar metadata",
     "other": "No recognized role; inspect manually"
   },
-  "artifact_count": 418,
-  "artifact_bytes": 1186813010,
+  "artifact_count": 429,
+  "artifact_bytes": 1267242207,
   "artifact_role_counts": {
-    "archive": 58,
+    "archive": 63,
     "calibration": 4,
-    "failure_review": 6,
-    "false_gate": 37,
-    "formal": 5,
+    "failure_review": 7,
+    "false_gate": 39,
+    "formal": 6,
     "input": 21,
     "other": 38,
-    "protocol": 31,
-    "provenance": 31,
-    "raw": 46,
-    "report": 58,
-    "source": 3,
-    "summary": 91,
-    "validation": 62,
+    "protocol": 32,
+    "provenance": 32,
+    "raw": 47,
+    "report": 59,
+    "source": 4,
+    "summary": 93,
+    "validation": 64,
     "visual": 63
   },
-  "archive_member_count": 23617,
+  "archive_member_count": 24143,
   "archive_member_role_counts": {
     "archive": 26,
     "binary": 47,
     "calibration": 1,
     "failure_review": 16,
-    "formal": 13139,
-    "input": 530,
+    "formal": 13306,
+    "input": 540,
     "metadata": 1292,
-    "other": 1198,
-    "pilot": 3506,
-    "protocol": 108,
-    "provenance": 65,
-    "raw": 4833,
-    "report": 69,
-    "source": 8389,
-    "summary": 804,
-    "validation": 253,
-    "visual": 752
+    "other": 1207,
+    "pilot": 3526,
+    "protocol": 109,
+    "provenance": 70,
+    "raw": 4904,
+    "report": 70,
+    "source": 8637,
+    "summary": 824,
+    "validation": 279,
+    "visual": 828
   },
   "artifacts": [
     {
@@ -92,6 +92,16 @@
       "stage": null,
       "bytes": 12104,
       "sha256": "4eec3a797c7a48adacbda4dc1874f54125ec55b3e87dc940ea9b6e68937ae70d",
+      "roles": [
+        "report"
+      ]
+    },
+    {
+      "path": "COARSE_RESIDENT_zh-TW.md",
+      "group": "root",
+      "stage": null,
+      "bytes": 14729,
+      "sha256": "1ae991f98c2396784680b7415095cd5ac4d69347a21b839150a3d8a867952ad0",
       "roles": [
         "report"
       ]
@@ -130,8 +140,8 @@
       "path": "CURRENT_BEST_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 4581,
-      "sha256": "1259f8757d4aab58bbdc082f7e9b7f69958c57bdcf9d385973dabad44b70d760",
+      "bytes": 5392,
+      "sha256": "c2cec13fc52ae4c7e1486d86b1377eaf989cf207fed5925aea3e7da3e4899f18",
       "roles": [
         "report"
       ]
@@ -171,8 +181,8 @@
       "path": "EXPERIMENT_REVIEW_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 61568,
-      "sha256": "c4e6052c0bc81ff725d89201cc2dc02046371347c7f9c9206741b271e12d6ce7",
+      "bytes": 63400,
+      "sha256": "205c1e2e98545ba0120324e516039c24e2b9c4eca1eb3145260b8852ec3563be",
       "roles": [
         "report"
       ]
@@ -271,8 +281,8 @@
       "path": "LOG_CATALOG_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 8558,
-      "sha256": "739514c27932964ff8758e94c2f5e8b8ef0e002c312936e46a0fddfbb8e1e4bb",
+      "bytes": 9065,
+      "sha256": "d58b1a31809b475af48e47ede22d38d9ae798736acad386dccbf31b5131cb266",
       "roles": [
         "report"
       ]
@@ -432,8 +442,8 @@
       "path": "PROJECT_STATUS_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 4272,
-      "sha256": "f2069c629d8b7376ff717b5725e3d570afa80cb182cb4fbeb0bdb4820b938b4f",
+      "bytes": 4829,
+      "sha256": "43d9a1c01f13c46f827c2702dd95ad85155dbdd46dc44e5cb1596a7af05ae4e5",
       "roles": [
         "report"
       ]
@@ -5612,6 +5622,165 @@
       ]
     },
     {
+      "path": "stage36-coarse-resident/archive.json",
+      "group": "stage36-coarse-resident",
+      "stage": "36",
+      "bytes": 2085,
+      "sha256": "9a13324e83905d0f6f8589b6e85600e54a402eac3def9db33d82049e8e033aa7",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage36-coarse-resident/decision-and-failures.json",
+      "group": "stage36-coarse-resident",
+      "stage": "36",
+      "bytes": 1991,
+      "sha256": "3c953fee3c856c192878ae0c3671fe45997ac0b1d704a22b55cabd370ed53007",
+      "roles": [
+        "failure_review",
+        "false_gate"
+      ],
+      "explicit_false_gates": [
+        "/cases/0/performance_pass",
+        "/cases/0/adoption_gate_pass",
+        "/cases/1/performance_pass",
+        "/cases/1/adoption_gate_pass",
+        "/cases/4/performance_pass",
+        "/cases/4/adoption_gate_pass",
+        "/cases/5/performance_pass",
+        "/cases/5/adoption_gate_pass"
+      ]
+    },
+    {
+      "path": "stage36-coarse-resident/formal-summary.json",
+      "group": "stage36-coarse-resident",
+      "stage": "36",
+      "bytes": 31259,
+      "sha256": "21b3b2320d7cf43be53f60aba69417505dd7697df27b5c8ab476e9eb838eb4d1",
+      "roles": [
+        "formal",
+        "summary"
+      ]
+    },
+    {
+      "path": "stage36-coarse-resident/generated-fixtures.tar.gz",
+      "group": "stage36-coarse-resident",
+      "stage": "36",
+      "bytes": 26392228,
+      "sha256": "8661b6485647f5773f00a34895c806634b278b8312d4899544d65c5e58709274",
+      "roles": [
+        "archive"
+      ],
+      "archive_file_count": 9,
+      "archive_role_counts": {
+        "formal": 9,
+        "input": 9,
+        "visual": 9
+      }
+    },
+    {
+      "path": "stage36-coarse-resident/protocol.json",
+      "group": "stage36-coarse-resident",
+      "stage": "36",
+      "bytes": 2030,
+      "sha256": "609bba02221fc760e41dfe6682ef8123b8bee952116f63318fca6e2bc27d8ea8",
+      "roles": [
+        "protocol"
+      ]
+    },
+    {
+      "path": "stage36-coarse-resident/raw-results.tar.gz",
+      "group": "stage36-coarse-resident",
+      "stage": "36",
+      "bytes": 11628101,
+      "sha256": "931fbc4e1fcfeb9a7fa5cc69b4aa3916f8de8b60186acf443f7dad8ad4c18d1a",
+      "roles": [
+        "archive",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 171,
+      "archive_role_counts": {
+        "formal": 158,
+        "other": 1,
+        "pilot": 20,
+        "protocol": 1,
+        "provenance": 3,
+        "raw": 56,
+        "source": 2,
+        "summary": 1,
+        "validation": 1
+      }
+    },
+    {
+      "path": "stage36-coarse-resident/repository-fixtures.tar.gz",
+      "group": "stage36-coarse-resident",
+      "stage": "36",
+      "bytes": 41570213,
+      "sha256": "89a9b7b24dc8ebcbd7d201a3c7bdbe239556651fff5a0cc8ce0e2a90806c100a",
+      "roles": [
+        "archive"
+      ],
+      "archive_file_count": 67,
+      "archive_role_counts": {
+        "visual": 67
+      }
+    },
+    {
+      "path": "stage36-coarse-resident/source-snapshot.tar.gz",
+      "group": "stage36-coarse-resident",
+      "stage": "36",
+      "bytes": 756743,
+      "sha256": "a86bb66e55872f6cdbf3be1dcad0bcf06ba3865ff2b7828acb5f5a0ac386487d",
+      "roles": [
+        "archive",
+        "source"
+      ],
+      "archive_file_count": 256,
+      "archive_role_counts": {
+        "input": 1,
+        "other": 8,
+        "provenance": 1,
+        "report": 1,
+        "source": 246,
+        "summary": 18,
+        "validation": 2
+      }
+    },
+    {
+      "path": "stage36-coarse-resident/validation-logs.tar.gz",
+      "group": "stage36-coarse-resident",
+      "stage": "36",
+      "bytes": 22564,
+      "sha256": "c74073c42f9c718f588c655700493fef53497da848f86b19707f8d17c9678729",
+      "roles": [
+        "archive",
+        "validation"
+      ],
+      "archive_file_count": 23,
+      "archive_role_counts": {
+        "provenance": 1,
+        "raw": 15,
+        "summary": 1,
+        "validation": 23
+      }
+    },
+    {
+      "path": "stage36-coarse-resident/validation.json",
+      "group": "stage36-coarse-resident",
+      "stage": "36",
+      "bytes": 3547,
+      "sha256": "71d85bd04b7628705bdb7cf2013274995a22673f567f9feb3238eb0f599856f3",
+      "roles": [
+        "false_gate",
+        "validation"
+      ],
+      "explicit_false_gates": [
+        "/performance_adoption_pass"
+      ]
+    },
+    {
       "path": "validation-after-refinement.json",
       "group": "root",
       "stage": null,
@@ -5632,5 +5801,5 @@
       ]
     }
   ],
-  "archive_member_index_sha256": "b9bbe76211c8065c1b2145cbe7aa6618df8832d0878d3945ed8ac7410d574358"
+  "archive_member_index_sha256": "e888d0f0d2e96cd6fa1beacb5f7efb9a827e26bf1fdde95764c6b81a34317652"
 }

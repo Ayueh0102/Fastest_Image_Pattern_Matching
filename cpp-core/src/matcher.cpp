@@ -205,7 +205,48 @@ std::vector<Match> detail::matchWithCoarseNcc(ImageView source, const Pattern& p
 	const auto angles = coarseAngles(config, ranges, angleStep(top));
 	const std::size_t batchAngles = provider ? provider->coarseBatchAngles() : 1;
 	if (batchAngles < 1 || batchAngles > 4) throw std::runtime_error("coarse provider batch size must be 1..4");
-	if (provider && provider->coarseOverlapEnabled()) {
+	if (provider && provider->residentCoarsePeaks()) {
+		if (provider->coarseOverlapEnabled())
+			throw std::invalid_argument("resident coarse peaks do not support CPU overlap scheduling");
+		for (std::size_t first = 0; first < angles.size(); first += batchAngles) {
+			std::vector<Canvas> canvases;
+			std::vector<double> batchAngleValues;
+			for (std::size_t i = first; i < std::min(first + batchAngles, angles.size()); ++i) {
+				if (profile) ++profile->coarse_angles;
+				auto canvas = [&] {
+					StageScope stage(stageClock, Stage::CoarseRotation);
+					return rotateCanvas(topSource.view(), topW, topH, angles[i], pattern.borderColor());
+				}();
+				if (profile) {
+					const auto bytes = std::uint64_t(canvas.image.width()) * canvas.image.height();
+					profile->coarse_rotation_total_bytes += bytes;
+					profile->coarse_rotation_peak_bytes = std::max(profile->coarse_rotation_peak_bytes, bytes);
+				}
+				if (canvas.image.width() < topW || canvas.image.height() < topH) continue;
+				batchAngleValues.push_back(angles[i]); canvases.push_back(std::move(canvas));
+			}
+			if (canvases.empty()) continue;
+			std::vector<ImageView> views;
+			for (const auto& canvas : canvases) views.push_back(canvas.image.view());
+			auto peaks = [&] {
+				StageScope stage(stageClock, Stage::CoarseNcc);
+				return provider->computePeakBatch(views, topTemplate,
+					config.maxTargets + EXTRA_CANDIDATES, config.maxOverlap, thresholds[top]);
+			}();
+			if (peaks.size() != canvases.size()) throw std::runtime_error("invalid resident peak batch");
+			for (std::size_t i = 0; i < peaks.size(); ++i) {
+				if (profile) {
+					++profile->coarse_maps;
+					profile->coarse_windows += std::uint64_t(canvases[i].image.width()-topW+1) *
+						(canvases[i].image.height()-topH+1);
+				}
+				for (const auto& peak : peaks[i]) {
+					const Point rotated{peak.x-canvases[i].translation.x, peak.y-canvases[i].translation.y};
+					candidates.push_back({rotate(rotated, center, -batchAngleValues[i]), batchAngleValues[i], peak.score});
+				}
+			}
+		}
+	} else if (provider && provider->coarseOverlapEnabled()) {
 		// GPU slots own their input snapshots. CPU canvases can be released as
 		// soon as begin returns; only angle/translation metadata stays live.
 		// Submit the following batch before consuming the previous one, so

@@ -37,6 +37,14 @@ struct Config {
 };
 struct Stats32 { uint32_t sum, square, product; };
 struct Stats64 { uint64_t sum, square, product; };
+struct ResidentPeakConfig {
+    uint32_t width, height, count, limit;
+    uint64_t area, templateSum, templateVariance;
+    uint32_t first, windows;
+    float threshold; uint32_t degenerate;
+};
+struct ResidentPeak { uint32_t x, y; float score; uint32_t reserved; };
+static_assert(sizeof(ResidentPeakConfig) == 56 && sizeof(ResidentPeak) == 16, "resident peak ABI");
 struct PyramidConfig { uint32_t width, height, outputWidth, outputHeight; };
 static_assert(sizeof(Config) == 32 && sizeof(Stats32) == 12 && sizeof(Stats64) == 24,
     "Metal statistics ABI changed");
@@ -63,6 +71,8 @@ class MetalBackend final : public Backend {
     id<MTLComputePipelineState> parallelStats32_, parallelStats64_;
     id<MTLComputePipelineState> stripStats32_, stripStats64_, stagedStats32_, stagedStats64_;
     int coarsePeakMode_ = 0, coarseNccMode_ = 0;
+    id<MTLComputePipelineState> residentNormalize32_, residentNormalize64_, residentPeaks_;
+    id<MTLBuffer> residentScores_, residentBounds_, residentOutput_;
     id<MTLComputePipelineState> pyramidDirect_, pyramidHorizontal_, pyramidVertical_;
     id<MTLComputePipelineState> fineWarp_, fineStats32_, fineStats64_;
     id<MTLComputePipelineState> fineRows32_, fineRows64_, fineShared32_, fineShared64_;
@@ -256,8 +266,24 @@ public:
     }
     void setCoarseOptimization(int peakMode, int nccMode) override {
         requireCoarseIdle();
-        if (peakMode < 0 || peakMode > 1 || nccMode < 0 || nccMode > 3)
-            throw std::invalid_argument("coarse peak mode must be 0..1 and NCC mode 0..3");
+        if (peakMode < 0 || peakMode > 2 || nccMode < 0 || nccMode > 3)
+            throw std::invalid_argument("coarse peak mode must be 0..2 and NCC mode 0..3");
+        if (peakMode == 2 && coarseOverlap_)
+            throw std::invalid_argument("resident peaks require overlap scheduling off");
+        if (peakMode == 2 && !residentPeaks_) {
+            auto pipeline = [&](NSString* name) {
+                NSError* error = nil;
+                auto p = [device_ newComputePipelineStateWithFunction:[library_ newFunctionWithName:name] error:&error];
+                if (!p) throw metalError("resident peak pipeline", error);
+                if (p.maxTotalThreadsPerThreadgroup < 256)
+                    throw std::runtime_error("resident peaks require 256-thread workgroups");
+                return p;
+            };
+            auto n32 = pipeline(@"resident_normalize32");
+            auto n64 = pipeline(@"resident_normalize64");
+            auto peaks = pipeline(@"resident_greedy_peaks");
+            residentNormalize32_ = n32; residentNormalize64_ = n64; residentPeaks_ = peaks;
+        }
         if (nccMode == 1 && !parallelStats32_) {
             @autoreleasepool {
                 NSError* error = nil;
@@ -293,8 +319,11 @@ public:
         coarsePeakMode_ = peakMode; coarseNccMode_ = nccMode;
     }
     bool fastCoarsePeaks() const override { return coarsePeakMode_ == 1; }
+    bool residentCoarsePeaks() const override { return coarsePeakMode_ == 2; }
     void setCoarseOverlap(bool enabled) override {
-        requireCoarseIdle(); coarseOverlap_ = enabled;
+        requireCoarseIdle();
+        if (enabled && residentCoarsePeaks()) throw std::invalid_argument("resident peaks require overlap scheduling off");
+        coarseOverlap_ = enabled;
     }
     bool coarseOverlapEnabled() const override { return coarseOverlap_; }
     FpmCoarseOverlapMetricsV1 coarseOverlapMetrics() const override {
@@ -467,6 +496,9 @@ public:
         const auto overlap = coarseOverlapMetrics();
         m.workspace_bytes += overlap.slot0_statistics_bytes + overlap.slot1_statistics_bytes;
         m.gpu_bytes += overlap.retained_gpu_bytes;
+        const uint64_t residentBytes = (residentScores_ ? residentScores_.length : 0) +
+            (residentBounds_ ? residentBounds_.length : 0) + (residentOutput_ ? residentOutput_.length : 0);
+        m.workspace_bytes += residentBytes; m.gpu_bytes += residentBytes;
         m.source_buffer_bytes += overlap.slot0_source_bytes + overlap.slot1_source_bytes;
         m.template_buffer_bytes += overlap.slot0_template_bytes + overlap.slot1_template_bytes;
         return m;
@@ -1105,6 +1137,153 @@ public:
             }
             metrics_.ncc_ms += elapsed(start);
             return map;
+        }
+    }
+    std::vector<std::vector<fpm::detail::Peak>> computePeakBatch(
+        const std::vector<fpm::ImageView>& sources, const fpm::TemplateLevel& templ,
+        int limit, double overlap, double threshold) override
+    {
+        @autoreleasepool {
+            requireCoarseIdle();
+            if (!residentCoarsePeaks() || coarseOverlap_)
+                throw std::invalid_argument("resident peaks require peak_mode=2 and overlap off");
+            if (limit < 1 || limit > 10016 || !std::isfinite(overlap) || overlap < 0 || overlap > 1 ||
+                !std::isfinite(threshold) || threshold < -1 || threshold > 1)
+                throw std::invalid_argument("invalid resident peak request");
+            const int tw = templ.image.width(), th = templ.image.height();
+            if (tw < 1 || th < 1) throw std::invalid_argument("empty resident template");
+            const uint64_t area = uint64_t(tw)*th;
+            if (area > UINT64_MAX/65025/area)
+                throw std::invalid_argument("resident centered moments exceed uint64 range");
+            uint64_t ts = 0, tq = 0;
+            for (int y = 0; y < th; ++y) for (int x = 0; x < tw; ++x) {
+                const uint64_t v = templ.image.row(y)[x]; ts += v; tq += v*v;
+            }
+            const bool use32 = area <= UINT32_MAX/uint64_t(65025);
+            const size_t statBytes = use32 ? sizeof(Stats32) : sizeof(Stats64);
+            const size_t chunk = WORKSPACE_LIMIT/statBytes;
+            const bool degenerate = templ.norm*templ.norm/double(area) < DBL_EPSILON;
+            // Comparing stored FP32 scores against this upward-rounded cutoff
+            // is equivalent to comparing them against the caller's double.
+            float cutoff = float(threshold);
+            if (double(cutoff) < threshold) cutoff = std::nextafter(cutoff, INFINITY);
+            struct Item { uint32_t w, h; size_t windows, bytes, boundsBytes; };
+            std::vector<Item> items;
+            for (const auto& source : sources) {
+                fpm::detail::validateImage(source);
+                const int w = source.width-tw+1, h = source.height-th+1;
+                if (w < 1 || h < 1) throw std::invalid_argument("resident template must fit source");
+                const size_t n = size_t(w)*h, bytes = size_t(source.width)*source.height;
+                // Explicit failure, never truncate candidates or silently fall
+                // back to CPU. The limits concern one coarse canvas/map.
+                if (n > SOURCE_ARENA_LIMIT/sizeof(float) || bytes > SOURCE_ARENA_LIMIT)
+                    throw std::invalid_argument("resident coarse map/source exceeds 64 MiB arena");
+                items.push_back({uint32_t(w), uint32_t(h), n, bytes, 2*(size_t(w)+h)*sizeof(int32_t)});
+            }
+            std::vector<std::vector<fpm::detail::Peak>> result(sources.size());
+            for (size_t first = 0; first < sources.size();) {
+                const auto start = Clock::now();
+                size_t count = 0, sourceBytes = 0, scoreBytes = 0, boundsBytes = 0, outBytes = 0, maxChunk = 0;
+                std::array<size_t,4> srcOffsets{}, scoreOffsets{}, boundsOffsets{}, outOffsets{};
+                while (count < size_t(execution_.batch_angles) && first+count < sources.size()) {
+                    const auto& item = items[first+count];
+                    const size_t so = alignedBytes(sourceBytes), sc = alignedBytes(scoreBytes);
+                    if (so+item.bytes > SOURCE_ARENA_LIMIT || sc+item.windows*sizeof(float) > SOURCE_ARENA_LIMIT) break;
+                    srcOffsets[count] = so; scoreOffsets[count] = sc;
+                    boundsOffsets[count] = alignedBytes(boundsBytes); outOffsets[count] = alignedBytes(outBytes);
+                    sourceBytes = so+item.bytes; scoreBytes = sc+item.windows*sizeof(float);
+                    boundsBytes = boundsOffsets[count]+item.boundsBytes;
+                    outBytes = outOffsets[count]+256+size_t(limit)*sizeof(ResidentPeak);
+                    maxChunk = std::max(maxChunk, std::min(chunk, item.windows)); ++count;
+                }
+                if (!count) throw std::runtime_error("resident batch made no progress");
+                ensure(batchSource_, sourceBytes); ensure(template_, size_t(area));
+                ensure(workspace_, maxChunk*statBytes); ensure(residentScores_, scoreBytes);
+                ensure(residentBounds_, boundsBytes); ensure(residentOutput_, outBytes);
+                const auto upload = Clock::now();
+                std::memcpy(template_.contents, templ.image.view().data, size_t(area)); uploadedTemplate_ = &templ;
+                for (size_t i = 0; i < count; ++i) {
+                    const auto& source = sources[first+i]; const auto& item = items[first+i];
+                    for (int y = 0; y < source.height; ++y)
+                        std::memcpy(static_cast<uint8_t*>(batchSource_.contents)+srcOffsets[i]+size_t(y)*source.width,
+                            source.data+size_t(y)*source.stride, source.width);
+                    auto* bounds = reinterpret_cast<int32_t*>(static_cast<uint8_t*>(residentBounds_.contents)+boundsOffsets[i]);
+                    auto fillBounds = [&](uint32_t length, int templLength, int32_t* out) {
+                        const double radius = templLength*(1-overlap);
+                        for (uint32_t p = 0; p < length; ++p) {
+                            const int left = int(double(p)-radius);
+                            out[2*p] = std::max(0, std::min(int(p), left));
+                            out[2*p+1] = std::min(int(length), std::max(int(p)+1, left+int(2*radius)));
+                        }
+                    };
+                    fillBounds(item.w, tw, bounds); fillBounds(item.h, th, bounds+2*item.w);
+                    executionMetrics_.batch_source_upload_bytes += item.bytes;
+                    ++metrics_.score_maps; metrics_.windows += item.windows;
+                    if (use32) ++metrics_.integer32_maps; else ++metrics_.integer64_maps;
+                }
+                metrics_.upload_ms += elapsed(upload);
+                const auto encode = Clock::now();
+                auto command = [queue_ commandBuffer];
+                if (!command) throw std::runtime_error("resident command buffer creation failed");
+                auto encoderFor = [&](id<MTLComputePipelineState> pipeline) {
+                    auto encoder = [command computeCommandEncoder];
+                    if (!encoder) throw std::runtime_error("resident encoder creation failed");
+                    [encoder setComputePipelineState:pipeline]; return encoder;
+                };
+                for (size_t i = 0; i < count; ++i) {
+                    const auto& item = items[first+i]; const auto& source = sources[first+i];
+                    ResidentPeakConfig pc{item.w, item.h, 0, uint32_t(limit), area, ts, area*tq-ts*ts,
+                        0, uint32_t(item.windows), cutoff, uint32_t(degenerate)};
+                    for (size_t offset = 0; offset < item.windows; offset += chunk) {
+                        pc.first = uint32_t(offset); pc.count = uint32_t(std::min(chunk, item.windows-offset));
+                        if (!degenerate) {
+                            const Config config{uint32_t(source.width),uint32_t(tw),uint32_t(th),item.w,
+                                offset,pc.count,0};
+                            auto encoder = encoderFor(coarsePipeline(use32));
+                            [encoder setBuffer:batchSource_ offset:srcOffsets[i] atIndex:0];
+                            [encoder setBuffer:template_ offset:0 atIndex:1];
+                            [encoder setBuffer:workspace_ offset:0 atIndex:2];
+                            [encoder setBytes:&config length:sizeof(config) atIndex:3];
+                            dispatchCoarse(encoder, coarsePipeline(use32), config); [encoder endEncoding];
+                        }
+                        auto norm = encoderFor(use32 ? residentNormalize32_ : residentNormalize64_);
+                        [norm setBuffer:workspace_ offset:0 atIndex:0];
+                        [norm setBuffer:residentScores_ offset:scoreOffsets[i] atIndex:1];
+                        [norm setBytes:&pc length:sizeof(pc) atIndex:2];
+                        [norm dispatchThreads:MTLSizeMake(pc.count,1,1) threadsPerThreadgroup:MTLSizeMake(256,1,1)];
+                        [norm endEncoding];
+                    }
+                    auto peaks = encoderFor(residentPeaks_);
+                    [peaks setBuffer:residentScores_ offset:scoreOffsets[i] atIndex:0];
+                    [peaks setBuffer:residentBounds_ offset:boundsOffsets[i] atIndex:1];
+                    [peaks setBuffer:residentOutput_ offset:outOffsets[i]+256 atIndex:2];
+                    [peaks setBuffer:residentOutput_ offset:outOffsets[i] atIndex:3];
+                    [peaks setBytes:&pc length:sizeof(pc) atIndex:4];
+                    [peaks dispatchThreadgroups:MTLSizeMake(1,1,1) threadsPerThreadgroup:MTLSizeMake(256,1,1)];
+                    [peaks endEncoding];
+                }
+                executionMetrics_.batch_encode_ms += elapsed(encode);
+                const auto wait = Clock::now(); [command commit]; [command waitUntilCompleted];
+                metrics_.wait_ms += elapsed(wait); ++metrics_.command_buffers;
+                if (command.status != MTLCommandBufferStatusCompleted) throw metalError("resident coarse execution", command.error);
+                if (command.GPUStartTime > 0 && command.GPUEndTime > command.GPUStartTime) {
+                    if (metrics_.device_ms >= 0) metrics_.device_ms += 1000*(command.GPUEndTime-command.GPUStartTime);
+                } else metrics_.device_ms = -1;
+                ++executionMetrics_.batch_calls; executionMetrics_.batch_maps += count;
+                executionMetrics_.max_batch_maps = std::max<uint64_t>(executionMetrics_.max_batch_maps,count);
+                // CPU consumes only the compact list. Dense statistics/scores
+                // are not scanned or normalized on the CPU in this route.
+                for (size_t i = 0; i < count; ++i) {
+                    const auto* bytes = static_cast<const uint8_t*>(residentOutput_.contents)+outOffsets[i];
+                    const uint32_t n = *reinterpret_cast<const uint32_t*>(bytes);
+                    if (n > uint32_t(limit)) throw std::runtime_error("resident peak output overflow");
+                    const auto* peaks = reinterpret_cast<const ResidentPeak*>(bytes+256);
+                    auto& out = result[first+i]; out.reserve(n);
+                    for (uint32_t j = 0; j < n; ++j) out.push_back({int(peaks[j].x),int(peaks[j].y),double(peaks[j].score)});
+                }
+                metrics_.ncc_ms += elapsed(start); first += count;
+            }
+            return result;
         }
     }
     std::vector<fpm::detail::ScoreMap> computeBatch(const std::vector<fpm::ImageView>& sources,

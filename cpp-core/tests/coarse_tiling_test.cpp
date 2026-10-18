@@ -264,7 +264,7 @@ void configuration()
             auto invalid = valid;
             if (kind == 0) invalid.version = 2;
             if (kind == 1) invalid.struct_bytes = sizeof(invalid)-1;
-            if (kind == 2) invalid.peak_mode = 2;
+            if (kind == 2) invalid.peak_mode = 3;
             if (kind == 3) invalid.peak_mode = -1;
             if (kind == 4) invalid.ncc_mode = -1;
             if (kind == 5) invalid.ncc_mode = 4;

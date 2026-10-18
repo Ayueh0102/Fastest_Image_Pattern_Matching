@@ -1,0 +1,33 @@
+{
+  "stage": 36,
+  "date": "2026-10-18",
+  "comparison": "same-build CPU binary64 normalization + exact tree vs Metal centered-integer FP32 normalization + resident greedy selection",
+  "methods": {
+    "cpu_peaks": 1,
+    "metal_resident_peaks": 2
+  },
+  "blocks": 4,
+  "repeats": 3,
+  "warmup_seconds": 1,
+  "cases": [
+    "controlled6",
+    "heldout12",
+    "small_fullres",
+    "8k_t256_angle180_3scales",
+    "many128_pose",
+    "many512_pose"
+  ],
+  "timing": "Fresh serial processes; method order reversed every block; setup/first/warmup separate; full algorithm includes frame prepare, proposals, refinement and NMS; no image decoding or serialization.",
+  "accuracy": "Independent strict GT: position <=2 px, angle <=1 degree, relative scale <=2%; report all calls and exact ordered output differences, never use GT in worker.",
+  "performance_budget": "Every paired block: resident <= control + max(2 ms,10% of control). Passing budget does not prove acceleration.",
+  "memory_budget": "Peak RSS <= control + max(8 MiB,10% of control). GPU buffer capacities are overlapping accounting, not added to RSS.",
+  "numeric_contract": "Preserve gray8 exact integer moments; integer centering before FP32. Not binary64-identical. Greedy geometry and score/y/x ties retained for computed scores.",
+  "scope": "Resident coarse NCC + normalization + greedy peaks; CPU coarse rotation, endpoint-table setup, compact handoff, fine control/repair/normalization and final NMS remain.",
+  "limits": "One coarse canvas <=64 MiB gray8; one score map <=64 MiB FP32; 65025*N*N <= UINT64_MAX; limit 1..10016; async CPU overlap incompatible; violations throw.",
+  "hypotheses": [
+    "Less dense CPU readback can reduce RSS and host work.",
+    "Single-workgroup greedy decisions may limit GPU occupancy and scale poorly with candidate count."
+  ],
+  "retention": "Retain source, raw pilot/formal/validation, and unsuccessful results for CUDA comparison; no GUI/default change.",
+  "base_commit": "996aff6d2b4271e6c86e83a62487f9c3dc293491"
+}

@@ -48,7 +48,7 @@ English overview: This repository preserves the original MFC application and dev
 最後驗分 → 去除重疊 → 位置、角度、尺度與分數
 ```
 
-固定尺度稀疏研究路徑以前段方向特徵提案取代密集金字塔候選搜尋，仍需要 NCC 驗分與精修。兩條路徑的時間不應混在同一張表中。CPU 與 Metal 分工取決於選項；CPU 選峰、驗分與控制仍存在，尚非全 GPU 流程。
+固定尺度稀疏研究路徑以前段方向特徵提案取代密集金字塔候選搜尋，仍需要 NCC 驗分與精修。兩條路徑的時間不應混在同一張表中。CPU 與 Metal 分工取決於選項。建議路徑仍以CPU精確選峰；第36輪新增[Metal常駐粗正規化與選峰](../cpp-core/docs/COARSE_RESIDENT_zh-TW.md)研究選項，只讀回候選，但大量候選時更慢。CPU粗旋轉、細搜尋數值修補／控制與最終NMS仍存在，尚非全GPU流程。
 
 同一模板可以重用模型。新影格可透過研究 `Session::updateSource` 更新來源，影像相關資料仍須重新準備；不能把上一張圖的金字塔當成新圖快取。每個 Session 一次只允許一個呼叫者。
 

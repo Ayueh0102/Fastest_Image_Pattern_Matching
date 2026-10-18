@@ -80,6 +80,7 @@ void validateOptions(const Options& o,int backend) {
        !std::isfinite(c.toleranceAngle) || c.toleranceAngle<0 || c.toleranceAngle>180 ||
        (c.stopLayer!=0 && c.stopLayer!=1) || !std::isfinite(o.proposalScore) || o.proposalScore<0 || o.proposalScore>1 ||
        o.nccMode<0 || o.nccMode>3 || o.fineNccMode<0 || o.fineNccMode>3 ||
+       o.coarsePeakMode<0 || o.coarsePeakMode>2 || (o.coarsePeakMode==2 && (backend==0 || o.overlap)) ||
        (backend==0 && (o.nccMode || o.fineNccMode || o.fineProfiling || o.fineAngleReuse || o.fineFused || o.overlap)))
         throw std::invalid_argument("Invalid matching options or GPU option selected for CPU");
     if(c.coarseNccPruning) throw std::invalid_argument("Research frame does not support coarse pruning");
@@ -195,7 +196,7 @@ Result Session::run(const Options& o) {
     if(s.sparse) {
         // Orientation similarity is not NCC and cannot be used as a final
         // confidence. Keep all raw proposals visible for recall auditing.
-        if(!o.refine || o.match.stopLayer!=0 || o.nccMode || o.fineNccMode || o.fineProfiling || o.fineAngleReuse || o.fineFused || o.overlap)
+        if(!o.refine || o.match.stopLayer!=0 || o.nccMode || o.fineNccMode || o.fineProfiling || o.fineAngleReuse || o.fineFused || o.overlap || o.coarsePeakMode==2)
             throw std::invalid_argument("Sparse orientation requires full NCC refinement, stopLayer=0, nccMode=0, fineNccMode=0 and overlap scheduling off");
         auto result=s.sparse->search(s.source.view(),o.match);
         r.sparseEnabled=true;r.sparse=result.metrics;
@@ -204,7 +205,11 @@ Result Session::run(const Options& o) {
         r.prepareMs=r.sparse.sourcePrepareMs;
     } else {
         if(s.settings.backend) {
-            FpmCoarseOptimizationConfigV1 opt{1,sizeof(opt),1,o.nccMode,0,0};
+            if (o.coarsePeakMode==2) {
+                FpmCoarseOverlapConfigV1 off{1,sizeof(off),0,0,0,0};
+                check(fpm_frame_set_coarse_overlap(s.frame.get(),&off,sizeof(off),error,sizeof(error)),error);
+            }
+            FpmCoarseOptimizationConfigV1 opt{1,sizeof(opt),o.coarsePeakMode,o.nccMode,0,0};
             check(fpm_frame_set_coarse_optimization(s.frame.get(),&opt,sizeof(opt),error,sizeof(error)),error);
             FpmCoarseOverlapConfigV1 optOverlap{1,sizeof(optOverlap),int(o.overlap),0,0,0};
             check(fpm_frame_set_coarse_overlap(s.frame.get(),&optOverlap,sizeof(optOverlap),error,sizeof(error)),error);
