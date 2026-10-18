@@ -1,0 +1,57 @@
+{
+  "stage": 38,
+  "date": "2026-10-18",
+  "baseline_commit": "b9b2ad7",
+  "question": "Diagnose full resident GPU slowdown at128/512 objects, then evaluate exact tiled parallel coarse peak selection.",
+  "scope": "Dense gray8 full Metal data path; existing hybrid route retained.",
+  "profiling": "Encoder-boundary timestamp counters in same command buffer, no intermediate host wait. Diagnostic profiles reported separately from uninstrumented formal timing; unavailable samples never treated as zero.",
+  "methods": [
+    "hybrid_best",
+    "full_gpu",
+    "full_gpu_tiled"
+  ],
+  "primary_cases": [
+    "many128_pose",
+    "many512_pose"
+  ],
+  "regression_cases": [
+    "controlled6",
+    "8k_t256_angle180_3scales"
+  ],
+  "formal": {
+    "blocks": 3,
+    "repeats": 2,
+    "warmup_seconds": 1,
+    "order": "fresh processes, alternating order each block",
+    "clock": "algorithm total time excludes decoding/session construction/JSON/GT"
+  },
+  "accuracy": {
+    "independent_one_to_one_gt": true,
+    "position_px": 2,
+    "angle_deg": 1,
+    "relative_scale": 0.02,
+    "false_positives": 0,
+    "false_negatives": 0,
+    "tiled_exact_ordered_matches_and_proposals_vs_original_gpu": true
+  },
+  "gates": {
+    "runtime": "each paired block <= control + max(2 ms,10%); compare to original GPU and hybrid separately",
+    "primary_speedup_target": "at least20% median time reduction on both128 and512 vs original GPU, all block regressions bounded",
+    "rss": "peak process RSS <= control + max(8 MiB,10%)",
+    "named_metal_buffers": "report exact allocations and new scratch separately,1GiB hard arena limit unchanged; no total physical memory claim",
+    "residency": {
+      "command_buffers": 1,
+      "cpu_waits": 1,
+      "intermediate_readbacks": 0,
+      "cpu_algorithm_steps": 0
+    }
+  },
+  "design": "Each256-entry tile sorts every score/index pair in parallel; exact GPU merge skips suppressed sorted heads using original score cutoff, index tie rule and suppression rectangles. No truncated local top-K, no approximate NMS.",
+  "retention": "Retain oldmode0/newmode1,complete source,negative cases,profile/protocol/raw outputs/hash manifests; defaults unchanged until measured.",
+  "limits": [
+    "Only Metal M4Pro measured",
+    "No CUDA or RGB extension this round",
+    "No new long soak",
+    "Profile counters add overhead and are not formal performance runs"
+  ]
+}

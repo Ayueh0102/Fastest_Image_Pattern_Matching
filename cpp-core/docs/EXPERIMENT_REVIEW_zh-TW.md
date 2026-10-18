@@ -411,3 +411,13 @@ Release 54/54、相關ASan／UBSan 2/2及Python工具75項通過。正式／有�
 - 記憶體：512程序RSS443.42→167.23MiB，新後端另持有227.69MiB自有Metal buffers；統一記憶體範圍不同不能相加。總GPU區間占主要耗時，不能把它算成CPU往返或明確輸入memcpy成本。
 - 驗證：Release58／58、Metal API／Shader Validation、ASan／UBSan、12項量測負控制通過；來源、輸入、原始結果與重播分開封存。Shader Validation使用4KiB快取，正式性能使用16KiB，演算法與取樣規則不變。
 - 證據：[完整報告](FULL_GPU_zh-TW.md)、[正式摘要](stage37-full-gpu/formal-summary.json)、[採用與失敗](stage37-full-gpu/decision-and-failures.json)、[完整源碼與封存](stage37-full-gpu/)。CUDA、實拍RGB全流程及新30分鐘長跑未驗收。
+
+### 38. 大量物件GPU分段計時與精確分塊選峰（2026-10-18）
+
+- 診斷：128／512原完整GPU粗選峰占GPU區間85.4%／91.1%；同一提交內使用encoder timestamp，唯一等待後解析，保留計時誤差及早期零樣本失敗。
+- 實作：每256筆完整並行排序、GPU精確合併與單調游標；每圖兩dispatch，不截斷top-K。舊模式0與新模式1都保留。
+- 正式：四場景×三方法×三交錯block，36程序／108次首次與正式GT；全部零FP／FN，分塊與原GPU的有序matches及proposals完全一致。
+- 結果：128原GPU4780.28→963.84ms（−79.8%）；512為26121.91→3328.02ms（−87.3%）。額外自有GPU暫存3.74／8.60MiB，RSS93.02→93.11／164.86→165.08MiB；不能相加。
+- 決定：完整GPU研究建議mode1；相對原GPU四場景速度／RSS門檻全過。相對混合，128／512仍慢15.5%／38.7%，另含6物件共九個速度gate失敗；不改通用混合預設。8K分塊71.23ms，比混合257.31ms快72.3%。
+- 驗證：Release61／61、64組選峰差分、Metal API／Shader與封存來源ASan／UBSan均通過；18個量測負控制與8個非法JSON輸入通過。計時與正式結果分開保存。
+- 證據：[報告與數學不變量](GPU_TILED_PEAKS_zh-TW.md)、[正式摘要](stage38-gpu-peaks/formal-summary.json)、[原選峰診斷](stage38-gpu-peaks/profile-original-summary.json)、[分塊診斷](stage38-gpu-peaks/profile-tiled-summary.json)、[封存](stage38-gpu-peaks/)。下一輪細搜尋分列快取僅有源碼分析，尚無加速實測。

@@ -42,6 +42,7 @@
 | 35 | 密集實拍、RGB驗色與小模板召回 | [stage35-real-rgb](stage35-real-rgb/)、[報告](STAGE35_REAL_RGB_zh-TW.md) |
 | 36 | Metal常駐粗選峰、少／多候選的性能反例 | [stage36-coarse-resident](stage36-coarse-resident/)、[報告](COARSE_RESIDENT_zh-TW.md) |
 | 37 | 完整灰階Metal常駐、獨立GT、9場景與同步／門檻修正 | [stage37-full-gpu](stage37-full-gpu/)、[完整報告](FULL_GPU_zh-TW.md) |
+| 38 | 128／512 GPU分段計時、精確分塊排序／合併 | [stage38-gpu-peaks](stage38-gpu-peaks/)、[報告](GPU_TILED_PEAKS_zh-TW.md) |
 
 新一輪正式結果由[實驗總索引](EXPERIMENT_REVIEW_zh-TW.md)連接，重新產生機器索引即可列出新增資料。沒有階段對照的目錄保留 `stage: null`，不猜測輪次或把它算成通過項目。
 
@@ -104,3 +105,5 @@ for member in index["members"]:
 新增資料後先產生索引，再執行 `--check`。索引檔的時間與記憶體分類只提供查詢入口；不將不同輪次結果直接合併成一個總速度，也不把歷史失敗從目錄隱藏。
 
 第37輪將探索pilot、凍結來源的formal、單元測試早期失敗、共同金字塔失敗、Metal儀器化容量限制與修正、ASan／UBSan、審查紀錄分開保存。正式數據的源碼／binary／輸入hash與source snapshot對應；pilot保留當時hash與結果，不聲稱pilot具有獨立可重建的完整來源快照。詳細分類見本輪archive與validation索引。
+
+第38輪將profile-original、profile-tiled與未插樁formal分開；診斷不混入速度gate。早期GPU counter resolve零值、修正前host來源、獨立stage稽核、64組選峰差分、JSON負控制、乾淨重建與sanitizer分別保留。九個相對混合的速度gate失敗不因分塊較舊GPU顯著改善而移除；下一輪細搜尋建議明確標示為尚未實測的源碼分析。

@@ -57,7 +57,16 @@ QJsonObject record(const Result& r,bool outputs) {
     const auto& gpu=r.fullGpu;
     o["stage_timings_available"]=!gpu.enabled;
     o["legacy_backend_metrics_available"]=!gpu.enabled;
+    QJsonArray gpuStages;
+    for(const auto& stage:gpu.stages) gpuStages.append(QJsonObject{{"name",QString::fromStdString(stage.name)},
+        {"gpu_ms",stage.gpuMs},{"encoders",double(stage.encoders)}});
     o["full_gpu"]=QJsonObject{{"enabled",gpu.enabled},{"command_buffers",double(gpu.commandBuffers)},
+        {"peak_mode",gpu.peakMode},{"peak_scratch_bytes",double(gpu.peakScratchBytes)},
+        {"profile_requested",gpu.profileRequested},{"profile_available",gpu.profileAvailable},
+        {"profile_status",QString::fromStdString(gpu.profileStatus)},{"profile_samples",double(gpu.profileSamples)},
+        {"profile_counter_bytes",double(gpu.profileCounterBytes)},{"profile_resolve_bytes",double(gpu.profileResolveBytes)},
+        {"profile_host_ms",gpu.profileHostMs},{"stages",gpuStages},
+        {"profile_gpu_ms",gpu.profileAvailable ? QJsonValue(gpu.profileGpuMs):QJsonValue(QJsonValue::Null)},
         {"cpu_waits",double(gpu.cpuWaits)},{"intermediate_readbacks",double(gpu.intermediateReadbacks)},
         {"cpu_algorithm_steps",double(gpu.cpuAlgorithmSteps)},{"gpu_bytes",double(gpu.gpuBytes)},
         {"upload_bytes",double(gpu.uploadBytes)},{"readback_bytes",double(gpu.readbackBytes)},
@@ -213,6 +222,14 @@ int main(int argc,char** argv) {
         settings.residentMode=j["pose_resident_mode"].toInt(0);
         settings.cpuThreads=j["cpu_threads"].toInt(8);settings.sparse.cpuThreads=settings.cpuThreads;
         Options o;o.nccMode=j["ncc_mode"].toInt();o.overlap=j["overlap_enabled"].toBool();o.refine=j["refine"].toBool(true);
+        if(j.contains("full_gpu_profiling") && !j["full_gpu_profiling"].isBool())
+            throw std::invalid_argument("full_gpu_profiling must be boolean");
+        o.fullGpuProfiling=j["full_gpu_profiling"].toBool(false);
+        if(j.contains("full_gpu_peak_mode") && (!j["full_gpu_peak_mode"].isDouble() ||
+            j["full_gpu_peak_mode"].toDouble()!=j["full_gpu_peak_mode"].toInt(-1) ||
+            j["full_gpu_peak_mode"].toInt(-1)<0 || j["full_gpu_peak_mode"].toInt(-1)>1))
+            throw std::invalid_argument("full_gpu_peak_mode must be integer 0..1");
+        o.fullGpuPeakMode=j["full_gpu_peak_mode"].toInt(0);
         if (j.contains("coarse_peak_mode") && (!j["coarse_peak_mode"].isDouble() ||
             j["coarse_peak_mode"].toDouble()!=j["coarse_peak_mode"].toInt(-1) ||
             j["coarse_peak_mode"].toInt(-1)<0 || j["coarse_peak_mode"].toInt(-1)>2))

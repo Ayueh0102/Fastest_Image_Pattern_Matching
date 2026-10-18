@@ -5,6 +5,7 @@
 #include "pose_ncc.h"
 #include "sparse_orientation.hpp"
 #include <memory>
+#include <string>
 
 namespace fpm::research {
 // Native orchestration of the previously Python-driven gray8 experiment.
@@ -26,6 +27,8 @@ struct Settings {
 };
 struct Options {
     MatchConfig match;
+    int fullGpuPeakMode = 0; // Full resident path: 0 original stripes; 1 exact sorted-tile merge.
+    bool fullGpuProfiling = false; // Encoder GPU timestamps; diagnostic overhead, no intermediate waits.
     int nccMode = 0;
     int coarsePeakMode = 1; // 1 exact CPU tree; 2 experimental resident Metal FP32 peaks.
     int fineNccMode = 0; // Metal: 0 original; 1 shared rows; 2/3 strip with chunks 32/16.
@@ -43,11 +46,23 @@ struct SourceUpdate {
     size_t retainedModels = 0; // Learned coarse models, or one sparse template model.
     bool dimensionsChanged = false, poseInvalidated = false;
 };
+struct FullGpuStageTiming {
+    std::string name;
+    double gpuMs = 0;
+    uint64_t encoders = 0;
+};
 struct FullGpuMetrics {
     bool enabled = false;
+    int peakMode = 0;
+    uint64_t peakScratchBytes = 0;
     uint64_t commandBuffers = 0, cpuWaits = 0, intermediateReadbacks = 0, cpuAlgorithmSteps = 0;
     uint64_t gpuBytes = 0, uploadBytes = 0, readbackBytes = 0, dispatches = 0, fineRoiCacheBytes = 0;
     double encodeMs = 0, waitMs = 0, deviceMs = 0, uploadMs = 0, readbackMs = 0;
+    bool profileRequested = false, profileAvailable = false;
+    std::string profileStatus = "disabled";
+    uint64_t profileSamples = 0, profileCounterBytes = 0, profileResolveBytes = 0;
+    double profileHostMs = 0, profileGpuMs = 0;
+    std::vector<FullGpuStageTiming> stages;
 };
 struct Result {
     FullGpuMetrics fullGpu;

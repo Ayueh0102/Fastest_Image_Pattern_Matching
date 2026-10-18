@@ -1,0 +1,90 @@
+{
+  "stage": 38,
+  "profile_then_formal": true,
+  "all_formal_ground_truth_pass": true,
+  "all_tiled_ordered_outputs_exact_original": true,
+  "all_residency_gates_pass": true,
+  "all_tiled_vs_original_gates_pass": true,
+  "primary_20_percent_time_reduction_pass": true,
+  "all_tiled_vs_hybrid_gates_pass": false,
+  "recommendation": "Use explicit full_gpu_peak_mode=1 for full resident gray research; retain original0 for comparison and hybrid default for general latency. No automatic route/default change.",
+  "failed_gates": [
+    {
+      "case": "many128_pose",
+      "method": "full_gpu_tiled",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 0
+    },
+    {
+      "case": "many128_pose",
+      "method": "full_gpu_tiled",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 1
+    },
+    {
+      "case": "many128_pose",
+      "method": "full_gpu_tiled",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 2
+    },
+    {
+      "case": "many512_pose",
+      "method": "full_gpu_tiled",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 0
+    },
+    {
+      "case": "many512_pose",
+      "method": "full_gpu_tiled",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 1
+    },
+    {
+      "case": "many512_pose",
+      "method": "full_gpu_tiled",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 2
+    },
+    {
+      "case": "controlled6",
+      "method": "full_gpu_tiled",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 0
+    },
+    {
+      "case": "controlled6",
+      "method": "full_gpu_tiled",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 1
+    },
+    {
+      "case": "controlled6",
+      "method": "full_gpu_tiled",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 2
+    }
+  ],
+  "counts": {
+    "fresh_processes": 36,
+    "first_calls": 36,
+    "measured_calls": 72,
+    "gt_evaluated_calls": 108
+  },
+  "limits": [
+    "4fixed scenes;synthetic same-template128/512",
+    "No RGB/CUDA change",
+    "No new30minute soak",
+    "Fine ROI tiling/uint32 partials/statistic reuse are source hypotheses, not tested optimizations",
+    "Timestamp stage sums are not exact partitions; signed residuals retained"
+  ],
+  "next_review": "validation/fine-next-review.json"
+}

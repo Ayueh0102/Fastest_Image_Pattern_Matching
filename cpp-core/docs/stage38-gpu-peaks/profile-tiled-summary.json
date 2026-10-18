@@ -1,0 +1,904 @@
+{
+  "profiling": true,
+  "cases": [
+    {
+      "name": "many128_pose",
+      "truth_count": 128,
+      "methods": {
+        "full_gpu_tiled": {
+          "total_ms": {
+            "median": 972.1686455,
+            "min": 971.926041,
+            "max": 972.41125,
+            "values": [
+              972.41125,
+              971.926041
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "median_ms": 972.1686455
+            }
+          ],
+          "first_ms": [
+            993.150583
+          ],
+          "construct_ms": [
+            27.31825
+          ],
+          "peak_rss_bytes": 111820800,
+          "retained_gpu_bytes": 122131456,
+          "retained_gpu_scope": "all named full-GPU Metal buffers",
+          "measured_gpu_metrics": {
+            "command_buffers": {
+              "median": 1.0,
+              "min": 1,
+              "max": 1,
+              "values": [
+                1,
+                1
+              ]
+            },
+            "cpu_waits": {
+              "median": 1.0,
+              "min": 1,
+              "max": 1,
+              "values": [
+                1,
+                1
+              ]
+            },
+            "intermediate_readbacks": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0
+              ]
+            },
+            "cpu_algorithm_steps": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0
+              ]
+            },
+            "gpu_bytes": {
+              "median": 122131456.0,
+              "min": 122131456,
+              "max": 122131456,
+              "values": [
+                122131456,
+                122131456
+              ]
+            },
+            "upload_bytes": {
+              "median": 16791920.0,
+              "min": 16791920,
+              "max": 16791920,
+              "values": [
+                16791920,
+                16791920
+              ]
+            },
+            "readback_bytes": {
+              "median": 29472.0,
+              "min": 29472,
+              "max": 29472,
+              "values": [
+                29472,
+                29472
+              ]
+            },
+            "encode_ms": {
+              "median": 1.9592705000000001,
+              "min": 1.858416,
+              "max": 2.060125,
+              "values": [
+                2.060125,
+                1.858416
+              ]
+            },
+            "wait_ms": {
+              "median": 969.4088545,
+              "min": 968.838292,
+              "max": 969.979417,
+              "values": [
+                969.979417,
+                968.838292
+              ]
+            },
+            "peak_scratch_bytes": {
+              "median": 3917312.0,
+              "min": 3917312,
+              "max": 3917312,
+              "values": [
+                3917312,
+                3917312
+              ]
+            },
+            "profile_counter_bytes": {
+              "median": 16384.0,
+              "min": 16384,
+              "max": 16384,
+              "values": [
+                16384,
+                16384
+              ]
+            },
+            "profile_resolve_bytes": {
+              "median": 12176.0,
+              "min": 12176,
+              "max": 12176,
+              "values": [
+                12176,
+                12176
+              ]
+            },
+            "profile_host_ms": {
+              "median": 1.3930754999999952,
+              "min": 1.364806999999995,
+              "max": 1.4213439999999953,
+              "values": [
+                1.4213439999999953,
+                1.364806999999995
+              ]
+            },
+            "device_ms": {
+              "median": 968.8259166650823,
+              "min": 968.2321250002133,
+              "max": 969.4197083299514,
+              "values": [
+                969.4197083299514,
+                968.2321250002133
+              ]
+            }
+          },
+          "profiling": {
+            "requested": true,
+            "available_calls": 3,
+            "total_calls": 3,
+            "measured_available_calls": 2,
+            "measured_calls": 2,
+            "status_counts": {
+              "encoder_boundary_timestamps": 3
+            },
+            "sample_counts": [
+              1522
+            ],
+            "stages": {
+              "coarse_ncc": {
+                "gpu_ms": {
+                  "median": 33.889210499999976,
+                  "min": 33.723710000000004,
+                  "max": 34.05471099999995,
+                  "values": [
+                    34.05471099999995,
+                    33.723710000000004
+                  ]
+                },
+                "encoders": [
+                  280
+                ],
+                "measured_available_calls": 2
+              },
+              "coarse_peaks": {
+                "gpu_ms": {
+                  "median": 228.4415424999999,
+                  "min": 227.608632,
+                  "max": 229.27445299999985,
+                  "values": [
+                    229.27445299999985,
+                    227.608632
+                  ]
+                },
+                "encoders": [
+                  280
+                ],
+                "measured_available_calls": 2
+              },
+              "coarse_rotation": {
+                "gpu_ms": {
+                  "median": 4.868963999999998,
+                  "min": 4.835383999999998,
+                  "max": 4.902544,
+                  "values": [
+                    4.902544,
+                    4.835383999999998
+                  ]
+                },
+                "encoders": [
+                  140
+                ],
+                "measured_available_calls": 2
+              },
+              "final_nms": {
+                "gpu_ms": {
+                  "median": 0.6693954999999999,
+                  "min": 0.6691659999999999,
+                  "max": 0.6696249999999999,
+                  "values": [
+                    0.6691659999999999,
+                    0.6696249999999999
+                  ]
+                },
+                "encoders": [
+                  1
+                ],
+                "measured_available_calls": 2
+              },
+              "final_output": {
+                "gpu_ms": {
+                  "median": 0.0090625,
+                  "min": 0.009042,
+                  "max": 0.009082999999999999,
+                  "values": [
+                    0.009082999999999999,
+                    0.009042
+                  ]
+                },
+                "encoders": [
+                  3
+                ],
+                "measured_available_calls": 2
+              },
+              "final_score": {
+                "gpu_ms": {
+                  "median": 0.3272705,
+                  "min": 0.327167,
+                  "max": 0.327374,
+                  "values": [
+                    0.327167,
+                    0.327374
+                  ]
+                },
+                "encoders": [
+                  2
+                ],
+                "measured_available_calls": 2
+              },
+              "fine_search": {
+                "gpu_ms": {
+                  "median": 576.8175205,
+                  "min": 576.0659579999999,
+                  "max": 577.569083,
+                  "values": [
+                    577.569083,
+                    576.0659579999999
+                  ]
+                },
+                "encoders": [
+                  3
+                ],
+                "measured_available_calls": 2
+              },
+              "initial_refine": {
+                "gpu_ms": {
+                  "median": 77.87564599999999,
+                  "min": 76.66054199999999,
+                  "max": 79.09075,
+                  "values": [
+                    76.66054199999999,
+                    79.09075
+                  ]
+                },
+                "encoders": [
+                  1
+                ],
+                "measured_available_calls": 2
+              },
+              "initialization": {
+                "gpu_ms": {
+                  "median": 0.015333,
+                  "min": 0.015249999999999998,
+                  "max": 0.015416,
+                  "values": [
+                    0.015249999999999998,
+                    0.015416
+                  ]
+                },
+                "encoders": [
+                  5
+                ],
+                "measured_available_calls": 2
+              },
+              "model_nms": {
+                "gpu_ms": {
+                  "median": 22.9336875,
+                  "min": 22.917042000000002,
+                  "max": 22.950333,
+                  "values": [
+                    22.950333,
+                    22.917042000000002
+                  ]
+                },
+                "encoders": [
+                  3
+                ],
+                "measured_available_calls": 2
+              },
+              "pose_prepare": {
+                "gpu_ms": {
+                  "median": 2.1591035,
+                  "min": 2.1056660000000003,
+                  "max": 2.212541,
+                  "values": [
+                    2.1056660000000003,
+                    2.212541
+                  ]
+                },
+                "encoders": [
+                  6
+                ],
+                "measured_available_calls": 2
+              },
+              "rescue": {
+                "gpu_ms": {
+                  "median": 18.269229,
+                  "min": 18.191834,
+                  "max": 18.346624,
+                  "values": [
+                    18.191834,
+                    18.346624
+                  ]
+                },
+                "encoders": [
+                  5
+                ],
+                "measured_available_calls": 2
+              },
+              "source_pyramid": {
+                "gpu_ms": {
+                  "median": 1.831853,
+                  "min": 1.830415,
+                  "max": 1.833291,
+                  "values": [
+                    1.833291,
+                    1.830415
+                  ]
+                },
+                "encoders": [
+                  5
+                ],
+                "measured_available_calls": 2
+              },
+              "template_pyramid": {
+                "gpu_ms": {
+                  "median": 0.16558399999999998,
+                  "min": 0.16554199999999997,
+                  "max": 0.165626,
+                  "values": [
+                    0.165626,
+                    0.16554199999999997
+                  ]
+                },
+                "encoders": [
+                  27
+                ],
+                "measured_available_calls": 2
+              }
+            },
+            "stage_sum_ms": {
+              "median": 968.2734019999998,
+              "min": 967.818055,
+              "max": 968.7287489999998,
+              "values": [
+                968.7287489999998,
+                967.818055
+              ]
+            },
+            "device_remainder_ms": {
+              "median": 0.5525146650824695,
+              "min": 0.4140700002133144,
+              "max": 0.6909593299516246,
+              "values": [
+                0.6909593299516246,
+                0.4140700002133144
+              ]
+            }
+          },
+          "device_timestamp_available_measured_calls": 2,
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              128,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.10597630053137005,
+            "angle_deg": 0.09033662983375734,
+            "relative_scale": 0.0027012430347326255
+          },
+          "route_valid": true,
+          "full_pipeline_residency_verified": true,
+          "ordered_matches_equal_original_gpu": true,
+          "ordered_proposals_equal_original_gpu": true,
+          "repeat_exact": true,
+          "proposal_counts": [
+            332
+          ],
+          "first_calls": 1,
+          "measured_calls": 2,
+          "gt_evaluated_calls": 3
+        }
+      },
+      "tiled_comparisons": {}
+    },
+    {
+      "name": "many512_pose",
+      "truth_count": 512,
+      "methods": {
+        "full_gpu_tiled": {
+          "total_ms": {
+            "median": 3334.398792,
+            "min": 3330.019875,
+            "max": 3338.777709,
+            "values": [
+              3338.777709,
+              3330.019875
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "median_ms": 3334.398792
+            }
+          ],
+          "first_ms": [
+            3342.355708
+          ],
+          "construct_ms": [
+            27.751583
+          ],
+          "peak_rss_bytes": 187416576,
+          "retained_gpu_bytes": 247774208,
+          "retained_gpu_scope": "all named full-GPU Metal buffers",
+          "measured_gpu_metrics": {
+            "command_buffers": {
+              "median": 1.0,
+              "min": 1,
+              "max": 1,
+              "values": [
+                1,
+                1
+              ]
+            },
+            "cpu_waits": {
+              "median": 1.0,
+              "min": 1,
+              "max": 1,
+              "values": [
+                1,
+                1
+              ]
+            },
+            "intermediate_readbacks": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0
+              ]
+            },
+            "cpu_algorithm_steps": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0
+              ]
+            },
+            "gpu_bytes": {
+              "median": 247774208.0,
+              "min": 247774208,
+              "max": 247774208,
+              "values": [
+                247774208,
+                247774208
+              ]
+            },
+            "upload_bytes": {
+              "median": 33569136.0,
+              "min": 33569136,
+              "max": 33569136,
+              "values": [
+                33569136,
+                33569136
+              ]
+            },
+            "readback_bytes": {
+              "median": 116064.0,
+              "min": 116064,
+              "max": 116064,
+              "values": [
+                116064,
+                116064
+              ]
+            },
+            "encode_ms": {
+              "median": 2.3525419999999997,
+              "min": 2.139709,
+              "max": 2.565375,
+              "values": [
+                2.139709,
+                2.565375
+              ]
+            },
+            "wait_ms": {
+              "median": 3330.186542,
+              "min": 3326.82325,
+              "max": 3333.549834,
+              "values": [
+                3333.549834,
+                3326.82325
+              ]
+            },
+            "peak_scratch_bytes": {
+              "median": 9020672.0,
+              "min": 9020672,
+              "max": 9020672,
+              "values": [
+                9020672,
+                9020672
+              ]
+            },
+            "profile_counter_bytes": {
+              "median": 16384.0,
+              "min": 16384,
+              "max": 16384,
+              "values": [
+                16384,
+                16384
+              ]
+            },
+            "profile_resolve_bytes": {
+              "median": 12176.0,
+              "min": 12176,
+              "max": 12176,
+              "values": [
+                12176,
+                12176
+              ]
+            },
+            "profile_host_ms": {
+              "median": 1.334439999999998,
+              "min": 1.273817999999997,
+              "max": 1.3950619999999991,
+              "values": [
+                1.273817999999997,
+                1.3950619999999991
+              ]
+            },
+            "device_ms": {
+              "median": 3329.5561250051833,
+              "min": 3326.159666670719,
+              "max": 3332.9525833396474,
+              "values": [
+                3332.9525833396474,
+                3326.159666670719
+              ]
+            }
+          },
+          "profiling": {
+            "requested": true,
+            "available_calls": 3,
+            "total_calls": 3,
+            "measured_available_calls": 2,
+            "measured_calls": 2,
+            "status_counts": {
+              "encoder_boundary_timestamps": 3
+            },
+            "sample_counts": [
+              1522
+            ],
+            "stages": {
+              "coarse_ncc": {
+                "gpu_ms": {
+                  "median": 72.29806149999999,
+                  "min": 72.21167199999991,
+                  "max": 72.38445100000006,
+                  "values": [
+                    72.38445100000006,
+                    72.21167199999991
+                  ]
+                },
+                "encoders": [
+                  280
+                ],
+                "measured_available_calls": 2
+              },
+              "coarse_peaks": {
+                "gpu_ms": {
+                  "median": 955.2319839999998,
+                  "min": 953.7783410000001,
+                  "max": 956.6856269999995,
+                  "values": [
+                    956.6856269999995,
+                    953.7783410000001
+                  ]
+                },
+                "encoders": [
+                  280
+                ],
+                "measured_available_calls": 2
+              },
+              "coarse_rotation": {
+                "gpu_ms": {
+                  "median": 10.686399999999999,
+                  "min": 10.616420999999999,
+                  "max": 10.756379,
+                  "values": [
+                    10.756379,
+                    10.616420999999999
+                  ]
+                },
+                "encoders": [
+                  140
+                ],
+                "measured_available_calls": 2
+              },
+              "final_nms": {
+                "gpu_ms": {
+                  "median": 3.6033545,
+                  "min": 3.594292,
+                  "max": 3.6124169999999998,
+                  "values": [
+                    3.6124169999999998,
+                    3.594292
+                  ]
+                },
+                "encoders": [
+                  1
+                ],
+                "measured_available_calls": 2
+              },
+              "final_output": {
+                "gpu_ms": {
+                  "median": 0.009333499999999998,
+                  "min": 0.009165999999999999,
+                  "max": 0.009500999999999999,
+                  "values": [
+                    0.009500999999999999,
+                    0.009165999999999999
+                  ]
+                },
+                "encoders": [
+                  3
+                ],
+                "measured_available_calls": 2
+              },
+              "final_score": {
+                "gpu_ms": {
+                  "median": 1.164187,
+                  "min": 1.161416,
+                  "max": 1.166958,
+                  "values": [
+                    1.161416,
+                    1.166958
+                  ]
+                },
+                "encoders": [
+                  2
+                ],
+                "measured_available_calls": 2
+              },
+              "fine_search": {
+                "gpu_ms": {
+                  "median": 1847.869229,
+                  "min": 1846.6848329999998,
+                  "max": 1849.053625,
+                  "values": [
+                    1849.053625,
+                    1846.6848329999998
+                  ]
+                },
+                "encoders": [
+                  3
+                ],
+                "measured_available_calls": 2
+              },
+              "initial_refine": {
+                "gpu_ms": {
+                  "median": 276.0940415,
+                  "min": 275.41333299999997,
+                  "max": 276.77475,
+                  "values": [
+                    276.77475,
+                    275.41333299999997
+                  ]
+                },
+                "encoders": [
+                  1
+                ],
+                "measured_available_calls": 2
+              },
+              "initialization": {
+                "gpu_ms": {
+                  "median": 0.021958000000000005,
+                  "min": 0.021791000000000005,
+                  "max": 0.022125000000000002,
+                  "values": [
+                    0.022125000000000002,
+                    0.021791000000000005
+                  ]
+                },
+                "encoders": [
+                  5
+                ],
+                "measured_available_calls": 2
+              },
+              "model_nms": {
+                "gpu_ms": {
+                  "median": 148.29425,
+                  "min": 148.253376,
+                  "max": 148.335124,
+                  "values": [
+                    148.253376,
+                    148.335124
+                  ]
+                },
+                "encoders": [
+                  3
+                ],
+                "measured_available_calls": 2
+              },
+              "pose_prepare": {
+                "gpu_ms": {
+                  "median": 4.863645999999999,
+                  "min": 4.802083,
+                  "max": 4.925209,
+                  "values": [
+                    4.925209,
+                    4.802083
+                  ]
+                },
+                "encoders": [
+                  6
+                ],
+                "measured_available_calls": 2
+              },
+              "rescue": {
+                "gpu_ms": {
+                  "median": 6.7883130000000005,
+                  "min": 6.762375,
+                  "max": 6.8142510000000005,
+                  "values": [
+                    6.762375,
+                    6.8142510000000005
+                  ]
+                },
+                "encoders": [
+                  5
+                ],
+                "measured_available_calls": 2
+              },
+              "source_pyramid": {
+                "gpu_ms": {
+                  "median": 3.7270215,
+                  "min": 3.638626,
+                  "max": 3.815417,
+                  "values": [
+                    3.815417,
+                    3.638626
+                  ]
+                },
+                "encoders": [
+                  5
+                ],
+                "measured_available_calls": 2
+              },
+              "template_pyramid": {
+                "gpu_ms": {
+                  "median": 0.1746865,
+                  "min": 0.17258199999999999,
+                  "max": 0.176791,
+                  "values": [
+                    0.176791,
+                    0.17258199999999999
+                  ]
+                },
+                "encoders": [
+                  27
+                ],
+                "measured_available_calls": 2
+              }
+            },
+            "stage_sum_ms": {
+              "median": 3330.8264659999995,
+              "min": 3327.2594729999996,
+              "max": 3334.3934589999994,
+              "values": [
+                3334.3934589999994,
+                3327.2594729999996
+              ]
+            },
+            "device_remainder_ms": {
+              "median": -1.2703409948162516,
+              "min": -1.4408756603520487,
+              "max": -1.0998063292804545,
+              "values": [
+                -1.4408756603520487,
+                -1.0998063292804545
+              ]
+            }
+          },
+          "device_timestamp_available_measured_calls": 2,
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              512,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.1283358605470548,
+            "angle_deg": 0.09951369303348656,
+            "relative_scale": 0.002744110964467583
+          },
+          "route_valid": true,
+          "full_pipeline_residency_verified": true,
+          "ordered_matches_equal_original_gpu": true,
+          "ordered_proposals_equal_original_gpu": true,
+          "repeat_exact": true,
+          "proposal_counts": [
+            1301
+          ],
+          "first_calls": 1,
+          "measured_calls": 2,
+          "gt_evaluated_calls": 3
+        }
+      },
+      "tiled_comparisons": {}
+    }
+  ],
+  "failed_gates": [],
+  "all_accuracy_pass": true,
+  "all_gpu_resident": true,
+  "all_tiled_exact_original": null,
+  "all_tiled_vs_original_gates_pass": null,
+  "all_primary_20_percent_target_pass": null,
+  "all_tiled_vs_hybrid_gates_pass": null,
+  "counts": {
+    "fresh_processes": 2,
+    "first_calls": 2,
+    "measured_calls": 4,
+    "gt_evaluated_calls": 6
+  },
+  "accuracy_thresholds": {
+    "position_px": 2.0,
+    "angle_deg": 1.0,
+    "relative_scale": 0.02
+  },
+  "timing_note": "First calls are separate. Distributions use measured repeats only. Profile diagnostics never enter unprofiled speed gates; unavailable stages and remainder are null. Signed device remainder includes unsampled work, gaps, and timestamp-instrument differences.",
+  "memory_note": "Peak process RSS and retained named Metal buffer lengths differ in scope and must not be added; GPU buffer lengths are not physical VRAM. Counter payload capacity is logical and opaque to Metal allocation accounting. Resolved timestamp bytes are transient CPU NSData payload, excluded from gpu_bytes; peak scratch bytes are already included in full-GPU gpu_bytes.",
+  "parity_note": "Independent one-to-one GT accuracy plus exact ordered matches AND proposals against the original full-GPU route are required for tiled adoption.",
+  "residency_note": "Audited implementation counters, not a hardware trace: one command buffer, one final wait, no intermediate readback or image-dependent CPU algorithm.",
+  "profile_overhead": [
+    {
+      "case": "many128_pose",
+      "method": "full_gpu_tiled",
+      "comparable": true,
+      "total_delta_percent": 0.8639211742351938,
+      "device_delta_percent": 0.6564210783825297,
+      "note": "Separate fresh processes, diagnostic overhead includes ordinary run variance; source/binary/input/search settings must match."
+    },
+    {
+      "case": "many512_pose",
+      "method": "full_gpu_tiled",
+      "comparable": true,
+      "total_delta_percent": 0.1917689903122355,
+      "device_delta_percent": 0.11257338098207281,
+      "note": "Separate fresh processes, diagnostic overhead includes ordinary run variance; source/binary/input/search settings must match."
+    }
+  ],
+  "unprofiled_manifest_sha256": "d72c29a725508885e38334e6bdb9f89b47d423532448336b569f7a54388b7ec0"
+}

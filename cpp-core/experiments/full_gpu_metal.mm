@@ -2,6 +2,7 @@
 #include "full_gpu.hpp"
 #include "research_pipeline.hpp"
 #include "full_gpu_types.h"
+#include "full_gpu_peaks_types.h"
 #include "full_gpu_metal_source.hpp"
 #import <Foundation/Foundation.h>
 #import <Metal/Metal.h>
@@ -69,6 +70,93 @@ class MetalFull final:public FullGpuPipeline {
     std::map<std::string,id<MTLBuffer>> buffers_;
     FullGpuMetrics metrics_{};
     uint32_t fineRoiCacheBytes_=16384;
+    // Stage-boundary timestamps preserve the original encoder ordering and the
+    // sole command-buffer completion wait. Counter storage is opaque to Metal:
+    // profileCounterBytes reports logical payload capacity, not physical bytes.
+    static constexpr size_t profileSamplesPerBuffer=2048,profileBufferLimit=32;
+    struct ProfileRecord {std::string stage;size_t buffer,index;};
+    std::vector<id<MTLCounterSampleBuffer>> profileCounters_;
+    std::vector<ProfileRecord> profileRecords_;
+    id<MTLCounterSet> profileSet_=nil;
+    bool profileActive_=false;
+    const char* profileStage_="initialization";
+    MTLTimestamp profileCpuStart_=0,profileGpuStart_=0;
+    void beginProfile(bool requested) {
+        const auto begin=Clock::now();profileRecords_.clear();profileActive_=false;
+        metrics_.profileRequested=requested;metrics_.profileStatus=requested?"unavailable":"disabled";
+        if(requested) {
+            if(![device_ supportsCounterSampling:MTLCounterSamplingPointAtStageBoundary])
+                metrics_.profileStatus="stage_boundary_counters_unsupported";
+            else {
+                if(!profileSet_)for(id<MTLCounterSet> set in device_.counterSets)
+                    if([set.name isEqualToString:MTLCommonCounterSetTimestamp]){profileSet_=set;break;}
+                if(!profileSet_)metrics_.profileStatus="timestamp_counter_set_unavailable";
+                else {profileActive_=true;metrics_.profileStatus="pending";}
+            }
+        }
+        if(requested)metrics_.profileHostMs+=elapsed(begin);
+    }
+    id<MTLCounterSampleBuffer> nextProfilePair(NSUInteger& index) {
+        const size_t sample=profileRecords_.size()*2,chunk=sample/profileSamplesPerBuffer;
+        if(chunk>=profileBufferLimit){profileActive_=false;metrics_.profileStatus="counter_sample_limit";return nil;}
+        if(chunk>=profileCounters_.size()) {
+            auto descriptor=[MTLCounterSampleBufferDescriptor new];descriptor.counterSet=profileSet_;
+            descriptor.storageMode=MTLStorageModeShared;descriptor.sampleCount=profileSamplesPerBuffer;
+            descriptor.label=@"Full GPU stage timestamps";
+            NSError* error=nil;auto counter=[device_ newCounterSampleBufferWithDescriptor:descriptor error:&error];
+            if(!counter){profileActive_=false;metrics_.profileStatus="counter_allocation_failed";return nil;}
+            profileCounters_.push_back(counter);
+        }
+        index=sample%profileSamplesPerBuffer;profileRecords_.push_back({profileStage_,chunk,index});
+        return profileCounters_[chunk];
+    }
+    void finishProfileEncoding() {
+        metrics_.profileCounterBytes=profileCounters_.size()*profileSamplesPerBuffer*sizeof(MTLCounterResultTimestamp);
+        metrics_.profileSamples=profileRecords_.size()*2;
+    }
+    void collectProfile() {
+        if(!profileActive_)return;
+        const auto begin=Clock::now();MTLTimestamp cpuEnd=0,gpuEnd=0;
+        [device_ sampleTimestamps:&cpuEnd gpuTimestamp:&gpuEnd];
+        // Apple's sampleTimestamps CPU clock is nanoseconds. Use paired samples
+        // rather than assuming every device's GPU counter has nanosecond units.
+        // https://developer.apple.com/documentation/metal/converting-gpu-timestamps-into-cpu-time
+        if(cpuEnd<=profileCpuStart_ || gpuEnd<=profileGpuStart_)metrics_.profileStatus="invalid_clock_calibration";
+        else {
+            const double millisecondsPerTick=double(cpuEnd-profileCpuStart_)/double(gpuEnd-profileGpuStart_)/1e6;
+            std::map<std::string,FullGpuStageTiming> stages;bool valid=true;
+            for(size_t first=0;first<metrics_.profileSamples && valid;first+=profileSamplesPerBuffer) {
+                const size_t count=std::min(profileSamplesPerBuffer,size_t(metrics_.profileSamples)-first);
+                // Resolve only AFTER command completion. The GPU blit resolver
+                // produced zero timestamp pairs on this device on first use;
+                // reusing that result could hide stale samples on later calls.
+                // This shared counter storage and transient NSData are purely
+                // diagnostic; algorithm intermediates remain GPU-private.
+                NSData* resolved=[profileCounters_[first/profileSamplesPerBuffer] resolveCounterRange:NSMakeRange(0,count)];
+                if(!resolved || resolved.length!=count*sizeof(MTLCounterResultTimestamp)) {
+                    metrics_.profileStatus="counter_resolution_failed";valid=false;break;
+                }
+                metrics_.profileResolveBytes+=resolved.length; // CPU result payload, excluded from gpuBytes.
+                const auto* samples=static_cast<const MTLCounterResultTimestamp*>(resolved.bytes);
+                for(size_t i=0;i<count;i+=2) {
+                    const size_t record=(first+i)/2;
+                    const auto start=samples[i].timestamp,end=samples[i+1].timestamp;
+                    if(start==MTLCounterErrorValue || end==MTLCounterErrorValue || start==0 || end<start ||
+                        start<profileGpuStart_ || end>gpuEnd){
+                        valid=false;metrics_.profileStatus="invalid_counter_samples:"+profileRecords_[record].stage+":"+
+                            std::to_string(record)+":"+std::to_string(start)+":"+std::to_string(end);break;
+                    }
+                    auto& stage=stages[profileRecords_[record].stage];stage.name=profileRecords_[record].stage;
+                    stage.gpuMs+=double(end-start)*millisecondsPerTick;++stage.encoders;
+                }
+            }
+            if(valid){
+                for(const auto& stage:stages){metrics_.stages.push_back(stage.second);metrics_.profileGpuMs+=stage.second.gpuMs;}
+                metrics_.profileAvailable=true;metrics_.profileStatus="encoder_boundary_timestamps";
+            }
+        }
+        metrics_.profileHostMs+=elapsed(begin);
+    }
     id<MTLBuffer> buffer(const char* name,size_t bytes,bool shared=false) {
         bytes=std::max<size_t>(256,aligned(bytes));
         if(bytes>device_.maxBufferLength || bytes>totalLimit)throw std::invalid_argument("Full GPU buffer exceeds explicit 1 GiB/device limit");
@@ -94,7 +182,18 @@ class MetalFull final:public FullGpuPipeline {
         pipelines_[name]=p;return p;
     }
     id<MTLComputeCommandEncoder> encoder(id<MTLCommandBuffer> command,const char* name) {
-        auto e=[command computeCommandEncoder];if(!e)throw std::runtime_error("Full GPU encoder creation failed");
+        id<MTLComputeCommandEncoder> e=nil;
+        if(profileActive_) {
+            const auto begin=Clock::now();NSUInteger index=0;auto samples=nextProfilePair(index);
+            if(samples) {
+                auto pass=[MTLComputePassDescriptor computePassDescriptor];pass.dispatchType=MTLDispatchTypeSerial;
+                auto attachment=pass.sampleBufferAttachments[0];attachment.sampleBuffer=samples;
+                attachment.startOfEncoderSampleIndex=index;attachment.endOfEncoderSampleIndex=index+1;
+                e=[command computeCommandEncoderWithDescriptor:pass];
+            }
+            metrics_.profileHostMs+=elapsed(begin);
+        }
+        if(!e)e=[command computeCommandEncoder];if(!e)throw std::runtime_error("Full GPU encoder creation failed");
         e.label=[NSString stringWithUTF8String:name];[e setComputePipelineState:pipeline(name)];return e;
     }
     void linear(id<MTLComputeCommandEncoder> e,size_t n) {
@@ -103,12 +202,26 @@ class MetalFull final:public FullGpuPipeline {
     void groups(id<MTLComputeCommandEncoder> e,size_t n,size_t lanes=256) {
         [e dispatchThreadgroups:MTLSizeMake(n,1,1) threadsPerThreadgroup:MTLSizeMake(lanes,1,1)];[e endEncoding];++metrics_.dispatches;
     }
+    id<MTLBlitCommandEncoder> blit(id<MTLCommandBuffer> command) {
+        id<MTLBlitCommandEncoder> e=nil;
+        if(profileActive_) {
+            const auto begin=Clock::now();NSUInteger index=0;auto samples=nextProfilePair(index);
+            if(samples) {
+                auto pass=[MTLBlitPassDescriptor blitPassDescriptor];auto attachment=pass.sampleBufferAttachments[0];
+                attachment.sampleBuffer=samples;attachment.startOfEncoderSampleIndex=index;attachment.endOfEncoderSampleIndex=index+1;
+                e=[command blitCommandEncoderWithDescriptor:pass];
+            }
+            metrics_.profileHostMs+=elapsed(begin);
+        }
+        if(!e)e=[command blitCommandEncoder];if(!e)throw std::runtime_error("Full GPU blit encoder creation failed");
+        return e;
+    }
     void zero(id<MTLCommandBuffer> command,id<MTLBuffer> b) {
-        auto e=[command blitCommandEncoder];if(!e)throw std::runtime_error("Full GPU blit encoder creation failed");
+        auto e=blit(command);
         [e fillBuffer:b range:NSMakeRange(0,b.length) value:0];[e endEncoding];
     }
     void copy(id<MTLCommandBuffer> command,id<MTLBuffer> src,size_t from,id<MTLBuffer> dst,size_t to,size_t bytes) {
-        auto e=[command blitCommandEncoder];if(!e)throw std::runtime_error("Full GPU blit encoder creation failed");
+        auto e=blit(command);
         [e copyFromBuffer:src sourceOffset:from toBuffer:dst destinationOffset:to size:bytes];[e endEncoding];
     }
     Plan plan(const Options& o) {
@@ -190,7 +303,7 @@ public:
             // Compile every entry before timed calls; unsupported devices fail
             // explicitly without partially running a host replacement.
             for(const char* name:{"fg_input","fg_scale_template","pyramid_direct","fg_learn","fg_rotate","coarse_strip4_32","coarse_strip4_64",
-                "fg_normalize32","fg_normalize64","fg_coarse_peaks","fg_fine_search","fg_model_nms","fg_global_nms","fg_source_moments",
+                "fg_normalize32","fg_normalize64","fg_coarse_peaks","fg_coarse_sort_tiles","fg_coarse_peaks_tiled","fg_fine_search","fg_model_nms","fg_global_nms","fg_source_moments",
                 "fg_pose_config","fg_center_source","fg_center_template","fg_compact_prepare","pose_refine_fused","fg_prepare_rescue",
                 "fg_select_continuations","fg_accept_continuations","fg_score_states","fg_publish_states","fg_write_results"})pipeline(name);
         }
@@ -198,11 +311,11 @@ public:
     void updateSource(ImageView source) override {Image replacement(source);source_=std::move(replacement);}
     Result run(const Options& o) override {
       @autoreleasepool {
-        const auto started=Clock::now();metrics_={};metrics_.enabled=true;metrics_.fineRoiCacheBytes=fineRoiCacheBytes_;
+        const auto started=Clock::now();metrics_={};metrics_.enabled=true;metrics_.fineRoiCacheBytes=fineRoiCacheBytes_;metrics_.peakMode=o.fullGpuPeakMode;
         if(o.overlap || o.fineProfiling || o.scaleSupportRefine || o.match.coarseNccPruning)
             throw std::invalid_argument("Complete GPU pipeline does not support host overlap, fine profiling, CPU scale-support correction or pruning");
         if(o.match.angleRanges.size()>16)throw std::invalid_argument("Complete GPU pipeline supports at most 16 angle intervals");
-        Plan p=plan(o);
+        Plan p=plan(o);beginProfile(o.fullGpuProfiling);
         std::vector<FGRange> ranges;for(auto r:o.match.angleRanges)ranges.push_back({float(r.min),float(r.max)});
         if(ranges.empty())ranges.push_back({-float(o.match.toleranceAngle),float(o.match.toleranceAngle)});
         const uint32_t sw=source_.width(),sh=source_.height(),tw=templ_.width(),th=templ_.height();
@@ -214,6 +327,12 @@ public:
         auto source=buffer("source-pyramid",p.sourceBytes),templ=buffer("template-pyramids",p.templateBytes),stats=buffer("template-moments",(p.levels.size()+1)*sizeof(FGStats));
         auto levels=buffer("level-descriptors",p.levels.size()*sizeof(FGLevel),true),rangeBuffer=buffer("angle-ranges",ranges.size()*sizeof(FGRange),true);
         auto canvas=buffer("rotated-canvas",p.canvasBytes),scoremap=buffer("coarse-scores",p.scoreBytes),statistics=buffer("coarse-statistics",p.statsBytes);
+        id<MTLBuffer> peakEntries=nil,peakHeads=nil;
+        if(o.fullGpuPeakMode==1 && p.scoreBytes) {
+            const size_t tiles=(p.scoreBytes/sizeof(float)+FG_PEAK_TILE_SIZE-1)/FG_PEAK_TILE_SIZE;
+            peakEntries=buffer("peak-sorted-entries",tiles*FG_PEAK_TILE_SIZE*sizeof(FGPeakEntry));
+            peakHeads=buffer("peak-tile-heads",tiles*sizeof(uint32_t));
+        }
         auto candidates=buffer("fine-candidates",size_t(p.candidates)*sizeof(FGCandidate));
         auto modelOutput=buffer("model-proposals",size_t(p.capacity)*sizeof(FGCandidate)),counts=buffer("model-counts",p.models.size()*4);
         auto compact=buffer("compact-proposals",size_t(p.capacity)*sizeof(FGCandidate)),snapshot=buffer("proposal-snapshot",size_t(p.capacity)*sizeof(FGCandidate));
@@ -226,7 +345,9 @@ public:
         metrics_.uploadBytes=size_t(sw)*sh+size_t(tw)*th+p.levels.size()*sizeof(FGLevel)+ranges.size()*sizeof(FGRange);metrics_.uploadMs=elapsed(upload);
         auto command=[queue_ commandBuffer];if(!command)throw std::runtime_error("Full GPU command creation failed");command.label=@"Full resident template matching";
         const auto encodeStart=Clock::now();
+        profileStage_="initialization";
         zero(command,candidates);zero(command,modelOutput);zero(command,counts);zero(command,status);zero(command,config);
+        profileStage_="source_pyramid";
         auto e=encoder(command,"fg_input");std::array<uint32_t,2> input{sw*sh,uint32_t(o.match.invertSource)};
         [e setBuffer:rawSource offset:0 atIndex:0];[e setBuffer:source offset:0 atIndex:1];[e setBytes:input.data() length:sizeof(input) atIndex:2];linear(e,sw*sh);
         for(size_t l=1;l<p.source.size();++l) {
@@ -237,8 +358,10 @@ public:
         auto learn=[&](id<MTLBuffer> image,size_t offset,uint32_t area,uint32_t index){
             std::array<uint32_t,2> c{area,index};auto en=encoder(command,"fg_learn");[en setBuffer:image offset:offset atIndex:0];[en setBuffer:stats offset:0 atIndex:1];[en setBytes:c.data() length:sizeof(c) atIndex:2];groups(en,1);
         };
+        profileStage_="template_pyramid";
         const uint32_t originalStats=uint32_t(p.levels.size());learn(rawTemplate,0,tw*th,originalStats);
         for(size_t m=0;m<p.models.size();++m) {
+            profileStage_="template_pyramid";
             const auto& model=p.models[m];const auto base=p.levels[model.levelBase];
             Scale c{tw,th,base.tw,base.th,float(1./settings_.scales[m]),{0,0,0}};
             e=encoder(command,"fg_scale_template");[e setBuffer:rawTemplate offset:0 atIndex:0];[e setBuffer:templ offset:base.templateOffset atIndex:1];[e setBytes:&c length:sizeof(c) atIndex:2];linear(e,size_t(base.tw)*base.th);
@@ -250,7 +373,9 @@ public:
             }
             const auto top=p.levels[model.levelBase+model.top];
             for(const auto& map:model.maps) {
+                profileStage_="coarse_rotation";
                 e=encoder(command,"fg_rotate");[e setBuffer:source offset:top.sourceOffset atIndex:0];[e setBuffer:canvas offset:0 atIndex:1];[e setBuffer:stats offset:0 atIndex:2];[e setBytes:&map length:sizeof(map) atIndex:3];linear(e,size_t(map.w)*map.h);
+                profileStage_="coarse_ncc";
                 bool u32=uint64_t(top.tw)*top.th<=UINT32_MAX/65025;const uint32_t chunk=uint32_t(statisticsLimit/(u32?12:24));
                 for(uint32_t first=0;first<map.windows;first+=chunk) {
                     uint32_t n=std::min(chunk,map.windows-first),width=map.w-map.tw+1;
@@ -259,16 +384,25 @@ public:
                     uint32_t rows=(first+n-1)/width-first/width+1;[e dispatchThreads:MTLSizeMake((width+3)/4,rows,1) threadsPerThreadgroup:MTLSizeMake(16,16,1)];[e endEncoding];++metrics_.dispatches;
                     std::array<uint32_t,4> norm{first,n,top.statisticsIndex,0};e=encoder(command,u32?"fg_normalize32":"fg_normalize64");[e setBuffer:statistics offset:0 atIndex:0];[e setBuffer:scoremap offset:0 atIndex:1];[e setBuffer:stats offset:0 atIndex:2];[e setBytes:norm.data() length:sizeof(norm) atIndex:3];linear(e,n);
                 }
-                e=encoder(command,"fg_coarse_peaks");[e setBuffer:scoremap offset:0 atIndex:0];[e setBuffer:candidates offset:0 atIndex:1];[e setBytes:&map length:sizeof(map) atIndex:2];groups(e,1);
+                profileStage_="coarse_peaks";
+                if(o.fullGpuPeakMode==1) {
+                    e=encoder(command,"fg_coarse_sort_tiles");[e setBuffer:scoremap offset:0 atIndex:0];[e setBuffer:peakEntries offset:0 atIndex:1];[e setBytes:&map length:sizeof(map) atIndex:2];[e setBuffer:peakHeads offset:0 atIndex:3];groups(e,(map.windows+FG_PEAK_TILE_SIZE-1)/FG_PEAK_TILE_SIZE);
+                    e=encoder(command,"fg_coarse_peaks_tiled");[e setBuffer:scoremap offset:0 atIndex:0];[e setBuffer:candidates offset:0 atIndex:1];[e setBytes:&map length:sizeof(map) atIndex:2];[e setBuffer:peakEntries offset:0 atIndex:3];[e setBuffer:peakHeads offset:0 atIndex:4];groups(e,1);
+                } else {
+                    e=encoder(command,"fg_coarse_peaks");[e setBuffer:scoremap offset:0 atIndex:0];[e setBuffer:candidates offset:0 atIndex:1];[e setBytes:&map length:sizeof(map) atIndex:2];groups(e,1);
+                }
             }
             if(model.count) {
                 FGFineConfig fine{model.first,model.count,model.levelBase,model.top,std::min(uint32_t(o.match.stopLayer),model.top),uint32_t(o.match.subpixel),uint32_t(ranges.size()),uint32_t(m),
                     scoreCutoff(o.refine?std::min(o.proposalScore,o.match.minScore):o.match.minScore),float(o.match.maxOverlap),float(settings_.scales[m]),0,base.tw,base.th,uint32_t(o.match.maxTargets),0};
+                profileStage_="fine_search";
                 e=encoder(command,"fg_fine_search");[e setBuffer:source offset:0 atIndex:0];[e setBuffer:templ offset:0 atIndex:1];[e setBuffer:levels offset:0 atIndex:2];[e setBuffer:stats offset:0 atIndex:3];[e setBuffer:candidates offset:0 atIndex:4];[e setBytes:&fine length:sizeof(fine) atIndex:5];[e setBuffer:rangeBuffer offset:0 atIndex:6];groups(e,model.count);
+                profileStage_="model_nms";
                 FGNmsConfig nms{model.first,model.count,uint32_t(m)*uint32_t(o.match.maxTargets),uint32_t(o.match.maxTargets),base.tw,base.th,0,uint32_t(ranges.size()),fine.minScore,fine.maxOverlap,uint32_t(m),0};
                 e=encoder(command,"fg_model_nms");[e setBuffer:candidates offset:0 atIndex:0];[e setBuffer:modelOutput offset:0 atIndex:1];[e setBuffer:counts offset:0 atIndex:2];[e setBuffer:status offset:0 atIndex:3];[e setBytes:&nms length:sizeof(nms) atIndex:4];[e setBuffer:rangeBuffer offset:0 atIndex:5];groups(e,1);
             }
         }
+        profileStage_="pose_prepare";
         id<MTLBuffer> floatSource=nil,floatTemplate=nil;
         if(o.refine) {
             floatSource=buffer("pose-source",size_t(sw)*sh*4);floatTemplate=buffer("pose-template",size_t(tw)*th*4);
@@ -282,7 +416,9 @@ public:
         copy(command,compact,0,snapshot,0,size_t(p.capacity)*sizeof(FGCandidate));
         if(o.refine) {
             auto refine=[&](id<MTLBuffer> state,id<MTLBuffer> cfg,uint32_t cap,uint32_t iterations){auto en=encoder(command,"pose_refine_fused");[en setBuffer:floatSource offset:0 atIndex:0];[en setBuffer:floatTemplate offset:0 atIndex:1];[en setBuffer:state offset:0 atIndex:2];[en setBuffer:cfg offset:0 atIndex:3];[en setBytes:&iterations length:4 atIndex:4];groups(en,cap);};
+            profileStage_="initial_refine";
             refine(states,config,p.capacity,30);
+            profileStage_="rescue";
             auto retries=buffer("rescue-states",64*208),retryOwners=buffer("rescue-owners",64*4),parents=buffer("rescue-parents",4*4),baseScores=buffer("rescue-base-scores",4*4),retryConfig=buffer("rescue-config",80);
             auto continuations=buffer("continuation-states",4*208),continuationOwners=buffer("continuation-owners",4*4),continuationConfig=buffer("continuation-config",80);
             e=encoder(command,"fg_prepare_rescue");[e setBuffer:seeds offset:0 atIndex:0];[e setBuffer:states offset:0 atIndex:1];[e setBuffer:retries offset:0 atIndex:2];[e setBuffer:retryOwners offset:0 atIndex:3];[e setBuffer:parents offset:0 atIndex:4];[e setBuffer:baseScores offset:0 atIndex:5];[e setBuffer:retryConfig offset:0 atIndex:6];[e setBuffer:status offset:0 atIndex:7];[e setBytes:&finish length:sizeof(finish) atIndex:8];[e setBuffer:config offset:0 atIndex:9];groups(e,1,1);
@@ -290,20 +426,28 @@ public:
             e=encoder(command,"fg_select_continuations");[e setBuffer:states offset:0 atIndex:0];[e setBuffer:retries offset:0 atIndex:1];[e setBuffer:retryOwners offset:0 atIndex:2];[e setBuffer:parents offset:0 atIndex:3];[e setBuffer:baseScores offset:0 atIndex:4];[e setBuffer:continuations offset:0 atIndex:5];[e setBuffer:continuationOwners offset:0 atIndex:6];[e setBuffer:continuationConfig offset:0 atIndex:7];[e setBuffer:status offset:0 atIndex:8];[e setBuffer:retryConfig offset:0 atIndex:9];groups(e,1,1);
             refine(continuations,continuationConfig,4,30);
             e=encoder(command,"fg_accept_continuations");[e setBuffer:states offset:0 atIndex:0];[e setBuffer:continuations offset:0 atIndex:1];[e setBuffer:continuationOwners offset:0 atIndex:2];[e setBuffer:status offset:0 atIndex:3];groups(e,1,1);
+            profileStage_="final_score";
             e=encoder(command,"fg_score_states");[e setBuffer:floatSource offset:0 atIndex:0];[e setBuffer:floatTemplate offset:0 atIndex:1];[e setBuffer:states offset:0 atIndex:2];[e setBuffer:config offset:0 atIndex:3];groups(e,p.capacity);
             e=encoder(command,"fg_publish_states");[e setBuffer:compact offset:0 atIndex:0];[e setBuffer:states offset:0 atIndex:1];[e setBuffer:status offset:0 atIndex:2];[e setBytes:&finish length:sizeof(finish) atIndex:3];linear(e,p.capacity);
         }
+        profileStage_="final_nms";
         FGNmsConfig finalNms{0,p.capacity,0,uint32_t(o.match.maxTargets),tw,th,1,uint32_t(ranges.size()),scoreCutoff(o.match.minScore),float(o.match.maxOverlap),0,0};
         e=encoder(command,"fg_global_nms");[e setBuffer:compact offset:0 atIndex:0];[e setBuffer:matches offset:0 atIndex:1];[e setBuffer:counts offset:0 atIndex:2];[e setBuffer:status offset:0 atIndex:3];[e setBytes:&finalNms length:sizeof(finalNms) atIndex:4];[e setBuffer:rangeBuffer offset:0 atIndex:5];groups(e,1);
+        profileStage_="final_output";
         for(uint32_t kind=0;kind<2;++kind) {
             e=encoder(command,"fg_write_results");[e setBuffer:kind?matches:snapshot offset:0 atIndex:0];[e setBuffer:readback offset:kind?matchResultOffset:proposalResultOffset atIndex:1];[e setBuffer:status offset:0 atIndex:2];[e setBytes:&finish length:sizeof(finish) atIndex:3];[e setBytes:&kind length:4 atIndex:4];linear(e,kind?size_t(o.match.maxTargets):p.capacity);
         }
-        copy(command,status,0,readback,0,sizeof(FGStatus));metrics_.encodeMs=elapsed(encodeStart);
+        copy(command,status,0,readback,0,sizeof(FGStatus));finishProfileEncoding();metrics_.encodeMs=elapsed(encodeStart);
         // The sole synchronization boundary. All intermediate allocations are
         // MTLStorageModePrivate and never expose .contents to host code.
+        if(profileActive_) {
+            const auto begin=Clock::now();[device_ sampleTimestamps:&profileCpuStart_ gpuTimestamp:&profileGpuStart_];
+            metrics_.profileHostMs+=elapsed(begin);
+        }
         const auto wait=Clock::now();[command commit];++metrics_.commandBuffers;[command waitUntilCompleted];++metrics_.cpuWaits;metrics_.waitMs=elapsed(wait);
         if(command.status!=MTLCommandBufferStatusCompleted)throw failure("Complete GPU execution",command.error);
         metrics_.deviceMs=command.GPUStartTime>0 && command.GPUEndTime>=command.GPUStartTime ? 1000*(command.GPUEndTime-command.GPUStartTime):-1;
+        collectProfile();
         const auto read=Clock::now();const auto* bytes=static_cast<const uint8_t*>(readback.contents);FGStatus resultStatus{};std::memcpy(&resultStatus,bytes,sizeof(resultStatus));
         if(resultStatus.overflow || resultStatus.proposals>p.capacity || resultStatus.matches>uint32_t(o.match.maxTargets))throw std::runtime_error("Full GPU overflow/capacity flag: "+std::to_string(resultStatus.overflow));
         Result r;
@@ -314,6 +458,9 @@ public:
         collect(proposalResultOffset,resultStatus.proposals,r.proposals,r.proposalScales);collect(matchResultOffset,resultStatus.matches,r.matches,r.scales);
         metrics_.readbackBytes=sizeof(FGStatus)+size_t(resultStatus.proposals+resultStatus.matches)*sizeof(FGResult);metrics_.readbackMs=elapsed(read);
         for(const auto& entry:buffers_)metrics_.gpuBytes+=entry.second.length;
+        for(const char* name:{"peak-sorted-entries","peak-tile-heads"}) {
+            const auto entry=buffers_.find(name);if(entry!=buffers_.end())metrics_.peakScratchBytes+=entry->second.length;
+        }
         r.fullGpu=metrics_;r.refinementCandidates=o.refine?resultStatus.proposals:0;r.rescue.selected_seeds=resultStatus.rescueParents;r.rescue.retry_starts=resultStatus.rescueStarts;r.rescue.continuations=resultStatus.rescueContinuations;r.configuredRefinementBackend=1;
         r.refinementMode=1;r.poseInputMode=1;r.rescue.selected_backend=r.refinementCandidates?1:0;
         if(r.refinementCandidates) {

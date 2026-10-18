@@ -52,6 +52,8 @@ English overview: This repository preserves the original MFC application and dev
 
 同一模板可以重用模型。新影格可透過研究 `Session::updateSource` 更新來源，影像相關資料仍須重新準備；不能把上一張圖的金字塔當成新圖快取。每個 Session 一次只允許一個呼叫者。
 
+第38輪在完整GPU路徑加入[精確分塊選峰](../cpp-core/docs/GPU_TILED_PEAKS_zh-TW.md)，128／512物件耗時分別降低約80%／87%，輸出與原GPU完全一致。它仍未在大量物件場景勝過混合方案；完整GPU研究需明確指定`full_gpu_peak_mode=1`。報告分開列出GPU階段診斷、正式速度、記憶體範圍與下一輪尚未驗證的方向。
+
 ## RGB 與真實場景的判讀方式
 
 RGB 圖片可用來驗證三種不同問題：

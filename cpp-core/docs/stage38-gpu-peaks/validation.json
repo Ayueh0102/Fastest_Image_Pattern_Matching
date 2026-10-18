@@ -1,0 +1,127 @@
+{
+  "stage": 38,
+  "date": "2026-10-18",
+  "environment": "validation/environment.json",
+  "release_tests": {
+    "passed": 61,
+    "failed": 0,
+    "log": "validation/ctest-release.log"
+  },
+  "peak_differential": {
+    "fixtures": 64,
+    "pass": true,
+    "comparison": "ordered candidate bytes and complete suppressed scoremap bytes, original/tiled plus scalar CPU reference",
+    "logs": [
+      "validation/stage38-peaks-unit/differential.log",
+      "validation/stage38-peaks-unit/metal-validation.log"
+    ]
+  },
+  "metal_api_shader_validation": {
+    "passed": 4,
+    "failed": 0,
+    "fine_roi_cache_bytes": 4096,
+    "formal_cache_bytes": 16384,
+    "log": "validation/metal-validation.log"
+  },
+  "asan_ubsan_from_frozen_archive": {
+    "clean_build_pass": true,
+    "passed": 4,
+    "failed": 0,
+    "leak_detection": false,
+    "configure": "validation/asan-clean-configure.log",
+    "build": "validation/asan-clean-build.log",
+    "tests": "validation/asan-clean-tests.log"
+  },
+  "harness_negative_controls": {
+    "passed": 18,
+    "failed": 0,
+    "log": "validation/harness.log"
+  },
+  "runner_json_validation": {
+    "invalid_jobs_rejected": 8,
+    "log": "validation/runner-inputs/results.json"
+  },
+  "clean_release_rebuild": {
+    "pass": true,
+    "target": "fpm_native_pipeline_runner",
+    "build": "validation/clean-release-build.log",
+    "controlled6": {
+      "binary_sha256": "db2701be583eef4f63b2fce5b0816f3bdcb33aa15639a674a35cd5a7c41ae9a3",
+      "checks": {
+        "hybrid_best": {
+          "calls": 2,
+          "ordered_matches_and_proposals_exact": true
+        },
+        "full_gpu": {
+          "calls": 2,
+          "ordered_matches_and_proposals_exact": true
+        },
+        "full_gpu_tiled": {
+          "calls": 2,
+          "ordered_matches_and_proposals_exact": true
+        }
+      }
+    },
+    "scope": "3 methods x first+1repeat =6 calls; complete ordered matches/proposals exact against formal. Other cases not rerun with rebuilt binary."
+  },
+  "formal": {
+    "processes": 36,
+    "first_calls_with_gt": 36,
+    "measured_calls_with_gt": 72,
+    "warmups_timing_only": 242,
+    "all_gt_pass": true,
+    "all_gpu_resident": true,
+    "all_tiled_exact_original": true,
+    "all_vs_original_adoption_gates_pass": true,
+    "all_vs_hybrid_adoption_gates_pass": false,
+    "failed_vs_hybrid_time_blocks": 9,
+    "all_sources_binary_inputs_unchanged": true
+  },
+  "profiling": {
+    "processes": 4,
+    "calls_with_gt_and_counters": 12,
+    "all_available": true,
+    "all_ordered_tiled_outputs_exact_original": true,
+    "audit": "validation/profile-audit.json",
+    "exact_stage_partition": false,
+    "negative_residuals_preserved": true,
+    "invalid_first_use_gpu_resolve_attempt_preserved": true,
+    "source": "validation/stage38-profile-probe/profile-private-before.mm",
+    "counter_reference": "validation/timestamp-reference.json"
+  },
+  "source_files": 272,
+  "formal_fingerprints_covered": 258,
+  "unique_input_files": 7,
+  "archive_integrity_and_offline_replay": {
+    "source_and_input_files_verified": 279,
+    "all_hashes_match": true,
+    "replay": {
+      "formal": {
+        "byte_identical": true,
+        "sha256": "8dc42897a9e7ef0dfc570ed398910bab3ecc3b5df1d4b6bf9cf6c0f4b32e2f53"
+      },
+      "profile-original": {
+        "byte_identical": true,
+        "sha256": "a92616d21d7085d87231a9a98f17ad079df9383fa0bc747b71a321bf0b018280"
+      },
+      "profile-tiled": {
+        "byte_identical": true,
+        "sha256": "dd86b09409344cc732159471edb80e2c532edcc800ee2a6b4fecd40ea846ab5a"
+      }
+    }
+  },
+  "post_formal_modified_fingerprinted_files": [
+    "cpp-core/tools/build_log_catalog.py"
+  ],
+  "post_formal_change_scope": "Log catalog stage38 mapping only; algorithm, runtime and benchmark sources frozen in snapshot.",
+  "source_review": "validation/source-audit.json",
+  "next_hypotheses": "validation/fine-next-review.json",
+  "not_validated": [
+    "CUDA",
+    "RGB full resident path",
+    "new30minute soak",
+    "universal real-scene or multi-template generalization",
+    "fine ROI tiling optimization",
+    "hardware occupancy/cache/physical total memory"
+  ]
+}

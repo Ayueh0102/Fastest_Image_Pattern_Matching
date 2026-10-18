@@ -58,8 +58,14 @@ void same(const Result& first,const Result& second) {
     resident(second);
 }
 }
-int main() {
+int main(int argc,char** argv) {
     try {
+        bool tiled=false,profile=false;
+        for(int i=1;i<argc;++i) {
+            if(std::string(argv[i])=="--tiled") tiled=true;
+            else if(std::string(argv[i])=="--profile") profile=true;
+            else throw std::invalid_argument("Unknown full GPU test argument");
+        }
         Image templ(32,24);std::mt19937 rng(370019);
         for(int y=0;y<templ.height();++y) for(int x=0;x<templ.width();++x) templ.row(y)[x]=uint8_t(rng());
         auto source=scene(templ.view(),192,128,50,40);
@@ -70,10 +76,27 @@ int main() {
         settings.minReducedArea=256;settings.scales={1.};settings.poseInputMode=1;settings.poseStorageMode=1;
         Session session({padded.data(),source.width(),source.height(),stride},templ.view(),settings);
         Options options;options.refine=false;options.nccMode=2;options.fineNccMode=2;
+        options.fullGpuPeakMode=tiled?1:0;options.fullGpuProfiling=profile;
         options.fineFused=true;options.fineAngleReuse=true;
         options.match.minScore=.9;options.match.maxTargets=4;options.match.maxOverlap=.2;
         options.match.toleranceAngle=0;options.match.stopLayer=0;
         const auto first=session.run(options);one(first,66,52);
+        require(first.fullGpu.peakMode==options.fullGpuPeakMode,"Peak strategy reporting mismatch");
+        require(first.fullGpu.profileRequested==profile,"Profiling request reporting mismatch");
+        if(profile && first.fullGpu.profileAvailable) {
+            double sum=0;uint64_t encoders=0;
+            require(!first.fullGpu.stages.empty(),"Available GPU profile lacks stages");
+            for(const auto& stage:first.fullGpu.stages) {
+                require(!stage.name.empty() && stage.encoders>0 && std::isfinite(stage.gpuMs) && stage.gpuMs>=0,
+                    "Invalid GPU stage timing");
+                sum+=stage.gpuMs;encoders+=stage.encoders;
+            }
+            require(std::abs(sum-first.fullGpu.profileGpuMs)<1e-6 && first.fullGpu.profileSamples==2*encoders,
+                "GPU profile sample accounting mismatch");
+        } else require(first.fullGpu.stages.empty(),"Unavailable GPU profile must not report stages");
+        auto control=options;control.fullGpuProfiling=false;control.fullGpuPeakMode=0;
+        same(first,session.run(control));
+        same(first,session.run(options));
         require(first.sourceGeneration==0,"initial source generation differs");
         std::fill(padded.begin(),padded.end(),0);templ.row(0)[0]^=255;
         same(first,session.run(options));templ.row(0)[0]^=255;
@@ -188,6 +211,14 @@ int main() {
         invalid([&]{session.run(unsupported);},"full GPU accepted zero target limit");
         unsupported=options;unsupported.match.angleRanges={{30.,20.}};
         invalid([&]{session.run(unsupported);},"full GPU accepted inverted angle range");
+        unsupported=options;unsupported.fullGpuPeakMode=2;
+        invalid([&]{session.run(unsupported);},"full GPU accepted unknown peak mode");
+        auto hybridSettings=settings;hybridSettings.fullGpu=false;
+        Session hybrid(source.view(),templ.view(),hybridSettings);
+        unsupported=options;unsupported.fullGpuPeakMode=1;
+        invalid([&]{hybrid.run(unsupported);},"hybrid silently accepted full GPU peak mode");
+        unsupported=options;unsupported.fullGpuPeakMode=0;unsupported.fullGpuProfiling=true;
+        invalid([&]{hybrid.run(unsupported);},"hybrid silently accepted full GPU profiling");
         same(after,session.run(options));
         std::cout<<"Full Metal pipeline: independent upright/quarter-turn/edge truth, multiscale refinement, empty image, snapshots, updates, residency and invalid options passed\n";
         return 0;

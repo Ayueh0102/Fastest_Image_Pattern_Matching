@@ -26,44 +26,44 @@
     "metadata": "Filesystem sidecar metadata",
     "other": "No recognized role; inspect manually"
   },
-  "artifact_count": 442,
-  "artifact_bytes": 1315128769,
+  "artifact_count": 457,
+  "artifact_bytes": 1357506660,
   "artifact_role_counts": {
-    "archive": 67,
+    "archive": 71,
     "calibration": 4,
-    "failure_review": 8,
-    "false_gate": 41,
-    "formal": 7,
+    "failure_review": 9,
+    "false_gate": 44,
+    "formal": 8,
     "input": 21,
     "other": 38,
-    "protocol": 33,
-    "provenance": 35,
-    "raw": 48,
-    "report": 60,
-    "source": 5,
-    "summary": 95,
-    "validation": 66,
-    "visual": 64
+    "protocol": 34,
+    "provenance": 38,
+    "raw": 49,
+    "report": 61,
+    "source": 6,
+    "summary": 99,
+    "validation": 68,
+    "visual": 65
   },
-  "archive_member_count": 24850,
+  "archive_member_count": 25358,
   "archive_member_role_counts": {
     "archive": 26,
     "binary": 47,
     "calibration": 1,
     "failure_review": 18,
-    "formal": 13663,
-    "input": 554,
+    "formal": 13827,
+    "input": 561,
     "metadata": 1292,
-    "other": 1216,
+    "other": 1229,
     "pilot": 3600,
     "protocol": 109,
-    "provenance": 73,
-    "raw": 5133,
-    "report": 71,
-    "source": 8896,
-    "summary": 842,
-    "validation": 342,
-    "visual": 842
+    "provenance": 78,
+    "raw": 5250,
+    "report": 72,
+    "source": 9162,
+    "summary": 861,
+    "validation": 406,
+    "visual": 849
   },
   "artifacts": [
     {
@@ -140,8 +140,8 @@
       "path": "CURRENT_BEST_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 5985,
-      "sha256": "6cb18c62fdb01dc04a35504c7a891605ebe2a2ecba17fe0ca997849392c40255",
+      "bytes": 6409,
+      "sha256": "72246fb515345b0437ab86bba1bbfb49496db4a06ee5a419bbd890e2a216cd6e",
       "roles": [
         "report"
       ]
@@ -181,8 +181,8 @@
       "path": "EXPERIMENT_REVIEW_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 65050,
-      "sha256": "f54f5f174f10a05da84b371288443aa68e5a5087665145c3d6e929747bf6eb50",
+      "bytes": 66610,
+      "sha256": "858747052c19b2c063764d23e9accb3b6e92558aae66efcd8638e165eaee8485",
       "roles": [
         "report"
       ]
@@ -268,6 +268,16 @@
       ]
     },
     {
+      "path": "GPU_TILED_PEAKS_zh-TW.md",
+      "group": "root",
+      "stage": null,
+      "bytes": 15065,
+      "sha256": "c496a1b5d9aa71a9e187aeee663709a705827ce276b7bd346b1e744cbd0e1551",
+      "roles": [
+        "report"
+      ]
+    },
+    {
       "path": "GRAY_LOAD_MEMORY_zh-TW.md",
       "group": "root",
       "stage": null,
@@ -291,8 +301,8 @@
       "path": "LOG_CATALOG_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 9613,
-      "sha256": "4acd1c0d29be0e00c92d0c9aad9f60cf5fa565bd0cf975ce1b03398843017013",
+      "bytes": 10159,
+      "sha256": "21868120e2c9ba82a0dde805a7a0c6e94305e4630d7d395d2731a44ed5e42c04",
       "roles": [
         "report"
       ]
@@ -452,8 +462,8 @@
       "path": "PROJECT_STATUS_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 5247,
-      "sha256": "7037ea59e3b851194acfe6ee2191087832b8f8a887ab5737a1bcec3d915623be",
+      "bytes": 5476,
+      "sha256": "4ea6ef129dfedc8b93ea74df473bd10e724ec99c8b7814017f0b71529c8428fa",
       "roles": [
         "report"
       ]
@@ -5954,6 +5964,194 @@
       ]
     },
     {
+      "path": "stage38-gpu-peaks/archive.json",
+      "group": "stage38-gpu-peaks",
+      "stage": "38",
+      "bytes": 4731,
+      "sha256": "38459278ae4e79e9cfc41bcf96149e6b8145fde774a4ead2f98330f7a7ee4f53",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage38-gpu-peaks/comparison.png",
+      "group": "stage38-gpu-peaks",
+      "stage": "38",
+      "bytes": 80763,
+      "sha256": "8f7c49e69acf4da450c2c89c620d3ef6df029b135154a70289aa38d31612728c",
+      "roles": [
+        "visual"
+      ]
+    },
+    {
+      "path": "stage38-gpu-peaks/decision-and-failures.json",
+      "group": "stage38-gpu-peaks",
+      "stage": "38",
+      "bytes": 2420,
+      "sha256": "e0bf6cd9fe52f30606cf47d0b8738df9cb5f7ff8dd3c419e69ed57b189837966",
+      "roles": [
+        "failure_review",
+        "false_gate"
+      ],
+      "explicit_false_gates": [
+        "/all_tiled_vs_hybrid_gates_pass"
+      ]
+    },
+    {
+      "path": "stage38-gpu-peaks/fixtures.tar.gz",
+      "group": "stage38-gpu-peaks",
+      "stage": "38",
+      "bytes": 25371935,
+      "sha256": "dee016d9080962fec21f8ada97feb77b8da83b453dc4d741c2c39ff4f9b76208",
+      "roles": [
+        "archive"
+      ],
+      "archive_file_count": 7,
+      "archive_role_counts": {
+        "formal": 6,
+        "input": 6,
+        "visual": 7
+      }
+    },
+    {
+      "path": "stage38-gpu-peaks/formal-summary.json",
+      "group": "stage38-gpu-peaks",
+      "stage": "38",
+      "bytes": 70162,
+      "sha256": "8dc42897a9e7ef0dfc570ed398910bab3ecc3b5df1d4b6bf9cf6c0f4b32e2f53",
+      "roles": [
+        "false_gate",
+        "formal",
+        "summary"
+      ],
+      "explicit_false_gates": [
+        "/all_tiled_vs_hybrid_gates_pass"
+      ]
+    },
+    {
+      "path": "stage38-gpu-peaks/input-sha256.json",
+      "group": "stage38-gpu-peaks",
+      "stage": "38",
+      "bytes": 852,
+      "sha256": "c2bdf8117ded06d86f83315c4e866155c4317b8331e38ba32190669dff5fb14e",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage38-gpu-peaks/profile-original-summary.json",
+      "group": "stage38-gpu-peaks",
+      "stage": "38",
+      "bytes": 26462,
+      "sha256": "a92616d21d7085d87231a9a98f17ad079df9383fa0bc747b71a321bf0b018280",
+      "roles": [
+        "summary"
+      ]
+    },
+    {
+      "path": "stage38-gpu-peaks/profile-tiled-summary.json",
+      "group": "stage38-gpu-peaks",
+      "stage": "38",
+      "bytes": 26749,
+      "sha256": "dd86b09409344cc732159471edb80e2c532edcc800ee2a6b4fecd40ea846ab5a",
+      "roles": [
+        "summary"
+      ]
+    },
+    {
+      "path": "stage38-gpu-peaks/protocol.json",
+      "group": "stage38-gpu-peaks",
+      "stage": "38",
+      "bytes": 2394,
+      "sha256": "2e2c40240e40f37ef38238aadd315cf84f6092cdff1e26eebf024418d11c116a",
+      "roles": [
+        "protocol"
+      ]
+    },
+    {
+      "path": "stage38-gpu-peaks/raw-results.tar.gz",
+      "group": "stage38-gpu-peaks",
+      "stage": "38",
+      "bytes": 15863162,
+      "sha256": "3b359ccf67f594bd26e219f3f33a74eab78f0dc635b32627db2cb0348d4b885a",
+      "roles": [
+        "archive",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 166,
+      "archive_role_counts": {
+        "formal": 158,
+        "other": 4,
+        "provenance": 3,
+        "raw": 83
+      }
+    },
+    {
+      "path": "stage38-gpu-peaks/source-sha256.json",
+      "group": "stage38-gpu-peaks",
+      "stage": "38",
+      "bytes": 30709,
+      "sha256": "2b271b60c042fec2d73c10db3be15a22b2608e332fe7545e355e3192794fccd3",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage38-gpu-peaks/source-snapshot.tar.gz",
+      "group": "stage38-gpu-peaks",
+      "stage": "38",
+      "bytes": 801220,
+      "sha256": "4df22c9a4a5e96edcea47d00536cfee774e8e4e2cd3681104307df60f12db5ee",
+      "roles": [
+        "archive",
+        "source"
+      ],
+      "archive_file_count": 273,
+      "archive_role_counts": {
+        "input": 1,
+        "other": 9,
+        "provenance": 1,
+        "report": 1,
+        "source": 261,
+        "summary": 18,
+        "validation": 2
+      }
+    },
+    {
+      "path": "stage38-gpu-peaks/validation-logs.tar.gz",
+      "group": "stage38-gpu-peaks",
+      "stage": "38",
+      "bytes": 74355,
+      "sha256": "a42577bc544088436d9597bb5a5d62fa82152f4bc2d3fc9417b8bac9edcb2551",
+      "roles": [
+        "archive",
+        "validation"
+      ],
+      "archive_file_count": 62,
+      "archive_role_counts": {
+        "provenance": 1,
+        "raw": 34,
+        "source": 5,
+        "summary": 1,
+        "validation": 62
+      }
+    },
+    {
+      "path": "stage38-gpu-peaks/validation.json",
+      "group": "stage38-gpu-peaks",
+      "stage": "38",
+      "bytes": 4153,
+      "sha256": "298c900f25187aa193026265ebf1339612a9fe078adfa2e60e5d6abf7d32631a",
+      "roles": [
+        "false_gate",
+        "validation"
+      ],
+      "explicit_false_gates": [
+        "/formal/all_vs_hybrid_adoption_gates_pass"
+      ]
+    },
+    {
       "path": "validation-after-refinement.json",
       "group": "root",
       "stage": null,
@@ -5974,5 +6172,5 @@
       ]
     }
   ],
-  "archive_member_index_sha256": "fdcba8808aafe4129fe903f9769d3ffa2fae0b5d00cd3ac5e006fe845ccc5c72"
+  "archive_member_index_sha256": "8915cb7ccfc3f75309fd846b05520b6fd3a0e04a413ea03d53236aa11b892c4d"
 }
