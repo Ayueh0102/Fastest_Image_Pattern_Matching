@@ -28,6 +28,7 @@ struct Settings {
 struct Options {
     MatchConfig match;
     int fullGpuPeakMode = 0; // Full resident path: 0 original stripes; 1 exact sorted-tile merge.
+    int fullGpuFineMode = 0; // 0 original ROI/direct sampling; 1 bounded row cache for oversized ROIs.
     bool fullGpuProfiling = false; // Encoder GPU timestamps; diagnostic overhead, no intermediate waits.
     int nccMode = 0;
     int coarsePeakMode = 1; // 1 exact CPU tree; 2 experimental resident Metal FP32 peaks.
@@ -51,9 +52,18 @@ struct FullGpuStageTiming {
     double gpuMs = 0;
     uint64_t encoders = 0;
 };
+struct FullGpuFineWork {
+    uint32_t model = 0, layer = 0, templateWidth = 0, templateHeight = 0, roiCacheBytes = 0;
+    uint64_t reachedCandidates = 0, angles = 0, cachedAngles = 0, directAngles = 0, tiledAngles = 0;
+    uint64_t sourceSamples = 0, tileLoads = 0; // Exact sampler-call counts derived from measured angle counts, not memory traffic.
+};
 struct FullGpuMetrics {
     bool enabled = false;
     int peakMode = 0;
+    int fineMode = 0;
+    bool fineWorkAvailable = false;
+    uint64_t fineDiagnosticBytes = 0, fineDiagnosticReadbackBytes = 0, fineThreadgroupBytes = 0;
+    std::vector<FullGpuFineWork> fineWork;
     uint64_t peakScratchBytes = 0;
     uint64_t commandBuffers = 0, cpuWaits = 0, intermediateReadbacks = 0, cpuAlgorithmSteps = 0;
     uint64_t gpuBytes = 0, uploadBytes = 0, readbackBytes = 0, dispatches = 0, fineRoiCacheBytes = 0;

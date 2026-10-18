@@ -77,41 +77,96 @@ inline uchar fg_fine_pixel(device const uchar* source, FGLevel level,
         anchor.x + c * px - s * py, anchor.y + s * px + c * py, 0);
 }
 
-inline void fg_fine_evaluate(device const uchar* source, device const uchar* templ,
-    FGLevel level, FGStats stats, threadgroup FGFineState& state,
-    threadgroup uchar* roi, threadgroup ulong* partial, threadgroup float* maps,
-    uint lane)
+// 0: unchanged full-ROI cache, 1: unchanged direct sampling, 2: row tiles.
+inline uint fg_fine_path(FGLevel level, uint mode)
 {
     const uint roiW = level.tw + 6, roiH = level.th + 6;
     const ulong roiArea = ulong(roiW) * roiH;
-    const bool cached = roiArea <= FG_FINE_ROI_BYTES;
+    if (roiArea <= FG_FINE_ROI_BYTES) return 0;
+    return mode == 1 && roiW <= FG_FINE_ROI_BYTES / 7 ? 2 : 1;
+}
+
+inline void fg_fine_angle_moments(device const uchar* source, device const uchar* templ,
+    FGLevel level, float2 anchor, float c, float s, threadgroup uchar* roi,
+    threadgroup ulong* partial, uint lane, uint path)
+{
+    const uint roiW = level.tw + 6, roiH = level.th + 6;
+    const ulong roiArea = ulong(roiW) * roiH;
     const uint window = lane / 4, strip = lane % 4;
-    if (lane == 0) state.best = 0xffffffffu;
-    threadgroup_barrier(mem_flags::mem_threadgroup);
-    for (uint a = 0; a < state.angleCount; ++a) {
-        const float radians = state.angles[a] * FG_FINE_D2R;
-        const float c = cos(radians), s = sin(radians);
+    ulong sum = 0, square = 0, dot = 0;
+    if (path == 2) {
+        // Each of the 49 windows sees template rows [row0,row0+rows). The
+        // additional six rows are the union of all seven vertical offsets.
+        // The cache is bounded regardless of template height. A width that
+        // cannot fit one row plus its halo follows the original direct path.
+        const uint tileRows = min(16u, FG_FINE_ROI_BYTES / roiW - 6);
+        for (uint row0 = 0; row0 < level.th; row0 += tileRows) {
+            const uint rows = min(tileRows, level.th - row0);
+            const uint tileArea = roiW * (rows + 6);
+            for (uint p = lane; p < tileArea; p += 256)
+                roi[p] = fg_fine_pixel(source, level, anchor, c, s,
+                    p % roiW, row0 + p / roiW);
+            threadgroup_barrier(mem_flags::mem_threadgroup);
+            if (window < FG_FINE_WINDOWS) {
+                const uint wx = window % 7, wy = window / 7;
+                const uint begin = row0 * level.tw, end = (row0 + rows) * level.tw;
+                // Preserve the original global p % 4 lane assignment, even
+                // when an odd template width crosses a tile boundary.
+                const uint first = begin + ((strip - (begin & 3u)) & 3u);
+                for (uint p = first; p < end; p += 4) {
+                    const uint x = p % level.tw, y = p / level.tw - row0;
+                    const ulong pixel = roi[(wy + y) * roiW + wx + x];
+                    const ulong t = templ[level.templateOffset + p];
+                    sum += pixel; square += pixel * pixel; dot += pixel * t;
+                }
+            }
+            // Every SIMD group finishes the tile before any group reuses it.
+            threadgroup_barrier(mem_flags::mem_threadgroup);
+        }
+    } else {
+        const bool cached = path == 0;
         if (cached) {
             for (uint p = lane; p < uint(roiArea); p += 256)
-                roi[p] = fg_fine_pixel(source, level, state.anchor, c, s, p % roiW, p / roiW);
+                roi[p] = fg_fine_pixel(source, level, anchor, c, s, p % roiW, p / roiW);
         }
         threadgroup_barrier(mem_flags::mem_threadgroup);
         if (window < FG_FINE_WINDOWS) {
-            ulong sum = 0, square = 0, dot = 0;
             const uint wx = window % 7, wy = window / 7;
             const uint area = level.tw * level.th;
             for (uint p = strip; p < area; p += 4) {
                 const uint x = p % level.tw, y = p / level.tw;
                 const ulong pixel = cached ? roi[(wy + y) * roiW + wx + x] :
-                    fg_fine_pixel(source, level, state.anchor, c, s, wx + x, wy + y);
+                    fg_fine_pixel(source, level, anchor, c, s, wx + x, wy + y);
                 const ulong t = templ[level.templateOffset + p];
                 sum += pixel; square += pixel * pixel; dot += pixel * t;
             }
-            partial[lane * 3] = sum;
-            partial[lane * 3 + 1] = square;
-            partial[lane * 3 + 2] = dot;
         }
-        threadgroup_barrier(mem_flags::mem_threadgroup);
+    }
+    if (window < FG_FINE_WINDOWS) {
+        partial[lane * 3] = sum;
+        partial[lane * 3 + 1] = square;
+        partial[lane * 3 + 2] = dot;
+    }
+    threadgroup_barrier(mem_flags::mem_threadgroup);
+}
+
+inline void fg_fine_evaluate(device const uchar* source, device const uchar* templ,
+    FGLevel level, FGStats stats, threadgroup FGFineState& state,
+    threadgroup uchar* roi, threadgroup ulong* partial, threadgroup float* maps,
+    uint lane, constant FGFineOptions& options, device FGFineCounters& counters)
+{
+    const uint path = fg_fine_path(level, options.mode);
+    if (lane == 0) state.best = 0xffffffffu;
+    threadgroup_barrier(mem_flags::mem_threadgroup);
+    for (uint a = 0; a < state.angleCount; ++a) {
+        const float radians = state.angles[a] * FG_FINE_D2R;
+        const float c = cos(radians), s = sin(radians);
+        if (lane == 0 && options.diagnosticsEnabled) {
+            if (path == 0) atomic_fetch_add_explicit(&counters.cachedAngles, 1u, memory_order_relaxed);
+            else if (path == 1) atomic_fetch_add_explicit(&counters.directAngles, 1u, memory_order_relaxed);
+            else atomic_fetch_add_explicit(&counters.tiledAngles, 1u, memory_order_relaxed);
+        }
+        fg_fine_angle_moments(source, templ, level, state.anchor, c, s, roi, partial, lane, path);
         if (lane < FG_FINE_WINDOWS) {
             ulong sum = 0, square = 0, dot = 0;
             for (uint k = 0; k < 4; ++k) {
@@ -211,6 +266,7 @@ kernel void fg_fine_search(device const uchar* source [[buffer(0)]],
     device const uchar* templ [[buffer(1)]], device const FGLevel* levels [[buffer(2)]],
     device const FGStats* statistics [[buffer(3)]], device FGCandidate* candidates [[buffer(4)]],
     constant FGFineConfig& config [[buffer(5)]], device const FGRange* ranges [[buffer(6)]],
+    constant FGFineOptions& options [[buffer(7)]], device FGFineCounters* counters [[buffer(8)]],
     uint lane [[thread_index_in_threadgroup]], uint group [[threadgroup_position_in_grid]])
 {
     if (group >= config.count) return;
@@ -246,7 +302,12 @@ kernel void fg_fine_search(device const uchar* source [[buffer(0)]],
         const uint passes = config.subpixel && layer == 0 ? 3 : 1;
         float threshold = config.minScore;
         for (int i = 0; i < layer; ++i) threshold *= 0.9f;
-        if (lane == 0) ++candidates[index].reserved1;
+        if (lane == 0) {
+            ++candidates[index].reserved1;
+            if (options.diagnosticsEnabled)
+                atomic_fetch_add_explicit(&counters[config.levelBase + uint(layer)].reachedCandidates,
+                    1u, memory_order_relaxed);
+        }
         for (uint pass = 0; pass < passes; ++pass) {
             if (lane == 0) {
                 ++candidates[index].reserved2;
@@ -256,7 +317,8 @@ kernel void fg_fine_search(device const uchar* source [[buffer(0)]],
                 state.angleCount = fg_fine_angles(state.angle, state.step, ranges, config.rangeCount, state.angles);
             }
             threadgroup_barrier(mem_flags::mem_threadgroup);
-            fg_fine_evaluate(source, templ, level, stats, state, roi, partial, maps, lane);
+            fg_fine_evaluate(source, templ, level, stats, state, roi, partial, maps, lane,
+                options, counters[options.diagnosticsEnabled ? config.levelBase + uint(layer) : 0]);
             if (config.subpixel && layer == 0) {
                 for (uint resolution = 0; resolution < 3; ++resolution) {
                     for (uint attempt = 0; attempt < 3; ++attempt) {
@@ -274,7 +336,8 @@ kernel void fg_fine_search(device const uchar* source [[buffer(0)]],
                         }
                         threadgroup_barrier(mem_flags::mem_threadgroup);
                         if (!state.changed) break;
-                        fg_fine_evaluate(source, templ, level, stats, state, roi, partial, maps, lane);
+                        fg_fine_evaluate(source, templ, level, stats, state, roi, partial, maps, lane,
+                            options, counters[options.diagnosticsEnabled ? config.levelBase + uint(layer) : 0]);
                     }
                     // Latch the shared decision before lane zero replaces the
                     // angle list. A narrower resolution may reduce its count
@@ -289,7 +352,8 @@ kernel void fg_fine_search(device const uchar* source [[buffer(0)]],
                         fg_fine_replace_angles(state);
                     }
                     threadgroup_barrier(mem_flags::mem_threadgroup);
-                    fg_fine_evaluate(source, templ, level, stats, state, roi, partial, maps, lane);
+                    fg_fine_evaluate(source, templ, level, stats, state, roi, partial, maps, lane,
+                        options, counters[options.diagnosticsEnabled ? config.levelBase + uint(layer) : 0]);
                 }
             }
             if (lane == 0) {

@@ -1,0 +1,3156 @@
+{
+  "profiling": false,
+  "cases": [
+    {
+      "name": "many128_pose",
+      "truth_count": 128,
+      "methods": {
+        "hybrid_best": {
+          "total_ms": {
+            "median": 822.182229,
+            "min": 815.864333,
+            "max": 828.425667,
+            "values": [
+              818.656625,
+              818.391208,
+              828.425667,
+              827.51175,
+              815.864333,
+              825.707833
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "median_ms": 818.5239165
+            },
+            {
+              "block": 1,
+              "median_ms": 827.9687085
+            },
+            {
+              "block": 2,
+              "median_ms": 820.786083
+            }
+          ],
+          "first_ms": [
+            885.168208,
+            854.197208,
+            861.698917
+          ],
+          "construct_ms": [
+            29.2645,
+            23.376375,
+            28.330667
+          ],
+          "peak_rss_bytes": 244367360,
+          "retained_gpu_bytes": 45054114,
+          "retained_gpu_scope": "frame coarse + fine buffers only; other owners excluded",
+          "measured_gpu_metrics": null,
+          "profiling": null,
+          "fine_work": null,
+          "device_timestamp_available_measured_calls": null,
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              128,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.10597630053137005,
+            "angle_deg": 0.09061128803688234,
+            "relative_scale": 0.0027015188679357927
+          },
+          "route_valid": true,
+          "full_pipeline_residency_verified": false,
+          "ordered_matches_equal_baseline_gpu": false,
+          "ordered_proposals_equal_baseline_gpu": false,
+          "repeat_exact": true,
+          "proposal_counts": [
+            332
+          ],
+          "first_calls": 3,
+          "measured_calls": 6,
+          "gt_evaluated_calls": 9
+        },
+        "full_gpu_tiled": {
+          "total_ms": {
+            "median": 964.6720625,
+            "min": 961.817458,
+            "max": 971.741,
+            "values": [
+              964.935291,
+              964.088958,
+              961.817458,
+              964.408834,
+              971.741,
+              966.725709
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "median_ms": 964.5121245
+            },
+            {
+              "block": 1,
+              "median_ms": 963.1131459999999
+            },
+            {
+              "block": 2,
+              "median_ms": 969.2333545
+            }
+          ],
+          "first_ms": [
+            969.980375,
+            965.034166,
+            969.46275
+          ],
+          "construct_ms": [
+            33.4065,
+            24.797167,
+            29.671834
+          ],
+          "peak_rss_bytes": 97730560,
+          "retained_gpu_bytes": 122131456,
+          "retained_gpu_scope": "all named full-GPU Metal buffers",
+          "measured_gpu_metrics": {
+            "command_buffers": {
+              "median": 1.0,
+              "min": 1,
+              "max": 1,
+              "values": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+              ]
+            },
+            "cpu_waits": {
+              "median": 1.0,
+              "min": 1,
+              "max": 1,
+              "values": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+              ]
+            },
+            "intermediate_readbacks": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "cpu_algorithm_steps": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "gpu_bytes": {
+              "median": 122131456.0,
+              "min": 122131456,
+              "max": 122131456,
+              "values": [
+                122131456,
+                122131456,
+                122131456,
+                122131456,
+                122131456,
+                122131456
+              ]
+            },
+            "upload_bytes": {
+              "median": 16791920.0,
+              "min": 16791920,
+              "max": 16791920,
+              "values": [
+                16791920,
+                16791920,
+                16791920,
+                16791920,
+                16791920,
+                16791920
+              ]
+            },
+            "readback_bytes": {
+              "median": 29472.0,
+              "min": 29472,
+              "max": 29472,
+              "values": [
+                29472,
+                29472,
+                29472,
+                29472,
+                29472,
+                29472
+              ]
+            },
+            "encode_ms": {
+              "median": 0.3690205,
+              "min": 0.362583,
+              "max": 0.442542,
+              "values": [
+                0.3635,
+                0.442542,
+                0.362583,
+                0.373708,
+                0.384833,
+                0.364333
+              ]
+            },
+            "wait_ms": {
+              "median": 963.921,
+              "min": 961.141084,
+              "max": 971.045792,
+              "values": [
+                964.262083,
+                962.492458,
+                961.141084,
+                963.579917,
+                971.045792,
+                966.004083
+              ]
+            },
+            "peak_scratch_bytes": {
+              "median": 3917312.0,
+              "min": 3917312,
+              "max": 3917312,
+              "values": [
+                3917312,
+                3917312,
+                3917312,
+                3917312,
+                3917312,
+                3917312
+              ]
+            },
+            "profile_counter_bytes": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "profile_resolve_bytes": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "profile_host_ms": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "fine_diagnostic_bytes": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "fine_diagnostic_readback_bytes": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "fine_threadgroup_bytes": {
+              "median": 28560.0,
+              "min": 28560,
+              "max": 28560,
+              "values": [
+                28560,
+                28560,
+                28560,
+                28560,
+                28560,
+                28560
+              ]
+            },
+            "device_ms": {
+              "median": 963.2837083336199,
+              "min": 960.442541676457,
+              "max": 970.3218333452241,
+              "values": [
+                963.5737916687503,
+                961.759041660116,
+                960.442541676457,
+                962.9936249984894,
+                970.3218333452241,
+                965.4224999976577
+              ]
+            }
+          },
+          "profiling": {
+            "requested": false,
+            "available_calls": 0,
+            "total_calls": 9,
+            "measured_available_calls": 0,
+            "measured_calls": 6,
+            "status_counts": {
+              "disabled": 9
+            },
+            "sample_counts": [
+              0
+            ],
+            "stages": {},
+            "stage_sum_ms": null,
+            "device_remainder_ms": null
+          },
+          "fine_work": {
+            "requested": false,
+            "available_calls": 0,
+            "total_calls": 9,
+            "measured_available_calls": 0,
+            "measured_calls": 6,
+            "measured_totals": null,
+            "cached_angle_fraction": null,
+            "direct_angle_fraction": null,
+            "tiled_angle_fraction": null,
+            "layers": [],
+            "stable_measured_counts": null,
+            "note": "Counters are final readback only. source_samples counts analytic sampler invocations from executed angle categories; it is not hardware memory traffic, cache hits or GPU occupancy."
+          },
+          "device_timestamp_available_measured_calls": 6,
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              128,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.10597630053137005,
+            "angle_deg": 0.09033662983375734,
+            "relative_scale": 0.0027012430347326255
+          },
+          "route_valid": true,
+          "full_pipeline_residency_verified": true,
+          "ordered_matches_equal_baseline_gpu": true,
+          "ordered_proposals_equal_baseline_gpu": true,
+          "repeat_exact": true,
+          "proposal_counts": [
+            332
+          ],
+          "first_calls": 3,
+          "measured_calls": 6,
+          "gt_evaluated_calls": 9
+        },
+        "full_gpu_fine_tiled": {
+          "total_ms": {
+            "median": 962.955813,
+            "min": 961.543375,
+            "max": 965.539667,
+            "values": [
+              965.539667,
+              961.543375,
+              962.756084,
+              963.234166,
+              963.155542,
+              961.82075
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "median_ms": 963.541521
+            },
+            {
+              "block": 1,
+              "median_ms": 962.9951249999999
+            },
+            {
+              "block": 2,
+              "median_ms": 962.4881459999999
+            }
+          ],
+          "first_ms": [
+            966.569833,
+            965.385125,
+            967.21425
+          ],
+          "construct_ms": [
+            26.139,
+            24.913667,
+            25.249125
+          ],
+          "peak_rss_bytes": 97648640,
+          "retained_gpu_bytes": 122131456,
+          "retained_gpu_scope": "all named full-GPU Metal buffers",
+          "measured_gpu_metrics": {
+            "command_buffers": {
+              "median": 1.0,
+              "min": 1,
+              "max": 1,
+              "values": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+              ]
+            },
+            "cpu_waits": {
+              "median": 1.0,
+              "min": 1,
+              "max": 1,
+              "values": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+              ]
+            },
+            "intermediate_readbacks": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "cpu_algorithm_steps": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "gpu_bytes": {
+              "median": 122131456.0,
+              "min": 122131456,
+              "max": 122131456,
+              "values": [
+                122131456,
+                122131456,
+                122131456,
+                122131456,
+                122131456,
+                122131456
+              ]
+            },
+            "upload_bytes": {
+              "median": 16791920.0,
+              "min": 16791920,
+              "max": 16791920,
+              "values": [
+                16791920,
+                16791920,
+                16791920,
+                16791920,
+                16791920,
+                16791920
+              ]
+            },
+            "readback_bytes": {
+              "median": 29472.0,
+              "min": 29472,
+              "max": 29472,
+              "values": [
+                29472,
+                29472,
+                29472,
+                29472,
+                29472,
+                29472
+              ]
+            },
+            "encode_ms": {
+              "median": 0.356646,
+              "min": 0.345875,
+              "max": 0.403125,
+              "values": [
+                0.355208,
+                0.345875,
+                0.403125,
+                0.353208,
+                0.386625,
+                0.358084
+              ]
+            },
+            "wait_ms": {
+              "median": 962.2557085,
+              "min": 960.832084,
+              "max": 964.865375,
+              "values": [
+                964.865375,
+                960.832084,
+                962.052792,
+                962.575542,
+                962.458625,
+                961.153125
+              ]
+            },
+            "peak_scratch_bytes": {
+              "median": 3917312.0,
+              "min": 3917312,
+              "max": 3917312,
+              "values": [
+                3917312,
+                3917312,
+                3917312,
+                3917312,
+                3917312,
+                3917312
+              ]
+            },
+            "profile_counter_bytes": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "profile_resolve_bytes": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "profile_host_ms": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "fine_diagnostic_bytes": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "fine_diagnostic_readback_bytes": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "fine_threadgroup_bytes": {
+              "median": 28560.0,
+              "min": 28560,
+              "max": 28560,
+              "values": [
+                28560,
+                28560,
+                28560,
+                28560,
+                28560,
+                28560
+              ]
+            },
+            "device_ms": {
+              "median": 961.5996874927077,
+              "min": 960.247499999241,
+              "max": 964.2078333417885,
+              "values": [
+                964.2078333417885,
+                960.247499999241,
+                961.3478749961359,
+                961.8713749950984,
+                961.8514999892795,
+                960.5270000029122
+              ]
+            }
+          },
+          "profiling": {
+            "requested": false,
+            "available_calls": 0,
+            "total_calls": 9,
+            "measured_available_calls": 0,
+            "measured_calls": 6,
+            "status_counts": {
+              "disabled": 9
+            },
+            "sample_counts": [
+              0
+            ],
+            "stages": {},
+            "stage_sum_ms": null,
+            "device_remainder_ms": null
+          },
+          "fine_work": {
+            "requested": false,
+            "available_calls": 0,
+            "total_calls": 9,
+            "measured_available_calls": 0,
+            "measured_calls": 6,
+            "measured_totals": null,
+            "cached_angle_fraction": null,
+            "direct_angle_fraction": null,
+            "tiled_angle_fraction": null,
+            "layers": [],
+            "stable_measured_counts": null,
+            "note": "Counters are final readback only. source_samples counts analytic sampler invocations from executed angle categories; it is not hardware memory traffic, cache hits or GPU occupancy."
+          },
+          "device_timestamp_available_measured_calls": 6,
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              128,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.10597630053137005,
+            "angle_deg": 0.09033662983375734,
+            "relative_scale": 0.0027012430347326255
+          },
+          "route_valid": true,
+          "full_pipeline_residency_verified": true,
+          "ordered_matches_equal_baseline_gpu": true,
+          "ordered_proposals_equal_baseline_gpu": true,
+          "repeat_exact": true,
+          "proposal_counts": [
+            332
+          ],
+          "first_calls": 3,
+          "measured_calls": 6,
+          "gt_evaluated_calls": 9
+        }
+      },
+      "fine_tiled_comparisons": {
+        "full_gpu_tiled": {
+          "delta_percent": -0.17791014861073817,
+          "primary_10_percent_improvement": false,
+          "paired": [
+            {
+              "block": 0,
+              "delta_percent": -0.10063154991475365,
+              "within_regression_budget": true
+            },
+            {
+              "block": 1,
+              "delta_percent": -0.012254115779664065,
+              "within_regression_budget": true
+            },
+            {
+              "block": 2,
+              "delta_percent": -0.6959323540283835,
+              "within_regression_budget": true
+            }
+          ],
+          "memory_within_budget": true,
+          "candidate_for_adoption": true
+        },
+        "hybrid_best": {
+          "delta_percent": 17.121944385883836,
+          "primary_10_percent_improvement": null,
+          "paired": [
+            {
+              "block": 0,
+              "delta_percent": 17.71696606253044,
+              "within_regression_budget": false
+            },
+            {
+              "block": 1,
+              "delta_percent": 16.30815453697787,
+              "within_regression_budget": false
+            },
+            {
+              "block": 2,
+              "delta_percent": 17.26418928572404,
+              "within_regression_budget": false
+            }
+          ],
+          "memory_within_budget": true,
+          "candidate_for_adoption": false
+        }
+      },
+      "fine_work_comparison": null
+    },
+    {
+      "name": "many512_pose",
+      "truth_count": 512,
+      "methods": {
+        "hybrid_best": {
+          "total_ms": {
+            "median": 2366.0056665,
+            "min": 2357.687917,
+            "max": 2378.5565,
+            "values": [
+              2373.469333,
+              2378.5565,
+              2364.405375,
+              2357.687917,
+              2361.763042,
+              2367.605958
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "median_ms": 2376.0129165
+            },
+            {
+              "block": 1,
+              "median_ms": 2361.046646
+            },
+            {
+              "block": 2,
+              "median_ms": 2364.6845000000003
+            }
+          ],
+          "first_ms": [
+            2416.066666,
+            2449.027291,
+            2545.346959
+          ],
+          "construct_ms": [
+            27.066208,
+            31.086583,
+            24.383292
+          ],
+          "peak_rss_bytes": 453902336,
+          "retained_gpu_bytes": 67630166,
+          "retained_gpu_scope": "frame coarse + fine buffers only; other owners excluded",
+          "measured_gpu_metrics": null,
+          "profiling": null,
+          "fine_work": null,
+          "device_timestamp_available_measured_calls": null,
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              512,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.12809542327516896,
+            "angle_deg": 0.09951369303348656,
+            "relative_scale": 0.0027443297876431627
+          },
+          "route_valid": true,
+          "full_pipeline_residency_verified": false,
+          "ordered_matches_equal_baseline_gpu": false,
+          "ordered_proposals_equal_baseline_gpu": false,
+          "repeat_exact": true,
+          "proposal_counts": [
+            1301
+          ],
+          "first_calls": 3,
+          "measured_calls": 6,
+          "gt_evaluated_calls": 9
+        },
+        "full_gpu_tiled": {
+          "total_ms": {
+            "median": 3318.8019375,
+            "min": 3314.340666,
+            "max": 3328.43925,
+            "values": [
+              3318.991125,
+              3324.349542,
+              3328.43925,
+              3315.696334,
+              3314.340666,
+              3318.61275
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "median_ms": 3321.6703335
+            },
+            {
+              "block": 1,
+              "median_ms": 3322.067792
+            },
+            {
+              "block": 2,
+              "median_ms": 3316.476708
+            }
+          ],
+          "first_ms": [
+            3323.837208,
+            3328.760125,
+            3319.069334
+          ],
+          "construct_ms": [
+            30.477625,
+            31.111667,
+            30.940083
+          ],
+          "peak_rss_bytes": 172867584,
+          "retained_gpu_bytes": 247774208,
+          "retained_gpu_scope": "all named full-GPU Metal buffers",
+          "measured_gpu_metrics": {
+            "command_buffers": {
+              "median": 1.0,
+              "min": 1,
+              "max": 1,
+              "values": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+              ]
+            },
+            "cpu_waits": {
+              "median": 1.0,
+              "min": 1,
+              "max": 1,
+              "values": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+              ]
+            },
+            "intermediate_readbacks": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "cpu_algorithm_steps": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "gpu_bytes": {
+              "median": 247774208.0,
+              "min": 247774208,
+              "max": 247774208,
+              "values": [
+                247774208,
+                247774208,
+                247774208,
+                247774208,
+                247774208,
+                247774208
+              ]
+            },
+            "upload_bytes": {
+              "median": 33569136.0,
+              "min": 33569136,
+              "max": 33569136,
+              "values": [
+                33569136,
+                33569136,
+                33569136,
+                33569136,
+                33569136,
+                33569136
+              ]
+            },
+            "readback_bytes": {
+              "median": 116064.0,
+              "min": 116064,
+              "max": 116064,
+              "values": [
+                116064,
+                116064,
+                116064,
+                116064,
+                116064,
+                116064
+              ]
+            },
+            "encode_ms": {
+              "median": 0.3929795,
+              "min": 0.388084,
+              "max": 0.446042,
+              "values": [
+                0.38925,
+                0.388625,
+                0.396709,
+                0.3985,
+                0.388084,
+                0.446042
+              ]
+            },
+            "wait_ms": {
+              "median": 3317.713104,
+              "min": 3313.3595,
+              "max": 3327.268916,
+              "values": [
+                3317.989125,
+                3323.352917,
+                3327.268916,
+                3313.643958,
+                3313.3595,
+                3317.437083
+              ]
+            },
+            "peak_scratch_bytes": {
+              "median": 9020672.0,
+              "min": 9020672,
+              "max": 9020672,
+              "values": [
+                9020672,
+                9020672,
+                9020672,
+                9020672,
+                9020672,
+                9020672
+              ]
+            },
+            "profile_counter_bytes": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "profile_resolve_bytes": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "profile_host_ms": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "fine_diagnostic_bytes": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "fine_diagnostic_readback_bytes": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "fine_threadgroup_bytes": {
+              "median": 28560.0,
+              "min": 28560,
+              "max": 28560,
+              "values": [
+                28560,
+                28560,
+                28560,
+                28560,
+                28560,
+                28560
+              ]
+            },
+            "device_ms": {
+              "median": 3316.483562506619,
+              "min": 3312.321166667971,
+              "max": 3325.991250007064,
+              "values": [
+                3316.998666676227,
+                3322.349291673163,
+                3325.991250007064,
+                3312.6375833380735,
+                3312.321166667971,
+                3315.968458337011
+              ]
+            }
+          },
+          "profiling": {
+            "requested": false,
+            "available_calls": 0,
+            "total_calls": 9,
+            "measured_available_calls": 0,
+            "measured_calls": 6,
+            "status_counts": {
+              "disabled": 9
+            },
+            "sample_counts": [
+              0
+            ],
+            "stages": {},
+            "stage_sum_ms": null,
+            "device_remainder_ms": null
+          },
+          "fine_work": {
+            "requested": false,
+            "available_calls": 0,
+            "total_calls": 9,
+            "measured_available_calls": 0,
+            "measured_calls": 6,
+            "measured_totals": null,
+            "cached_angle_fraction": null,
+            "direct_angle_fraction": null,
+            "tiled_angle_fraction": null,
+            "layers": [],
+            "stable_measured_counts": null,
+            "note": "Counters are final readback only. source_samples counts analytic sampler invocations from executed angle categories; it is not hardware memory traffic, cache hits or GPU occupancy."
+          },
+          "device_timestamp_available_measured_calls": 6,
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              512,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.1283358605470548,
+            "angle_deg": 0.09951369303348656,
+            "relative_scale": 0.002744110964467583
+          },
+          "route_valid": true,
+          "full_pipeline_residency_verified": true,
+          "ordered_matches_equal_baseline_gpu": true,
+          "ordered_proposals_equal_baseline_gpu": true,
+          "repeat_exact": true,
+          "proposal_counts": [
+            1301
+          ],
+          "first_calls": 3,
+          "measured_calls": 6,
+          "gt_evaluated_calls": 9
+        },
+        "full_gpu_fine_tiled": {
+          "total_ms": {
+            "median": 3320.5838545,
+            "min": 3306.569667,
+            "max": 3333.087666,
+            "values": [
+              3306.569667,
+              3333.087666,
+              3322.251959,
+              3315.603875,
+              3326.922709,
+              3318.91575
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "median_ms": 3319.8286665
+            },
+            {
+              "block": 1,
+              "median_ms": 3318.927917
+            },
+            {
+              "block": 2,
+              "median_ms": 3322.9192295000003
+            }
+          ],
+          "first_ms": [
+            3327.2015,
+            3346.9235,
+            3322.583417
+          ],
+          "construct_ms": [
+            27.857083,
+            32.739333,
+            27.736292
+          ],
+          "peak_rss_bytes": 173047808,
+          "retained_gpu_bytes": 247774208,
+          "retained_gpu_scope": "all named full-GPU Metal buffers",
+          "measured_gpu_metrics": {
+            "command_buffers": {
+              "median": 1.0,
+              "min": 1,
+              "max": 1,
+              "values": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+              ]
+            },
+            "cpu_waits": {
+              "median": 1.0,
+              "min": 1,
+              "max": 1,
+              "values": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+              ]
+            },
+            "intermediate_readbacks": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "cpu_algorithm_steps": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "gpu_bytes": {
+              "median": 247774208.0,
+              "min": 247774208,
+              "max": 247774208,
+              "values": [
+                247774208,
+                247774208,
+                247774208,
+                247774208,
+                247774208,
+                247774208
+              ]
+            },
+            "upload_bytes": {
+              "median": 33569136.0,
+              "min": 33569136,
+              "max": 33569136,
+              "values": [
+                33569136,
+                33569136,
+                33569136,
+                33569136,
+                33569136,
+                33569136
+              ]
+            },
+            "readback_bytes": {
+              "median": 116064.0,
+              "min": 116064,
+              "max": 116064,
+              "values": [
+                116064,
+                116064,
+                116064,
+                116064,
+                116064,
+                116064
+              ]
+            },
+            "encode_ms": {
+              "median": 0.389667,
+              "min": 0.38425,
+              "max": 0.410875,
+              "values": [
+                0.38425,
+                0.387792,
+                0.393458,
+                0.391542,
+                0.410875,
+                0.385125
+              ]
+            },
+            "wait_ms": {
+              "median": 3319.5891460000003,
+              "min": 3305.57575,
+              "max": 3332.125625,
+              "values": [
+                3305.57575,
+                3332.125625,
+                3321.217084,
+                3314.601791,
+                3325.780708,
+                3317.961208
+              ]
+            },
+            "peak_scratch_bytes": {
+              "median": 9020672.0,
+              "min": 9020672,
+              "max": 9020672,
+              "values": [
+                9020672,
+                9020672,
+                9020672,
+                9020672,
+                9020672,
+                9020672
+              ]
+            },
+            "profile_counter_bytes": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "profile_resolve_bytes": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "profile_host_ms": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "fine_diagnostic_bytes": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "fine_diagnostic_readback_bytes": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "fine_threadgroup_bytes": {
+              "median": 28560.0,
+              "min": 28560,
+              "max": 28560,
+              "values": [
+                28560,
+                28560,
+                28560,
+                28560,
+                28560,
+                28560
+              ]
+            },
+            "device_ms": {
+              "median": 3318.5998749977443,
+              "min": 3304.3594999908237,
+              "max": 3331.1444583232515,
+              "values": [
+                3304.3594999908237,
+                3331.1444583232515,
+                3320.1854999933857,
+                3313.104000000749,
+                3323.394624996581,
+                3317.014250002103
+              ]
+            }
+          },
+          "profiling": {
+            "requested": false,
+            "available_calls": 0,
+            "total_calls": 9,
+            "measured_available_calls": 0,
+            "measured_calls": 6,
+            "status_counts": {
+              "disabled": 9
+            },
+            "sample_counts": [
+              0
+            ],
+            "stages": {},
+            "stage_sum_ms": null,
+            "device_remainder_ms": null
+          },
+          "fine_work": {
+            "requested": false,
+            "available_calls": 0,
+            "total_calls": 9,
+            "measured_available_calls": 0,
+            "measured_calls": 6,
+            "measured_totals": null,
+            "cached_angle_fraction": null,
+            "direct_angle_fraction": null,
+            "tiled_angle_fraction": null,
+            "layers": [],
+            "stable_measured_counts": null,
+            "note": "Counters are final readback only. source_samples counts analytic sampler invocations from executed angle categories; it is not hardware memory traffic, cache hits or GPU occupancy."
+          },
+          "device_timestamp_available_measured_calls": 6,
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              512,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.1283358605470548,
+            "angle_deg": 0.09951369303348656,
+            "relative_scale": 0.002744110964467583
+          },
+          "route_valid": true,
+          "full_pipeline_residency_verified": true,
+          "ordered_matches_equal_baseline_gpu": true,
+          "ordered_proposals_equal_baseline_gpu": true,
+          "repeat_exact": true,
+          "proposal_counts": [
+            1301
+          ],
+          "first_calls": 3,
+          "measured_calls": 6,
+          "gt_evaluated_calls": 9
+        }
+      },
+      "fine_tiled_comparisons": {
+        "full_gpu_tiled": {
+          "delta_percent": 0.05369157405465952,
+          "primary_10_percent_improvement": false,
+          "paired": [
+            {
+              "block": 0,
+              "delta_percent": -0.055444003019400334,
+              "within_regression_budget": true
+            },
+            {
+              "block": 1,
+              "delta_percent": -0.09451568109359876,
+              "within_regression_budget": true
+            },
+            {
+              "block": 2,
+              "delta_percent": 0.19425800532413273,
+              "within_regression_budget": true
+            }
+          ],
+          "memory_within_budget": true,
+          "candidate_for_adoption": true
+        },
+        "hybrid_best": {
+          "delta_percent": 40.345557980513824,
+          "primary_10_percent_improvement": null,
+          "paired": [
+            {
+              "block": 0,
+              "delta_percent": 39.72266915915144,
+              "within_regression_budget": false
+            },
+            {
+              "block": 1,
+              "delta_percent": 40.57019680753906,
+              "within_regression_budget": false
+            },
+            {
+              "block": 2,
+              "delta_percent": 40.522730601059045,
+              "within_regression_budget": false
+            }
+          ],
+          "memory_within_budget": true,
+          "candidate_for_adoption": false
+        }
+      },
+      "fine_work_comparison": null
+    },
+    {
+      "name": "controlled6",
+      "truth_count": 6,
+      "methods": {
+        "hybrid_best": {
+          "total_ms": {
+            "median": 58.58825,
+            "min": 58.009625,
+            "max": 88.17525,
+            "values": [
+              88.17525,
+              74.062959,
+              58.193042,
+              58.150708,
+              58.009625,
+              58.983458
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "median_ms": 81.1191045
+            },
+            {
+              "block": 1,
+              "median_ms": 58.171875
+            },
+            {
+              "block": 2,
+              "median_ms": 58.4965415
+            }
+          ],
+          "first_ms": [
+            65.301125,
+            65.797833,
+            64.323792
+          ],
+          "construct_ms": [
+            24.52125,
+            22.865917,
+            23.115792
+          ],
+          "peak_rss_bytes": 44466176,
+          "retained_gpu_bytes": 6251337,
+          "retained_gpu_scope": "frame coarse + fine buffers only; other owners excluded",
+          "measured_gpu_metrics": null,
+          "profiling": null,
+          "fine_work": null,
+          "device_timestamp_available_measured_calls": null,
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              6,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.022762758554983418,
+            "angle_deg": 0.0270538330078125,
+            "relative_scale": 0.0019094709532277987
+          },
+          "route_valid": true,
+          "full_pipeline_residency_verified": false,
+          "ordered_matches_equal_baseline_gpu": false,
+          "ordered_proposals_equal_baseline_gpu": false,
+          "repeat_exact": true,
+          "proposal_counts": [
+            15
+          ],
+          "first_calls": 3,
+          "measured_calls": 6,
+          "gt_evaluated_calls": 9
+        },
+        "full_gpu_tiled": {
+          "total_ms": {
+            "median": 79.683104,
+            "min": 79.339959,
+            "max": 80.212166,
+            "values": [
+              79.500667,
+              79.339959,
+              79.442042,
+              79.865541,
+              80.190666,
+              80.212166
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "median_ms": 79.420313
+            },
+            {
+              "block": 1,
+              "median_ms": 79.6537915
+            },
+            {
+              "block": 2,
+              "median_ms": 80.201416
+            }
+          ],
+          "first_ms": [
+            83.55075,
+            81.878625,
+            81.728791
+          ],
+          "construct_ms": [
+            28.622042,
+            24.271958,
+            23.076584
+          ],
+          "peak_rss_bytes": 31195136,
+          "retained_gpu_bytes": 6451456,
+          "retained_gpu_scope": "all named full-GPU Metal buffers",
+          "measured_gpu_metrics": {
+            "command_buffers": {
+              "median": 1.0,
+              "min": 1,
+              "max": 1,
+              "values": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+              ]
+            },
+            "cpu_waits": {
+              "median": 1.0,
+              "min": 1,
+              "max": 1,
+              "values": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+              ]
+            },
+            "intermediate_readbacks": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "cpu_algorithm_steps": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "gpu_bytes": {
+              "median": 6451456.0,
+              "min": 6451456,
+              "max": 6451456,
+              "values": [
+                6451456,
+                6451456,
+                6451456,
+                6451456,
+                6451456,
+                6451456
+              ]
+            },
+            "upload_bytes": {
+              "median": 828704.0,
+              "min": 828704,
+              "max": 828704,
+              "values": [
+                828704,
+                828704,
+                828704,
+                828704,
+                828704,
+                828704
+              ]
+            },
+            "readback_bytes": {
+              "median": 1376.0,
+              "min": 1376,
+              "max": 1376,
+              "values": [
+                1376,
+                1376,
+                1376,
+                1376,
+                1376,
+                1376
+              ]
+            },
+            "encode_ms": {
+              "median": 0.359833,
+              "min": 0.338958,
+              "max": 0.41925,
+              "values": [
+                0.35925,
+                0.360416,
+                0.351833,
+                0.338958,
+                0.41925,
+                0.389291
+              ]
+            },
+            "wait_ms": {
+              "median": 79.2912085,
+              "min": 78.935667,
+              "max": 79.766917,
+              "values": [
+                79.095417,
+                78.935667,
+                79.049333,
+                79.487,
+                79.718292,
+                79.766917
+              ]
+            },
+            "peak_scratch_bytes": {
+              "median": 158208.0,
+              "min": 158208,
+              "max": 158208,
+              "values": [
+                158208,
+                158208,
+                158208,
+                158208,
+                158208,
+                158208
+              ]
+            },
+            "profile_counter_bytes": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "profile_resolve_bytes": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "profile_host_ms": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "fine_diagnostic_bytes": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "fine_diagnostic_readback_bytes": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "fine_threadgroup_bytes": {
+              "median": 28560.0,
+              "min": 28560,
+              "max": 28560,
+              "values": [
+                28560,
+                28560,
+                28560,
+                28560,
+                28560,
+                28560
+              ]
+            },
+            "device_ms": {
+              "median": 79.13610416289885,
+              "min": 78.7373750063125,
+              "max": 79.5629166677827,
+              "values": [
+                78.94095832307357,
+                78.7373750063125,
+                78.89600000635255,
+                79.33125000272412,
+                79.5629166677827,
+                79.54508333932608
+              ]
+            }
+          },
+          "profiling": {
+            "requested": false,
+            "available_calls": 0,
+            "total_calls": 9,
+            "measured_available_calls": 0,
+            "measured_calls": 6,
+            "status_counts": {
+              "disabled": 9
+            },
+            "sample_counts": [
+              0
+            ],
+            "stages": {},
+            "stage_sum_ms": null,
+            "device_remainder_ms": null
+          },
+          "fine_work": {
+            "requested": false,
+            "available_calls": 0,
+            "total_calls": 9,
+            "measured_available_calls": 0,
+            "measured_calls": 6,
+            "measured_totals": null,
+            "cached_angle_fraction": null,
+            "direct_angle_fraction": null,
+            "tiled_angle_fraction": null,
+            "layers": [],
+            "stable_measured_counts": null,
+            "note": "Counters are final readback only. source_samples counts analytic sampler invocations from executed angle categories; it is not hardware memory traffic, cache hits or GPU occupancy."
+          },
+          "device_timestamp_available_measured_calls": 6,
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              6,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.023096650932816373,
+            "angle_deg": 0.02813720703125,
+            "relative_scale": 0.0019029776255289343
+          },
+          "route_valid": true,
+          "full_pipeline_residency_verified": true,
+          "ordered_matches_equal_baseline_gpu": true,
+          "ordered_proposals_equal_baseline_gpu": true,
+          "repeat_exact": true,
+          "proposal_counts": [
+            15
+          ],
+          "first_calls": 3,
+          "measured_calls": 6,
+          "gt_evaluated_calls": 9
+        },
+        "full_gpu_fine_tiled": {
+          "total_ms": {
+            "median": 79.95308349999999,
+            "min": 79.015291,
+            "max": 81.410709,
+            "values": [
+              81.410709,
+              80.937542,
+              80.266958,
+              79.015291,
+              79.639209,
+              79.616042
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "median_ms": 81.1741255
+            },
+            {
+              "block": 1,
+              "median_ms": 79.6411245
+            },
+            {
+              "block": 2,
+              "median_ms": 79.6276255
+            }
+          ],
+          "first_ms": [
+            81.596292,
+            81.034917,
+            81.77475
+          ],
+          "construct_ms": [
+            23.307292,
+            26.61425,
+            23.330917
+          ],
+          "peak_rss_bytes": 31145984,
+          "retained_gpu_bytes": 6451456,
+          "retained_gpu_scope": "all named full-GPU Metal buffers",
+          "measured_gpu_metrics": {
+            "command_buffers": {
+              "median": 1.0,
+              "min": 1,
+              "max": 1,
+              "values": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+              ]
+            },
+            "cpu_waits": {
+              "median": 1.0,
+              "min": 1,
+              "max": 1,
+              "values": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+              ]
+            },
+            "intermediate_readbacks": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "cpu_algorithm_steps": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "gpu_bytes": {
+              "median": 6451456.0,
+              "min": 6451456,
+              "max": 6451456,
+              "values": [
+                6451456,
+                6451456,
+                6451456,
+                6451456,
+                6451456,
+                6451456
+              ]
+            },
+            "upload_bytes": {
+              "median": 828704.0,
+              "min": 828704,
+              "max": 828704,
+              "values": [
+                828704,
+                828704,
+                828704,
+                828704,
+                828704,
+                828704
+              ]
+            },
+            "readback_bytes": {
+              "median": 1376.0,
+              "min": 1376,
+              "max": 1376,
+              "values": [
+                1376,
+                1376,
+                1376,
+                1376,
+                1376,
+                1376
+              ]
+            },
+            "encode_ms": {
+              "median": 0.383292,
+              "min": 0.345125,
+              "max": 0.4035,
+              "values": [
+                0.387792,
+                0.378792,
+                0.345125,
+                0.4035,
+                0.370042,
+                0.39425
+              ]
+            },
+            "wait_ms": {
+              "median": 79.5490415,
+              "min": 78.5125,
+              "max": 80.966875,
+              "values": [
+                80.966875,
+                80.50675,
+                79.880708,
+                78.5125,
+                79.217375,
+                79.172792
+              ]
+            },
+            "peak_scratch_bytes": {
+              "median": 158208.0,
+              "min": 158208,
+              "max": 158208,
+              "values": [
+                158208,
+                158208,
+                158208,
+                158208,
+                158208,
+                158208
+              ]
+            },
+            "profile_counter_bytes": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "profile_resolve_bytes": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "profile_host_ms": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "fine_diagnostic_bytes": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "fine_diagnostic_readback_bytes": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "fine_threadgroup_bytes": {
+              "median": 28560.0,
+              "min": 28560,
+              "max": 28560,
+              "values": [
+                28560,
+                28560,
+                28560,
+                28560,
+                28560,
+                28560
+              ]
+            },
+            "device_ms": {
+              "median": 79.37947916798294,
+              "min": 78.30541666771751,
+              "max": 80.78404166735709,
+              "values": [
+                80.78404166735709,
+                80.31412500713486,
+                79.69354167289566,
+                78.30541666771751,
+                79.06541666307021,
+                79.00283332855906
+              ]
+            }
+          },
+          "profiling": {
+            "requested": false,
+            "available_calls": 0,
+            "total_calls": 9,
+            "measured_available_calls": 0,
+            "measured_calls": 6,
+            "status_counts": {
+              "disabled": 9
+            },
+            "sample_counts": [
+              0
+            ],
+            "stages": {},
+            "stage_sum_ms": null,
+            "device_remainder_ms": null
+          },
+          "fine_work": {
+            "requested": false,
+            "available_calls": 0,
+            "total_calls": 9,
+            "measured_available_calls": 0,
+            "measured_calls": 6,
+            "measured_totals": null,
+            "cached_angle_fraction": null,
+            "direct_angle_fraction": null,
+            "tiled_angle_fraction": null,
+            "layers": [],
+            "stable_measured_counts": null,
+            "note": "Counters are final readback only. source_samples counts analytic sampler invocations from executed angle categories; it is not hardware memory traffic, cache hits or GPU occupancy."
+          },
+          "device_timestamp_available_measured_calls": 6,
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              6,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.023096650932816373,
+            "angle_deg": 0.02813720703125,
+            "relative_scale": 0.0019029776255289343
+          },
+          "route_valid": true,
+          "full_pipeline_residency_verified": true,
+          "ordered_matches_equal_baseline_gpu": true,
+          "ordered_proposals_equal_baseline_gpu": true,
+          "repeat_exact": true,
+          "proposal_counts": [
+            15
+          ],
+          "first_calls": 3,
+          "measured_calls": 6,
+          "gt_evaluated_calls": 9
+        }
+      },
+      "fine_tiled_comparisons": {
+        "full_gpu_tiled": {
+          "delta_percent": 0.3388164948995742,
+          "primary_10_percent_improvement": null,
+          "paired": [
+            {
+              "block": 0,
+              "delta_percent": 2.2082669203280725,
+              "within_regression_budget": true
+            },
+            {
+              "block": 1,
+              "delta_percent": -0.015902570061576693,
+              "within_regression_budget": true
+            },
+            {
+              "block": 2,
+              "delta_percent": -0.7154368695934221,
+              "within_regression_budget": true
+            }
+          ],
+          "memory_within_budget": true,
+          "candidate_for_adoption": true
+        },
+        "hybrid_best": {
+          "delta_percent": 36.46607212196984,
+          "primary_10_percent_improvement": null,
+          "paired": [
+            {
+              "block": 0,
+              "delta_percent": 0.06782742528919083,
+              "within_regression_budget": true
+            },
+            {
+              "block": 1,
+              "delta_percent": 36.90657985495569,
+              "within_regression_budget": false
+            },
+            {
+              "block": 2,
+              "delta_percent": 36.123646728755745,
+              "within_regression_budget": false
+            }
+          ],
+          "memory_within_budget": true,
+          "candidate_for_adoption": false
+        }
+      },
+      "fine_work_comparison": null
+    },
+    {
+      "name": "8k_t256_angle180_3scales",
+      "truth_count": 6,
+      "methods": {
+        "hybrid_best": {
+          "total_ms": {
+            "median": 256.9299375,
+            "min": 249.022209,
+            "max": 278.863166,
+            "values": [
+              257.972958,
+              278.863166,
+              263.503875,
+              250.733666,
+              249.022209,
+              255.886917
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "median_ms": 268.41806199999996
+            },
+            {
+              "block": 1,
+              "median_ms": 257.1187705
+            },
+            {
+              "block": 2,
+              "median_ms": 252.454563
+            }
+          ],
+          "first_ms": [
+            253.640042,
+            256.496416,
+            276.240542
+          ],
+          "construct_ms": [
+            26.565917,
+            25.673125,
+            31.1735
+          ],
+          "peak_rss_bytes": 389038080,
+          "retained_gpu_bytes": 109460724,
+          "retained_gpu_scope": "frame coarse + fine buffers only; other owners excluded",
+          "measured_gpu_metrics": null,
+          "profiling": null,
+          "fine_work": null,
+          "device_timestamp_available_measured_calls": null,
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              6,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.0,
+            "angle_deg": 0.0,
+            "relative_scale": 0.0
+          },
+          "route_valid": true,
+          "full_pipeline_residency_verified": false,
+          "ordered_matches_equal_baseline_gpu": false,
+          "ordered_proposals_equal_baseline_gpu": false,
+          "repeat_exact": true,
+          "proposal_counts": [
+            6
+          ],
+          "first_calls": 3,
+          "measured_calls": 6,
+          "gt_evaluated_calls": 9
+        },
+        "full_gpu_tiled": {
+          "total_ms": {
+            "median": 70.60208349999999,
+            "min": 69.990292,
+            "max": 70.731084,
+            "values": [
+              70.648625,
+              70.731084,
+              70.605667,
+              70.416833,
+              69.990292,
+              70.5985
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "median_ms": 70.6898545
+            },
+            {
+              "block": 1,
+              "median_ms": 70.51124999999999
+            },
+            {
+              "block": 2,
+              "median_ms": 70.294396
+            }
+          ],
+          "first_ms": [
+            86.053625,
+            77.977875,
+            84.560416
+          ],
+          "construct_ms": [
+            30.883667,
+            30.029416,
+            29.127375
+          ],
+          "peak_rss_bytes": 296386560,
+          "retained_gpu_bytes": 169342976,
+          "retained_gpu_scope": "all named full-GPU Metal buffers",
+          "measured_gpu_metrics": {
+            "command_buffers": {
+              "median": 1.0,
+              "min": 1,
+              "max": 1,
+              "values": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+              ]
+            },
+            "cpu_waits": {
+              "median": 1.0,
+              "min": 1,
+              "max": 1,
+              "values": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+              ]
+            },
+            "intermediate_readbacks": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "cpu_algorithm_steps": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "gpu_bytes": {
+              "median": 169342976.0,
+              "min": 169342976,
+              "max": 169342976,
+              "values": [
+                169342976,
+                169342976,
+                169342976,
+                169342976,
+                169342976,
+                169342976
+              ]
+            },
+            "upload_bytes": {
+              "median": 67174920.0,
+              "min": 67174920,
+              "max": 67174920,
+              "values": [
+                67174920,
+                67174920,
+                67174920,
+                67174920,
+                67174920,
+                67174920
+              ]
+            },
+            "readback_bytes": {
+              "median": 800.0,
+              "min": 800,
+              "max": 800,
+              "values": [
+                800,
+                800,
+                800,
+                800,
+                800,
+                800
+              ]
+            },
+            "encode_ms": {
+              "median": 0.309646,
+              "min": 0.303667,
+              "max": 0.546083,
+              "values": [
+                0.546083,
+                0.357334,
+                0.309625,
+                0.303667,
+                0.309667,
+                0.307917
+              ]
+            },
+            "wait_ms": {
+              "median": 69.14908299999999,
+              "min": 68.615,
+              "max": 69.28625,
+              "values": [
+                68.667,
+                69.28625,
+                69.251917,
+                69.068125,
+                68.615,
+                69.230041
+              ]
+            },
+            "peak_scratch_bytes": {
+              "median": 3939840.0,
+              "min": 3939840,
+              "max": 3939840,
+              "values": [
+                3939840,
+                3939840,
+                3939840,
+                3939840,
+                3939840,
+                3939840
+              ]
+            },
+            "profile_counter_bytes": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "profile_resolve_bytes": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "profile_host_ms": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "fine_diagnostic_bytes": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "fine_diagnostic_readback_bytes": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "fine_threadgroup_bytes": {
+              "median": 28560.0,
+              "min": 28560,
+              "max": 28560,
+              "values": [
+                28560,
+                28560,
+                28560,
+                28560,
+                28560,
+                28560
+              ]
+            },
+            "device_ms": {
+              "median": 68.64922917156946,
+              "min": 68.45208333106712,
+              "max": 69.11199999740347,
+              "values": [
+                68.48875001014676,
+                68.74908333702479,
+                69.11199999740347,
+                68.90487499185838,
+                68.45208333106712,
+                68.54937500611413
+              ]
+            }
+          },
+          "profiling": {
+            "requested": false,
+            "available_calls": 0,
+            "total_calls": 9,
+            "measured_available_calls": 0,
+            "measured_calls": 6,
+            "status_counts": {
+              "disabled": 9
+            },
+            "sample_counts": [
+              0
+            ],
+            "stages": {},
+            "stage_sum_ms": null,
+            "device_remainder_ms": null
+          },
+          "fine_work": {
+            "requested": false,
+            "available_calls": 0,
+            "total_calls": 9,
+            "measured_available_calls": 0,
+            "measured_calls": 6,
+            "measured_totals": null,
+            "cached_angle_fraction": null,
+            "direct_angle_fraction": null,
+            "tiled_angle_fraction": null,
+            "layers": [],
+            "stable_measured_counts": null,
+            "note": "Counters are final readback only. source_samples counts analytic sampler invocations from executed angle categories; it is not hardware memory traffic, cache hits or GPU occupancy."
+          },
+          "device_timestamp_available_measured_calls": 6,
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              6,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.0,
+            "angle_deg": 0.0,
+            "relative_scale": 0.0
+          },
+          "route_valid": true,
+          "full_pipeline_residency_verified": true,
+          "ordered_matches_equal_baseline_gpu": true,
+          "ordered_proposals_equal_baseline_gpu": true,
+          "repeat_exact": true,
+          "proposal_counts": [
+            6
+          ],
+          "first_calls": 3,
+          "measured_calls": 6,
+          "gt_evaluated_calls": 9
+        },
+        "full_gpu_fine_tiled": {
+          "total_ms": {
+            "median": 67.3067705,
+            "min": 67.145833,
+            "max": 67.682875,
+            "values": [
+              67.213041,
+              67.664709,
+              67.272333,
+              67.682875,
+              67.341208,
+              67.145833
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "median_ms": 67.438875
+            },
+            {
+              "block": 1,
+              "median_ms": 67.477604
+            },
+            {
+              "block": 2,
+              "median_ms": 67.24352049999999
+            }
+          ],
+          "first_ms": [
+            74.644833,
+            74.043125,
+            73.688416
+          ],
+          "construct_ms": [
+            30.708,
+            30.208458,
+            29.787833
+          ],
+          "peak_rss_bytes": 296255488,
+          "retained_gpu_bytes": 169342976,
+          "retained_gpu_scope": "all named full-GPU Metal buffers",
+          "measured_gpu_metrics": {
+            "command_buffers": {
+              "median": 1.0,
+              "min": 1,
+              "max": 1,
+              "values": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+              ]
+            },
+            "cpu_waits": {
+              "median": 1.0,
+              "min": 1,
+              "max": 1,
+              "values": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+              ]
+            },
+            "intermediate_readbacks": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "cpu_algorithm_steps": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "gpu_bytes": {
+              "median": 169342976.0,
+              "min": 169342976,
+              "max": 169342976,
+              "values": [
+                169342976,
+                169342976,
+                169342976,
+                169342976,
+                169342976,
+                169342976
+              ]
+            },
+            "upload_bytes": {
+              "median": 67174920.0,
+              "min": 67174920,
+              "max": 67174920,
+              "values": [
+                67174920,
+                67174920,
+                67174920,
+                67174920,
+                67174920,
+                67174920
+              ]
+            },
+            "readback_bytes": {
+              "median": 800.0,
+              "min": 800,
+              "max": 800,
+              "values": [
+                800,
+                800,
+                800,
+                800,
+                800,
+                800
+              ]
+            },
+            "encode_ms": {
+              "median": 0.323479,
+              "min": 0.301375,
+              "max": 0.337625,
+              "values": [
+                0.301375,
+                0.321083,
+                0.324875,
+                0.328917,
+                0.337625,
+                0.322083
+              ]
+            },
+            "wait_ms": {
+              "median": 65.9249165,
+              "min": 65.765042,
+              "max": 66.303833,
+              "values": [
+                65.8715,
+                66.301292,
+                65.903208,
+                66.303833,
+                65.946625,
+                65.765042
+              ]
+            },
+            "peak_scratch_bytes": {
+              "median": 3939840.0,
+              "min": 3939840,
+              "max": 3939840,
+              "values": [
+                3939840,
+                3939840,
+                3939840,
+                3939840,
+                3939840,
+                3939840
+              ]
+            },
+            "profile_counter_bytes": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "profile_resolve_bytes": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "profile_host_ms": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "fine_diagnostic_bytes": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "fine_diagnostic_readback_bytes": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "fine_threadgroup_bytes": {
+              "median": 28560.0,
+              "min": 28560,
+              "max": 28560,
+              "values": [
+                28560,
+                28560,
+                28560,
+                28560,
+                28560,
+                28560
+              ]
+            },
+            "device_ms": {
+              "median": 65.70852082950296,
+              "min": 65.60524999804329,
+              "max": 65.77916665992234,
+              "values": [
+                65.71366665593814,
+                65.70337500306778,
+                65.7211250072578,
+                65.68649999098852,
+                65.77916665992234,
+                65.60524999804329
+              ]
+            }
+          },
+          "profiling": {
+            "requested": false,
+            "available_calls": 0,
+            "total_calls": 9,
+            "measured_available_calls": 0,
+            "measured_calls": 6,
+            "status_counts": {
+              "disabled": 9
+            },
+            "sample_counts": [
+              0
+            ],
+            "stages": {},
+            "stage_sum_ms": null,
+            "device_remainder_ms": null
+          },
+          "fine_work": {
+            "requested": false,
+            "available_calls": 0,
+            "total_calls": 9,
+            "measured_available_calls": 0,
+            "measured_calls": 6,
+            "measured_totals": null,
+            "cached_angle_fraction": null,
+            "direct_angle_fraction": null,
+            "tiled_angle_fraction": null,
+            "layers": [],
+            "stable_measured_counts": null,
+            "note": "Counters are final readback only. source_samples counts analytic sampler invocations from executed angle categories; it is not hardware memory traffic, cache hits or GPU occupancy."
+          },
+          "device_timestamp_available_measured_calls": 6,
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              6,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.0,
+            "angle_deg": 0.0,
+            "relative_scale": 0.0
+          },
+          "route_valid": true,
+          "full_pipeline_residency_verified": true,
+          "ordered_matches_equal_baseline_gpu": true,
+          "ordered_proposals_equal_baseline_gpu": true,
+          "repeat_exact": true,
+          "proposal_counts": [
+            6
+          ],
+          "first_calls": 3,
+          "measured_calls": 6,
+          "gt_evaluated_calls": 9
+        }
+      },
+      "fine_tiled_comparisons": {
+        "full_gpu_tiled": {
+          "delta_percent": -4.667444410475497,
+          "primary_10_percent_improvement": null,
+          "paired": [
+            {
+              "block": 0,
+              "delta_percent": -4.598933641884917,
+              "within_regression_budget": true
+            },
+            {
+              "block": 1,
+              "delta_percent": -4.3023574252335495,
+              "within_regression_budget": true
+            },
+            {
+              "block": 2,
+              "delta_percent": -4.340140428833072,
+              "within_regression_budget": true
+            }
+          ],
+          "memory_within_budget": true,
+          "candidate_for_adoption": true
+        },
+        "hybrid_best": {
+          "delta_percent": -73.80345351930816,
+          "primary_10_percent_improvement": null,
+          "paired": [
+            {
+              "block": 0,
+              "delta_percent": -74.87543330821008,
+              "within_regression_budget": true
+            },
+            {
+              "block": 1,
+              "delta_percent": -73.75625129632455,
+              "within_regression_budget": true
+            },
+            {
+              "block": 2,
+              "delta_percent": -73.36410968337302,
+              "within_regression_budget": true
+            }
+          ],
+          "memory_within_budget": true,
+          "candidate_for_adoption": true
+        }
+      },
+      "fine_work_comparison": null
+    }
+  ],
+  "failed_gates": [
+    {
+      "case": "many128_pose",
+      "method": "full_gpu_fine_tiled",
+      "baseline": "full_gpu_tiled",
+      "gate": "primary_10_percent_improvement"
+    },
+    {
+      "case": "many128_pose",
+      "method": "full_gpu_fine_tiled",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 0
+    },
+    {
+      "case": "many128_pose",
+      "method": "full_gpu_fine_tiled",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 1
+    },
+    {
+      "case": "many128_pose",
+      "method": "full_gpu_fine_tiled",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 2
+    },
+    {
+      "case": "many512_pose",
+      "method": "full_gpu_fine_tiled",
+      "baseline": "full_gpu_tiled",
+      "gate": "primary_10_percent_improvement"
+    },
+    {
+      "case": "many512_pose",
+      "method": "full_gpu_fine_tiled",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 0
+    },
+    {
+      "case": "many512_pose",
+      "method": "full_gpu_fine_tiled",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 1
+    },
+    {
+      "case": "many512_pose",
+      "method": "full_gpu_fine_tiled",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 2
+    },
+    {
+      "case": "controlled6",
+      "method": "full_gpu_fine_tiled",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 1
+    },
+    {
+      "case": "controlled6",
+      "method": "full_gpu_fine_tiled",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 2
+    }
+  ],
+  "all_accuracy_pass": true,
+  "all_gpu_resident": true,
+  "all_fine_tiled_exact_baseline": true,
+  "all_fine_tiled_vs_baseline_gates_pass": true,
+  "all_primary_10_percent_target_pass": false,
+  "all_fine_tiled_vs_hybrid_gates_pass": false,
+  "counts": {
+    "fresh_processes": 36,
+    "first_calls": 36,
+    "measured_calls": 72,
+    "gt_evaluated_calls": 108
+  },
+  "accuracy_thresholds": {
+    "position_px": 2.0,
+    "angle_deg": 1.0,
+    "relative_scale": 0.02
+  },
+  "timing_note": "First calls are separate. Distributions use measured repeats only. Profile diagnostics never enter unprofiled speed gates; unavailable stages and remainder are null. Signed device remainder includes unsampled work, gaps, and timestamp-instrument differences.",
+  "memory_note": "Peak process RSS and retained named Metal buffer lengths differ in scope and must not be added; GPU buffer lengths are not physical VRAM. Counter payload capacity is logical and opaque to Metal allocation accounting. Resolved timestamp bytes are transient CPU NSData payload, excluded from gpu_bytes; Peak scratch and retained fine diagnostic buffers are already included in full-GPU gpu_bytes. Fine diagnostic current readback payload is separate from algorithm readback_bytes. fine_threadgroup_bytes is compiled kernel static threadgroup storage, not retained buffer allocation.",
+  "parity_note": "Independent one-to-one GT accuracy plus exact ordered matches AND proposals against the baseline full-GPU route are required for fine-tiled adoption.",
+  "residency_note": "Audited implementation counters, not a hardware trace: one command buffer, one final wait, no intermediate readback or image-dependent CPU algorithm."
+}

@@ -81,6 +81,7 @@ void validateOptions(const Options& o,int backend) {
        !std::isfinite(c.toleranceAngle) || c.toleranceAngle<0 || c.toleranceAngle>180 ||
        (c.stopLayer!=0 && c.stopLayer!=1) || !std::isfinite(o.proposalScore) || o.proposalScore<0 || o.proposalScore>1 ||
        o.nccMode<0 || o.nccMode>3 || o.fineNccMode<0 || o.fineNccMode>3 || o.fullGpuPeakMode<0 || o.fullGpuPeakMode>1 ||
+       o.fullGpuFineMode<0 || o.fullGpuFineMode>1 ||
        o.coarsePeakMode<0 || o.coarsePeakMode>2 || (o.coarsePeakMode==2 && (backend==0 || o.overlap)) ||
        (backend==0 && (o.nccMode || o.fineNccMode || o.fineProfiling || o.fineAngleReuse || o.fineFused || o.overlap)))
         throw std::invalid_argument("Invalid matching options or GPU option selected for CPU");
@@ -197,8 +198,8 @@ SourceUpdate Session::updateSource(ImageView source) {
 Result Session::run(const Options& o) {
     auto& s=*impl_;validateOptions(o,s.settings.backend);Result r;char error[1024]{};const auto start=Clock::now();
     if(s.fullGpu) { r=s.fullGpu->run(o); r.sourceGeneration=s.sourceGeneration; return r; }
-    if(o.fullGpuPeakMode || o.fullGpuProfiling)
-        throw std::invalid_argument("Full GPU peak selection/profiling requires full_gpu=true");
+    if(o.fullGpuPeakMode || o.fullGpuFineMode || o.fullGpuProfiling)
+        throw std::invalid_argument("Full GPU peak/fine selection/profiling requires full_gpu=true");
     r.scaleSupportEnabled=o.scaleSupportRefine;
     r.refinementMode=s.settings.residentMode;
     r.configuredRefinementBackend=s.refinementBackend();r.sourceGeneration=s.sourceGeneration;

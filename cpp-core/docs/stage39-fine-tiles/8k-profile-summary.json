@@ -1,0 +1,3473 @@
+{
+  "profiling": true,
+  "cases": [
+    {
+      "name": "8k_t256_angle180_3scales",
+      "truth_count": 6,
+      "methods": {
+        "full_gpu_tiled": {
+          "total_ms": {
+            "median": 74.853021,
+            "min": 74.78925,
+            "max": 74.916792,
+            "values": [
+              74.916792,
+              74.78925
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "median_ms": 74.853021
+            }
+          ],
+          "first_ms": [
+            93.78025
+          ],
+          "construct_ms": [
+            29.640292
+          ],
+          "peak_rss_bytes": 308969472,
+          "retained_gpu_bytes": 169343488,
+          "retained_gpu_scope": "all named full-GPU Metal buffers",
+          "measured_gpu_metrics": {
+            "command_buffers": {
+              "median": 1.0,
+              "min": 1,
+              "max": 1,
+              "values": [
+                1,
+                1
+              ]
+            },
+            "cpu_waits": {
+              "median": 1.0,
+              "min": 1,
+              "max": 1,
+              "values": [
+                1,
+                1
+              ]
+            },
+            "intermediate_readbacks": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0
+              ]
+            },
+            "cpu_algorithm_steps": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0
+              ]
+            },
+            "gpu_bytes": {
+              "median": 169343488.0,
+              "min": 169343488,
+              "max": 169343488,
+              "values": [
+                169343488,
+                169343488
+              ]
+            },
+            "upload_bytes": {
+              "median": 67174920.0,
+              "min": 67174920,
+              "max": 67174920,
+              "values": [
+                67174920,
+                67174920
+              ]
+            },
+            "readback_bytes": {
+              "median": 800.0,
+              "min": 800,
+              "max": 800,
+              "values": [
+                800,
+                800
+              ]
+            },
+            "encode_ms": {
+              "median": 1.6314375,
+              "min": 1.61225,
+              "max": 1.650625,
+              "values": [
+                1.61225,
+                1.650625
+              ]
+            },
+            "wait_ms": {
+              "median": 72.10849999999999,
+              "min": 72.030333,
+              "max": 72.186667,
+              "values": [
+                72.186667,
+                72.030333
+              ]
+            },
+            "peak_scratch_bytes": {
+              "median": 3939840.0,
+              "min": 3939840,
+              "max": 3939840,
+              "values": [
+                3939840,
+                3939840
+              ]
+            },
+            "profile_counter_bytes": {
+              "median": 16384.0,
+              "min": 16384,
+              "max": 16384,
+              "values": [
+                16384,
+                16384
+              ]
+            },
+            "profile_resolve_bytes": {
+              "median": 10848.0,
+              "min": 10848,
+              "max": 10848,
+              "values": [
+                10848,
+                10848
+              ]
+            },
+            "profile_host_ms": {
+              "median": 1.221999999999996,
+              "min": 1.2067429999999961,
+              "max": 1.2372569999999958,
+              "values": [
+                1.2067429999999961,
+                1.2372569999999958
+              ]
+            },
+            "fine_diagnostic_bytes": {
+              "median": 512.0,
+              "min": 512,
+              "max": 512,
+              "values": [
+                512,
+                512
+              ]
+            },
+            "fine_diagnostic_readback_bytes": {
+              "median": 256.0,
+              "min": 256,
+              "max": 256,
+              "values": [
+                256,
+                256
+              ]
+            },
+            "fine_threadgroup_bytes": {
+              "median": 28560.0,
+              "min": 28560,
+              "max": 28560,
+              "values": [
+                28560,
+                28560
+              ]
+            },
+            "device_ms": {
+              "median": 71.74125000165077,
+              "min": 71.60854166431818,
+              "max": 71.87395833898336,
+              "values": [
+                71.60854166431818,
+                71.87395833898336
+              ]
+            }
+          },
+          "profiling": {
+            "requested": true,
+            "available_calls": 3,
+            "total_calls": 3,
+            "measured_available_calls": 2,
+            "measured_calls": 2,
+            "status_counts": {
+              "encoder_boundary_timestamps": 3
+            },
+            "sample_counts": [
+              1356
+            ],
+            "stages": {
+              "coarse_ncc": {
+                "gpu_ms": {
+                  "median": 31.900335499999997,
+                  "min": 31.870125999999974,
+                  "max": 31.93054500000002,
+                  "values": [
+                    31.93054500000002,
+                    31.870125999999974
+                  ]
+                },
+                "encoders": [
+                  248
+                ],
+                "measured_available_calls": 2
+              },
+              "coarse_peaks": {
+                "gpu_ms": {
+                  "median": 17.55767500000001,
+                  "min": 17.513842,
+                  "max": 17.60150800000002,
+                  "values": [
+                    17.513842,
+                    17.60150800000002
+                  ]
+                },
+                "encoders": [
+                  248
+                ],
+                "measured_available_calls": 2
+              },
+              "coarse_rotation": {
+                "gpu_ms": {
+                  "median": 4.591937500000001,
+                  "min": 4.527878,
+                  "max": 4.655997000000002,
+                  "values": [
+                    4.655997000000002,
+                    4.527878
+                  ]
+                },
+                "encoders": [
+                  124
+                ],
+                "measured_available_calls": 2
+              },
+              "final_nms": {
+                "gpu_ms": {
+                  "median": 0.0195835,
+                  "min": 0.0195,
+                  "max": 0.019667,
+                  "values": [
+                    0.019667,
+                    0.0195
+                  ]
+                },
+                "encoders": [
+                  1
+                ],
+                "measured_available_calls": 2
+              },
+              "final_output": {
+                "gpu_ms": {
+                  "median": 0.0122095,
+                  "min": 0.009666999999999999,
+                  "max": 0.014752000000000001,
+                  "values": [
+                    0.009666999999999999,
+                    0.014752000000000001
+                  ]
+                },
+                "encoders": [
+                  4
+                ],
+                "measured_available_calls": 2
+              },
+              "fine_search": {
+                "gpu_ms": {
+                  "median": 7.8912495,
+                  "min": 7.84575,
+                  "max": 7.936749,
+                  "values": [
+                    7.84575,
+                    7.936749
+                  ]
+                },
+                "encoders": [
+                  3
+                ],
+                "measured_available_calls": 2
+              },
+              "initialization": {
+                "gpu_ms": {
+                  "median": 0.011082999999999999,
+                  "min": 0.010667,
+                  "max": 0.011498999999999999,
+                  "values": [
+                    0.011498999999999999,
+                    0.010667
+                  ]
+                },
+                "encoders": [
+                  6
+                ],
+                "measured_available_calls": 2
+              },
+              "model_nms": {
+                "gpu_ms": {
+                  "median": 0.0403125,
+                  "min": 0.04025,
+                  "max": 0.040375,
+                  "values": [
+                    0.040375,
+                    0.04025
+                  ]
+                },
+                "encoders": [
+                  3
+                ],
+                "measured_available_calls": 2
+              },
+              "pose_prepare": {
+                "gpu_ms": {
+                  "median": 0.011,
+                  "min": 0.010959,
+                  "max": 0.011040999999999999,
+                  "values": [
+                    0.010959,
+                    0.011040999999999999
+                  ]
+                },
+                "encoders": [
+                  2
+                ],
+                "measured_available_calls": 2
+              },
+              "source_pyramid": {
+                "gpu_ms": {
+                  "median": 7.336917,
+                  "min": 7.287167,
+                  "max": 7.386666999999999,
+                  "values": [
+                    7.287167,
+                    7.386666999999999
+                  ]
+                },
+                "encoders": [
+                  6
+                ],
+                "measured_available_calls": 2
+              },
+              "template_pyramid": {
+                "gpu_ms": {
+                  "median": 0.4047104999999999,
+                  "min": 0.40099999999999997,
+                  "max": 0.40842099999999987,
+                  "values": [
+                    0.40842099999999987,
+                    0.40099999999999997
+                  ]
+                },
+                "encoders": [
+                  33
+                ],
+                "measured_available_calls": 2
+              }
+            },
+            "stage_sum_ms": {
+              "median": 69.77701350000001,
+              "min": 69.73388900000002,
+              "max": 69.820138,
+              "values": [
+                69.73388900000002,
+                69.820138
+              ]
+            },
+            "device_remainder_ms": {
+              "median": 1.9642365016507597,
+              "min": 1.8746526643181625,
+              "max": 2.053820338983357,
+              "values": [
+                1.8746526643181625,
+                2.053820338983357
+              ]
+            }
+          },
+          "fine_work": {
+            "requested": true,
+            "available_calls": 3,
+            "total_calls": 3,
+            "measured_available_calls": 2,
+            "measured_calls": 2,
+            "measured_totals": {
+              "reached_candidates": {
+                "median": 565.0,
+                "min": 565,
+                "max": 565,
+                "values": [
+                  565,
+                  565
+                ]
+              },
+              "angles": {
+                "median": 1695.0,
+                "min": 1695,
+                "max": 1695,
+                "values": [
+                  1695,
+                  1695
+                ]
+              },
+              "cached_angles": {
+                "median": 1644.0,
+                "min": 1644,
+                "max": 1644,
+                "values": [
+                  1644,
+                  1644
+                ]
+              },
+              "direct_angles": {
+                "median": 51.0,
+                "min": 51,
+                "max": 51,
+                "values": [
+                  51,
+                  51
+                ]
+              },
+              "tiled_angles": {
+                "median": 0.0,
+                "min": 0,
+                "max": 0,
+                "values": [
+                  0,
+                  0
+                ]
+              },
+              "source_samples": {
+                "median": 42424560.0,
+                "min": 42424560,
+                "max": 42424560,
+                "values": [
+                  42424560,
+                  42424560
+                ]
+              },
+              "tile_loads": {
+                "median": 0.0,
+                "min": 0,
+                "max": 0,
+                "values": [
+                  0,
+                  0
+                ]
+              }
+            },
+            "cached_angle_fraction": {
+              "median": 0.9699115044247788,
+              "min": 0.9699115044247788,
+              "max": 0.9699115044247788,
+              "values": [
+                0.9699115044247788,
+                0.9699115044247788
+              ]
+            },
+            "direct_angle_fraction": {
+              "median": 0.03008849557522124,
+              "min": 0.03008849557522124,
+              "max": 0.03008849557522124,
+              "values": [
+                0.03008849557522124,
+                0.03008849557522124
+              ]
+            },
+            "tiled_angle_fraction": {
+              "median": 0.0,
+              "min": 0.0,
+              "max": 0.0,
+              "values": [
+                0.0,
+                0.0
+              ]
+            },
+            "layers": [
+              {
+                "model": 0,
+                "layer": 0,
+                "template_width": 192,
+                "template_height": 192,
+                "roi_cache_bytes": 16384,
+                "roi_area_bytes": 39204,
+                "tile_rows_capacity": 16,
+                "measured_available_calls": 2,
+                "counts": {
+                  "reached_candidates": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "cached_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "direct_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tiled_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "source_samples": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tile_loads": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  }
+                }
+              },
+              {
+                "model": 0,
+                "layer": 1,
+                "template_width": 96,
+                "template_height": 96,
+                "roi_cache_bytes": 16384,
+                "roi_area_bytes": 10404,
+                "tile_rows_capacity": 16,
+                "measured_available_calls": 2,
+                "counts": {
+                  "reached_candidates": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "cached_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "direct_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tiled_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "source_samples": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tile_loads": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  }
+                }
+              },
+              {
+                "model": 0,
+                "layer": 2,
+                "template_width": 48,
+                "template_height": 48,
+                "roi_cache_bytes": 16384,
+                "roi_area_bytes": 2916,
+                "tile_rows_capacity": 16,
+                "measured_available_calls": 2,
+                "counts": {
+                  "reached_candidates": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "cached_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "direct_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tiled_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "source_samples": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tile_loads": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  }
+                }
+              },
+              {
+                "model": 0,
+                "layer": 3,
+                "template_width": 24,
+                "template_height": 24,
+                "roi_cache_bytes": 16384,
+                "roi_area_bytes": 900,
+                "tile_rows_capacity": 16,
+                "measured_available_calls": 2,
+                "counts": {
+                  "reached_candidates": {
+                    "median": 142.0,
+                    "min": 142,
+                    "max": 142,
+                    "values": [
+                      142,
+                      142
+                    ]
+                  },
+                  "angles": {
+                    "median": 426.0,
+                    "min": 426,
+                    "max": 426,
+                    "values": [
+                      426,
+                      426
+                    ]
+                  },
+                  "cached_angles": {
+                    "median": 426.0,
+                    "min": 426,
+                    "max": 426,
+                    "values": [
+                      426,
+                      426
+                    ]
+                  },
+                  "direct_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tiled_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "source_samples": {
+                    "median": 383400.0,
+                    "min": 383400,
+                    "max": 383400,
+                    "values": [
+                      383400,
+                      383400
+                    ]
+                  },
+                  "tile_loads": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  }
+                }
+              },
+              {
+                "model": 0,
+                "layer": 4,
+                "template_width": 12,
+                "template_height": 12,
+                "roi_cache_bytes": 16384,
+                "roi_area_bytes": 324,
+                "tile_rows_capacity": 16,
+                "measured_available_calls": 2,
+                "counts": {
+                  "reached_candidates": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "cached_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "direct_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tiled_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "source_samples": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tile_loads": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  }
+                }
+              },
+              {
+                "model": 1,
+                "layer": 0,
+                "template_width": 256,
+                "template_height": 256,
+                "roi_cache_bytes": 16384,
+                "roi_area_bytes": 68644,
+                "tile_rows_capacity": 16,
+                "measured_available_calls": 2,
+                "counts": {
+                  "reached_candidates": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "cached_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "direct_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tiled_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "source_samples": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tile_loads": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  }
+                }
+              },
+              {
+                "model": 1,
+                "layer": 1,
+                "template_width": 128,
+                "template_height": 128,
+                "roi_cache_bytes": 16384,
+                "roi_area_bytes": 17956,
+                "tile_rows_capacity": 16,
+                "measured_available_calls": 2,
+                "counts": {
+                  "reached_candidates": {
+                    "median": 17.0,
+                    "min": 17,
+                    "max": 17,
+                    "values": [
+                      17,
+                      17
+                    ]
+                  },
+                  "angles": {
+                    "median": 51.0,
+                    "min": 51,
+                    "max": 51,
+                    "values": [
+                      51,
+                      51
+                    ]
+                  },
+                  "cached_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "direct_angles": {
+                    "median": 51.0,
+                    "min": 51,
+                    "max": 51,
+                    "values": [
+                      51,
+                      51
+                    ]
+                  },
+                  "tiled_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "source_samples": {
+                    "median": 40943616.0,
+                    "min": 40943616,
+                    "max": 40943616,
+                    "values": [
+                      40943616,
+                      40943616
+                    ]
+                  },
+                  "tile_loads": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  }
+                }
+              },
+              {
+                "model": 1,
+                "layer": 2,
+                "template_width": 64,
+                "template_height": 64,
+                "roi_cache_bytes": 16384,
+                "roi_area_bytes": 4900,
+                "tile_rows_capacity": 16,
+                "measured_available_calls": 2,
+                "counts": {
+                  "reached_candidates": {
+                    "median": 18.0,
+                    "min": 18,
+                    "max": 18,
+                    "values": [
+                      18,
+                      18
+                    ]
+                  },
+                  "angles": {
+                    "median": 54.0,
+                    "min": 54,
+                    "max": 54,
+                    "values": [
+                      54,
+                      54
+                    ]
+                  },
+                  "cached_angles": {
+                    "median": 54.0,
+                    "min": 54,
+                    "max": 54,
+                    "values": [
+                      54,
+                      54
+                    ]
+                  },
+                  "direct_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tiled_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "source_samples": {
+                    "median": 264600.0,
+                    "min": 264600,
+                    "max": 264600,
+                    "values": [
+                      264600,
+                      264600
+                    ]
+                  },
+                  "tile_loads": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  }
+                }
+              },
+              {
+                "model": 1,
+                "layer": 3,
+                "template_width": 32,
+                "template_height": 32,
+                "roi_cache_bytes": 16384,
+                "roi_area_bytes": 1444,
+                "tile_rows_capacity": 16,
+                "measured_available_calls": 2,
+                "counts": {
+                  "reached_candidates": {
+                    "median": 20.0,
+                    "min": 20,
+                    "max": 20,
+                    "values": [
+                      20,
+                      20
+                    ]
+                  },
+                  "angles": {
+                    "median": 60.0,
+                    "min": 60,
+                    "max": 60,
+                    "values": [
+                      60,
+                      60
+                    ]
+                  },
+                  "cached_angles": {
+                    "median": 60.0,
+                    "min": 60,
+                    "max": 60,
+                    "values": [
+                      60,
+                      60
+                    ]
+                  },
+                  "direct_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tiled_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "source_samples": {
+                    "median": 86640.0,
+                    "min": 86640,
+                    "max": 86640,
+                    "values": [
+                      86640,
+                      86640
+                    ]
+                  },
+                  "tile_loads": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  }
+                }
+              },
+              {
+                "model": 1,
+                "layer": 4,
+                "template_width": 16,
+                "template_height": 16,
+                "roi_cache_bytes": 16384,
+                "roi_area_bytes": 484,
+                "tile_rows_capacity": 16,
+                "measured_available_calls": 2,
+                "counts": {
+                  "reached_candidates": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "cached_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "direct_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tiled_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "source_samples": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tile_loads": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  }
+                }
+              },
+              {
+                "model": 2,
+                "layer": 0,
+                "template_width": 320,
+                "template_height": 320,
+                "roi_cache_bytes": 16384,
+                "roi_area_bytes": 106276,
+                "tile_rows_capacity": 16,
+                "measured_available_calls": 2,
+                "counts": {
+                  "reached_candidates": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "cached_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "direct_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tiled_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "source_samples": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tile_loads": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  }
+                }
+              },
+              {
+                "model": 2,
+                "layer": 1,
+                "template_width": 160,
+                "template_height": 160,
+                "roi_cache_bytes": 16384,
+                "roi_area_bytes": 27556,
+                "tile_rows_capacity": 16,
+                "measured_available_calls": 2,
+                "counts": {
+                  "reached_candidates": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "cached_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "direct_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tiled_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "source_samples": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tile_loads": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  }
+                }
+              },
+              {
+                "model": 2,
+                "layer": 2,
+                "template_width": 80,
+                "template_height": 80,
+                "roi_cache_bytes": 16384,
+                "roi_area_bytes": 7396,
+                "tile_rows_capacity": 16,
+                "measured_available_calls": 2,
+                "counts": {
+                  "reached_candidates": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "cached_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "direct_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tiled_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "source_samples": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tile_loads": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  }
+                }
+              },
+              {
+                "model": 2,
+                "layer": 3,
+                "template_width": 40,
+                "template_height": 40,
+                "roi_cache_bytes": 16384,
+                "roi_area_bytes": 2116,
+                "tile_rows_capacity": 16,
+                "measured_available_calls": 2,
+                "counts": {
+                  "reached_candidates": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "cached_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "direct_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tiled_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "source_samples": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tile_loads": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  }
+                }
+              },
+              {
+                "model": 2,
+                "layer": 4,
+                "template_width": 20,
+                "template_height": 20,
+                "roi_cache_bytes": 16384,
+                "roi_area_bytes": 676,
+                "tile_rows_capacity": 16,
+                "measured_available_calls": 2,
+                "counts": {
+                  "reached_candidates": {
+                    "median": 368.0,
+                    "min": 368,
+                    "max": 368,
+                    "values": [
+                      368,
+                      368
+                    ]
+                  },
+                  "angles": {
+                    "median": 1104.0,
+                    "min": 1104,
+                    "max": 1104,
+                    "values": [
+                      1104,
+                      1104
+                    ]
+                  },
+                  "cached_angles": {
+                    "median": 1104.0,
+                    "min": 1104,
+                    "max": 1104,
+                    "values": [
+                      1104,
+                      1104
+                    ]
+                  },
+                  "direct_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tiled_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "source_samples": {
+                    "median": 746304.0,
+                    "min": 746304,
+                    "max": 746304,
+                    "values": [
+                      746304,
+                      746304
+                    ]
+                  },
+                  "tile_loads": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  }
+                }
+              },
+              {
+                "model": 2,
+                "layer": 5,
+                "template_width": 10,
+                "template_height": 10,
+                "roi_cache_bytes": 16384,
+                "roi_area_bytes": 256,
+                "tile_rows_capacity": 16,
+                "measured_available_calls": 2,
+                "counts": {
+                  "reached_candidates": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "cached_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "direct_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tiled_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "source_samples": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tile_loads": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  }
+                }
+              }
+            ],
+            "stable_measured_counts": true,
+            "note": "Counters are final readback only. source_samples counts analytic sampler invocations from executed angle categories; it is not hardware memory traffic, cache hits or GPU occupancy."
+          },
+          "device_timestamp_available_measured_calls": 2,
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              6,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.0,
+            "angle_deg": 0.0,
+            "relative_scale": 0.0
+          },
+          "route_valid": true,
+          "full_pipeline_residency_verified": true,
+          "ordered_matches_equal_baseline_gpu": true,
+          "ordered_proposals_equal_baseline_gpu": true,
+          "repeat_exact": true,
+          "proposal_counts": [
+            6
+          ],
+          "first_calls": 1,
+          "measured_calls": 2,
+          "gt_evaluated_calls": 3
+        },
+        "full_gpu_fine_tiled": {
+          "total_ms": {
+            "median": 71.59975,
+            "min": 71.471625,
+            "max": 71.727875,
+            "values": [
+              71.727875,
+              71.471625
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "median_ms": 71.59975
+            }
+          ],
+          "first_ms": [
+            82.124334
+          ],
+          "construct_ms": [
+            30.141458
+          ],
+          "peak_rss_bytes": 308903936,
+          "retained_gpu_bytes": 169343488,
+          "retained_gpu_scope": "all named full-GPU Metal buffers",
+          "measured_gpu_metrics": {
+            "command_buffers": {
+              "median": 1.0,
+              "min": 1,
+              "max": 1,
+              "values": [
+                1,
+                1
+              ]
+            },
+            "cpu_waits": {
+              "median": 1.0,
+              "min": 1,
+              "max": 1,
+              "values": [
+                1,
+                1
+              ]
+            },
+            "intermediate_readbacks": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0
+              ]
+            },
+            "cpu_algorithm_steps": {
+              "median": 0.0,
+              "min": 0,
+              "max": 0,
+              "values": [
+                0,
+                0
+              ]
+            },
+            "gpu_bytes": {
+              "median": 169343488.0,
+              "min": 169343488,
+              "max": 169343488,
+              "values": [
+                169343488,
+                169343488
+              ]
+            },
+            "upload_bytes": {
+              "median": 67174920.0,
+              "min": 67174920,
+              "max": 67174920,
+              "values": [
+                67174920,
+                67174920
+              ]
+            },
+            "readback_bytes": {
+              "median": 800.0,
+              "min": 800,
+              "max": 800,
+              "values": [
+                800,
+                800
+              ]
+            },
+            "encode_ms": {
+              "median": 1.5371665,
+              "min": 1.486,
+              "max": 1.588333,
+              "values": [
+                1.588333,
+                1.486
+              ]
+            },
+            "wait_ms": {
+              "median": 68.914229,
+              "min": 68.8375,
+              "max": 68.990958,
+              "values": [
+                68.990958,
+                68.8375
+              ]
+            },
+            "peak_scratch_bytes": {
+              "median": 3939840.0,
+              "min": 3939840,
+              "max": 3939840,
+              "values": [
+                3939840,
+                3939840
+              ]
+            },
+            "profile_counter_bytes": {
+              "median": 16384.0,
+              "min": 16384,
+              "max": 16384,
+              "values": [
+                16384,
+                16384
+              ]
+            },
+            "profile_resolve_bytes": {
+              "median": 10848.0,
+              "min": 10848,
+              "max": 10848,
+              "values": [
+                10848,
+                10848
+              ]
+            },
+            "profile_host_ms": {
+              "median": 1.1668204999999978,
+              "min": 1.1424189999999967,
+              "max": 1.191221999999999,
+              "values": [
+                1.191221999999999,
+                1.1424189999999967
+              ]
+            },
+            "fine_diagnostic_bytes": {
+              "median": 512.0,
+              "min": 512,
+              "max": 512,
+              "values": [
+                512,
+                512
+              ]
+            },
+            "fine_diagnostic_readback_bytes": {
+              "median": 256.0,
+              "min": 256,
+              "max": 256,
+              "values": [
+                256,
+                256
+              ]
+            },
+            "fine_threadgroup_bytes": {
+              "median": 28560.0,
+              "min": 28560,
+              "max": 28560,
+              "values": [
+                28560,
+                28560
+              ]
+            },
+            "device_ms": {
+              "median": 68.30966666893801,
+              "min": 68.27095833432395,
+              "max": 68.34837500355206,
+              "values": [
+                68.34837500355206,
+                68.27095833432395
+              ]
+            }
+          },
+          "profiling": {
+            "requested": true,
+            "available_calls": 3,
+            "total_calls": 3,
+            "measured_available_calls": 2,
+            "measured_calls": 2,
+            "status_counts": {
+              "encoder_boundary_timestamps": 3
+            },
+            "sample_counts": [
+              1356
+            ],
+            "stages": {
+              "coarse_ncc": {
+                "gpu_ms": {
+                  "median": 31.828696,
+                  "min": 31.777054999999997,
+                  "max": 31.880337000000004,
+                  "values": [
+                    31.880337000000004,
+                    31.777054999999997
+                  ]
+                },
+                "encoders": [
+                  248
+                ],
+                "measured_available_calls": 2
+              },
+              "coarse_peaks": {
+                "gpu_ms": {
+                  "median": 17.716003000000015,
+                  "min": 17.699208000000006,
+                  "max": 17.732798000000024,
+                  "values": [
+                    17.699208000000006,
+                    17.732798000000024
+                  ]
+                },
+                "encoders": [
+                  248
+                ],
+                "measured_available_calls": 2
+              },
+              "coarse_rotation": {
+                "gpu_ms": {
+                  "median": 4.407816499999999,
+                  "min": 4.364174999999997,
+                  "max": 4.451458000000002,
+                  "values": [
+                    4.451458000000002,
+                    4.364174999999997
+                  ]
+                },
+                "encoders": [
+                  124
+                ],
+                "measured_available_calls": 2
+              },
+              "final_nms": {
+                "gpu_ms": {
+                  "median": 0.0195835,
+                  "min": 0.019583,
+                  "max": 0.019584,
+                  "values": [
+                    0.019583,
+                    0.019584
+                  ]
+                },
+                "encoders": [
+                  1
+                ],
+                "measured_available_calls": 2
+              },
+              "final_output": {
+                "gpu_ms": {
+                  "median": 0.012749999999999997,
+                  "min": 0.009916999999999999,
+                  "max": 0.015582999999999998,
+                  "values": [
+                    0.015582999999999998,
+                    0.009916999999999999
+                  ]
+                },
+                "encoders": [
+                  4
+                ],
+                "measured_available_calls": 2
+              },
+              "fine_search": {
+                "gpu_ms": {
+                  "median": 4.6697075,
+                  "min": 4.664583,
+                  "max": 4.674832,
+                  "values": [
+                    4.664583,
+                    4.674832
+                  ]
+                },
+                "encoders": [
+                  3
+                ],
+                "measured_available_calls": 2
+              },
+              "initialization": {
+                "gpu_ms": {
+                  "median": 0.011269999999999999,
+                  "min": 0.011248999999999999,
+                  "max": 0.011290999999999999,
+                  "values": [
+                    0.011290999999999999,
+                    0.011248999999999999
+                  ]
+                },
+                "encoders": [
+                  6
+                ],
+                "measured_available_calls": 2
+              },
+              "model_nms": {
+                "gpu_ms": {
+                  "median": 0.040125499999999995,
+                  "min": 0.037042,
+                  "max": 0.043209,
+                  "values": [
+                    0.043209,
+                    0.037042
+                  ]
+                },
+                "encoders": [
+                  3
+                ],
+                "measured_available_calls": 2
+              },
+              "pose_prepare": {
+                "gpu_ms": {
+                  "median": 0.011354,
+                  "min": 0.011333,
+                  "max": 0.011375,
+                  "values": [
+                    0.011333,
+                    0.011375
+                  ]
+                },
+                "encoders": [
+                  2
+                ],
+                "measured_available_calls": 2
+              },
+              "source_pyramid": {
+                "gpu_ms": {
+                  "median": 7.279707999999999,
+                  "min": 7.272041999999999,
+                  "max": 7.287373999999999,
+                  "values": [
+                    7.272041999999999,
+                    7.287373999999999
+                  ]
+                },
+                "encoders": [
+                  6
+                ],
+                "measured_available_calls": 2
+              },
+              "template_pyramid": {
+                "gpu_ms": {
+                  "median": 0.39858599999999994,
+                  "min": 0.39670999999999995,
+                  "max": 0.40046199999999993,
+                  "values": [
+                    0.39670999999999995,
+                    0.40046199999999993
+                  ]
+                },
+                "encoders": [
+                  33
+                ],
+                "measured_available_calls": 2
+              }
+            },
+            "stage_sum_ms": {
+              "median": 66.3956,
+              "min": 66.32586300000001,
+              "max": 66.465337,
+              "values": [
+                66.465337,
+                66.32586300000001
+              ]
+            },
+            "device_remainder_ms": {
+              "median": 1.9140666689379984,
+              "min": 1.883038003552059,
+              "max": 1.9450953343239377,
+              "values": [
+                1.883038003552059,
+                1.9450953343239377
+              ]
+            }
+          },
+          "fine_work": {
+            "requested": true,
+            "available_calls": 3,
+            "total_calls": 3,
+            "measured_available_calls": 2,
+            "measured_calls": 2,
+            "measured_totals": {
+              "reached_candidates": {
+                "median": 565.0,
+                "min": 565,
+                "max": 565,
+                "values": [
+                  565,
+                  565
+                ]
+              },
+              "angles": {
+                "median": 1695.0,
+                "min": 1695,
+                "max": 1695,
+                "values": [
+                  1695,
+                  1695
+                ]
+              },
+              "cached_angles": {
+                "median": 1644.0,
+                "min": 1644,
+                "max": 1644,
+                "values": [
+                  1644,
+                  1644
+                ]
+              },
+              "direct_angles": {
+                "median": 0.0,
+                "min": 0,
+                "max": 0,
+                "values": [
+                  0,
+                  0
+                ]
+              },
+              "tiled_angles": {
+                "median": 51.0,
+                "min": 51,
+                "max": 51,
+                "values": [
+                  51,
+                  51
+                ]
+              },
+              "source_samples": {
+                "median": 2683728.0,
+                "min": 2683728,
+                "max": 2683728,
+                "values": [
+                  2683728,
+                  2683728
+                ]
+              },
+              "tile_loads": {
+                "median": 408.0,
+                "min": 408,
+                "max": 408,
+                "values": [
+                  408,
+                  408
+                ]
+              }
+            },
+            "cached_angle_fraction": {
+              "median": 0.9699115044247788,
+              "min": 0.9699115044247788,
+              "max": 0.9699115044247788,
+              "values": [
+                0.9699115044247788,
+                0.9699115044247788
+              ]
+            },
+            "direct_angle_fraction": {
+              "median": 0.0,
+              "min": 0.0,
+              "max": 0.0,
+              "values": [
+                0.0,
+                0.0
+              ]
+            },
+            "tiled_angle_fraction": {
+              "median": 0.03008849557522124,
+              "min": 0.03008849557522124,
+              "max": 0.03008849557522124,
+              "values": [
+                0.03008849557522124,
+                0.03008849557522124
+              ]
+            },
+            "layers": [
+              {
+                "model": 0,
+                "layer": 0,
+                "template_width": 192,
+                "template_height": 192,
+                "roi_cache_bytes": 16384,
+                "roi_area_bytes": 39204,
+                "tile_rows_capacity": 16,
+                "measured_available_calls": 2,
+                "counts": {
+                  "reached_candidates": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "cached_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "direct_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tiled_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "source_samples": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tile_loads": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  }
+                }
+              },
+              {
+                "model": 0,
+                "layer": 1,
+                "template_width": 96,
+                "template_height": 96,
+                "roi_cache_bytes": 16384,
+                "roi_area_bytes": 10404,
+                "tile_rows_capacity": 16,
+                "measured_available_calls": 2,
+                "counts": {
+                  "reached_candidates": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "cached_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "direct_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tiled_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "source_samples": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tile_loads": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  }
+                }
+              },
+              {
+                "model": 0,
+                "layer": 2,
+                "template_width": 48,
+                "template_height": 48,
+                "roi_cache_bytes": 16384,
+                "roi_area_bytes": 2916,
+                "tile_rows_capacity": 16,
+                "measured_available_calls": 2,
+                "counts": {
+                  "reached_candidates": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "cached_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "direct_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tiled_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "source_samples": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tile_loads": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  }
+                }
+              },
+              {
+                "model": 0,
+                "layer": 3,
+                "template_width": 24,
+                "template_height": 24,
+                "roi_cache_bytes": 16384,
+                "roi_area_bytes": 900,
+                "tile_rows_capacity": 16,
+                "measured_available_calls": 2,
+                "counts": {
+                  "reached_candidates": {
+                    "median": 142.0,
+                    "min": 142,
+                    "max": 142,
+                    "values": [
+                      142,
+                      142
+                    ]
+                  },
+                  "angles": {
+                    "median": 426.0,
+                    "min": 426,
+                    "max": 426,
+                    "values": [
+                      426,
+                      426
+                    ]
+                  },
+                  "cached_angles": {
+                    "median": 426.0,
+                    "min": 426,
+                    "max": 426,
+                    "values": [
+                      426,
+                      426
+                    ]
+                  },
+                  "direct_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tiled_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "source_samples": {
+                    "median": 383400.0,
+                    "min": 383400,
+                    "max": 383400,
+                    "values": [
+                      383400,
+                      383400
+                    ]
+                  },
+                  "tile_loads": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  }
+                }
+              },
+              {
+                "model": 0,
+                "layer": 4,
+                "template_width": 12,
+                "template_height": 12,
+                "roi_cache_bytes": 16384,
+                "roi_area_bytes": 324,
+                "tile_rows_capacity": 16,
+                "measured_available_calls": 2,
+                "counts": {
+                  "reached_candidates": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "cached_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "direct_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tiled_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "source_samples": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tile_loads": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  }
+                }
+              },
+              {
+                "model": 1,
+                "layer": 0,
+                "template_width": 256,
+                "template_height": 256,
+                "roi_cache_bytes": 16384,
+                "roi_area_bytes": 68644,
+                "tile_rows_capacity": 16,
+                "measured_available_calls": 2,
+                "counts": {
+                  "reached_candidates": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "cached_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "direct_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tiled_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "source_samples": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tile_loads": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  }
+                }
+              },
+              {
+                "model": 1,
+                "layer": 1,
+                "template_width": 128,
+                "template_height": 128,
+                "roi_cache_bytes": 16384,
+                "roi_area_bytes": 17956,
+                "tile_rows_capacity": 16,
+                "measured_available_calls": 2,
+                "counts": {
+                  "reached_candidates": {
+                    "median": 17.0,
+                    "min": 17,
+                    "max": 17,
+                    "values": [
+                      17,
+                      17
+                    ]
+                  },
+                  "angles": {
+                    "median": 51.0,
+                    "min": 51,
+                    "max": 51,
+                    "values": [
+                      51,
+                      51
+                    ]
+                  },
+                  "cached_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "direct_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tiled_angles": {
+                    "median": 51.0,
+                    "min": 51,
+                    "max": 51,
+                    "values": [
+                      51,
+                      51
+                    ]
+                  },
+                  "source_samples": {
+                    "median": 1202784.0,
+                    "min": 1202784,
+                    "max": 1202784,
+                    "values": [
+                      1202784,
+                      1202784
+                    ]
+                  },
+                  "tile_loads": {
+                    "median": 408.0,
+                    "min": 408,
+                    "max": 408,
+                    "values": [
+                      408,
+                      408
+                    ]
+                  }
+                }
+              },
+              {
+                "model": 1,
+                "layer": 2,
+                "template_width": 64,
+                "template_height": 64,
+                "roi_cache_bytes": 16384,
+                "roi_area_bytes": 4900,
+                "tile_rows_capacity": 16,
+                "measured_available_calls": 2,
+                "counts": {
+                  "reached_candidates": {
+                    "median": 18.0,
+                    "min": 18,
+                    "max": 18,
+                    "values": [
+                      18,
+                      18
+                    ]
+                  },
+                  "angles": {
+                    "median": 54.0,
+                    "min": 54,
+                    "max": 54,
+                    "values": [
+                      54,
+                      54
+                    ]
+                  },
+                  "cached_angles": {
+                    "median": 54.0,
+                    "min": 54,
+                    "max": 54,
+                    "values": [
+                      54,
+                      54
+                    ]
+                  },
+                  "direct_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tiled_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "source_samples": {
+                    "median": 264600.0,
+                    "min": 264600,
+                    "max": 264600,
+                    "values": [
+                      264600,
+                      264600
+                    ]
+                  },
+                  "tile_loads": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  }
+                }
+              },
+              {
+                "model": 1,
+                "layer": 3,
+                "template_width": 32,
+                "template_height": 32,
+                "roi_cache_bytes": 16384,
+                "roi_area_bytes": 1444,
+                "tile_rows_capacity": 16,
+                "measured_available_calls": 2,
+                "counts": {
+                  "reached_candidates": {
+                    "median": 20.0,
+                    "min": 20,
+                    "max": 20,
+                    "values": [
+                      20,
+                      20
+                    ]
+                  },
+                  "angles": {
+                    "median": 60.0,
+                    "min": 60,
+                    "max": 60,
+                    "values": [
+                      60,
+                      60
+                    ]
+                  },
+                  "cached_angles": {
+                    "median": 60.0,
+                    "min": 60,
+                    "max": 60,
+                    "values": [
+                      60,
+                      60
+                    ]
+                  },
+                  "direct_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tiled_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "source_samples": {
+                    "median": 86640.0,
+                    "min": 86640,
+                    "max": 86640,
+                    "values": [
+                      86640,
+                      86640
+                    ]
+                  },
+                  "tile_loads": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  }
+                }
+              },
+              {
+                "model": 1,
+                "layer": 4,
+                "template_width": 16,
+                "template_height": 16,
+                "roi_cache_bytes": 16384,
+                "roi_area_bytes": 484,
+                "tile_rows_capacity": 16,
+                "measured_available_calls": 2,
+                "counts": {
+                  "reached_candidates": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "cached_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "direct_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tiled_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "source_samples": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tile_loads": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  }
+                }
+              },
+              {
+                "model": 2,
+                "layer": 0,
+                "template_width": 320,
+                "template_height": 320,
+                "roi_cache_bytes": 16384,
+                "roi_area_bytes": 106276,
+                "tile_rows_capacity": 16,
+                "measured_available_calls": 2,
+                "counts": {
+                  "reached_candidates": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "cached_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "direct_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tiled_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "source_samples": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tile_loads": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  }
+                }
+              },
+              {
+                "model": 2,
+                "layer": 1,
+                "template_width": 160,
+                "template_height": 160,
+                "roi_cache_bytes": 16384,
+                "roi_area_bytes": 27556,
+                "tile_rows_capacity": 16,
+                "measured_available_calls": 2,
+                "counts": {
+                  "reached_candidates": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "cached_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "direct_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tiled_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "source_samples": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tile_loads": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  }
+                }
+              },
+              {
+                "model": 2,
+                "layer": 2,
+                "template_width": 80,
+                "template_height": 80,
+                "roi_cache_bytes": 16384,
+                "roi_area_bytes": 7396,
+                "tile_rows_capacity": 16,
+                "measured_available_calls": 2,
+                "counts": {
+                  "reached_candidates": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "cached_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "direct_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tiled_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "source_samples": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tile_loads": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  }
+                }
+              },
+              {
+                "model": 2,
+                "layer": 3,
+                "template_width": 40,
+                "template_height": 40,
+                "roi_cache_bytes": 16384,
+                "roi_area_bytes": 2116,
+                "tile_rows_capacity": 16,
+                "measured_available_calls": 2,
+                "counts": {
+                  "reached_candidates": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "cached_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "direct_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tiled_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "source_samples": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tile_loads": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  }
+                }
+              },
+              {
+                "model": 2,
+                "layer": 4,
+                "template_width": 20,
+                "template_height": 20,
+                "roi_cache_bytes": 16384,
+                "roi_area_bytes": 676,
+                "tile_rows_capacity": 16,
+                "measured_available_calls": 2,
+                "counts": {
+                  "reached_candidates": {
+                    "median": 368.0,
+                    "min": 368,
+                    "max": 368,
+                    "values": [
+                      368,
+                      368
+                    ]
+                  },
+                  "angles": {
+                    "median": 1104.0,
+                    "min": 1104,
+                    "max": 1104,
+                    "values": [
+                      1104,
+                      1104
+                    ]
+                  },
+                  "cached_angles": {
+                    "median": 1104.0,
+                    "min": 1104,
+                    "max": 1104,
+                    "values": [
+                      1104,
+                      1104
+                    ]
+                  },
+                  "direct_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tiled_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "source_samples": {
+                    "median": 746304.0,
+                    "min": 746304,
+                    "max": 746304,
+                    "values": [
+                      746304,
+                      746304
+                    ]
+                  },
+                  "tile_loads": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  }
+                }
+              },
+              {
+                "model": 2,
+                "layer": 5,
+                "template_width": 10,
+                "template_height": 10,
+                "roi_cache_bytes": 16384,
+                "roi_area_bytes": 256,
+                "tile_rows_capacity": 16,
+                "measured_available_calls": 2,
+                "counts": {
+                  "reached_candidates": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "cached_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "direct_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tiled_angles": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "source_samples": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  },
+                  "tile_loads": {
+                    "median": 0.0,
+                    "min": 0,
+                    "max": 0,
+                    "values": [
+                      0,
+                      0
+                    ]
+                  }
+                }
+              }
+            ],
+            "stable_measured_counts": true,
+            "note": "Counters are final readback only. source_samples counts analytic sampler invocations from executed angle categories; it is not hardware memory traffic, cache hits or GPU occupancy."
+          },
+          "device_timestamp_available_measured_calls": 2,
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              6,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.0,
+            "angle_deg": 0.0,
+            "relative_scale": 0.0
+          },
+          "route_valid": true,
+          "full_pipeline_residency_verified": true,
+          "ordered_matches_equal_baseline_gpu": true,
+          "ordered_proposals_equal_baseline_gpu": true,
+          "repeat_exact": true,
+          "proposal_counts": [
+            6
+          ],
+          "first_calls": 1,
+          "measured_calls": 2,
+          "gt_evaluated_calls": 3
+        }
+      },
+      "fine_tiled_comparisons": {},
+      "fine_work_comparison": {
+        "same_measured_workload": true,
+        "source_sampler_calls_delta_percent": -93.67411706803794,
+        "source_sampler_calls_ratio": 0.06325882931962053,
+        "note": "Sampler-call reduction is an operation count, not an end-to-end speedup; arithmetic and synchronization remain."
+      }
+    }
+  ],
+  "failed_gates": [],
+  "all_accuracy_pass": true,
+  "all_gpu_resident": true,
+  "all_fine_tiled_exact_baseline": true,
+  "all_fine_tiled_vs_baseline_gates_pass": null,
+  "all_primary_10_percent_target_pass": null,
+  "all_fine_tiled_vs_hybrid_gates_pass": null,
+  "counts": {
+    "fresh_processes": 2,
+    "first_calls": 2,
+    "measured_calls": 4,
+    "gt_evaluated_calls": 6
+  },
+  "accuracy_thresholds": {
+    "position_px": 2.0,
+    "angle_deg": 1.0,
+    "relative_scale": 0.02
+  },
+  "timing_note": "First calls are separate. Distributions use measured repeats only. Profile diagnostics never enter unprofiled speed gates; unavailable stages and remainder are null. Signed device remainder includes unsampled work, gaps, and timestamp-instrument differences.",
+  "memory_note": "Peak process RSS and retained named Metal buffer lengths differ in scope and must not be added; GPU buffer lengths are not physical VRAM. Counter payload capacity is logical and opaque to Metal allocation accounting. Resolved timestamp bytes are transient CPU NSData payload, excluded from gpu_bytes; Peak scratch and retained fine diagnostic buffers are already included in full-GPU gpu_bytes. Fine diagnostic current readback payload is separate from algorithm readback_bytes. fine_threadgroup_bytes is compiled kernel static threadgroup storage, not retained buffer allocation.",
+  "parity_note": "Independent one-to-one GT accuracy plus exact ordered matches AND proposals against the baseline full-GPU route are required for fine-tiled adoption.",
+  "residency_note": "Audited implementation counters, not a hardware trace: one command buffer, one final wait, no intermediate readback or image-dependent CPU algorithm.",
+  "profile_overhead": [
+    {
+      "case": "8k_t256_angle180_3scales",
+      "method": "full_gpu_tiled",
+      "comparable": true,
+      "total_delta_percent": 6.020980244867702,
+      "device_delta_percent": 4.504086742698421,
+      "note": "Separate fresh processes, diagnostic overhead includes ordinary run variance; source/binary/input/search settings must match."
+    },
+    {
+      "case": "8k_t256_angle180_3scales",
+      "method": "full_gpu_fine_tiled",
+      "comparable": true,
+      "total_delta_percent": 6.378228323998991,
+      "device_delta_percent": 3.9586126831014257,
+      "note": "Separate fresh processes, diagnostic overhead includes ordinary run variance; source/binary/input/search settings must match."
+    }
+  ],
+  "unprofiled_manifest_sha256": "b03ecc8a29d1ae98a8b4a8c24ba96c40731fd9116a0fbf84fd8a64a000fdf4ba"
+}

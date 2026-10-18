@@ -54,6 +54,8 @@ English overview: This repository preserves the original MFC application and dev
 
 第38輪在完整GPU路徑加入[精確分塊選峰](../cpp-core/docs/GPU_TILED_PEAKS_zh-TW.md)，128／512物件耗時分別降低約80%／87%，輸出與原GPU完全一致。它仍未在大量物件場景勝過混合方案；完整GPU研究需明確指定`full_gpu_peak_mode=1`。報告分開列出GPU階段診斷、正式速度、記憶體範圍與下一輪尚未驗證的方向。
 
+第39輪[細搜尋分列快取](../cpp-core/docs/GPU_FINE_TILES_zh-TW.md)補上實際工作計數：原128／512已全部命中程式管理的ROI快取，因此新方法沒有改善它們。搜尋到原始解析度的補充設定可少約10%耗時，保留研究選項與全部失敗；通用建議仍維持第38輪。
+
 ## RGB 與真實場景的判讀方式
 
 RGB 圖片可用來驗證三種不同問題：

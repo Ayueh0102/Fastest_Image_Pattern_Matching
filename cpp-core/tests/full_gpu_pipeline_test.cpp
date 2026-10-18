@@ -60,9 +60,10 @@ void same(const Result& first,const Result& second) {
 }
 int main(int argc,char** argv) {
     try {
-        bool tiled=false,profile=false;
+        bool tiled=false,profile=false,fineTiled=false;
         for(int i=1;i<argc;++i) {
             if(std::string(argv[i])=="--tiled") tiled=true;
+            else if(std::string(argv[i])=="--fine-tiled") fineTiled=true;
             else if(std::string(argv[i])=="--profile") profile=true;
             else throw std::invalid_argument("Unknown full GPU test argument");
         }
@@ -77,11 +78,26 @@ int main(int argc,char** argv) {
         Session session({padded.data(),source.width(),source.height(),stride},templ.view(),settings);
         Options options;options.refine=false;options.nccMode=2;options.fineNccMode=2;
         options.fullGpuPeakMode=tiled?1:0;options.fullGpuProfiling=profile;
+        options.fullGpuFineMode=fineTiled?1:0;
         options.fineFused=true;options.fineAngleReuse=true;
         options.match.minScore=.9;options.match.maxTargets=4;options.match.maxOverlap=.2;
         options.match.toleranceAngle=0;options.match.stopLayer=0;
         const auto first=session.run(options);one(first,66,52);
         require(first.fullGpu.peakMode==options.fullGpuPeakMode,"Peak strategy reporting mismatch");
+        require(first.fullGpu.fineMode==options.fullGpuFineMode,"Fine strategy reporting mismatch");
+        require(first.fullGpu.fineWorkAvailable==profile,"Fine work availability mismatch");
+        if(profile) {
+            require(!first.fullGpu.fineWork.empty() && first.fullGpu.fineDiagnosticReadbackBytes>0,
+                "Fine diagnostics missing");
+            uint64_t reached=0,angles=0;
+            for(const auto& w:first.fullGpu.fineWork) {
+                require(w.angles==w.cachedAngles+w.directAngles+w.tiledAngles,"Fine angle accounting mismatch");
+                require(fineTiled || w.tiledAngles==0,"Baseline reports tiled sampling");
+                reached+=w.reachedCandidates;angles+=w.angles;
+            }
+            require(reached && angles,"Fine diagnostic fixture did not exercise evaluation");
+        } else require(first.fullGpu.fineWork.empty() && first.fullGpu.fineDiagnosticReadbackBytes==0,
+            "Disabled fine diagnostics report observations");
         require(first.fullGpu.profileRequested==profile,"Profiling request reporting mismatch");
         if(profile && first.fullGpu.profileAvailable) {
             double sum=0;uint64_t encoders=0;
@@ -94,9 +110,16 @@ int main(int argc,char** argv) {
             require(std::abs(sum-first.fullGpu.profileGpuMs)<1e-6 && first.fullGpu.profileSamples==2*encoders,
                 "GPU profile sample accounting mismatch");
         } else require(first.fullGpu.stages.empty(),"Unavailable GPU profile must not report stages");
-        auto control=options;control.fullGpuProfiling=false;control.fullGpuPeakMode=0;
-        same(first,session.run(control));
-        same(first,session.run(options));
+        auto control=options;control.fullGpuProfiling=false;control.fullGpuPeakMode=0;control.fullGpuFineMode=0;
+        const auto unprofiled=session.run(control);same(first,unprofiled);
+        require(!unprofiled.fullGpu.fineWorkAvailable && unprofiled.fullGpu.fineWork.empty() &&
+            unprofiled.fullGpu.fineDiagnosticReadbackBytes==0,"Disabled diagnostics leaked old counts");
+        const auto repeated=session.run(options);same(first,repeated);
+        if(profile)for(size_t i=0;i<first.fullGpu.fineWork.size();++i) {
+            const auto& a=first.fullGpu.fineWork[i];const auto& b=repeated.fullGpu.fineWork[i];
+            require(a.reachedCandidates==b.reachedCandidates && a.sourceSamples==b.sourceSamples && a.angles==b.angles,
+                "Fine counters were not reset between repeated calls");
+        }
         require(first.sourceGeneration==0,"initial source generation differs");
         std::fill(padded.begin(),padded.end(),0);templ.row(0)[0]^=255;
         same(first,session.run(options));templ.row(0)[0]^=255;
@@ -176,13 +199,25 @@ int main(int argc,char** argv) {
         auto refine=options;refine.refine=true;refine.proposalScore=.6;refine.match.subpixel=true;
         const auto refined=continuous.run(refine);one(refined,66,52);
         same(refined,continuous.run(refine));
+        // More than16 FGLevels must not index the small unused diagnostic
+        // buffer when profiling is disabled (also checked by Shader Validation).
+        auto manyLevelSettings=settings;manyLevelSettings.scales.assign(9,1.);
+        Session manyLevels(source.view(),templ.view(),manyLevelSettings);
+        auto manyLevelOptions=options;manyLevelOptions.fullGpuProfiling=false;manyLevelOptions.match.maxTargets=1;
+        one(manyLevels.run(manyLevelOptions),66,52);
         // More than 16K pixels exercises multiple fused-solver tiles without
         // relying on the older host wrapper's small-template dispatch limit.
         Image largeTemplate(192,96);
         for(int y=0;y<largeTemplate.height();++y)for(int x=0;x<largeTemplate.width();++x)largeTemplate.row(y)[x]=uint8_t(rng());
         auto largeSource=scene(largeTemplate.view(),224,128,16,16);
         Session large(largeSource.view(),largeTemplate.view(),flat);
-        one(large.run(refine),112,64);
+        const auto largeResult=large.run(refine);one(largeResult,112,64);
+        auto largeControl=refine;largeControl.fullGpuFineMode=0;largeControl.fullGpuProfiling=false;
+        same(largeResult,large.run(largeControl));same(largeResult,large.run(refine));
+        if(profile && fineTiled) {
+            uint64_t tiledAngles=0;for(const auto& w:largeResult.fullGpu.fineWork)tiledAngles+=w.tiledAngles;
+            require(tiledAngles>0,"Oversized ROI fixture did not exercise row tiling");
+        }
         Image mediumTemplate(96,64);
         for(int y=0;y<mediumTemplate.height();++y)for(int x=0;x<mediumTemplate.width();++x)mediumTemplate.row(y)[x]=uint8_t(rng());
         auto oddSource=scene(mediumTemplate.view(),129,97,16,16);
@@ -213,11 +248,15 @@ int main(int argc,char** argv) {
         invalid([&]{session.run(unsupported);},"full GPU accepted inverted angle range");
         unsupported=options;unsupported.fullGpuPeakMode=2;
         invalid([&]{session.run(unsupported);},"full GPU accepted unknown peak mode");
+        unsupported=options;unsupported.fullGpuFineMode=2;
+        invalid([&]{session.run(unsupported);},"full GPU accepted unknown fine mode");
         auto hybridSettings=settings;hybridSettings.fullGpu=false;
         Session hybrid(source.view(),templ.view(),hybridSettings);
         unsupported=options;unsupported.fullGpuPeakMode=1;
         invalid([&]{hybrid.run(unsupported);},"hybrid silently accepted full GPU peak mode");
-        unsupported=options;unsupported.fullGpuPeakMode=0;unsupported.fullGpuProfiling=true;
+        unsupported=options;unsupported.fullGpuPeakMode=0;unsupported.fullGpuProfiling=false;unsupported.fullGpuFineMode=1;
+        invalid([&]{hybrid.run(unsupported);},"hybrid silently accepted full GPU fine mode");
+        unsupported=options;unsupported.fullGpuPeakMode=0;unsupported.fullGpuFineMode=0;unsupported.fullGpuProfiling=true;
         invalid([&]{hybrid.run(unsupported);},"hybrid silently accepted full GPU profiling");
         same(after,session.run(options));
         std::cout<<"Full Metal pipeline: independent upright/quarter-turn/edge truth, multiscale refinement, empty image, snapshots, updates, residency and invalid options passed\n";

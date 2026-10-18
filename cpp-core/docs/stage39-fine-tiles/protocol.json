@@ -1,0 +1,65 @@
+{
+  "stage": 39,
+  "date": "2026-10-18",
+  "baseline_commit": "4366955",
+  "question": "Can bounded rotated ROI row caching improve resident fine search without changing its ordered results?",
+  "scope": "Metal gray8; peak mode1 in both GPU methods; fine mode0 original versus mode1 oversized ROI row cache",
+  "methods": [
+    "hybrid_best",
+    "full_gpu_tiled",
+    "full_gpu_fine_tiled"
+  ],
+  "primary_cases": [
+    "many128_pose",
+    "many512_pose"
+  ],
+  "regression_cases": [
+    "controlled6",
+    "8k_t256_angle180_3scales"
+  ],
+  "formal": {
+    "blocks": 3,
+    "repeats": 2,
+    "warmup_seconds": 1,
+    "order": "fresh processes with alternating order per block",
+    "clock": "algorithm total; excludes decode,session construction,JSON andGT"
+  },
+  "profiling": {
+    "blocks": 1,
+    "repeats": 2,
+    "warmup_seconds": 0,
+    "cases": [
+      "many128_pose",
+      "many512_pose"
+    ],
+    "method": "encoder timestamps plusperlevel GPU work counters, final readback only; separate from formal timing"
+  },
+  "accuracy": {
+    "position_px": 2,
+    "angle_deg": 1,
+    "relative_scale": 0.02,
+    "false_positives": 0,
+    "false_negatives": 0,
+    "exact_ordered_matches_and_proposals_vs_gpu_baseline": true
+  },
+  "gates": {
+    "time": "per block <= baseline+max(2ms,10%), compare GPU baseline and hybrid separately",
+    "rss": "per block <= baseline+max(8MiB,10%)",
+    "primary_target": "atleast10% median endtoend time reduction onboth128/512 vs current GPU baseline",
+    "residency": {
+      "command_buffers": 1,
+      "cpu_waits": 1,
+      "intermediate_readbacks": 0,
+      "cpu_algorithm_steps": 0
+    },
+    "memory": "report named Metal buffers, diagnostic retained buffers and static threadgroup bytes separately; do notadd toRSS"
+  },
+  "design": "Only oversized rotated ROIs use <=16 template rows with six halo rows; preserve global sampler coordinates, integer moments, scoremap and controls. Verywide ROI uses original direct sampling. No integer narrowing or overlapstatistic reuse thisround.",
+  "retention": "Keep original mode0 and experimentmode1; freeze source+fixtures, retain allgates, raw measurements and failed attempts. No default route change.",
+  "limits": [
+    "M4Pro only",
+    "No RGB/CUDA extension",
+    "No new longsoak",
+    "Sampler call counts derived from observed angles are not hardware memory transactions"
+  ]
+}

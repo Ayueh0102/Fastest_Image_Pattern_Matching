@@ -1,0 +1,149 @@
+{
+  "stage": 39,
+  "date": "2026-10-19",
+  "primary_improvement_target_pass": false,
+  "original_workloads_tiled_angles": 0,
+  "all_formal_accuracy_pass": true,
+  "all_ordered_gpu_outputs_exact": true,
+  "all_gpu_residency_pass": true,
+  "main_gt_calls": 108,
+  "supplement_gt_calls": 54,
+  "supplement_primary_target": null,
+  "recommendation": "Keep Stage38 generic recommendations. Preserve opt-in fine_mode1 for oversized ROIs; no GUI/hybrid/default route change. Stop0 supplements demonstrate conditional improvement, not original workload acceleration.",
+  "failed_gates": [
+    {
+      "experiment": "formal",
+      "case": "many128_pose",
+      "method": "full_gpu_fine_tiled",
+      "baseline": "full_gpu_tiled",
+      "gate": "primary_10_percent_improvement"
+    },
+    {
+      "experiment": "formal",
+      "case": "many128_pose",
+      "method": "full_gpu_fine_tiled",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 0
+    },
+    {
+      "experiment": "formal",
+      "case": "many128_pose",
+      "method": "full_gpu_fine_tiled",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 1
+    },
+    {
+      "experiment": "formal",
+      "case": "many128_pose",
+      "method": "full_gpu_fine_tiled",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 2
+    },
+    {
+      "experiment": "formal",
+      "case": "many512_pose",
+      "method": "full_gpu_fine_tiled",
+      "baseline": "full_gpu_tiled",
+      "gate": "primary_10_percent_improvement"
+    },
+    {
+      "experiment": "formal",
+      "case": "many512_pose",
+      "method": "full_gpu_fine_tiled",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 0
+    },
+    {
+      "experiment": "formal",
+      "case": "many512_pose",
+      "method": "full_gpu_fine_tiled",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 1
+    },
+    {
+      "experiment": "formal",
+      "case": "many512_pose",
+      "method": "full_gpu_fine_tiled",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 2
+    },
+    {
+      "experiment": "formal",
+      "case": "controlled6",
+      "method": "full_gpu_fine_tiled",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 1
+    },
+    {
+      "experiment": "formal",
+      "case": "controlled6",
+      "method": "full_gpu_fine_tiled",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 2
+    },
+    {
+      "experiment": "stop0-formal",
+      "case": "many128_pose_stop0",
+      "method": "full_gpu_fine_tiled",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 0
+    },
+    {
+      "experiment": "stop0-formal",
+      "case": "many128_pose_stop0",
+      "method": "full_gpu_fine_tiled",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 1
+    },
+    {
+      "experiment": "stop0-formal",
+      "case": "many128_pose_stop0",
+      "method": "full_gpu_fine_tiled",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 2
+    },
+    {
+      "experiment": "stop0-formal",
+      "case": "many512_pose_stop0",
+      "method": "full_gpu_fine_tiled",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 0
+    },
+    {
+      "experiment": "stop0-formal",
+      "case": "many512_pose_stop0",
+      "method": "full_gpu_fine_tiled",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 1
+    },
+    {
+      "experiment": "stop0-formal",
+      "case": "many512_pose_stop0",
+      "method": "full_gpu_fine_tiled",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 2
+    }
+  ],
+  "next": "Bounded uint32 local NCC statistics on the actually executed cached path, widening before final reduction; not implemented/measured.",
+  "limits": [
+    "M4Progray8 only",
+    "No new long soak",
+    "No RGB/CUDA extension",
+    "Same-template synthetic manyobject workloads",
+    "Counters are executed work not hardwaretraffic/occupancy"
+  ]
+}

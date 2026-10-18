@@ -30,7 +30,7 @@ STAGES = {
     "adaptive-ncc": "26", "fine-reuse": "27", "fine-strip": "28",
     "fine-angle-reuse": "29", "fine-fused": "30", "gray-loader": "31",
     "run-diagnostics": "32", "resident-multiscale": "33", "stage34-closure": "34",
-    "stage35-real-rgb": "35", "stage36-coarse-resident": "36", "stage37-full-gpu": "37", "stage38-gpu-peaks": "38",
+    "stage35-real-rgb": "35", "stage36-coarse-resident": "36", "stage37-full-gpu": "37", "stage38-gpu-peaks": "38", "stage39-fine-tiles": "39",
 }
 ROLE_DESCRIPTIONS = {
     "protocol": "Settings, workload definition, budgets and acceptance gates",

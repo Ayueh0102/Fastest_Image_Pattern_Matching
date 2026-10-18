@@ -26,44 +26,44 @@
     "metadata": "Filesystem sidecar metadata",
     "other": "No recognized role; inspect manually"
   },
-  "artifact_count": 457,
-  "artifact_bytes": 1357506660,
+  "artifact_count": 475,
+  "artifact_bytes": 1415980922,
   "artifact_role_counts": {
-    "archive": 71,
+    "archive": 75,
     "calibration": 4,
-    "failure_review": 9,
-    "false_gate": 44,
-    "formal": 8,
+    "failure_review": 10,
+    "false_gate": 48,
+    "formal": 9,
     "input": 21,
     "other": 38,
-    "protocol": 34,
-    "provenance": 38,
-    "raw": 49,
-    "report": 61,
-    "source": 6,
-    "summary": 99,
-    "validation": 68,
-    "visual": 65
+    "protocol": 36,
+    "provenance": 41,
+    "raw": 50,
+    "report": 62,
+    "source": 7,
+    "summary": 105,
+    "validation": 70,
+    "visual": 66
   },
-  "archive_member_count": 25358,
+  "archive_member_count": 25968,
   "archive_member_role_counts": {
     "archive": 26,
     "binary": 47,
     "calibration": 1,
     "failure_review": 18,
-    "formal": 13827,
-    "input": 561,
+    "formal": 14063,
+    "input": 568,
     "metadata": 1292,
-    "other": 1229,
+    "other": 1267,
     "pilot": 3600,
     "protocol": 109,
-    "provenance": 78,
-    "raw": 5250,
-    "report": 72,
-    "source": 9162,
-    "summary": 861,
-    "validation": 406,
-    "visual": 849
+    "provenance": 85,
+    "raw": 5418,
+    "report": 73,
+    "source": 9431,
+    "summary": 880,
+    "validation": 467,
+    "visual": 856
   },
   "artifacts": [
     {
@@ -140,8 +140,8 @@
       "path": "CURRENT_BEST_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 6409,
-      "sha256": "72246fb515345b0437ab86bba1bbfb49496db4a06ee5a419bbd890e2a216cd6e",
+      "bytes": 6813,
+      "sha256": "e2a16954ff1304bb21a2bb1670175e7fc92c1b79ea155f4cafae7c51953f37ba",
       "roles": [
         "report"
       ]
@@ -181,8 +181,8 @@
       "path": "EXPERIMENT_REVIEW_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 66610,
-      "sha256": "858747052c19b2c063764d23e9accb3b6e92558aae66efcd8638e165eaee8485",
+      "bytes": 68184,
+      "sha256": "c66a84a5ba6c22651fb005ad2faa60611d3da3828f972f3b82bad0c34f96fe92",
       "roles": [
         "report"
       ]
@@ -258,6 +258,16 @@
       ]
     },
     {
+      "path": "GPU_FINE_TILES_zh-TW.md",
+      "group": "root",
+      "stage": null,
+      "bytes": 12694,
+      "sha256": "d3f3fa9361bd5ae0ddae17ff98430d67e8f9f00ec56146625445b3ecef5da82d",
+      "roles": [
+        "report"
+      ]
+    },
+    {
       "path": "GPU_REFINEMENT_zh-TW.md",
       "group": "root",
       "stage": null,
@@ -301,8 +311,8 @@
       "path": "LOG_CATALOG_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 10159,
-      "sha256": "21868120e2c9ba82a0dde805a7a0c6e94305e4630d7d395d2731a44ed5e42c04",
+      "bytes": 10721,
+      "sha256": "83946e089722b4dd52ea15060923a21fa8972b8f0c0a0805abdfe5da40e56b45",
       "roles": [
         "report"
       ]
@@ -462,8 +472,8 @@
       "path": "PROJECT_STATUS_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 5476,
-      "sha256": "4ea6ef129dfedc8b93ea74df473bd10e724ec99c8b7814017f0b71529c8428fa",
+      "bytes": 5773,
+      "sha256": "fbce65850e2b10ece05bb81c2ad7f3781f54348e3e6977d638e277ea9cc49efa",
       "roles": [
         "report"
       ]
@@ -6152,6 +6162,229 @@
       ]
     },
     {
+      "path": "stage39-fine-tiles/8k-profile-summary.json",
+      "group": "stage39-fine-tiles",
+      "stage": "39",
+      "bytes": 101582,
+      "sha256": "cc0d0cf82198b1d94ed84592d8eeb361711503f5117ac7c873f54035f6d16cf6",
+      "roles": [
+        "summary"
+      ]
+    },
+    {
+      "path": "stage39-fine-tiles/archive.json",
+      "group": "stage39-fine-tiles",
+      "stage": "39",
+      "bytes": 5268,
+      "sha256": "433a1c82c6cc51c6c023b04ec2bdfc5c0545a09a584902aee5d5a74f15bf2dde",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage39-fine-tiles/comparison.png",
+      "group": "stage39-fine-tiles",
+      "stage": "39",
+      "bytes": 110992,
+      "sha256": "b41cc5a6762cc824257a4d675e832af18fe25d951238e25cd5429d8cc96c7bb2",
+      "roles": [
+        "visual"
+      ]
+    },
+    {
+      "path": "stage39-fine-tiles/decision-and-failures.json",
+      "group": "stage39-fine-tiles",
+      "stage": "39",
+      "bytes": 4076,
+      "sha256": "e9bc5b9e82a6bc7f2e2e26adbcbbe1ee170587cbf31304608e07f9b88a6d2039",
+      "roles": [
+        "failure_review",
+        "false_gate"
+      ],
+      "explicit_false_gates": [
+        "/primary_improvement_target_pass"
+      ]
+    },
+    {
+      "path": "stage39-fine-tiles/fixtures.tar.gz",
+      "group": "stage39-fine-tiles",
+      "stage": "39",
+      "bytes": 25371935,
+      "sha256": "dee016d9080962fec21f8ada97feb77b8da83b453dc4d741c2c39ff4f9b76208",
+      "roles": [
+        "archive"
+      ],
+      "archive_file_count": 7,
+      "archive_role_counts": {
+        "formal": 6,
+        "input": 6,
+        "visual": 7
+      }
+    },
+    {
+      "path": "stage39-fine-tiles/formal-summary.json",
+      "group": "stage39-fine-tiles",
+      "stage": "39",
+      "bytes": 83506,
+      "sha256": "af254400d97253ac32b65334bdf84dd41083b5678844cf4d0bc5390940194576",
+      "roles": [
+        "false_gate",
+        "formal",
+        "summary"
+      ],
+      "explicit_false_gates": [
+        "/all_primary_10_percent_target_pass",
+        "/all_fine_tiled_vs_hybrid_gates_pass"
+      ]
+    },
+    {
+      "path": "stage39-fine-tiles/input-sha256.json",
+      "group": "stage39-fine-tiles",
+      "stage": "39",
+      "bytes": 852,
+      "sha256": "c2bdf8117ded06d86f83315c4e866155c4317b8331e38ba32190669dff5fb14e",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage39-fine-tiles/profile-summary.json",
+      "group": "stage39-fine-tiles",
+      "stage": "39",
+      "bytes": 182038,
+      "sha256": "7336157ba7c83538b4547a3582787e6b3d689243d0d5a47ad60507233a9b8fc6",
+      "roles": [
+        "summary"
+      ]
+    },
+    {
+      "path": "stage39-fine-tiles/protocol.json",
+      "group": "stage39-fine-tiles",
+      "stage": "39",
+      "bytes": 2382,
+      "sha256": "109e8bfe7c70eb8a88f359af8c2bb055b98bcc0041d93d85dbd959914c9ee65b",
+      "roles": [
+        "protocol"
+      ]
+    },
+    {
+      "path": "stage39-fine-tiles/raw-results.tar.gz",
+      "group": "stage39-fine-tiles",
+      "stage": "39",
+      "bytes": 31471845,
+      "sha256": "6c479ea8c890285797633a86145c01d0cc691825f9161827c830864fe84ed673",
+      "roles": [
+        "archive",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 267,
+      "archive_role_counts": {
+        "formal": 230,
+        "other": 29,
+        "provenance": 5,
+        "raw": 133
+      }
+    },
+    {
+      "path": "stage39-fine-tiles/source-sha256.json",
+      "group": "stage39-fine-tiles",
+      "stage": "39",
+      "bytes": 31170,
+      "sha256": "c568a9d38f67e873c9a2d67dd508ec6aa2baee7a857ef6b358610d9ee07dc0ff",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage39-fine-tiles/source-snapshot.tar.gz",
+      "group": "stage39-fine-tiles",
+      "stage": "39",
+      "bytes": 814360,
+      "sha256": "27c734bde618d2ccb2045cc9f261c1ea1b3fa7603c57e7e3fdafcb989fead6cf",
+      "roles": [
+        "archive",
+        "source"
+      ],
+      "archive_file_count": 277,
+      "archive_role_counts": {
+        "input": 1,
+        "other": 9,
+        "provenance": 1,
+        "report": 1,
+        "source": 265,
+        "summary": 18,
+        "validation": 2
+      }
+    },
+    {
+      "path": "stage39-fine-tiles/stop0-formal-summary.json",
+      "group": "stage39-fine-tiles",
+      "stage": "39",
+      "bytes": 43147,
+      "sha256": "763c49a8d5f705ed0a4eb73e2449fa9c6994345d315793c12c644b5e6a052007",
+      "roles": [
+        "false_gate",
+        "summary"
+      ],
+      "explicit_false_gates": [
+        "/all_fine_tiled_vs_hybrid_gates_pass"
+      ]
+    },
+    {
+      "path": "stage39-fine-tiles/stop0-profile-summary.json",
+      "group": "stage39-fine-tiles",
+      "stage": "39",
+      "bytes": 183945,
+      "sha256": "90cbcd29923ebad32546b2ec819cc129cbf22c01f53259576c329519253b42a0",
+      "roles": [
+        "summary"
+      ]
+    },
+    {
+      "path": "stage39-fine-tiles/supplemental-protocol.json",
+      "group": "stage39-fine-tiles",
+      "stage": "39",
+      "bytes": 797,
+      "sha256": "10b25b588a330d41b3e4db2f8a41cd967049e7d02062e7c3d2c5b4e6c1b7e5e3",
+      "roles": [
+        "protocol"
+      ]
+    },
+    {
+      "path": "stage39-fine-tiles/validation-logs.tar.gz",
+      "group": "stage39-fine-tiles",
+      "stage": "39",
+      "bytes": 46888,
+      "sha256": "bcd0e93c3a79492ae7aab3d51945383c15bd7d64154c7e14a52b5b7d7eb39a60",
+      "roles": [
+        "archive",
+        "validation"
+      ],
+      "archive_file_count": 59,
+      "archive_role_counts": {
+        "provenance": 1,
+        "raw": 35,
+        "source": 4,
+        "summary": 1,
+        "validation": 59
+      }
+    },
+    {
+      "path": "stage39-fine-tiles/validation.json",
+      "group": "stage39-fine-tiles",
+      "stage": "39",
+      "bytes": 3948,
+      "sha256": "82cf0f88b529897102369ccf02252579060ecc53547a230a40020953690d549e",
+      "roles": [
+        "false_gate",
+        "validation"
+      ],
+      "explicit_false_gates": [
+        "/formal/primary_improvement_target_pass"
+      ]
+    },
+    {
       "path": "validation-after-refinement.json",
       "group": "root",
       "stage": null,
@@ -6172,5 +6405,5 @@
       ]
     }
   ],
-  "archive_member_index_sha256": "8915cb7ccfc3f75309fd846b05520b6fd3a0e04a413ea03d53236aa11b892c4d"
+  "archive_member_index_sha256": "2c169ae36eb940c45450934c208c159a8966130ff534aebdd3ccf17edf9bb50b"
 }

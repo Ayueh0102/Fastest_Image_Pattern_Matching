@@ -3,6 +3,7 @@
 #include "research_pipeline.hpp"
 #include "full_gpu_types.h"
 #include "full_gpu_peaks_types.h"
+#include "full_gpu_fine_types.h"
 #include "full_gpu_metal_source.hpp"
 #import <Foundation/Foundation.h>
 #import <Metal/Metal.h>
@@ -37,6 +38,7 @@ struct Coarse {
 };
 struct StatsConfig {uint32_t sw,tw,th,width;uint64_t first;uint32_t count,reserved;};
 static_assert(sizeof(FGCandidate)==48 && sizeof(FGFineConfig)==64 && sizeof(FGResult)==64 && sizeof(Coarse)==96 && sizeof(StatsConfig)==32,"Full GPU ABI");
+static_assert(sizeof(FGFineOptions)==8 && sizeof(FGFineCounters)==16,"Fine mode/counter ABI");
 std::runtime_error failure(const char* what,NSError* error) {
     return std::runtime_error(std::string(what)+(error?std::string(": ")+[[error localizedDescription] UTF8String]:""));
 }
@@ -312,6 +314,7 @@ public:
     Result run(const Options& o) override {
       @autoreleasepool {
         const auto started=Clock::now();metrics_={};metrics_.enabled=true;metrics_.fineRoiCacheBytes=fineRoiCacheBytes_;metrics_.peakMode=o.fullGpuPeakMode;
+        metrics_.fineMode=o.fullGpuFineMode;metrics_.fineThreadgroupBytes=pipeline("fg_fine_search").staticThreadgroupMemoryLength;
         if(o.overlap || o.fineProfiling || o.scaleSupportRefine || o.match.coarseNccPruning)
             throw std::invalid_argument("Complete GPU pipeline does not support host overlap, fine profiling, CPU scale-support correction or pruning");
         if(o.match.angleRanges.size()>16)throw std::invalid_argument("Complete GPU pipeline supports at most 16 angle intervals");
@@ -337,6 +340,15 @@ public:
         auto modelOutput=buffer("model-proposals",size_t(p.capacity)*sizeof(FGCandidate)),counts=buffer("model-counts",p.models.size()*4);
         auto compact=buffer("compact-proposals",size_t(p.capacity)*sizeof(FGCandidate)),snapshot=buffer("proposal-snapshot",size_t(p.capacity)*sizeof(FGCandidate));
         auto matches=buffer("final-matches",size_t(o.match.maxTargets)*sizeof(FGCandidate)),status=buffer("status",sizeof(FGStatus));
+        // Diagnostic counters do not participate in matching. Private storage is
+        // copied once at the final boundary; formal runs bind an unused buffer.
+        id<MTLBuffer> fineWork=status,fineWorkReadback=nil;
+        const size_t fineWorkBytes=p.levels.size()*sizeof(FGFineCounters);
+        if(o.fullGpuProfiling) {
+            fineWork=buffer("fine-work-counters",fineWorkBytes);
+            fineWorkReadback=buffer("fine-work-readback",fineWorkBytes,true);
+        }
+        const FGFineOptions fineOptions{uint32_t(o.fullGpuFineMode),uint32_t(o.fullGpuProfiling)};
         auto readback=buffer("final-readback",matchResultOffset+size_t(o.match.maxTargets)*sizeof(FGResult),true);
         auto config=buffer("pose-config",80),seeds=buffer("original-seed-states",size_t(p.capacity)*208),states=buffer("pose-states",size_t(p.capacity)*208);
         auto upload=Clock::now();
@@ -347,6 +359,7 @@ public:
         const auto encodeStart=Clock::now();
         profileStage_="initialization";
         zero(command,candidates);zero(command,modelOutput);zero(command,counts);zero(command,status);zero(command,config);
+        if(o.fullGpuProfiling)zero(command,fineWork);
         profileStage_="source_pyramid";
         auto e=encoder(command,"fg_input");std::array<uint32_t,2> input{sw*sh,uint32_t(o.match.invertSource)};
         [e setBuffer:rawSource offset:0 atIndex:0];[e setBuffer:source offset:0 atIndex:1];[e setBytes:input.data() length:sizeof(input) atIndex:2];linear(e,sw*sh);
@@ -396,7 +409,7 @@ public:
                 FGFineConfig fine{model.first,model.count,model.levelBase,model.top,std::min(uint32_t(o.match.stopLayer),model.top),uint32_t(o.match.subpixel),uint32_t(ranges.size()),uint32_t(m),
                     scoreCutoff(o.refine?std::min(o.proposalScore,o.match.minScore):o.match.minScore),float(o.match.maxOverlap),float(settings_.scales[m]),0,base.tw,base.th,uint32_t(o.match.maxTargets),0};
                 profileStage_="fine_search";
-                e=encoder(command,"fg_fine_search");[e setBuffer:source offset:0 atIndex:0];[e setBuffer:templ offset:0 atIndex:1];[e setBuffer:levels offset:0 atIndex:2];[e setBuffer:stats offset:0 atIndex:3];[e setBuffer:candidates offset:0 atIndex:4];[e setBytes:&fine length:sizeof(fine) atIndex:5];[e setBuffer:rangeBuffer offset:0 atIndex:6];groups(e,model.count);
+                e=encoder(command,"fg_fine_search");[e setBuffer:source offset:0 atIndex:0];[e setBuffer:templ offset:0 atIndex:1];[e setBuffer:levels offset:0 atIndex:2];[e setBuffer:stats offset:0 atIndex:3];[e setBuffer:candidates offset:0 atIndex:4];[e setBytes:&fine length:sizeof(fine) atIndex:5];[e setBuffer:rangeBuffer offset:0 atIndex:6];[e setBytes:&fineOptions length:sizeof(fineOptions) atIndex:7];[e setBuffer:fineWork offset:0 atIndex:8];groups(e,model.count);
                 profileStage_="model_nms";
                 FGNmsConfig nms{model.first,model.count,uint32_t(m)*uint32_t(o.match.maxTargets),uint32_t(o.match.maxTargets),base.tw,base.th,0,uint32_t(ranges.size()),fine.minScore,fine.maxOverlap,uint32_t(m),0};
                 e=encoder(command,"fg_model_nms");[e setBuffer:candidates offset:0 atIndex:0];[e setBuffer:modelOutput offset:0 atIndex:1];[e setBuffer:counts offset:0 atIndex:2];[e setBuffer:status offset:0 atIndex:3];[e setBytes:&nms length:sizeof(nms) atIndex:4];[e setBuffer:rangeBuffer offset:0 atIndex:5];groups(e,1);
@@ -437,7 +450,9 @@ public:
         for(uint32_t kind=0;kind<2;++kind) {
             e=encoder(command,"fg_write_results");[e setBuffer:kind?matches:snapshot offset:0 atIndex:0];[e setBuffer:readback offset:kind?matchResultOffset:proposalResultOffset atIndex:1];[e setBuffer:status offset:0 atIndex:2];[e setBytes:&finish length:sizeof(finish) atIndex:3];[e setBytes:&kind length:4 atIndex:4];linear(e,kind?size_t(o.match.maxTargets):p.capacity);
         }
-        copy(command,status,0,readback,0,sizeof(FGStatus));finishProfileEncoding();metrics_.encodeMs=elapsed(encodeStart);
+        copy(command,status,0,readback,0,sizeof(FGStatus));
+        if(o.fullGpuProfiling)copy(command,fineWork,0,fineWorkReadback,0,fineWorkBytes);
+        finishProfileEncoding();metrics_.encodeMs=elapsed(encodeStart);
         // The sole synchronization boundary. All intermediate allocations are
         // MTLStorageModePrivate and never expose .contents to host code.
         if(profileActive_) {
@@ -448,6 +463,33 @@ public:
         if(command.status!=MTLCommandBufferStatusCompleted)throw failure("Complete GPU execution",command.error);
         metrics_.deviceMs=command.GPUStartTime>0 && command.GPUEndTime>=command.GPUStartTime ? 1000*(command.GPUEndTime-command.GPUStartTime):-1;
         collectProfile();
+        if(o.fullGpuProfiling) {
+            const auto diagnosticStart=Clock::now();
+            const auto* counters=static_cast<const FGFineCounters*>(fineWorkReadback.contents);
+            metrics_.fineWorkAvailable=true;metrics_.fineDiagnosticReadbackBytes=fineWorkBytes;
+            for(size_t model=0;model<p.models.size();++model)for(uint32_t layer=0;layer<=p.models[model].top;++layer) {
+                const size_t index=p.models[model].levelBase+layer;
+                const auto& level=p.levels[index];const auto& c=counters[index];
+                FullGpuFineWork w;w.model=uint32_t(model);w.layer=layer;w.templateWidth=level.tw;w.templateHeight=level.th;
+                w.roiCacheBytes=fineRoiCacheBytes_;w.reachedCandidates=c.reachedCandidates;
+                w.cachedAngles=c.cachedAngles;w.directAngles=c.directAngles;w.tiledAngles=c.tiledAngles;
+                w.angles=w.cachedAngles+w.directAngles+w.tiledAngles;
+                const uint64_t roiWidth=uint64_t(level.tw)+6,roiHeight=uint64_t(level.th)+6;
+                const uint64_t rows=fineRoiCacheBytes_/roiWidth;
+                const uint64_t tileRows=rows>6?std::min<uint64_t>(16,rows-6):0;
+                const uint64_t tiles=tileRows?(level.th+tileRows-1)/tileRows:0;
+                if(w.tiledAngles && !tileRows)throw std::runtime_error("Fine work counters selected an invalid row tile");
+                w.tileLoads=w.tiledAngles*tiles;
+                // <=2M candidates *1260 angle evaluations per level. Area is
+                // bounded by the centered uint64 moment contract. Products fit
+                // uint64 (and signed JSON integers); these are sampler calls,
+                // not hardware memory transactions or a cache-hit measurement.
+                w.sourceSamples=w.cachedAngles*roiWidth*roiHeight+w.directAngles*49*uint64_t(level.tw)*level.th+
+                    w.tiledAngles*roiWidth*(uint64_t(level.th)+6*tiles);
+                metrics_.fineWork.push_back(w);
+            }
+            metrics_.profileHostMs+=elapsed(diagnosticStart);
+        }
         const auto read=Clock::now();const auto* bytes=static_cast<const uint8_t*>(readback.contents);FGStatus resultStatus{};std::memcpy(&resultStatus,bytes,sizeof(resultStatus));
         if(resultStatus.overflow || resultStatus.proposals>p.capacity || resultStatus.matches>uint32_t(o.match.maxTargets))throw std::runtime_error("Full GPU overflow/capacity flag: "+std::to_string(resultStatus.overflow));
         Result r;
@@ -460,6 +502,9 @@ public:
         for(const auto& entry:buffers_)metrics_.gpuBytes+=entry.second.length;
         for(const char* name:{"peak-sorted-entries","peak-tile-heads"}) {
             const auto entry=buffers_.find(name);if(entry!=buffers_.end())metrics_.peakScratchBytes+=entry->second.length;
+        }
+        for(const char* name:{"fine-work-counters","fine-work-readback"}) {
+            const auto entry=buffers_.find(name);if(entry!=buffers_.end())metrics_.fineDiagnosticBytes+=entry->second.length;
         }
         r.fullGpu=metrics_;r.refinementCandidates=o.refine?resultStatus.proposals:0;r.rescue.selected_seeds=resultStatus.rescueParents;r.rescue.retry_starts=resultStatus.rescueStarts;r.rescue.continuations=resultStatus.rescueContinuations;r.configuredRefinementBackend=1;
         r.refinementMode=1;r.poseInputMode=1;r.rescue.selected_backend=r.refinementCandidates?1:0;

@@ -421,3 +421,13 @@ Release 54/54、相關ASan／UBSan 2/2及Python工具75項通過。正式／有�
 - 決定：完整GPU研究建議mode1；相對原GPU四場景速度／RSS門檻全過。相對混合，128／512仍慢15.5%／38.7%，另含6物件共九個速度gate失敗；不改通用混合預設。8K分塊71.23ms，比混合257.31ms快72.3%。
 - 驗證：Release61／61、64組選峰差分、Metal API／Shader與封存來源ASan／UBSan均通過；18個量測負控制與8個非法JSON輸入通過。計時與正式結果分開保存。
 - 證據：[報告與數學不變量](GPU_TILED_PEAKS_zh-TW.md)、[正式摘要](stage38-gpu-peaks/formal-summary.json)、[原選峰診斷](stage38-gpu-peaks/profile-original-summary.json)、[分塊診斷](stage38-gpu-peaks/profile-tiled-summary.json)、[封存](stage38-gpu-peaks/)。下一輪細搜尋分列快取僅有源碼分析，尚無加速實測。
+
+### 39. 細搜尋分列快取與實際路徑計數（2026-10-18～19）
+
+- 實作：過大旋轉ROI按最多16列模板＋6列邊界重用原快取，保持uint64統計與原座標，極寬ROI保留直接取樣；mode0／1源碼完整保留。
+- 主結果：128為964.672→962.956ms（−0.18%），512為3318.802→3320.584ms（+0.05%）。實測全部ROI已快取、零分列角度，兩個事前10%改善目標都失敗，不作加速宣稱。
+- 補充：相同素材僅改stop1→stop0，128為1774.387→1596.021ms（−10.05%），512為6284.702→5662.667ms（−9.90%）；仍較同設定混合慢，也較原stop1慢。8K原設定70.602→67.307ms（−4.67%）。
+- 記憶體：算法device buffers與28,560B static threadgroup配置不變；主128／512 RSS93.20→93.13／164.86→165.03MiB，範圍與GPU配置分開。
+- 驗證：主36程序／108次GT，補充18程序／54次GT全過，GPU完整有序輸出一致；診斷另30次。Release64／64、96組細搜尋差分、Metal／ASan／UBSan、30工具負控制與7非法JSON通過。
+- 決定：維持第38輪通用建議，分列僅作有條件研究選項。保留主2項改善目標及8個混合速度block失敗，補充另6個混合速度block失敗。實際熱路徑支持下一輪試uint32局部累加，尚未實作。
+- 證據：[完整報告](GPU_FINE_TILES_zh-TW.md)、[主正式](stage39-fine-tiles/formal-summary.json)、[補充正式](stage39-fine-tiles/stop0-formal-summary.json)、[採用與失敗](stage39-fine-tiles/decision-and-failures.json)、[完整封存](stage39-fine-tiles/)。
