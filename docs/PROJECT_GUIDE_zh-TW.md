@@ -54,7 +54,9 @@ English overview: This repository preserves the original MFC application and dev
 
 第38輪在完整GPU路徑加入[精確分塊選峰](../cpp-core/docs/GPU_TILED_PEAKS_zh-TW.md)，128／512物件耗時分別降低約80%／87%，輸出與原GPU完全一致。它仍未在大量物件場景勝過混合方案；完整GPU研究需明確指定`full_gpu_peak_mode=1`。報告分開列出GPU階段診斷、正式速度、記憶體範圍與下一輪尚未驗證的方向。
 
-第39輪[細搜尋分列快取](../cpp-core/docs/GPU_FINE_TILES_zh-TW.md)補上實際工作計數：原128／512已全部命中程式管理的ROI快取，因此新方法沒有改善它們。搜尋到原始解析度的補充設定可少約10%耗時，保留研究選項與全部失敗；通用建議仍維持第38輪。
+第39輪[細搜尋分列快取](../cpp-core/docs/GPU_FINE_TILES_zh-TW.md)補上實際工作計數：原128／512已全部命中程式管理的ROI快取，因此新方法沒有改善它們。搜尋到原始解析度的補充設定可少約10%耗時，保留研究選項與全部失敗；該輪建議維持第38輪，現行建議已由第40輪更新。
+
+第40輪[精確NCC與大階段結案](../cpp-core/docs/GPU_NCC_CLOSURE_zh-TW.md)完成有界整數累加、滑動統計重用與SIMD32工作分配實驗。完整GPU研究選`full_gpu_peak_mode=1, full_gpu_fine_mode=4`，原128／512耗時再少16.3%／15.4%，完整輸出一致且GPU配置不增。128接近混合方案，512仍以混合較快；來源統計重用反而變慢也完整保留。正式、保留場景、跨版本、短期連續檢查、來源重建與摘要重播皆已完成。本大階段可供外部審查，未宣稱所有實拍或GPU硬體適用。
 
 ## RGB 與真實場景的判讀方式
 

@@ -1,6 +1,6 @@
 # Template Matching 研究總索引與人工審查指南
 
-更新：2026-10-18。此頁按第1–36輪列出問題、證據與採用決定。數字是各輪的證據快照，不是同一套輸入的連續加速曲線；不同輪次倍率不能相乘。最新輪次見頁末，第一次閱讀先看[外部導覽](../../docs/PROJECT_GUIDE_zh-TW.md)。
+更新：2026-10-19。此頁按第1–40輪列出問題、證據與採用決定。數字是各輪的證據快照，不是同一套輸入的連續加速曲線；不同輪次倍率不能相乘。最新輪次見頁末，第一次閱讀先看[外部導覽](../../docs/PROJECT_GUIDE_zh-TW.md)。
 
 ## 目前推薦方案
 
@@ -9,7 +9,7 @@
 | 主題 | 閱讀入口 |
 |---|---|
 | 核心、GUI與語言移植 | 第1輪；[建置](../README_zh-TW.md)、[移植契約](PORTING_zh-TW.md) |
-| GPU並行、同步與記憶體 | 第5–14、19–25、28–34、36輪；依工作量看CPU／Metal對照 |
+| GPU並行、同步與記憶體 | 第5–14、19–25、28–34、36–40輪；依工作量看CPU／Metal對照 |
 | 固定尺度與稀疏前段 | 第15–21輪；與金字塔路徑分開比較 |
 | 原始NCC與旋轉細搜尋 | 第26–30輪；保留未加速與記憶體失敗 |
 | 新場景、Blender、新影格與穩定性 | [第34輪](STAGE34_CLOSURE_zh-TW.md) |
@@ -24,7 +24,7 @@
 | 舊 macOS C++ | 保留的 OpenCV／DOTPROD 移植，比較工具的執行期歷史參考 | 不等同直接在 Windows 跑最早版 |
 | 新 portable CPU | `fpm_core` 的完整自有灰階、固定尺度 NCC／旋轉／金字塔／subpixel | 不是預設原生全圖尺度／RGB 搜尋 |
 | pose scorer／refiner | float32 幾何、灰階或 RGB、連續平移／角度／log-scale，C++／Metal 核心 | 只給 seeds 的測試不是全圖偵測召回率 |
-| 全圖研究 pipeline | 各尺度模板搜尋＋後段 pose 精修／rescue／NMS；原生 C++ 已接入選配 GUI，Python 保留對照 | 灰階尺度流程已原生化，仍不是全 C++ Fourier 或全 GPU 流程 |
+| 全圖研究 pipeline | 各尺度模板搜尋＋後段 pose 精修／rescue／NMS；原生 C++ 已接入選配 GUI，Python 保留對照 | 灰階尺度流程已原生化，第37–40輪另有完整Metal灰階選項；Fourier仍非全C++，RGB驗色不在完整GPU範圍內 |
 | 金字塔 fine search | 每層局部 ROI 的離散角度與位置搜尋 | 與最後四參數 resident LM 是不同階段 |
 
 目前跨階段的大部分效能證據來自 Apple M4 Pro、12 CPU／16 GPU cores、48 GiB、macOS 26.6.2、Release；早期稽核另記 AppleClang 21、Qt 6.10.2、OpenCV 4.13.0。CPU 實驗多使用 8 threads，但 portable core 的 NEON 搜尋不可因此稱作八核心搜尋。CUDA、Windows／Linux 實機性能並無本頁可引用的完成證據。
@@ -431,3 +431,13 @@ Release 54/54、相關ASan／UBSan 2/2及Python工具75項通過。正式／有�
 - 驗證：主36程序／108次GT，補充18程序／54次GT全過，GPU完整有序輸出一致；診斷另30次。Release64／64、96組細搜尋差分、Metal／ASan／UBSan、30工具負控制與7非法JSON通過。
 - 決定：維持第38輪通用建議，分列僅作有條件研究選項。保留主2項改善目標及8個混合速度block失敗，補充另6個混合速度block失敗。實際熱路徑支持下一輪試uint32局部累加，尚未實作。
 - 證據：[完整報告](GPU_FINE_TILES_zh-TW.md)、[主正式](stage39-fine-tiles/formal-summary.json)、[補充正式](stage39-fine-tiles/stop0-formal-summary.json)、[採用與失敗](stage39-fine-tiles/decision-and-failures.json)、[完整封存](stage39-fine-tiles/)。
+
+### 40. 精確NCC內迴圈、SIMD工作分配與大階段結案（2026-10-19）
+
+- 問題／實作：第39輪已確認主要ROI都在快取，本輪直接比較有界uint32累加mode2、來源S/Q滑動重用mode3、保留原四條帶順序的SIMD32 mode4。三agent協作，借鑑2025 GPU cross-correlation論文與作者程式，自行實作完整Metal原碼。
+- 正式結果：128GPU基線963.10→806.46ms（−16.3%），5123314.24→2805.18ms（−15.4%）；RSS93.41→93.47／165.22→164.98MiB，命名GPU配置與28,560B threadgroup容量完全不變。混合824.59／2391.95ms；128接近，512仍以混合較快。
+- 邊界／失敗：stop0比GPU基線少28.1%／27.4%；七組保留場景全GT與GPU有序結果一致，新種子128／512仍相同趨勢。mode3初測較慢而不採用，mode2單獨未達10%主要目標；52筆速度／改善目標失敗原樣保留，沒有精度／RSS失敗。
+- 診斷：新512細搜尋1326.81ms、粗選峰938.09ms；主機shared memcpy約0.52ms、最後結果取回約0.022ms，這不是硬體傳輸計時。仍一次提交／最後一次等待，中途零讀回、零CPU算法步驟。
+- 驗證：六組177程序／507次直接GT＋跨版本54＋soak首次1＝562次直接GT；另107次原生一致性確認。Release70／70、工具73／73、Metal及ASan／UBSan各7／7、凍結來源重建10次結果一致、八份摘要換目錄重播。五分鐘108次、一次Session重建，RSS首末中位數增加1.16MiB。LeakSanitizer未啟用。
+- 決定：本有界精確Metal大階段完成，GPU研究推薦peak1／fine4，不改通用／GUI預設。不是RGB完整常駐、CUDA或實拍序列驗收，也不宣稱理論極限。
+- 證據：[完整報告與文獻](GPU_NCC_CLOSURE_zh-TW.md)、[正式摘要](stage40-ncc-closure/formal-summary.json)、[採用與失敗](stage40-ncc-closure/decision-and-failures.json)、[驗證](stage40-ncc-closure/validation.json)、[完整源碼與Log封存](stage40-ncc-closure/archive.json)。

@@ -26,44 +26,45 @@
     "metadata": "Filesystem sidecar metadata",
     "other": "No recognized role; inspect manually"
   },
-  "artifact_count": 475,
-  "artifact_bytes": 1415980922,
+  "artifact_count": 501,
+  "artifact_bytes": 1574281949,
   "artifact_role_counts": {
-    "archive": 75,
+    "archive": 79,
     "calibration": 4,
-    "failure_review": 10,
-    "false_gate": 48,
-    "formal": 9,
+    "failure_review": 11,
+    "false_gate": 52,
+    "formal": 10,
     "input": 21,
-    "other": 38,
-    "protocol": 36,
-    "provenance": 41,
-    "raw": 50,
-    "report": 62,
-    "source": 7,
-    "summary": 105,
-    "validation": 70,
-    "visual": 66
+    "other": 42,
+    "pilot": 1,
+    "protocol": 37,
+    "provenance": 44,
+    "raw": 51,
+    "report": 64,
+    "source": 8,
+    "summary": 114,
+    "validation": 72,
+    "visual": 68
   },
-  "archive_member_count": 25968,
+  "archive_member_count": 27157,
   "archive_member_role_counts": {
     "archive": 26,
     "binary": 47,
     "calibration": 1,
-    "failure_review": 18,
-    "formal": 14063,
-    "input": 568,
+    "failure_review": 19,
+    "formal": 14711,
+    "input": 582,
     "metadata": 1292,
-    "other": 1267,
-    "pilot": 3600,
+    "other": 1387,
+    "pilot": 3699,
     "protocol": 109,
-    "provenance": 85,
-    "raw": 5418,
-    "report": 73,
-    "source": 9431,
-    "summary": 880,
-    "validation": 467,
-    "visual": 856
+    "provenance": 95,
+    "raw": 5864,
+    "report": 76,
+    "source": 9712,
+    "summary": 900,
+    "validation": 639,
+    "visual": 872
   },
   "artifacts": [
     {
@@ -140,8 +141,8 @@
       "path": "CURRENT_BEST_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 6813,
-      "sha256": "e2a16954ff1304bb21a2bb1670175e7fc92c1b79ea155f4cafae7c51953f37ba",
+      "bytes": 7454,
+      "sha256": "188d8fe1c0fb5b35bdec8378a2ed6d5b8023f3491beae72116cd2732bd5caea3",
       "roles": [
         "report"
       ]
@@ -181,8 +182,8 @@
       "path": "EXPERIMENT_REVIEW_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 68184,
-      "sha256": "c66a84a5ba6c22651fb005ad2faa60611d3da3828f972f3b82bad0c34f96fe92",
+      "bytes": 70232,
+      "sha256": "dee27f0ea6a498630ee81a33171305d1ce4d4206d42fa1f749a88d455a6ace12",
       "roles": [
         "report"
       ]
@@ -268,6 +269,16 @@
       ]
     },
     {
+      "path": "GPU_NCC_CLOSURE_zh-TW.md",
+      "group": "root",
+      "stage": null,
+      "bytes": 18275,
+      "sha256": "765ce71a3bc0800782795f9f6b2d9a1a6797d2582d454105a861c3d82497eae1",
+      "roles": [
+        "report"
+      ]
+    },
+    {
       "path": "GPU_REFINEMENT_zh-TW.md",
       "group": "root",
       "stage": null,
@@ -311,8 +322,8 @@
       "path": "LOG_CATALOG_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 10721,
-      "sha256": "83946e089722b4dd52ea15060923a21fa8972b8f0c0a0805abdfe5da40e56b45",
+      "bytes": 10906,
+      "sha256": "859f83b3b82fd3b149560077557facca18e5b1cbaf34722d502eec2272d076e8",
       "roles": [
         "report"
       ]
@@ -472,8 +483,8 @@
       "path": "PROJECT_STATUS_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 5773,
-      "sha256": "fbce65850e2b10ece05bb81c2ad7f3781f54348e3e6977d638e277ea9cc49efa",
+      "bytes": 6313,
+      "sha256": "b578c7b92499ef9708a8de1bcac85ffdde5d0908c2e37c9c4fbb319a6986b0ed",
       "roles": [
         "report"
       ]
@@ -6385,6 +6396,353 @@
       ]
     },
     {
+      "path": "stage40-ncc-closure/archive.json",
+      "group": "stage40-ncc-closure",
+      "stage": "40",
+      "bytes": 4386,
+      "sha256": "1d4810902249a825e231b8e748ee6f66ada7e6bd908b461ff6d98de08578e3e4",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage40-ncc-closure/comparison.png",
+      "group": "stage40-ncc-closure",
+      "stage": "40",
+      "bytes": 109046,
+      "sha256": "038543a58e0eebdfefc5f95d277804870ee0976c16cc98812c8d1bfff7c3e2ef",
+      "roles": [
+        "visual"
+      ]
+    },
+    {
+      "path": "stage40-ncc-closure/cross-version-summary.json",
+      "group": "stage40-ncc-closure",
+      "stage": "40",
+      "bytes": 25148755,
+      "sha256": "a469272f3cd6f8ce4e0a31cf55009d7b140167b437080e3ceafac3f3a174350b",
+      "roles": [
+        "summary"
+      ]
+    },
+    {
+      "path": "stage40-ncc-closure/decision-and-failures.json",
+      "group": "stage40-ncc-closure",
+      "stage": "40",
+      "bytes": 11838,
+      "sha256": "a7e3b7c962bd1a032765028728d7bd0c90176db3a1a3255006af9e9786d4f961",
+      "roles": [
+        "failure_review"
+      ]
+    },
+    {
+      "path": "stage40-ncc-closure/fixtures.tar.gz",
+      "group": "stage40-ncc-closure",
+      "stage": "40",
+      "bytes": 51060553,
+      "sha256": "7fb838acdce70d34c2d19f6f485f93d8275a78ef1d994c6ec9877b991ffab71c",
+      "roles": [
+        "archive"
+      ],
+      "archive_file_count": 16,
+      "archive_role_counts": {
+        "formal": 13,
+        "input": 13,
+        "visual": 16
+      }
+    },
+    {
+      "path": "stage40-ncc-closure/formal-summary.json",
+      "group": "stage40-ncc-closure",
+      "stage": "40",
+      "bytes": 129687,
+      "sha256": "b572e8a541dfeedb81adaf26d7b4635e905fbb9dc1ea1836a1d1a294fc1c342d",
+      "roles": [
+        "false_gate",
+        "formal",
+        "summary"
+      ],
+      "explicit_false_gates": [
+        "/cases/1/candidate_comparisons/full_gpu_u32/hybrid_best/observed_gates_pass",
+        "/cases/1/candidate_comparisons/full_gpu_simd/hybrid_best/observed_gates_pass",
+        "/cases/2/candidate_comparisons/full_gpu_u32/hybrid_best/observed_gates_pass",
+        "/cases/2/candidate_comparisons/full_gpu_simd/hybrid_best/observed_gates_pass",
+        "/candidates/full_gpu_u32/comparisons/hybrid_best/all_observed_gates_pass",
+        "/candidates/full_gpu_u32/primary_10_percent_target_pass",
+        "/candidates/full_gpu_u32/formal_primary_target_pass",
+        "/candidates/full_gpu_simd/comparisons/hybrid_best/all_observed_gates_pass"
+      ]
+    },
+    {
+      "path": "stage40-ncc-closure/holdout-fixtures.json",
+      "group": "stage40-ncc-closure",
+      "stage": "40",
+      "bytes": 564238,
+      "sha256": "f98d01635bf16ff88740f44a8806403637c34efd103e67de28050fc4e52a84d1",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "stage40-ncc-closure/holdout-summary.json",
+      "group": "stage40-ncc-closure",
+      "stage": "40",
+      "bytes": 148932,
+      "sha256": "bac0da0a2bc036baf2aad7cdb9a2d157e38d8990db8586354af9fc0ae2641624",
+      "roles": [
+        "false_gate",
+        "summary"
+      ],
+      "explicit_false_gates": [
+        "/cases/1/candidate_comparisons/full_gpu_simd/hybrid_best/observed_gates_pass",
+        "/cases/6/candidate_comparisons/full_gpu_simd/hybrid_best/observed_gates_pass",
+        "/candidates/full_gpu_simd/comparisons/hybrid_best/all_observed_gates_pass"
+      ]
+    },
+    {
+      "path": "stage40-ncc-closure/input-sha256.json",
+      "group": "stage40-ncc-closure",
+      "stage": "40",
+      "bytes": 2010,
+      "sha256": "917aba4ac5ffab796c767e52ad295a808ade14dd85632a9a9222df0c609e3ac1",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage40-ncc-closure/pilot-summary.json",
+      "group": "stage40-ncc-closure",
+      "stage": "40",
+      "bytes": 160467,
+      "sha256": "f18f3c299cb1ff2b260fb8540053c68ac6080a81c7f49f0609e3f31e22244de3",
+      "roles": [
+        "false_gate",
+        "pilot",
+        "summary"
+      ],
+      "explicit_false_gates": [
+        "/cases/0/candidate_comparisons/full_gpu_fine_tiled/hybrid_best/observed_gates_pass",
+        "/cases/0/candidate_comparisons/full_gpu_moments/full_gpu_tiled/observed_gates_pass",
+        "/cases/0/candidate_comparisons/full_gpu_moments/hybrid_best/observed_gates_pass",
+        "/cases/0/candidate_comparisons/full_gpu_moments/full_gpu_fine_tiled/observed_gates_pass",
+        "/cases/1/candidate_comparisons/full_gpu_fine_tiled/hybrid_best/observed_gates_pass",
+        "/cases/1/candidate_comparisons/full_gpu_u32/hybrid_best/observed_gates_pass",
+        "/cases/1/candidate_comparisons/full_gpu_moments/full_gpu_tiled/observed_gates_pass",
+        "/cases/1/candidate_comparisons/full_gpu_moments/hybrid_best/observed_gates_pass",
+        "/cases/1/candidate_comparisons/full_gpu_moments/full_gpu_fine_tiled/observed_gates_pass",
+        "/cases/1/candidate_comparisons/full_gpu_simd/hybrid_best/observed_gates_pass",
+        "/cases/2/candidate_comparisons/full_gpu_fine_tiled/hybrid_best/observed_gates_pass",
+        "/cases/2/candidate_comparisons/full_gpu_u32/hybrid_best/observed_gates_pass",
+        "/cases/2/candidate_comparisons/full_gpu_moments/full_gpu_tiled/observed_gates_pass",
+        "/cases/2/candidate_comparisons/full_gpu_moments/hybrid_best/observed_gates_pass",
+        "/cases/2/candidate_comparisons/full_gpu_moments/full_gpu_fine_tiled/observed_gates_pass",
+        "/cases/2/candidate_comparisons/full_gpu_simd/hybrid_best/observed_gates_pass",
+        "/candidates/full_gpu_fine_tiled/comparisons/hybrid_best/all_observed_gates_pass",
+        "/candidates/full_gpu_fine_tiled/primary_10_percent_target_pass",
+        "/candidates/full_gpu_u32/comparisons/hybrid_best/all_observed_gates_pass",
+        "/candidates/full_gpu_u32/primary_10_percent_target_pass",
+        "/candidates/full_gpu_moments/comparisons/full_gpu_tiled/all_observed_gates_pass",
+        "/candidates/full_gpu_moments/comparisons/hybrid_best/all_observed_gates_pass",
+        "/candidates/full_gpu_moments/comparisons/full_gpu_fine_tiled/all_observed_gates_pass",
+        "/candidates/full_gpu_moments/primary_10_percent_target_pass",
+        "/candidates/full_gpu_simd/comparisons/hybrid_best/all_observed_gates_pass"
+      ]
+    },
+    {
+      "path": "stage40-ncc-closure/profile-summary.json",
+      "group": "stage40-ncc-closure",
+      "stage": "40",
+      "bytes": 565446,
+      "sha256": "3588db5022d68f96e85da670fe12374f118be6f9300f8750d15bcbe60cd79599",
+      "roles": [
+        "summary"
+      ]
+    },
+    {
+      "path": "stage40-ncc-closure/protocol.json",
+      "group": "stage40-ncc-closure",
+      "stage": "40",
+      "bytes": 3568,
+      "sha256": "6f2f62ddde0948451f3a4134d00735b06455b8d24224e3a9b4cdcf739fbfa909",
+      "roles": [
+        "protocol"
+      ]
+    },
+    {
+      "path": "stage40-ncc-closure/raw-results.tar.gz",
+      "group": "stage40-ncc-closure",
+      "stage": "40",
+      "bytes": 62706761,
+      "sha256": "db7c7bf715dba51b47aec5cf05e811d795529823ac657c57af8e6a21720f3a90",
+      "roles": [
+        "archive",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 724,
+      "archive_role_counts": {
+        "formal": 580,
+        "other": 111,
+        "pilot": 97,
+        "provenance": 7,
+        "raw": 356,
+        "summary": 1
+      }
+    },
+    {
+      "path": "stage40-ncc-closure/research.json",
+      "group": "stage40-ncc-closure",
+      "stage": "40",
+      "bytes": 6798,
+      "sha256": "aa355fba124b97e174045856200a106e9d4b15df2bb49131f25112cce6c44d4d",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "stage40-ncc-closure/research.md",
+      "group": "stage40-ncc-closure",
+      "stage": "40",
+      "bytes": 10744,
+      "sha256": "f64b47436bfa88c6b1d8cf7af0ed4b3aeb361ff5aff206cec2b4094e6fc0c1e1",
+      "roles": [
+        "report"
+      ]
+    },
+    {
+      "path": "stage40-ncc-closure/screening-decision.json",
+      "group": "stage40-ncc-closure",
+      "stage": "40",
+      "bytes": 1050,
+      "sha256": "12318adbaadfaaba750ad307142644bf6711c23ff93a46d3b8b52b604815035f",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "stage40-ncc-closure/screening.png",
+      "group": "stage40-ncc-closure",
+      "stage": "40",
+      "bytes": 40910,
+      "sha256": "32926eb4e190661be70efac9b66440141cbe7cc8910ddb103d1e48d12275b300",
+      "roles": [
+        "visual"
+      ]
+    },
+    {
+      "path": "stage40-ncc-closure/soak-summary.json",
+      "group": "stage40-ncc-closure",
+      "stage": "40",
+      "bytes": 252709,
+      "sha256": "b349e8374db9818590567e3407991746e73afd71542bbbbf2cbe3ff80d4e7be5",
+      "roles": [
+        "summary"
+      ]
+    },
+    {
+      "path": "stage40-ncc-closure/source-sha256.json",
+      "group": "stage40-ncc-closure",
+      "stage": "40",
+      "bytes": 31407,
+      "sha256": "d3fc6b4372c11daf4904732d18346599923ff00d3d74fa5bf445aa824e995386",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage40-ncc-closure/source-snapshot.tar.gz",
+      "group": "stage40-ncc-closure",
+      "stage": "40",
+      "bytes": 829098,
+      "sha256": "17776b787df70966dcb98af9f12edae6232d3f346ceabe59819bc5fe96745c5b",
+      "roles": [
+        "archive",
+        "source"
+      ],
+      "archive_file_count": 279,
+      "archive_role_counts": {
+        "input": 1,
+        "other": 9,
+        "provenance": 1,
+        "report": 1,
+        "source": 267,
+        "summary": 18,
+        "validation": 2
+      }
+    },
+    {
+      "path": "stage40-ncc-closure/stop0-fixtures.json",
+      "group": "stage40-ncc-closure",
+      "stage": "40",
+      "bytes": 553429,
+      "sha256": "83cade0ae70e76da13fe505d2fb06260a0ef6c194e197a8c175a66f0fe98eecf",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "stage40-ncc-closure/stop0-formal-summary.json",
+      "group": "stage40-ncc-closure",
+      "stage": "40",
+      "bytes": 69116,
+      "sha256": "af796f7bfaa02c79b963e25ce70e54a1ff261a8e82a8dda011dcfc09035ef5ab",
+      "roles": [
+        "false_gate",
+        "summary"
+      ],
+      "explicit_false_gates": [
+        "/cases/0/candidate_comparisons/full_gpu_fine_tiled/hybrid_best/observed_gates_pass",
+        "/cases/0/candidate_comparisons/full_gpu_simd/hybrid_best/observed_gates_pass",
+        "/cases/1/candidate_comparisons/full_gpu_fine_tiled/hybrid_best/observed_gates_pass",
+        "/cases/1/candidate_comparisons/full_gpu_simd/hybrid_best/observed_gates_pass",
+        "/candidates/full_gpu_fine_tiled/comparisons/hybrid_best/all_observed_gates_pass",
+        "/candidates/full_gpu_simd/comparisons/hybrid_best/all_observed_gates_pass"
+      ]
+    },
+    {
+      "path": "stage40-ncc-closure/stop0-profile-summary.json",
+      "group": "stage40-ncc-closure",
+      "stage": "40",
+      "bytes": 277738,
+      "sha256": "e274fcdf7d85c61a770561646344ed2d04d1636fd84277fcb8e40bd4c8d7a25c",
+      "roles": [
+        "summary"
+      ]
+    },
+    {
+      "path": "stage40-ncc-closure/validation-logs.tar.gz",
+      "group": "stage40-ncc-closure",
+      "stage": "40",
+      "bytes": 15159560,
+      "sha256": "fcf0fdb5cbc46889eea9a3826c631e8302e02a72d211779c07a4d90e56baa9c8",
+      "roles": [
+        "archive",
+        "validation"
+      ],
+      "archive_file_count": 170,
+      "archive_role_counts": {
+        "failure_review": 1,
+        "formal": 55,
+        "pilot": 2,
+        "provenance": 2,
+        "raw": 90,
+        "report": 2,
+        "source": 14,
+        "summary": 1,
+        "validation": 170
+      }
+    },
+    {
+      "path": "stage40-ncc-closure/validation.json",
+      "group": "stage40-ncc-closure",
+      "stage": "40",
+      "bytes": 431092,
+      "sha256": "8ba3e016b68a1d65d46b09e7f43a9dd42fafe2f975fd69c597bd4c4e7cd59336",
+      "roles": [
+        "validation"
+      ]
+    },
+    {
       "path": "validation-after-refinement.json",
       "group": "root",
       "stage": null,
@@ -6405,5 +6763,5 @@
       ]
     }
   ],
-  "archive_member_index_sha256": "2c169ae36eb940c45450934c208c159a8966130ff534aebdd3ccf17edf9bb50b"
+  "archive_member_index_sha256": "71b2922fc22e83f998f23a24b350aa9b2658d08e03fffbb80da82423b57b12c3"
 }

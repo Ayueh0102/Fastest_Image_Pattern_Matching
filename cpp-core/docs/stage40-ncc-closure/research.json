@@ -1,0 +1,145 @@
+{
+  "schema": 1,
+  "checked_date": "2026-10-19",
+  "timezone": "Asia/Taipei",
+  "scope": "exact gray8 Metal GPU fine NCC; 49 local windows; existing rotation sampling and ordered output contract",
+  "third_party_code_copied": false,
+  "author_benchmarks_reproduced": false,
+  "experiment_candidates": [
+    "bounded_uint32_partials_uint64_merge",
+    "overlapping_sum_and_square_reuse",
+    "simdgroup32_window_mapping"
+  ],
+  "sources": [
+    {
+      "id": "lewis",
+      "url": "https://www.scribblethink.org/Work/nvisionInterface/nip.html",
+      "type": "author_paper",
+      "takeaway": "Separate correlation from running-sum normalization."
+    },
+    {
+      "id": "jpdc2025",
+      "url": "https://doi.org/10.1016/j.jpdc.2025.105054",
+      "type": "publisher_paper",
+      "takeaway": "Data reuse, warp shuffle and workload-dependent direct/FFT choices; CUDA results are not Metal predictions."
+    },
+    {
+      "id": "jpdc_artifact",
+      "url": "https://github.com/asmelko/jpdc23-artifact/tree/21bfe6d09170e5f297eeff5753f74588773fbaad",
+      "type": "author_repository",
+      "commit": "21bfe6d09170e5f297eeff5753f74588773fbaad",
+      "license": "MIT",
+      "license_url": "https://github.com/asmelko/jpdc23-artifact/blob/21bfe6d09170e5f297eeff5753f74588773fbaad/LICENSE"
+    },
+    {
+      "id": "z2zncc_paper",
+      "url": "https://arxiv.org/html/2212.00476v2",
+      "type": "author_paper",
+      "takeaway": "Stereo zigzag joint patch translation permits product-field reuse; fixed-template displacement does not preserve those products."
+    },
+    {
+      "id": "z2zncc_repo",
+      "url": "https://github.com/changqiong/z2zncc/tree/4da3d130141ee5fda189e2a144cea088df09af19",
+      "type": "author_repository",
+      "commit": "4da3d130141ee5fda189e2a144cea088df09af19",
+      "license": "LICENSE text says MIT; GitHub classifier Other",
+      "license_url": "https://github.com/changqiong/z2zncc/blob/4da3d130141ee5fda189e2a144cea088df09af19/LICENSE"
+    },
+    {
+      "id": "opencv_cuda",
+      "url": "https://github.com/opencv/opencv_contrib/blob/4.12.0/modules/cudaimgproc/src/match_template.cpp",
+      "type": "official_repository",
+      "tag": "4.12.0",
+      "license": "root Apache-2.0; referenced legacy file contains 3-clause BSD-form notice",
+      "takeaway": "Separate correlation and integral statistics; do not transplant CUDA template-area thresholds."
+    },
+    {
+      "id": "apple_groups",
+      "url": "https://developer.apple.com/documentation/metal/creating-threads-and-threadgroups",
+      "type": "official_documentation",
+      "takeaway": "Query actual SIMD width and synchronize cross-group shared memory."
+    },
+    {
+      "id": "apple_compute",
+      "url": "https://developer.apple.com/videos/play/wwdc2022/10159/",
+      "type": "official_documentation",
+      "takeaway": "SIMD reductions and appropriate workload mapping."
+    },
+    {
+      "id": "briechle",
+      "url": "https://isas.iar.kit.edu/pdf/SPIE01_BriechleHanebeck_CrossCorr.pdf",
+      "type": "author_institution_paper",
+      "takeaway": "Rectangular basis approximation; not exact same-template replacement."
+    },
+    {
+      "id": "segmented2025",
+      "url": "https://arxiv.org/abs/2502.01286",
+      "type": "author_paper",
+      "takeaway": "Variance-based rectangular segment approximation; separate accuracy contract."
+    },
+    {
+      "id": "tensor_rotation",
+      "url": "https://arxiv.org/html/2311.07561v1",
+      "type": "author_paper",
+      "takeaway": "Tensorial rotation representation; continuous rotationally commuting support/filter assumptions differ from current rectangular sampler."
+    },
+    {
+      "id": "flash_attention",
+      "url": "https://arxiv.org/abs/2205.14135",
+      "type": "author_paper",
+      "takeaway": "IO-aware tiling analogy only; no NCC speed claim."
+    },
+    {
+      "id": "torch_fft_zncc",
+      "url": "https://github.com/Simon-Bertrand/CUDA-FastNormalizedCrossCorrelation/tree/f1c7206811b20beb18ec2a1d5dc6a46416cb1f18",
+      "type": "author_repository",
+      "commit": "f1c7206811b20beb18ec2a1d5dc6a46416cb1f18",
+      "license": "No LICENSE found in inspected tree; no code adopted",
+      "takeaway": "README describes cuFFT and fused local statistics; unverified external performance."
+    }
+  ],
+  "screened_not_implemented_here": {
+    "fft": "Only 49 valid outputs per dynamic angle/ROI; FP32 FFT not proven bit-exact; Metal crossover unmeasured, not proven slower.",
+    "rectangular_or_lowrank_approximation": "Changes moments or needs a full representation without guaranteed savings.",
+    "tensor_rotation": "Changes continuous/discrete support and sampling contract.",
+    "floating_matrix_or_dl": "Different arithmetic or representation; exactness unproven.",
+    "early_abandon": "Must conservatively bound and restore full score neighborhoods used by subpixel fitting.",
+    "angle_candidate_memoization": "Requires full exact keys; meaningful duplication not established for primary workload."
+  },
+  "limits": [
+    "no CUDA hardware benchmarking",
+    "no complete RGB resident-pipeline validation",
+    "no labeled real-sequence generalization claim",
+    "no theoretical-optimality claim"
+  ],
+  "independent_source_review": {
+    "findings": [],
+    "scope": [
+      "mode2 uint32 bound and uint64 fallback",
+      "mode3 source-moment stripe invariant and subtract-before-add",
+      "mode4 shuffle16/8/4 reconstruction of p%4 stripes",
+      "uniform shared-memory barriers",
+      "FGFineOptions and FGFineCounters ABI sizes",
+      "host non32 SIMD fallback and effective-mode reporting",
+      "independent legacy oracle and all49 score/moment tests"
+    ],
+    "cpu_math_checks": {
+      "source_moment_stripe_windows": 31556,
+      "simd_reconstruction_sizes": 13,
+      "rng_seed": 400301,
+      "gpu_executed_by_this_review": false
+    },
+    "source_hashes": {
+      "cpp-core/experiments/full_gpu_fine.metal": "5354115149b0d767f360b70435d481c489d7d16dc564f6cbaa8d5804856905d3",
+      "cpp-core/experiments/full_gpu_fine_types.h": "7668b369072b93a322cc0cd1e72da8557d45d5901d7dd5d52ff74fe1006bf353",
+      "cpp-core/experiments/full_gpu_metal.mm": "ec3348ac00ade827acfdd992ec840d07159a8cac92c0417ee536445feb14c3ee",
+      "cpp-core/tests/full_gpu_fine_test.mm": "5def26f67a0ba87145447027b64d053c1993da4234fa32208201862e389e8e38",
+      "cpp-core/tests/full_gpu_pipeline_test.cpp": "1c6db5ec741637394a256b435ebb516c7410530f9fa6d78b7485953f27b1c5a5"
+    },
+    "limitations": [
+      "static review and independent CPU invariant check; GPU tests and performance are owned by experiment runner",
+      "FP32 parity contract is original GPU, not CPU double arithmetic",
+      "alternate SIMD width fallback was inspected; only the available device can be benchmarked"
+    ]
+  }
+}

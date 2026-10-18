@@ -24,7 +24,9 @@ struct ProbeConfig {
 static_assert(sizeof(ProbeConfig)==32 && sizeof(FGFineOptions)==8 && sizeof(FGFineCounters)==16);
 // Independent copy of Stage 38's original moment loops. It intentionally does
 // not call the production path selector or new moment helper. Thus mode 0's
-// refactoring is checked as well as mode 1, down to each lane's integer sums.
+// refactoring is checked as well as modes 1/2, down to each lane's integer
+// sums. Mode 3 shares source moments and changes their stripe ownership, so
+// it checks all aggregate moments and unchanged per-lane dot products.
 const char* probeSource=R"METAL(
 struct FGFineProbeConfig {
     float anchorX,anchorY,angle,threshold;
@@ -76,7 +78,7 @@ kernel void fg_fine_moments_probe(device const uchar* source [[buffer(0)]],
         fg_fine_legacy_moments(source, templ, level, anchor, c, s, roi, partial, lane);
     else
         fg_fine_angle_moments(source, templ, level, anchor, c, s, roi, partial, lane,
-            fg_fine_path(level, config.mode));
+            fg_fine_path(level, config.mode), config.mode);
     if (lane < 196) {
         for (uint j = 0; j < 3; ++j) moments[lane * 3 + j] = partial[lane * 3 + j];
     }
@@ -99,6 +101,14 @@ kernel void fg_fine_moments_probe(device const uchar* source [[buffer(0)]],
         metadata[0] = peak;
         metadata[1] = maps[peak] >= config.threshold;
         metadata[2] = fg_fine_path(level, config.mode == 9 ? 0 : config.mode);
+        metadata[3] = config.mode != 9 && config.mode >= 2 && fg_fine_narrow_moments(level);
+        metadata[4] = config.mode == 3 && metadata[2] == 0 && metadata[3];
+        FGLevel boundary = level;
+        boundary.tw = 264204; boundary.th = 1;
+        metadata[5] = fg_fine_narrow_moments(boundary);
+        boundary.tw = 264205;
+        metadata[6] = fg_fine_narrow_moments(boundary);
+        metadata[7] = config.mode == 4 && metadata[2] == 0 && metadata[3];
     }
 }
 )METAL";
@@ -118,7 +128,7 @@ struct GPU {
     id<MTLCommandQueue> queue;
     id<MTLComputePipelineState> pipeline;
     uint32_t capacity;
-    uint32_t pathChecks[3]={};
+    uint32_t pathChecks[3]={},narrowChecks=0,wideFallbackChecks=0,reuseChecks=0,simdChecks=0;
     explicit GPU(uint32_t bytes):capacity(bytes) {
         device=MTLCreateSystemDefaultDevice();require(device!=nil,"Metal device unavailable");
         queue=[device newCommandQueue];NSError* error=nil;
@@ -138,7 +148,7 @@ struct GPU {
         if(input&&size)std::memcpy(b.contents,input,size);return b;
     }
     Result run(id<MTLBuffer> source,id<MTLBuffer> templ,const FGLevel& level,const FGStats& stats,ProbeConfig config) {
-        auto maps=buffer(53*sizeof(float)),moments=buffer((735+4)*sizeof(uint64_t)),metadata=buffer(7*sizeof(uint32_t));
+        auto maps=buffer(53*sizeof(float)),moments=buffer((735+4)*sizeof(uint64_t)),metadata=buffer(12*sizeof(uint32_t));
         auto command=[queue commandBuffer];auto encoder=[command computeCommandEncoder];
         [encoder setComputePipelineState:pipeline];
         [encoder setBuffer:source offset:0 atIndex:0];[encoder setBuffer:templ offset:0 atIndex:1];
@@ -150,14 +160,14 @@ struct GPU {
         [encoder endEncoding];[command commit];[command waitUntilCompleted];
         if(command.status!=MTLCommandBufferStatusCompleted)throw std::runtime_error(command.error.localizedDescription.UTF8String);
         for(auto pair:{std::make_pair(maps,49*sizeof(float)),std::make_pair(moments,735*sizeof(uint64_t)),
-            std::make_pair(metadata,3*sizeof(uint32_t))}) {
+            std::make_pair(metadata,8*sizeof(uint32_t))}) {
             const auto* bytes=static_cast<const unsigned char*>(pair.first.contents);
             for(size_t i=pair.second;i<pair.first.length;++i)require(bytes[i]==0xa5,"Fine probe output guard overwritten");
         }
         Result result;
         auto* m=static_cast<float*>(maps.contents);result.maps.assign(m,m+49);
         auto* p=static_cast<uint64_t*>(moments.contents);result.moments.assign(p,p+735);
-        auto* d=static_cast<uint32_t*>(metadata.contents);result.metadata.assign(d,d+3);
+        auto* d=static_cast<uint32_t*>(metadata.contents);result.metadata.assign(d,d+8);
         return result;
     }
     void check(const Fixture& f,std::mt19937& random) {
@@ -175,14 +185,29 @@ struct GPU {
         auto src=buffer(source.size(),source.data()),tpl=buffer(templ.size(),templ.data());
         const auto legacy=run(src,tpl,level,stats,{f.x,f.y,f.angle,f.threshold,9,{0,0,0}});
         const uint64_t roiArea=uint64_t(f.tw+6)*(f.th+6);
-        for(uint32_t mode:{0u,1u}) {
-            const auto result=run(src,tpl,level,stats,{f.x,f.y,f.angle,f.threshold,mode,{0,0,0}});
+        for(uint32_t mode:{0u,1u,2u,3u,4u}) {
+            const uint32_t effectiveMode=mode==4&&pipeline.threadExecutionWidth!=32?2:mode;
+            const auto result=run(src,tpl,level,stats,{f.x,f.y,f.angle,f.threshold,effectiveMode,{0,0,0}});
             const auto label=f.name+"/cache"+std::to_string(capacity)+"/mode"+std::to_string(mode);
             require(std::memcmp(result.maps.data(),legacy.maps.data(),49*sizeof(float))==0,label+": 49 NCC score bytes differ");
-            require(result.moments==legacy.moments,label+": per-lane or aggregated uint64 moments differ");
+            const bool reuse=mode==3&&roiArea<=capacity;
+            if (!reuse) require(result.moments==legacy.moments,label+": per-lane or aggregated uint64 moments differ");
+            else {
+                require(std::equal(result.moments.begin()+588,result.moments.end(),legacy.moments.begin()+588),
+                    label+": aggregated uint64 source/dot moments differ");
+                for(size_t lane=0;lane<196;++lane)
+                    require(result.moments[lane*3+2]==legacy.moments[lane*3+2],label+": per-lane uint64 dots differ");
+            }
             require(result.metadata[0]==legacy.metadata[0]&&result.metadata[1]==legacy.metadata[1],label+": peak/threshold differs");
-            const uint32_t path=roiArea<=capacity?0:(mode==1&&f.tw+6<=capacity/7?2:1);
+            const uint32_t path=roiArea<=capacity?0:(mode>=1&&f.tw+6<=capacity/7?2:1);
             require(result.metadata[2]==path,label+": wrong cache/direct/tiled path");++pathChecks[path];
+            const bool narrow=mode>=2&&(stats.area+3)/4<=66051;
+            require(result.metadata[3]==uint32_t(narrow),label+": wrong uint32/uint64 arithmetic path");
+            require(result.metadata[4]==uint32_t(reuse&&narrow),label+": wrong overlapping-moment path");
+            require(result.metadata[5]==1&&result.metadata[6]==0,label+": uint32 boundary guard differs");
+            const bool simd=effectiveMode==4&&path==0&&narrow;
+            require(result.metadata[7]==uint32_t(simd),label+": wrong SIMD moment path");
+            narrowChecks+=narrow;wideFallbackChecks+=mode>=2&&!narrow;reuseChecks+=reuse&&narrow;simdChecks+=simd;
             if(f.templateConstant>=0) {
                 require(std::all_of(result.maps.begin(),result.maps.end(),[](float v){return v==1;}),label+": constant template scores");
                 require(result.metadata[0]==0&&result.metadata[1]==uint32_t(1.f>=f.threshold),label+": tie/threshold contract");
@@ -225,6 +250,10 @@ size_t tests(GPU& gpu) {
         {"zero source threshold tie",175,131,11,13,0,0,0,-1},
         {"constant both",175,131,11,13,0,1,255,255},
         {"integer zero border",175,131,-3,-5,0},
+        {"cached white narrow moments",61,59,11,13,0,1,255,255},
+        {"exact uint32 four-stripe bound",492,537,11,13,0,1,255,255},
+        {"uint32 overflow fallback white",493,536,11,13,0,1,255,255},
+        {"uint32 overflow fallback random",492,538,11,13,0},
     };
     for(uint32_t k=0;k<26;++k) {
         Fixture f{"random "+std::to_string(k),uint32_t(1+random()%201),uint32_t(1+random()%181)};
@@ -233,8 +262,12 @@ size_t tests(GPU& gpu) {
     }
     for(const auto& f:fixtures)gpu.check(f,random);
     for(uint32_t path=0;path<3;++path)require(gpu.pathChecks[path]>0,"A cache/direct/tiled path was not exercised");
+    require(gpu.narrowChecks&&gpu.wideFallbackChecks&&gpu.reuseChecks,"Narrow, overflow fallback or reuse path not exercised");
+    require(gpu.pipeline.threadExecutionWidth!=32||gpu.simdChecks,"32-thread SIMD path not exercised");
     std::cout<<"cache="<<gpu.capacity<<" fixtures="<<fixtures.size()<<" path comparisons cached/direct/tiled="
-        <<gpu.pathChecks[0]<<'/'<<gpu.pathChecks[1]<<'/'<<gpu.pathChecks[2]<<'\n';
+        <<gpu.pathChecks[0]<<'/'<<gpu.pathChecks[1]<<'/'<<gpu.pathChecks[2]
+        <<" narrow/wide fallback/reuse/SIMD="<<gpu.narrowChecks<<'/'<<gpu.wideFallbackChecks<<'/'<<gpu.reuseChecks<<'/'<<gpu.simdChecks
+        <<" SIMD width="<<gpu.pipeline.threadExecutionWidth<<'\n';
     return fixtures.size();
 }
 }
@@ -249,7 +282,7 @@ int main(int argc,char** argv) {
             size_t count=0;
             if(!validation) {GPU normal(16384);count+=tests(normal);}
             GPU reduced(4096);count+=tests(reduced);
-            std::cout<<"Full GPU fine row tiles: "<<count<<" frozen-legacy/original/tiled fixtures passed; exact 49 maps, 196 lane moments, scalar oracle and threshold ties\n";
+            std::cout<<"Full GPU fine NCC: "<<count<<" frozen-legacy/original/tiled/narrow/reuse/SIMD fixtures passed; exact 49 maps, aggregate moments, unchanged dot stripes, overflow fallback, scalar oracle and threshold ties\n";
             return 0;
         } catch(const std::exception& error) {std::cerr<<error.what()<<'\n';return 1;}
     }

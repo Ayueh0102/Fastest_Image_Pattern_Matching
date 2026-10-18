@@ -1,0 +1,142 @@
+{
+  "stage": 40,
+  "date": "2026-10-19",
+  "path_base": "cpp-core/docs/stage40-ncc-closure",
+  "all_archives_fully_read": true,
+  "source_files": 278,
+  "unique_input_files": 16,
+  "artifacts": [
+    {
+      "path": "comparison.png",
+      "bytes": 109046,
+      "sha256": "038543a58e0eebdfefc5f95d277804870ee0976c16cc98812c8d1bfff7c3e2ef"
+    },
+    {
+      "path": "cross-version-summary.json",
+      "bytes": 25148755,
+      "sha256": "a469272f3cd6f8ce4e0a31cf55009d7b140167b437080e3ceafac3f3a174350b"
+    },
+    {
+      "path": "decision-and-failures.json",
+      "bytes": 11838,
+      "sha256": "a7e3b7c962bd1a032765028728d7bd0c90176db3a1a3255006af9e9786d4f961"
+    },
+    {
+      "path": "fixtures.tar.gz",
+      "bytes": 51060553,
+      "sha256": "7fb838acdce70d34c2d19f6f485f93d8275a78ef1d994c6ec9877b991ffab71c",
+      "regular_files": 16,
+      "uncompressed_bytes": 51188597,
+      "all_members_read_and_safe_paths": true
+    },
+    {
+      "path": "formal-summary.json",
+      "bytes": 129687,
+      "sha256": "b572e8a541dfeedb81adaf26d7b4635e905fbb9dc1ea1836a1d1a294fc1c342d"
+    },
+    {
+      "path": "holdout-fixtures.json",
+      "bytes": 564238,
+      "sha256": "f98d01635bf16ff88740f44a8806403637c34efd103e67de28050fc4e52a84d1"
+    },
+    {
+      "path": "holdout-summary.json",
+      "bytes": 148932,
+      "sha256": "bac0da0a2bc036baf2aad7cdb9a2d157e38d8990db8586354af9fc0ae2641624"
+    },
+    {
+      "path": "input-sha256.json",
+      "bytes": 2010,
+      "sha256": "917aba4ac5ffab796c767e52ad295a808ade14dd85632a9a9222df0c609e3ac1"
+    },
+    {
+      "path": "pilot-summary.json",
+      "bytes": 160467,
+      "sha256": "f18f3c299cb1ff2b260fb8540053c68ac6080a81c7f49f0609e3f31e22244de3"
+    },
+    {
+      "path": "profile-summary.json",
+      "bytes": 565446,
+      "sha256": "3588db5022d68f96e85da670fe12374f118be6f9300f8750d15bcbe60cd79599"
+    },
+    {
+      "path": "protocol.json",
+      "bytes": 3568,
+      "sha256": "6f2f62ddde0948451f3a4134d00735b06455b8d24224e3a9b4cdcf739fbfa909"
+    },
+    {
+      "path": "raw-results.tar.gz",
+      "bytes": 62706761,
+      "sha256": "db7c7bf715dba51b47aec5cf05e811d795529823ac657c57af8e6a21720f3a90",
+      "regular_files": 724,
+      "uncompressed_bytes": 277474795,
+      "all_members_read_and_safe_paths": true
+    },
+    {
+      "path": "research.json",
+      "bytes": 6798,
+      "sha256": "aa355fba124b97e174045856200a106e9d4b15df2bb49131f25112cce6c44d4d"
+    },
+    {
+      "path": "research.md",
+      "bytes": 10744,
+      "sha256": "f64b47436bfa88c6b1d8cf7af0ed4b3aeb361ff5aff206cec2b4094e6fc0c1e1"
+    },
+    {
+      "path": "screening-decision.json",
+      "bytes": 1050,
+      "sha256": "12318adbaadfaaba750ad307142644bf6711c23ff93a46d3b8b52b604815035f"
+    },
+    {
+      "path": "screening.png",
+      "bytes": 40910,
+      "sha256": "32926eb4e190661be70efac9b66440141cbe7cc8910ddb103d1e48d12275b300"
+    },
+    {
+      "path": "soak-summary.json",
+      "bytes": 252709,
+      "sha256": "b349e8374db9818590567e3407991746e73afd71542bbbbf2cbe3ff80d4e7be5"
+    },
+    {
+      "path": "source-sha256.json",
+      "bytes": 31407,
+      "sha256": "d3fc6b4372c11daf4904732d18346599923ff00d3d74fa5bf445aa824e995386"
+    },
+    {
+      "path": "source-snapshot.tar.gz",
+      "bytes": 829098,
+      "sha256": "17776b787df70966dcb98af9f12edae6232d3f346ceabe59819bc5fe96745c5b",
+      "regular_files": 279,
+      "uncompressed_bytes": 3383099,
+      "all_members_read_and_safe_paths": true
+    },
+    {
+      "path": "stop0-fixtures.json",
+      "bytes": 553429,
+      "sha256": "83cade0ae70e76da13fe505d2fb06260a0ef6c194e197a8c175a66f0fe98eecf"
+    },
+    {
+      "path": "stop0-formal-summary.json",
+      "bytes": 69116,
+      "sha256": "af796f7bfaa02c79b963e25ce70e54a1ff261a8e82a8dda011dcfc09035ef5ab"
+    },
+    {
+      "path": "stop0-profile-summary.json",
+      "bytes": 277738,
+      "sha256": "e274fcdf7d85c61a770561646344ed2d04d1636fd84277fcb8e40bd4c8d7a25c"
+    },
+    {
+      "path": "validation-logs.tar.gz",
+      "bytes": 15159560,
+      "sha256": "fcf0fdb5cbc46889eea9a3826c631e8302e02a72d211779c07a4d90e56baa9c8",
+      "regular_files": 170,
+      "uncompressed_bytes": 84278089,
+      "all_members_read_and_safe_paths": true
+    },
+    {
+      "path": "validation.json",
+      "bytes": 431092,
+      "sha256": "8ba3e016b68a1d65d46b09e7f43a9dd42fafe2f975fd69c597bd4c4e7cd59336"
+    }
+  ]
+}

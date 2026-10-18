@@ -315,6 +315,8 @@ public:
       @autoreleasepool {
         const auto started=Clock::now();metrics_={};metrics_.enabled=true;metrics_.fineRoiCacheBytes=fineRoiCacheBytes_;metrics_.peakMode=o.fullGpuPeakMode;
         metrics_.fineMode=o.fullGpuFineMode;metrics_.fineThreadgroupBytes=pipeline("fg_fine_search").staticThreadgroupMemoryLength;
+        metrics_.fineSimdWidth=uint32_t(pipeline("fg_fine_search").threadExecutionWidth);
+        metrics_.fineEffectiveMode=o.fullGpuFineMode==4 && metrics_.fineSimdWidth!=32 ? 2 : o.fullGpuFineMode;
         if(o.overlap || o.fineProfiling || o.scaleSupportRefine || o.match.coarseNccPruning)
             throw std::invalid_argument("Complete GPU pipeline does not support host overlap, fine profiling, CPU scale-support correction or pruning");
         if(o.match.angleRanges.size()>16)throw std::invalid_argument("Complete GPU pipeline supports at most 16 angle intervals");
@@ -348,7 +350,7 @@ public:
             fineWork=buffer("fine-work-counters",fineWorkBytes);
             fineWorkReadback=buffer("fine-work-readback",fineWorkBytes,true);
         }
-        const FGFineOptions fineOptions{uint32_t(o.fullGpuFineMode),uint32_t(o.fullGpuProfiling)};
+        const FGFineOptions fineOptions{uint32_t(metrics_.fineEffectiveMode),uint32_t(o.fullGpuProfiling)};
         auto readback=buffer("final-readback",matchResultOffset+size_t(o.match.maxTargets)*sizeof(FGResult),true);
         auto config=buffer("pose-config",80),seeds=buffer("original-seed-states",size_t(p.capacity)*208),states=buffer("pose-states",size_t(p.capacity)*208);
         auto upload=Clock::now();

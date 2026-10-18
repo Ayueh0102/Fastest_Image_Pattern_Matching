@@ -28,7 +28,7 @@ struct Settings {
 struct Options {
     MatchConfig match;
     int fullGpuPeakMode = 0; // Full resident path: 0 original stripes; 1 exact sorted-tile merge.
-    int fullGpuFineMode = 0; // 0 original ROI/direct sampling; 1 bounded row cache for oversized ROIs.
+    int fullGpuFineMode = 0; // 0 original; 1 row cache; 2 bounded uint32; 3 reused moments; 4 SIMD32 windows.
     bool fullGpuProfiling = false; // Encoder GPU timestamps; diagnostic overhead, no intermediate waits.
     int nccMode = 0;
     int coarsePeakMode = 1; // 1 exact CPU tree; 2 experimental resident Metal FP32 peaks.
@@ -61,6 +61,8 @@ struct FullGpuMetrics {
     bool enabled = false;
     int peakMode = 0;
     int fineMode = 0;
+    int fineEffectiveMode = 0;
+    uint32_t fineSimdWidth = 0;
     bool fineWorkAvailable = false;
     uint64_t fineDiagnosticBytes = 0, fineDiagnosticReadbackBytes = 0, fineThreadgroupBytes = 0;
     std::vector<FullGpuFineWork> fineWork;

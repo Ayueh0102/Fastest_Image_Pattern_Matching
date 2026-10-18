@@ -83,17 +83,27 @@ inline uint fg_fine_path(FGLevel level, uint mode)
     const uint roiW = level.tw + 6, roiH = level.th + 6;
     const ulong roiArea = ulong(roiW) * roiH;
     if (roiArea <= FG_FINE_ROI_BYTES) return 0;
-    return mode == 1 && roiW <= FG_FINE_ROI_BYTES / 7 ? 2 : 1;
+    return mode >= 1 && roiW <= FG_FINE_ROI_BYTES / 7 ? 2 : 1;
 }
 
-inline void fg_fine_angle_moments(device const uchar* source, device const uchar* templ,
+// floor(UINT32_MAX / (255 * 255)) = 66051. Each of four lanes
+// visits at most ceil(area / 4) pixels. Sum, square and dot therefore all
+// fit uint, without depending on the actual image values. Above this bound
+// keep the original ulong path; do not silently wrap or alter quantization.
+inline bool fg_fine_narrow_moments(FGLevel level)
+{
+    return (ulong(level.tw) * level.th + 3) / 4 <= 66051;
+}
+
+template <typename Accumulator>
+inline void fg_fine_angle_moments_accum(device const uchar* source, device const uchar* templ,
     FGLevel level, float2 anchor, float c, float s, threadgroup uchar* roi,
     threadgroup ulong* partial, uint lane, uint path)
 {
     const uint roiW = level.tw + 6, roiH = level.th + 6;
     const ulong roiArea = ulong(roiW) * roiH;
     const uint window = lane / 4, strip = lane % 4;
-    ulong sum = 0, square = 0, dot = 0;
+    Accumulator sum = 0, square = 0, dot = 0;
     if (path == 2) {
         // Each of the 49 windows sees template rows [row0,row0+rows). The
         // additional six rows are the union of all seven vertical offsets.
@@ -115,8 +125,8 @@ inline void fg_fine_angle_moments(device const uchar* source, device const uchar
                 const uint first = begin + ((strip - (begin & 3u)) & 3u);
                 for (uint p = first; p < end; p += 4) {
                     const uint x = p % level.tw, y = p / level.tw - row0;
-                    const ulong pixel = roi[(wy + y) * roiW + wx + x];
-                    const ulong t = templ[level.templateOffset + p];
+                    const Accumulator pixel = roi[(wy + y) * roiW + wx + x];
+                    const Accumulator t = templ[level.templateOffset + p];
                     sum += pixel; square += pixel * pixel; dot += pixel * t;
                 }
             }
@@ -135,9 +145,9 @@ inline void fg_fine_angle_moments(device const uchar* source, device const uchar
             const uint area = level.tw * level.th;
             for (uint p = strip; p < area; p += 4) {
                 const uint x = p % level.tw, y = p / level.tw;
-                const ulong pixel = cached ? roi[(wy + y) * roiW + wx + x] :
+                const Accumulator pixel = cached ? roi[(wy + y) * roiW + wx + x] :
                     fg_fine_pixel(source, level, anchor, c, s, wx + x, wy + y);
-                const ulong t = templ[level.templateOffset + p];
+                const Accumulator t = templ[level.templateOffset + p];
                 sum += pixel; square += pixel * pixel; dot += pixel * t;
             }
         }
@@ -148,6 +158,121 @@ inline void fg_fine_angle_moments(device const uchar* source, device const uchar
         partial[lane * 3 + 2] = dot;
     }
     threadgroup_barrier(mem_flags::mem_threadgroup);
+}
+
+// Cached-ROI source moments can be shared between vertically overlapping
+// windows. Twenty-eight lanes compute the seven first-row windows, then
+// slide each sum/square down by removing one row and adding the next. The
+// existing partial storage remains ulong, with no new threadgroup allocation.
+// Source-moment stripes follow global ROI rows; their four-lane totals are
+// identical, but individual lanes need not match the original local stripes.
+// Dot products keep their original per-window, p % 4 lane assignment.
+inline void fg_fine_angle_moments_reuse(device const uchar* source, device const uchar* templ,
+    FGLevel level, float2 anchor, float c, float s, threadgroup uchar* roi,
+    threadgroup ulong* partial, uint lane)
+{
+    const uint roiW = level.tw + 6, roiH = level.th + 6;
+    for (uint p = lane; p < roiW * roiH; p += 256)
+        roi[p] = fg_fine_pixel(source, level, anchor, c, s, p % roiW, p / roiW);
+    threadgroup_barrier(mem_flags::mem_threadgroup);
+    const uint window = lane / 4, strip = lane % 4;
+    const uint area = level.tw * level.th;
+    if (window < FG_FINE_WINDOWS) {
+        const uint wx = window % 7, wy = window / 7;
+        uint dot = 0;
+        for (uint p = strip; p < area; p += 4) {
+            const uint pixel = roi[(wy + p / level.tw) * roiW + wx + p % level.tw];
+            const uint t = templ[level.templateOffset + p];
+            dot += pixel * t;
+        }
+        partial[lane * 3 + 2] = ulong(dot);
+    }
+    if (window < 7) {
+        uint sum = 0, square = 0;
+        for (uint p = strip; p < area; p += 4) {
+            const uint pixel = roi[(p / level.tw) * roiW + window + p % level.tw];
+            sum += pixel; square += pixel * pixel;
+        }
+        partial[lane * 3] = ulong(sum);
+        partial[lane * 3 + 1] = ulong(square);
+        for (uint wy = 1; wy < 7; ++wy) {
+            const uint outgoing = wy - 1, incoming = wy + level.th - 1;
+            const uint firstOut = (strip - ((outgoing * level.tw) & 3u)) & 3u;
+            const uint firstIn = (strip - ((incoming * level.tw) & 3u)) & 3u;
+            // Remove first so even an all-255 image never transiently exceeds
+            // the proven bound. Every removed pixel belongs to this stripe.
+            for (uint x = firstOut; x < level.tw; x += 4) {
+                const uint pixel = roi[outgoing * roiW + window + x];
+                sum -= pixel; square -= pixel * pixel;
+            }
+            for (uint x = firstIn; x < level.tw; x += 4) {
+                const uint pixel = roi[incoming * roiW + window + x];
+                sum += pixel; square += pixel * pixel;
+            }
+            const uint destination = ((wy * 7 + window) * 4 + strip) * 3;
+            partial[destination] = ulong(sum);
+            partial[destination + 1] = ulong(square);
+        }
+    }
+    threadgroup_barrier(mem_flags::mem_threadgroup);
+}
+
+// One 32-thread SIMD group owns one window at a time, giving contiguous
+// source/template accesses. The host enables this path only when the fine
+// pipeline reports threadExecutionWidth == 32. The three shuffle steps sum
+// eight p % 32 lanes into each original p % 4 stripe, whose uint bound was
+// checked by the caller. Do not use a uint sum over the whole SIMD group:
+// four individually safe stripes need not have a uint-safe total.
+inline void fg_fine_angle_moments_simd(device const uchar* source, device const uchar* templ,
+    FGLevel level, float2 anchor, float c, float s, threadgroup uchar* roi,
+    threadgroup ulong* partial, uint lane)
+{
+    const uint roiW = level.tw + 6, roiH = level.th + 6;
+    for (uint p = lane; p < roiW * roiH; p += 256)
+        roi[p] = fg_fine_pixel(source, level, anchor, c, s, p % roiW, p / roiW);
+    threadgroup_barrier(mem_flags::mem_threadgroup);
+    const uint simdLane = lane % 32, simdGroup = lane / 32;
+    const uint area = level.tw * level.th;
+    for (uint window = simdGroup; window < FG_FINE_WINDOWS; window += 8) {
+        const uint wx = window % 7, wy = window / 7;
+        uint sum = 0, square = 0, dot = 0;
+        for (uint p = simdLane; p < area; p += 32) {
+            const uint pixel = roi[(wy + p / level.tw) * roiW + wx + p % level.tw];
+            const uint t = templ[level.templateOffset + p];
+            sum += pixel; square += pixel * pixel; dot += pixel * t;
+        }
+        sum += simd_shuffle_down(sum, 16);
+        square += simd_shuffle_down(square, 16);
+        dot += simd_shuffle_down(dot, 16);
+        sum += simd_shuffle_down(sum, 8);
+        square += simd_shuffle_down(square, 8);
+        dot += simd_shuffle_down(dot, 8);
+        sum += simd_shuffle_down(sum, 4);
+        square += simd_shuffle_down(square, 4);
+        dot += simd_shuffle_down(dot, 4);
+        if (simdLane < 4) {
+            const uint destination = (window * 4 + simdLane) * 3;
+            partial[destination] = ulong(sum);
+            partial[destination + 1] = ulong(square);
+            partial[destination + 2] = ulong(dot);
+        }
+    }
+    threadgroup_barrier(mem_flags::mem_threadgroup);
+}
+
+inline void fg_fine_angle_moments(device const uchar* source, device const uchar* templ,
+    FGLevel level, float2 anchor, float c, float s, threadgroup uchar* roi,
+    threadgroup ulong* partial, uint lane, uint path, uint mode)
+{
+    const bool narrow = mode >= 2 && fg_fine_narrow_moments(level);
+    if (mode == 4 && path == 0 && narrow)
+        fg_fine_angle_moments_simd(source, templ, level, anchor, c, s, roi, partial, lane);
+    else if (mode == 3 && path == 0 && narrow)
+        fg_fine_angle_moments_reuse(source, templ, level, anchor, c, s, roi, partial, lane);
+    else if (narrow)
+        fg_fine_angle_moments_accum<uint>(source, templ, level, anchor, c, s, roi, partial, lane, path);
+    else
+        fg_fine_angle_moments_accum<ulong>(source, templ, level, anchor, c, s, roi, partial, lane, path);
 }
 
 inline void fg_fine_evaluate(device const uchar* source, device const uchar* templ,
@@ -166,7 +291,7 @@ inline void fg_fine_evaluate(device const uchar* source, device const uchar* tem
             else if (path == 1) atomic_fetch_add_explicit(&counters.directAngles, 1u, memory_order_relaxed);
             else atomic_fetch_add_explicit(&counters.tiledAngles, 1u, memory_order_relaxed);
         }
-        fg_fine_angle_moments(source, templ, level, state.anchor, c, s, roi, partial, lane, path);
+        fg_fine_angle_moments(source, templ, level, state.anchor, c, s, roi, partial, lane, path, options.mode);
         if (lane < FG_FINE_WINDOWS) {
             ulong sum = 0, square = 0, dot = 0;
             for (uint k = 0; k < 4; ++k) {

@@ -1,0 +1,36 @@
+{
+  "pilot_manifest": "pilot/manifest.json",
+  "rule": "Screen only; no adoption from single samples. Advance independent u32 and SIMD candidates to3-block formal. Mode3 is slower on both primary cases and retained as negative result.",
+  "advance": [
+    "full_gpu_u32",
+    "full_gpu_simd"
+  ],
+  "reject_for_speed": [
+    "full_gpu_moments"
+  ],
+  "control_main": [
+    "hybrid_best",
+    "full_gpu_tiled"
+  ],
+  "stop0_control": "full_gpu_fine_tiled",
+  "combination": "Mode3 has no measured benefit; no justified complementary winner to combine. SIMD mode4 already includes bounded u32 and row-cache fallback.",
+  "formal_methods": [
+    "hybrid_best",
+    "full_gpu_tiled",
+    "full_gpu_u32",
+    "full_gpu_simd"
+  ],
+  "stop0_methods": [
+    "hybrid_best",
+    "full_gpu_tiled",
+    "full_gpu_fine_tiled",
+    "full_gpu_simd"
+  ],
+  "holdout_methods": [
+    "hybrid_best",
+    "full_gpu_tiled",
+    "full_gpu_simd"
+  ],
+  "new_holdout_seed": 20261019,
+  "accuracy_expected": "all ordered outputs vs baseline identical; retain any failures"
+}

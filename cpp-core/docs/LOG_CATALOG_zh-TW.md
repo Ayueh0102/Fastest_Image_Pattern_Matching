@@ -44,6 +44,7 @@
 | 37 | 完整灰階Metal常駐、獨立GT、9場景與同步／門檻修正 | [stage37-full-gpu](stage37-full-gpu/)、[完整報告](FULL_GPU_zh-TW.md) |
 | 38 | 128／512 GPU分段計時、精確分塊排序／合併 | [stage38-gpu-peaks](stage38-gpu-peaks/)、[報告](GPU_TILED_PEAKS_zh-TW.md) |
 | 39 | 細搜尋分列快取、實際路徑計數、主假說失敗與stop0補充 | [stage39-fine-tiles](stage39-fine-tiles/)、[報告](GPU_FINE_TILES_zh-TW.md) |
+| 40 | 精確u32／SIMD NCC、負面統計重用、七組保留場景、跨版本與大階段結案 | [stage40-ncc-closure](stage40-ncc-closure/)、[報告](GPU_NCC_CLOSURE_zh-TW.md) |
 
 新一輪正式結果由[實驗總索引](EXPERIMENT_REVIEW_zh-TW.md)連接，重新產生機器索引即可列出新增資料。沒有階段對照的目錄保留 `stage: null`，不猜測輪次或把它算成通過項目。
 

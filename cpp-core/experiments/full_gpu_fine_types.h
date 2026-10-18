@@ -11,6 +11,13 @@
 
 // Mode 0 retains the original full-ROI-cache/direct-sampling evaluator.
 // Mode 1 tiles only ROIs that exceed the full-ROI cache capacity.
+// Mode 2 adds proven-bounded uint32 per-lane moments, widened before reduction;
+// larger templates retain the original uint64 arithmetic.
+// Mode 3 also reuses source moments across overlapping cached-ROI windows;
+// noncached ROIs follow mode 2. Neither mode adds threadgroup/device scratch.
+// Mode 4 maps each cached window to a 32-thread SIMD group, reconstructing
+// the same four exact stripe moments. The host uses mode 2 when the fine
+// pipeline's SIMD width is not 32; noncached ROIs also follow mode 2.
 struct FGFineOptions {
     FG_FINE_UINT mode;
     FG_FINE_UINT diagnosticsEnabled;

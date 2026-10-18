@@ -70,7 +70,8 @@ QJsonObject record(const Result& r,bool outputs) {
         {"tile_loads",qint64(w.tileLoads)}});
     o["full_gpu"]=QJsonObject{{"enabled",gpu.enabled},{"command_buffers",double(gpu.commandBuffers)},
         {"peak_mode",gpu.peakMode},{"peak_scratch_bytes",double(gpu.peakScratchBytes)},
-        {"fine_mode",gpu.fineMode},{"fine_work_available",gpu.fineWorkAvailable},{"fine_work",fineWork},
+        {"fine_mode",gpu.fineMode},{"fine_effective_mode",gpu.fineEffectiveMode},
+        {"fine_simd_width",int(gpu.fineSimdWidth)},{"fine_work_available",gpu.fineWorkAvailable},{"fine_work",fineWork},
         {"fine_diagnostic_bytes",qint64(gpu.fineDiagnosticBytes)},
         {"fine_diagnostic_readback_bytes",qint64(gpu.fineDiagnosticReadbackBytes)},
         {"fine_threadgroup_bytes",qint64(gpu.fineThreadgroupBytes)},
@@ -244,8 +245,8 @@ int main(int argc,char** argv) {
         o.fullGpuPeakMode=j["full_gpu_peak_mode"].toInt(0);
         if(j.contains("full_gpu_fine_mode") && (!j["full_gpu_fine_mode"].isDouble() ||
             j["full_gpu_fine_mode"].toDouble()!=j["full_gpu_fine_mode"].toInt(-1) ||
-            j["full_gpu_fine_mode"].toInt(-1)<0 || j["full_gpu_fine_mode"].toInt(-1)>1))
-            throw std::invalid_argument("full_gpu_fine_mode must be integer 0..1");
+            j["full_gpu_fine_mode"].toInt(-1)<0 || j["full_gpu_fine_mode"].toInt(-1)>4))
+            throw std::invalid_argument("full_gpu_fine_mode must be integer 0..4");
         o.fullGpuFineMode=j["full_gpu_fine_mode"].toInt(0);
         if (j.contains("coarse_peak_mode") && (!j["coarse_peak_mode"].isDouble() ||
             j["coarse_peak_mode"].toDouble()!=j["coarse_peak_mode"].toInt(-1) ||
