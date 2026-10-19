@@ -4,6 +4,8 @@
 
 第40輪完成[精確NCC優化與本大階段結案](GPU_NCC_CLOSURE_zh-TW.md)：有界累加、統計重用、SIMD32、正式／stop0／七組保留場景、跨版本控制與完整封存已結束。peak1／fine4使原128／512完整GPU時間再少16.3%／15.4%，命名GPU配置不增、結果精確一致；128接近混合，512仍以混合較快。562次直接GT、70項Release、Metal／ASan／UBSan、乾淨重建、五分鐘連續檢查與八份摘要重播通過。失敗變體與全部速度失敗均保留。
 
+> 2026-10-19更正：合併後驗收審查的非阻塞發現已處理。混合正式呼叫重用pose context，加回後fine4在128約快4%、512仍以混合較快；8K是常數背景的速度負載；舊的`intermediate_readbacks`／`cpu_algorithm_steps`是常數，現改為推導並以攔截Metal呼叫的測試檢查；Metal測試只在沒有Metal裝置時才skip；runner拒絕未知job key。Release測試現為73項。見[第40輪報告文末更正](GPU_NCC_CLOSURE_zh-TW.md)。
+
 第37輪補齊[完整Metal灰階搜尋資料路徑](FULL_GPU_zh-TW.md)，包含細搜尋控制、精修／救援及最終NMS；一次提交、最後一次等待。保留研究開關，原混合路徑與GUI預設不變。
 
 第38輪完成[GPU分階段計時與精確分塊選峰](GPU_TILED_PEAKS_zh-TW.md)：128／512完整GPU耗時降低79.8%／87.3%，有序輸出不變；仍較混合慢15.5%／38.7%，細搜尋成為下一個主要瓶頸。

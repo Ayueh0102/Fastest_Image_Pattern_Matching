@@ -31,7 +31,7 @@ cmake -S cpp-core -B build/core -DCMAKE_BUILD_TYPE=Release
 cmake --build build/core -j
 ctest --test-dir build/core --output-on-failure
 
-# Full research build: Qt GUI + OpenCV codecs + CPU/Metal experiments (70 tests on macOS)
+# Full research build: Qt GUI + OpenCV codecs + CPU/Metal experiments (73 tests on macOS)
 cmake -S cpp-core -B build/research -DCMAKE_BUILD_TYPE=Release \
   -DFPM_BUILD_GUI=ON -DFPM_BUILD_EXPERIMENTS=ON -DFPM_WITH_OPENCV=ON
 cmake --build build/research -j
@@ -110,7 +110,7 @@ The existing work follows these rules; keep following them:
 - Research results don't change GUI or core defaults; new behavior ships as an opt-in option.
 - Reproduce an old round from its frozen `source-snapshot.tar.gz`, not from the current HEAD.
 
-Snapshot as of round 40 (2026-10-19): the full-Metal gray8 stage is closed. The full-GPU research config (`full_gpu=true`, `full_gpu_peak_mode=1`, `full_gpu_fine_mode=4`) roughly ties the CPU/Metal hybrid at 128 objects, is slower at 512 objects and on small scenes, and is much faster on 8K scenes with few objects. Defaults stay on the CPU and hybrid paths. Check `PROJECT_STATUS_zh-TW.md` for anything newer.
+Snapshot as of round 40 (2026-10-19): the full-Metal gray8 stage is closed. The full-GPU research config (`full_gpu=true`, `full_gpu_peak_mode=1`, `full_gpu_fine_mode=4`) roughly ties the CPU/Metal hybrid at 128 objects, is slower at 512 objects and on small scenes, and is much faster on 8K scenes with few objects. Defaults stay on the CPU and hybrid paths. Check `PROJECT_STATUS_zh-TW.md` for anything newer. The 2026-10-19 corrections in the round 37–40 reports add that the hybrid's formal calls reuse a pose context the full-GPU path rebuilds every call (`cpp-core/tools/audit_full_gpu_disclosure.py` recomputes the effect from the archives), and that the 8K scene is a constant-background, upright, scale-1 speed workload.
 
 ## Coding Conventions
 

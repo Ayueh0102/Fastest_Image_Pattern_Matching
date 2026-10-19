@@ -17,6 +17,8 @@
 | 完整灰階搜尋留在GPU | 研究設定選`full_gpu=true, full_gpu_peak_mode=1, full_gpu_fine_mode=4` | [第40輪](GPU_NCC_CLOSURE_zh-TW.md)：128／512對本輪GPU基線再少16.3%／15.4%；128接近混合，512仍比混合多17.3%時間，8K少物件GPU有明顯優勢；不含RGB與稀疏路徑 |
 | 同模板持續輸入新影格 | `Session::updateSource` | 保留模板與frame容量，每個Session同時只供一位呼叫者；不是直接重用舊影格金字塔 |
 
+> 2026-10-19更正：上表完整GPU對混合的比較中，混合正式呼叫重用首次建立的pose context；加回後fine4在128約快4%，512仍以混合較快。8K是常數背景上6個0°、尺度1的完全複本，屬精度鑑別力低的速度負載。見[第40輪報告文末更正](GPU_NCC_CLOSURE_zh-TW.md)。
+
 ## 大量物件的原生研究設定
 
 下列是第32／34輪支持的手動組合，鍵名採研究 runner JSON。它們不是 GUI 已自動啟用的預設，也沒有自動選型門檻。
