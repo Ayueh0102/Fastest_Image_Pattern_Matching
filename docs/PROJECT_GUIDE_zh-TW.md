@@ -58,6 +58,8 @@ English overview: This repository preserves the original MFC application and dev
 
 第40輪[精確NCC與大階段結案](../cpp-core/docs/GPU_NCC_CLOSURE_zh-TW.md)完成有界整數累加、滑動統計重用與SIMD32工作分配實驗。完整GPU研究選`full_gpu_peak_mode=1, full_gpu_fine_mode=4`，原128／512耗時再少16.3%／15.4%，完整輸出一致且GPU配置不增。128接近混合方案，512仍以混合較快；來源統計重用反而變慢也完整保留。正式、保留場景、跨版本、短期連續檢查、來源重建與摘要重播皆已完成。本大階段可供外部審查，未宣稱所有實拍或GPU硬體適用。
 
+第41輪[每換一張影格的成本](../cpp-core/docs/NEW_FRAME_COST_zh-TW.md)補上第40輪更正中標為未執行的量測：每次呼叫都經過`updateSource`時，完整GPU在128物件比混合快6.9%，512物件仍慢13.7%，各6個block同向，封存估算的方向成立。只做量測，預設不變。
+
 ## RGB 與真實場景的判讀方式
 
 RGB 圖片可用來驗證三種不同問題：

@@ -1,0 +1,272 @@
+{
+  "stage": 41,
+  "date": "2026-10-19",
+  "build": {
+    "directory": "build/stage41-release",
+    "type": "Release",
+    "options": [
+      "FPM_BUILD_GUI=ON",
+      "FPM_BUILD_EXPERIMENTS=ON",
+      "FPM_WITH_OPENCV=ON"
+    ],
+    "build_head": "1ae7a807568bbb7c89eb7e2becf291f125ca3081",
+    "configure_log": "validation/configure.log",
+    "build_log": "validation/build.log",
+    "compiled_sources_changed_after_build": false,
+    "note": "The frozen commit 7270946 only adds two Python files to the build head; no compiled source changed."
+  },
+  "pre_measurement": {
+    "ctest": {
+      "passed": 73,
+      "failed": 0,
+      "total": 73,
+      "log": "validation/pre-formal-ctest.log"
+    },
+    "python_harness": {
+      "ran": [
+        567
+      ],
+      "ok": true,
+      "log": "validation/pre-formal-python-harness.log"
+    },
+    "color_verify_metal": {
+      "ran": [
+        5
+      ],
+      "ok": true,
+      "log": "validation/pre-formal-color-verify.log"
+    },
+    "scope": "Run after the build and before the pilot; no timing in progress."
+  },
+  "final_gate": {
+    "head": "8fbb2b3a90dcbdc88020d65d77c3c22fa60031fd",
+    "start": "2026-10-19T06:15:20Z",
+    "end": "2026-10-19T06:15:55Z",
+    "ctest": {
+      "passed": 73,
+      "failed": 0,
+      "total": 73,
+      "log": "validation/final-gate.log"
+    },
+    "python_harness": {
+      "ran": 567,
+      "ok": true,
+      "log": "validation/final-gate.log"
+    },
+    "color_verify_metal": {
+      "ran": 5,
+      "ok": true,
+      "log": "validation/final-gate.log"
+    },
+    "exits": {
+      "build": 0,
+      "ctest": 0,
+      "harness": 0,
+      "color": 0
+    },
+    "working_tree_note": "Only cpp-core/tools/build_log_catalog.py (stage-41 directory mapping) and new evidence files differed from HEAD.",
+    "log": "validation/final-gate.log"
+  },
+  "harness": {
+    "new_tests": 26,
+    "test_file": "cpp-core/tests/test_new_frame_cost_harness.py",
+    "mutants": {
+      "mutants": {
+        "timed_includes_warmup": "killed",
+        "no_warmup_gate": "killed",
+        "no_parity": "killed",
+        "gt_measured_only": "killed",
+        "estimate_inverted": "killed",
+        "no_host_gate": "killed",
+        "rss_no_tolerance": "killed",
+        "time_no_tolerance": "killed",
+        "pose_rule_any": "killed",
+        "static_reuse_unchecked": "killed",
+        "job_keeps_source": "killed",
+        "warmup_round": "killed",
+        "consistency_pooled_only": "killed",
+        "drain_ignored": "killed"
+      },
+      "killed": 14,
+      "total": 14,
+      "restored": true
+    },
+    "mutants_log": "validation/mutants.log"
+  },
+  "datasets": {
+    "pilot": {
+      "fresh_processes": 16,
+      "cold_calls": 16,
+      "gt_checked_warmup_calls": 104,
+      "native_only_warmup_calls": 58,
+      "measured_calls": 48,
+      "gt_evaluated_calls": 168
+    },
+    "formal": {
+      "fresh_processes": 96,
+      "cold_calls": 96,
+      "gt_checked_warmup_calls": 624,
+      "native_only_warmup_calls": 344,
+      "measured_calls": 288,
+      "gt_evaluated_calls": 1008
+    }
+  },
+  "direct_gt_calls": 1176,
+  "all_zero_fp_fn": true,
+  "all_routes_pass": true,
+  "all_repeat_exact": true,
+  "embedded_summary_reproduced": {
+    "pilot": true,
+    "formal": true
+  },
+  "host": {
+    "pilot": {
+      "before": {
+        "utc": "2026-10-19T05:57:21.141135+00:00",
+        "load_average": [
+          2.34326171875,
+          2.36669921875,
+          2.2490234375
+        ],
+        "gpu_device_utilization_percent": [
+          0,
+          0,
+          1,
+          0,
+          0
+        ],
+        "competing_processes": []
+      },
+      "after": {
+        "utc": "2026-10-19T05:59:10.298266+00:00",
+        "load_average": [
+          2.931640625,
+          2.6171875,
+          2.35986328125
+        ],
+        "gpu_device_utilization_percent": [
+          98,
+          0,
+          0,
+          0,
+          0
+        ],
+        "competing_processes": []
+      },
+      "executions": 16,
+      "executions_with_competing_processes": 0,
+      "load_average_1min_range": [
+        2.3154296875,
+        3.3154296875
+      ],
+      "started_utc": "2026-10-19T05:57:21.157457+00:00",
+      "finished_utc": "2026-10-19T05:59:10.298324+00:00"
+    },
+    "formal": {
+      "before": {
+        "utc": "2026-10-19T06:00:21.558085+00:00",
+        "load_average": [
+          2.62744140625,
+          2.62451171875,
+          2.38427734375
+        ],
+        "gpu_device_utilization_percent": [
+          6,
+          7,
+          0,
+          0,
+          0
+        ],
+        "competing_processes": []
+      },
+      "after": {
+        "utc": "2026-10-19T06:10:52.743266+00:00",
+        "load_average": [
+          1.609375,
+          1.89794921875,
+          2.10546875
+        ],
+        "gpu_device_utilization_percent": [
+          40,
+          0,
+          0,
+          0,
+          0
+        ],
+        "competing_processes": []
+      },
+      "executions": 96,
+      "executions_with_competing_processes": 0,
+      "load_average_1min_range": [
+        0.88623046875,
+        3.6484375
+      ],
+      "started_utc": "2026-10-19T06:00:21.571350+00:00",
+      "finished_utc": "2026-10-19T06:10:52.743318+00:00"
+    }
+  },
+  "independent_audit": {
+    "file": "validation/independent-audit.json",
+    "script": "validation/independent_audit.py",
+    "independent": true,
+    "harness_imported": false,
+    "gpu_launched": false,
+    "all_checks_pass": true,
+    "mismatches": {
+      "formal": [],
+      "pilot": []
+    }
+  },
+  "archive_replay": {
+    "snapshot_files": 286,
+    "snapshot_hash_mismatches": [],
+    "frozen_commit": "7270946d547970a71a39e623648146a328a2d88e",
+    "committed_source_changes_since_freeze": [
+      "cpp-core/docs/stage41-new-frame-cost/protocol.json",
+      "cpp-core/docs/stage41-new-frame-cost/source-sha256.json",
+      "cpp-core/docs/stage41-new-frame-cost/source-snapshot.tar.gz"
+    ],
+    "uncommitted_source_changes": [
+      "cpp-core/tools/build_log_catalog.py"
+    ],
+    "summaries": {
+      "pilot": {
+        "returncode": 0,
+        "stderr": "",
+        "bytes_equal": true
+      },
+      "formal": {
+        "returncode": 0,
+        "stderr": "",
+        "bytes_equal": true
+      }
+    },
+    "all_pass": true,
+    "scope": "Frozen tool on extracted archives; summaries only. No GPU measurement rerun."
+  },
+  "audit_observations": {
+    "gpu_utilization_samples_above_50_percent": {
+      "pilot": 12,
+      "formal": 77
+    },
+    "gpu_utilization_note": "Instantaneous ioreg samples taken right after the previous worker exits reflect that worker; competing-process records, not these values, establish that no other work ran.",
+    "static_warmup_algorithm_below_1000_ms": [
+      {
+        "phase": "formal",
+        "case": "8k_t256_angle180_3scales",
+        "arm": "full_gpu_simd_static",
+        "block": 2,
+        "warmup_algorithm_ms": 999.811249
+      }
+    ],
+    "static_warmup_note": "The static control warms up for one second of runner wall time; the algorithm-time sum has no gate.",
+    "fingerprint_coverage": "Manifest source fingerprints cover 272 of the 286 snapshot files (macos-cli, root CMakeLists.txt and similar fall outside the rule); runner and dylibs are hashed directly.",
+    "post_measurement_source_change": "cpp-core/tools/build_log_catalog.py gained the stage-41 directory mapping after the measurement; it is not part of the runner."
+  },
+  "limitations": [
+    "Single Apple M4 Pro Metal device",
+    "Repeated identical frame, not a changing camera stream",
+    "No hardware counters for the extra per-frame time",
+    "Log catalog regenerated after packing; report and index edits only"
+  ]
+}

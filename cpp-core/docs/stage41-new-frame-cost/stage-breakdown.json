@@ -1,0 +1,213 @@
+{
+  "note": "Medians over the measured calls of all six blocks; fields nested in total_ms. Not a hardware profile.",
+  "cases": {
+    "many128_pose": {
+      "hybrid_best_frames": {
+        "total_ms": 865.7061874999999,
+        "prepare_ms": 2.644667,
+        "proposal_ms": 778.0037709999999,
+        "refine_ms": 87.7289375,
+        "pose_create_ms": 19.940417,
+        "refine_minus_pose_create_ms": 67.7550205,
+        "refinement_device_ms": 59.208104154095054,
+        "nms_ms": 0.059667
+      },
+      "full_gpu_simd_frames": {
+        "total_ms": 807.695771,
+        "device_ms": 806.3177499861922,
+        "wait_ms": 807.0135625,
+        "encode_ms": 0.3983755,
+        "upload_ms": 0.218125,
+        "block_device_ms": [
+          806.621958327014,
+          801.6307083307765,
+          796.8644166830927,
+          803.1074583122972,
+          807.9472499957774,
+          812.9099583311472
+        ]
+      },
+      "hybrid_best_static": {
+        "total_ms": 838.0968124999999,
+        "prepare_ms": 2.425458,
+        "proposal_ms": 771.8420415,
+        "refine_ms": 66.93275,
+        "pose_create_ms": 0.0,
+        "refine_minus_pose_create_ms": 66.93275,
+        "refinement_device_ms": 59.50093749561347,
+        "nms_ms": 0.06256300000000001
+      },
+      "full_gpu_simd_static": {
+        "total_ms": 802.8884795,
+        "device_ms": 801.5513125137659,
+        "wait_ms": 802.1748749999999,
+        "encode_ms": 0.403,
+        "upload_ms": 0.264104,
+        "block_device_ms": [
+          796.6183749958873,
+          799.0800833504181,
+          811.3968749821652,
+          806.7294999782462,
+          799.254125013249,
+          802.5401249760762
+        ]
+      }
+    },
+    "many512_pose": {
+      "hybrid_best_frames": {
+        "total_ms": 2463.909042,
+        "prepare_ms": 6.3472085,
+        "proposal_ms": 2212.394104,
+        "refine_ms": 253.90197949999998,
+        "pose_create_ms": 40.1880625,
+        "refine_minus_pose_create_ms": 213.98675049999997,
+        "refinement_device_ms": 192.04581249505281,
+        "nms_ms": 0.6094999999999999
+      },
+      "full_gpu_simd_frames": {
+        "total_ms": 2804.590438,
+        "device_ms": 2802.445229172008,
+        "wait_ms": 2803.6148540000004,
+        "encode_ms": 0.4021255,
+        "upload_ms": 0.48812449999999996,
+        "block_device_ms": [
+          2812.307749991305,
+          2805.9295416460373,
+          2774.236875004135,
+          2807.678749988554,
+          2766.2525000050664,
+          2788.6147499957588
+        ]
+      },
+      "hybrid_best_static": {
+        "total_ms": 2390.1826665,
+        "prepare_ms": 4.2519165,
+        "proposal_ms": 2182.590979,
+        "refine_ms": 206.9845,
+        "pose_create_ms": 0.0,
+        "refine_minus_pose_create_ms": 206.9845,
+        "refinement_device_ms": 185.21312501979992,
+        "nms_ms": 0.606875
+      },
+      "full_gpu_simd_static": {
+        "total_ms": 2798.1355415,
+        "device_ms": 2795.4734374943655,
+        "wait_ms": 2796.9032705,
+        "encode_ms": 0.391937,
+        "upload_ms": 0.514375,
+        "block_device_ms": [
+          2795.931125001516,
+          2799.8490416503046,
+          2802.2041249787435,
+          2795.015749987215,
+          2758.257291687187,
+          2751.0607083095238
+        ]
+      }
+    },
+    "controlled6": {
+      "hybrid_best_frames": {
+        "total_ms": 61.9259375,
+        "prepare_ms": 0.273646,
+        "proposal_ms": 44.004708,
+        "refine_ms": 17.9913335,
+        "pose_create_ms": 1.3454375,
+        "refine_minus_pose_create_ms": 16.5897505,
+        "refinement_device_ms": 13.86372915294487,
+        "nms_ms": 0.003125
+      },
+      "full_gpu_simd_frames": {
+        "total_ms": 70.81845799999999,
+        "device_ms": 69.76297916844487,
+        "wait_ms": 70.4229795,
+        "encode_ms": 0.3540625,
+        "upload_ms": 0.010688,
+        "block_device_ms": [
+          70.06012499914505,
+          69.80137500795536,
+          69.32399998186156,
+          69.57349998992868,
+          69.9308333278168,
+          69.78795831673779
+        ]
+      },
+      "hybrid_best_static": {
+        "total_ms": 59.679667,
+        "prepare_ms": 0.24404150000000002,
+        "proposal_ms": 43.844291999999996,
+        "refine_ms": 15.849042,
+        "pose_create_ms": 0.0,
+        "refine_minus_pose_create_ms": 15.849042,
+        "refinement_device_ms": 13.80812500428874,
+        "nms_ms": 0.0030210000000000002
+      },
+      "full_gpu_simd_static": {
+        "total_ms": 69.9536875,
+        "device_ms": 69.42843749129679,
+        "wait_ms": 69.605104,
+        "encode_ms": 0.3202915,
+        "upload_ms": 0.0116455,
+        "block_device_ms": [
+          69.7097499796655,
+          69.50549999601208,
+          69.55775001551956,
+          68.99837500532158,
+          69.33416664833203,
+          69.30279167136177
+        ]
+      }
+    },
+    "8k_t256_angle180_3scales": {
+      "hybrid_best_frames": {
+        "total_ms": 258.5060625,
+        "prepare_ms": 17.781021,
+        "proposal_ms": 258.5041875,
+        "refine_ms": 0.0,
+        "pose_create_ms": 0.0,
+        "refine_minus_pose_create_ms": 0.0,
+        "refinement_device_ms": 0.0,
+        "nms_ms": 0.0014585000000000002
+      },
+      "full_gpu_simd_frames": {
+        "total_ms": 74.725375,
+        "device_ms": 72.7316249976866,
+        "wait_ms": 73.263625,
+        "encode_ms": 0.3435835,
+        "upload_ms": 1.0350834999999998,
+        "block_device_ms": [
+          64.90237498655915,
+          64.84466666006483,
+          75.34400001168251,
+          73.09349998831749,
+          74.15299999411218,
+          74.55325001501478
+        ]
+      },
+      "hybrid_best_static": {
+        "total_ms": 255.765896,
+        "prepare_ms": 7.7208545,
+        "proposal_ms": 255.762771,
+        "refine_ms": 0.0,
+        "pose_create_ms": 0.0,
+        "refine_minus_pose_create_ms": 0.0,
+        "refinement_device_ms": 0.0,
+        "nms_ms": 0.0014795
+      },
+      "full_gpu_simd_static": {
+        "total_ms": 66.660021,
+        "device_ms": 64.96012498973869,
+        "wait_ms": 65.196354,
+        "encode_ms": 0.2940415,
+        "upload_ms": 1.0220835,
+        "block_device_ms": [
+          64.95966666261666,
+          64.50566666899249,
+          65.25100002181716,
+          65.23974999436177,
+          65.0388749781996,
+          64.96058331686072
+        ]
+      }
+    }
+  }
+}

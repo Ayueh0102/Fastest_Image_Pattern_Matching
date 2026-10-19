@@ -6,6 +6,8 @@
 
 > 2026-10-19更正：合併後驗收審查的非阻塞發現已處理。混合正式呼叫重用pose context，加回後fine4在128約快4%、512仍以混合較快；8K是常數背景的速度負載；舊的`intermediate_readbacks`／`cpu_algorithm_steps`是常數，現改為推導並以攔截Metal呼叫的測試檢查；Metal測試只在沒有Metal裝置時才skip；runner拒絕未知job key。Release測試現為73項。見[第40輪報告文末更正](GPU_NCC_CLOSURE_zh-TW.md)。
 
+第41輪[每換一張影格的成本](NEW_FRAME_COST_zh-TW.md)實測了上述估算：每次呼叫都經過`updateSource`時，fine4對混合每影格為128 −6.9%、512 +13.7%、六物件 +13.3%、8K −70.2%，各6個block同向，估算方向成立。混合每影格重建pose context中位19.94／40.19ms，另有候選搜尋的額外時間。96程序、1008次直接GT零FP／FN，保留13筆每影格time_budget失敗；只做量測，未改預設。
+
 第37輪補齊[完整Metal灰階搜尋資料路徑](FULL_GPU_zh-TW.md)，包含細搜尋控制、精修／救援及最終NMS；一次提交、最後一次等待。保留研究開關，原混合路徑與GUI預設不變。
 
 第38輪完成[GPU分階段計時與精確分塊選峰](GPU_TILED_PEAKS_zh-TW.md)：128／512完整GPU耗時降低79.8%／87.3%，有序輸出不變；仍較混合慢15.5%／38.7%，細搜尋成為下一個主要瓶頸。
@@ -26,7 +28,7 @@
 | 記憶體與提交改善 | gray8讀圖、u8初始化、共用影像、細搜尋旋轉／NCC融合 | [第31輪](GRAY_LOAD_MEMORY_zh-TW.md)、[第32輪](RUN_VARIABILITY_POSE_MEMORY_zh-TW.md) |
 | 粗搜尋GPU常駐選項 | 整數NCC統計、FP32正規化、逐次選峰與停止同批提交；只讀回候選，非全流程常駐 | [第36輪](COARSE_RESIDENT_zh-TW.md)；56項Release與封存重現，保留性能失敗 |
 | 完整灰階GPU常駐研究後端 | 金字塔、旋轉、粗細搜尋、精修／救援、NMS及結果幾何均在Metal；FP32契約 | [第37輪](FULL_GPU_zh-TW.md)，CPU僅作靜態規劃與I/O；不含RGB驗色與稀疏路徑 |
-| 新影格與穩定性 | updateSource；192次fresh/reuse一致，第34輪512混合設定30分鐘745次通過；第40輪新GPU變體五分鐘108次通過 | [第34輪](STAGE34_CLOSURE_zh-TW.md)；不等於實拍串流精度 |
+| 新影格與穩定性 | updateSource；192次fresh/reuse一致，第34輪512混合設定30分鐘745次通過；第40輪新GPU變體五分鐘108次通過；第41輪96程序每次呼叫換影格，混合與fine4每影格成本實測 | [第34輪](STAGE34_CLOSURE_zh-TW.md)、[第41輪](NEW_FRAME_COST_zh-TW.md)；同一影像重複，不等於實拍串流精度 |
 | RGB候選評分與色度 | 完整CPU／Metal RGB NCC、CPU線性色度源碼；同程序搜尋＋驗色 | [runner契約](COLOR_VERIFY_RUNNER.md)、[第35輪](STAGE35_REAL_RGB_zh-TW.md) |
 | 重現與外部review | protocol、正式worker、失敗、hash、來源與驗證分開保存 | [Log分類](LOG_CATALOG_zh-TW.md)、[實驗總索引](EXPERIMENT_REVIEW_zh-TW.md) |
 
