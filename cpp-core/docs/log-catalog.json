@@ -26,44 +26,44 @@
     "metadata": "Filesystem sidecar metadata",
     "other": "No recognized role; inspect manually"
   },
-  "artifact_count": 501,
-  "artifact_bytes": 1574281949,
+  "artifact_count": 514,
+  "artifact_bytes": 1641299224,
   "artifact_role_counts": {
-    "archive": 79,
+    "archive": 82,
     "calibration": 4,
-    "failure_review": 11,
+    "failure_review": 12,
     "false_gate": 52,
-    "formal": 10,
+    "formal": 11,
     "input": 21,
-    "other": 42,
-    "pilot": 1,
-    "protocol": 37,
-    "provenance": 44,
-    "raw": 51,
-    "report": 64,
-    "source": 8,
-    "summary": 114,
-    "validation": 72,
+    "other": 43,
+    "pilot": 2,
+    "protocol": 38,
+    "provenance": 47,
+    "raw": 52,
+    "report": 65,
+    "source": 9,
+    "summary": 117,
+    "validation": 74,
     "visual": 68
   },
-  "archive_member_count": 27157,
+  "archive_member_count": 27915,
   "archive_member_role_counts": {
     "archive": 26,
     "binary": 47,
     "calibration": 1,
     "failure_review": 19,
-    "formal": 14711,
-    "input": 582,
+    "formal": 15145,
+    "input": 583,
     "metadata": 1292,
-    "other": 1387,
-    "pilot": 3699,
+    "other": 1396,
+    "pilot": 3765,
     "protocol": 109,
-    "provenance": 95,
-    "raw": 5864,
-    "report": 76,
-    "source": 9712,
-    "summary": 900,
-    "validation": 639,
+    "provenance": 98,
+    "raw": 6098,
+    "report": 77,
+    "source": 9995,
+    "summary": 918,
+    "validation": 662,
     "visual": 872
   },
   "artifacts": [
@@ -141,8 +141,8 @@
       "path": "CURRENT_BEST_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 7454,
-      "sha256": "188d8fe1c0fb5b35bdec8378a2ed6d5b8023f3491beae72116cd2732bd5caea3",
+      "bytes": 8760,
+      "sha256": "af26838ae8cb0fee42bbf13a58b762b98f58a7eca00e9cc981178f91b770eef7",
       "roles": [
         "report"
       ]
@@ -182,8 +182,8 @@
       "path": "EXPERIMENT_REVIEW_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 70232,
-      "sha256": "dee27f0ea6a498630ee81a33171305d1ce4d4206d42fa1f749a88d455a6ace12",
+      "bytes": 72324,
+      "sha256": "6682d2378fdee83c7f200f570349672288f16d91d671c53495c6e708c0cd8ce7",
       "roles": [
         "report"
       ]
@@ -252,8 +252,8 @@
       "path": "FULL_GPU_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 17742,
-      "sha256": "df7b68e962648ae07c792f4df39de9ef59fdfccef77bea911b3c874881cfc564",
+      "bytes": 20612,
+      "sha256": "5b53e2f91a390a3fb69f27272bd0ab850239b2b8a0db25813baa7ccadbe2c507",
       "roles": [
         "report"
       ]
@@ -262,8 +262,8 @@
       "path": "GPU_FINE_TILES_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 12694,
-      "sha256": "d3f3fa9361bd5ae0ddae17ff98430d67e8f9f00ec56146625445b3ecef5da82d",
+      "bytes": 15226,
+      "sha256": "c003bef7719e48c019133c18c5c489fa47b3999d9b81d92b33f59e89346937ae",
       "roles": [
         "report"
       ]
@@ -272,8 +272,8 @@
       "path": "GPU_NCC_CLOSURE_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 18275,
-      "sha256": "765ce71a3bc0800782795f9f6b2d9a1a6797d2582d454105a861c3d82497eae1",
+      "bytes": 25065,
+      "sha256": "6aa3df121993095ba85b89ce67da6c444d2c7d5268672727c8d870356ba533ff",
       "roles": [
         "report"
       ]
@@ -292,8 +292,8 @@
       "path": "GPU_TILED_PEAKS_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 15065,
-      "sha256": "c496a1b5d9aa71a9e187aeee663709a705827ce276b7bd346b1e744cbd0e1551",
+      "bytes": 17510,
+      "sha256": "ee4317082b8b7da48ceed874fc81e22f69605cf19a7c7b9878e2a626791d9260",
       "roles": [
         "report"
       ]
@@ -322,8 +322,8 @@
       "path": "LOG_CATALOG_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 10906,
-      "sha256": "859f83b3b82fd3b149560077557facca18e5b1cbaf34722d502eec2272d076e8",
+      "bytes": 11596,
+      "sha256": "e71ce11ceb415e7d68b25246419a8cbd44f37a87d37be13887197bfab9e5e6a2",
       "roles": [
         "report"
       ]
@@ -385,6 +385,16 @@
       "stage": null,
       "bytes": 16054,
       "sha256": "fc3da0e4c98bef167500fd1913e5d968ee16b7077652d57da59a198bdf194b1c",
+      "roles": [
+        "report"
+      ]
+    },
+    {
+      "path": "NEW_FRAME_COST_zh-TW.md",
+      "group": "root",
+      "stage": null,
+      "bytes": 14846,
+      "sha256": "a6a3e8db440895dfd6cf0039630760034642698b43390abe6cfd8bbc5093b6fb",
       "roles": [
         "report"
       ]
@@ -483,8 +493,8 @@
       "path": "PROJECT_STATUS_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 6313,
-      "sha256": "b578c7b92499ef9708a8de1bcac85ffdde5d0908c2e37c9c4fbb319a6986b0ed",
+      "bytes": 7396,
+      "sha256": "6434d428f98dcb26963dec182dd65f66c1444e43342fc24453f1b3e41849606b",
       "roles": [
         "report"
       ]
@@ -6743,6 +6753,157 @@
       ]
     },
     {
+      "path": "stage41-new-frame-cost/archive.json",
+      "group": "stage41-new-frame-cost",
+      "stage": "41",
+      "bytes": 2388,
+      "sha256": "c56ddea143a03f0f88f50dd1c2868a7f05abc3f143e8401b0179a9c863b462b3",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage41-new-frame-cost/decision-and-failures.json",
+      "group": "stage41-new-frame-cost",
+      "stage": "41",
+      "bytes": 18079,
+      "sha256": "3e1f250b2c969a44d3e09a8dd11f727e2d8929e415efe77c0ed355b96674fb10",
+      "roles": [
+        "failure_review"
+      ]
+    },
+    {
+      "path": "stage41-new-frame-cost/formal-summary.json",
+      "group": "stage41-new-frame-cost",
+      "stage": "41",
+      "bytes": 153554,
+      "sha256": "2bf4c0f8f61d447185e2d854f5f1d86cac73acd3e6c9e1c405a83d514fe87f28",
+      "roles": [
+        "formal",
+        "summary"
+      ]
+    },
+    {
+      "path": "stage41-new-frame-cost/input-sha256.json",
+      "group": "stage41-new-frame-cost",
+      "stage": "41",
+      "bytes": 852,
+      "sha256": "c2bdf8117ded06d86f83315c4e866155c4317b8331e38ba32190669dff5fb14e",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage41-new-frame-cost/pilot-summary.json",
+      "group": "stage41-new-frame-cost",
+      "stage": "41",
+      "bytes": 64562,
+      "sha256": "71ec0fb00db397677d8cdac2936f2d06e983f4b1d174992c188da1d4c9057373",
+      "roles": [
+        "pilot",
+        "summary"
+      ]
+    },
+    {
+      "path": "stage41-new-frame-cost/protocol.json",
+      "group": "stage41-new-frame-cost",
+      "stage": "41",
+      "bytes": 8104,
+      "sha256": "42b338ef5eb20e78e8cfdf42dbcfd8555f711a6ceb519115b59503cbf66d279c",
+      "roles": [
+        "protocol"
+      ]
+    },
+    {
+      "path": "stage41-new-frame-cost/raw-results.tar.gz",
+      "group": "stage41-new-frame-cost",
+      "stage": "41",
+      "bytes": 65786952,
+      "sha256": "e6f8f29f20d5332f48cbea28e1d21654cc38ab187be24738b937eeae18e66552",
+      "roles": [
+        "archive",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 450,
+      "archive_role_counts": {
+        "formal": 433,
+        "pilot": 65,
+        "provenance": 2,
+        "raw": 224
+      }
+    },
+    {
+      "path": "stage41-new-frame-cost/source-sha256.json",
+      "group": "stage41-new-frame-cost",
+      "stage": "41",
+      "bytes": 32970,
+      "sha256": "ffd3b6f9e5299d378aa951cd8731505be2aa0ae653d02475fac50b0106c75da4",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage41-new-frame-cost/source-snapshot.tar.gz",
+      "group": "stage41-new-frame-cost",
+      "stage": "41",
+      "bytes": 840895,
+      "sha256": "60c450789674a4ced9d8bf50c9b15905800a9baccbe86a3423c1636a18afc71d",
+      "roles": [
+        "archive",
+        "source"
+      ],
+      "archive_file_count": 287,
+      "archive_role_counts": {
+        "input": 1,
+        "other": 9,
+        "provenance": 1,
+        "report": 1,
+        "source": 275,
+        "summary": 18,
+        "validation": 2
+      }
+    },
+    {
+      "path": "stage41-new-frame-cost/stage-breakdown.json",
+      "group": "stage41-new-frame-cost",
+      "stage": "41",
+      "bytes": 6371,
+      "sha256": "b91f97eabb8dde8532e75c87dce4ae3c29ab1621a97bfcdc37152f6d70af8310",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "stage41-new-frame-cost/validation-logs.tar.gz",
+      "group": "stage41-new-frame-cost",
+      "stage": "41",
+      "bytes": 60215,
+      "sha256": "d0ef0e1b8d341b4a0a767feca1ccb6015d40692aa32c94f60943dd25f8353ebc",
+      "roles": [
+        "archive",
+        "validation"
+      ],
+      "archive_file_count": 21,
+      "archive_role_counts": {
+        "formal": 1,
+        "pilot": 1,
+        "raw": 10,
+        "source": 8,
+        "validation": 21
+      }
+    },
+    {
+      "path": "stage41-new-frame-cost/validation.json",
+      "group": "stage41-new-frame-cost",
+      "stage": "41",
+      "bytes": 7679,
+      "sha256": "59d09b5837c71f98811a03a1ec584e16a84abe12a5813b3bd0f5e6ddda02092b",
+      "roles": [
+        "validation"
+      ]
+    },
+    {
       "path": "validation-after-refinement.json",
       "group": "root",
       "stage": null,
@@ -6763,5 +6924,5 @@
       ]
     }
   ],
-  "archive_member_index_sha256": "71b2922fc22e83f998f23a24b350aa9b2658d08e03fffbb80da82423b57b12c3"
+  "archive_member_index_sha256": "f6339242a9ab18d23382c82ec8f886a35efadcaf61f272d62122d590fdce144f"
 }

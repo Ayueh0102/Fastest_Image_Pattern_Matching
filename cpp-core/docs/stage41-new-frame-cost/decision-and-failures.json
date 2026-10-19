@@ -1,0 +1,628 @@
+{
+  "stage": 41,
+  "date": "2026-10-19",
+  "question": "Per-new-frame cost (every call through Session::updateSource) of hybrid_best versus full_gpu_simd (peak1/fine4).",
+  "measurement_complete": true,
+  "formal_decision_eligible": true,
+  "per_frame_faster": {
+    "many128_pose": "full_gpu_simd",
+    "many512_pose": "hybrid_best",
+    "controlled6": "hybrid_best",
+    "8k_t256_angle180_3scales": "full_gpu_simd"
+  },
+  "per_frame": {
+    "many128_pose": {
+      "frames_frame_wall": {
+        "hybrid_median_ms": 868.0486875,
+        "gpu_median_ms": 808.3469585,
+        "gpu_vs_hybrid_percent": -6.877693597111745,
+        "faster": "full_gpu_simd",
+        "gpu_faster_blocks": "6/6",
+        "consistent_direction": true
+      },
+      "frames_run_only": {
+        "hybrid_median_ms": 865.7061874999999,
+        "gpu_median_ms": 807.695771,
+        "gpu_vs_hybrid_percent": -6.700935876122516,
+        "faster": "full_gpu_simd",
+        "gpu_faster_blocks": "6/6",
+        "consistent_direction": true
+      },
+      "static_run_only": {
+        "hybrid_median_ms": 838.0968124999999,
+        "gpu_median_ms": 802.8884795,
+        "gpu_vs_hybrid_percent": -4.200986386641336,
+        "faster": "full_gpu_simd",
+        "gpu_faster_blocks": "6/6",
+        "consistent_direction": true
+      }
+    },
+    "many512_pose": {
+      "frames_frame_wall": {
+        "hybrid_median_ms": 2467.3273335,
+        "gpu_median_ms": 2806.4027705,
+        "gpu_vs_hybrid_percent": 13.742620705255515,
+        "faster": "hybrid_best",
+        "gpu_faster_blocks": "0/6",
+        "consistent_direction": true
+      },
+      "frames_run_only": {
+        "hybrid_median_ms": 2463.909042,
+        "gpu_median_ms": 2804.590438,
+        "gpu_vs_hybrid_percent": 13.826865772750384,
+        "faster": "hybrid_best",
+        "gpu_faster_blocks": "0/6",
+        "consistent_direction": true
+      },
+      "static_run_only": {
+        "hybrid_median_ms": 2390.1826665,
+        "gpu_median_ms": 2798.1355415,
+        "gpu_vs_hybrid_percent": 17.067853462320294,
+        "faster": "hybrid_best",
+        "gpu_faster_blocks": "0/6",
+        "consistent_direction": true
+      }
+    },
+    "controlled6": {
+      "frames_frame_wall": {
+        "hybrid_median_ms": 62.567437,
+        "gpu_median_ms": 70.87625,
+        "gpu_vs_hybrid_percent": 13.27977203221542,
+        "faster": "hybrid_best",
+        "gpu_faster_blocks": "0/6",
+        "consistent_direction": true
+      },
+      "frames_run_only": {
+        "hybrid_median_ms": 61.9259375,
+        "gpu_median_ms": 70.81845799999999,
+        "gpu_vs_hybrid_percent": 14.35992874552765,
+        "faster": "hybrid_best",
+        "gpu_faster_blocks": "0/6",
+        "consistent_direction": true
+      },
+      "static_run_only": {
+        "hybrid_median_ms": 59.679667,
+        "gpu_median_ms": 69.9536875,
+        "gpu_vs_hybrid_percent": 17.21527786004571,
+        "faster": "hybrid_best",
+        "gpu_faster_blocks": "0/6",
+        "consistent_direction": true
+      }
+    },
+    "8k_t256_angle180_3scales": {
+      "frames_frame_wall": {
+        "hybrid_median_ms": 259.879479,
+        "gpu_median_ms": 77.4908545,
+        "gpu_vs_hybrid_percent": -70.18200328930165,
+        "faster": "full_gpu_simd",
+        "gpu_faster_blocks": "6/6",
+        "consistent_direction": true
+      },
+      "frames_run_only": {
+        "hybrid_median_ms": 258.5060625,
+        "gpu_median_ms": 74.725375,
+        "gpu_vs_hybrid_percent": -71.09337619499736,
+        "faster": "full_gpu_simd",
+        "gpu_faster_blocks": "6/6",
+        "consistent_direction": true
+      },
+      "static_run_only": {
+        "hybrid_median_ms": 255.765896,
+        "gpu_median_ms": 66.660021,
+        "gpu_vs_hybrid_percent": -73.93709558525347,
+        "faster": "full_gpu_simd",
+        "gpu_faster_blocks": "6/6",
+        "consistent_direction": true
+      }
+    }
+  },
+  "pose_context": {
+    "many128_pose": {
+      "measured_median_ms": 19.940417,
+      "measured_min_ms": 18.309667,
+      "measured_max_ms": 21.012417,
+      "measured_calls": 18,
+      "cold_call_ms": [
+        18.687458,
+        19.800375,
+        20.185916,
+        19.492791,
+        19.6325,
+        21.978292
+      ],
+      "static_first_call_ms": [
+        18.592083,
+        20.114125,
+        19.861,
+        19.954792,
+        19.947167,
+        19.542375
+      ],
+      "static_measured_max_ms": 0
+    },
+    "many512_pose": {
+      "measured_median_ms": 40.1880625,
+      "measured_min_ms": 39.350333,
+      "measured_max_ms": 44.36,
+      "measured_calls": 18,
+      "cold_call_ms": [
+        39.954958,
+        39.915875,
+        39.902375,
+        40.028875,
+        40.641917,
+        40.508916
+      ],
+      "static_first_call_ms": [
+        40.289792,
+        40.402666,
+        42.910375,
+        40.402666,
+        39.575542,
+        42.0685
+      ],
+      "static_measured_max_ms": 0
+    },
+    "controlled6": {
+      "measured_median_ms": 1.3454375,
+      "measured_min_ms": 1.22425,
+      "measured_max_ms": 2.622958,
+      "measured_calls": 18,
+      "cold_call_ms": [
+        1.462084,
+        1.479417,
+        1.426583,
+        1.444167,
+        1.472375,
+        1.48275
+      ],
+      "static_first_call_ms": [
+        1.412,
+        1.458292,
+        1.471,
+        3.024834,
+        1.468209,
+        1.518625
+      ],
+      "static_measured_max_ms": 0
+    },
+    "8k_t256_angle180_3scales": {
+      "measured_median_ms": 0.0,
+      "measured_min_ms": 0,
+      "measured_max_ms": 0,
+      "measured_calls": 18,
+      "cold_call_ms": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "static_first_call_ms": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "static_measured_max_ms": 0
+    }
+  },
+  "round40_estimate": {
+    "many128_pose": {
+      "archived_estimate_percent": -4.410791813150794,
+      "measured_percent": -6.877693597111745,
+      "measured_minus_estimate_points": -2.4669017839609504,
+      "archived_first_call_pose_create_median_ms": 19.077875,
+      "direction_held": true
+    },
+    "many512_pose": {
+      "archived_estimate_percent": 15.305798523282688,
+      "measured_percent": 13.742620705255515,
+      "measured_minus_estimate_points": -1.5631778180271727,
+      "archived_first_call_pose_create_median_ms": 40.870375,
+      "direction_held": true
+    },
+    "controlled6": {
+      "archived_estimate_percent": 14.105988098106813,
+      "measured_percent": 13.27977203221542,
+      "measured_minus_estimate_points": -0.8262160658913942,
+      "archived_first_call_pose_create_median_ms": 1.521166,
+      "direction_held": true
+    },
+    "8k_t256_angle180_3scales": {
+      "archived_estimate_percent": -74.8213359610209,
+      "measured_percent": -70.18200328930165,
+      "measured_minus_estimate_points": 4.639332671719259,
+      "archived_first_call_pose_create_median_ms": 0,
+      "direction_held": true
+    }
+  },
+  "estimate_held": {
+    "direction_all_cases": true,
+    "statement": "Direction held at 128, 512, six-object and 8K; magnitudes differ by the reported points. The estimate added the first-call pose_create_ms only; this build shows further per-frame hybrid cost (search stage and refinement on new buffers)."
+  },
+  "same_build_estimate_residual": {
+    "many128_pose": {
+      "estimate_ms": 858.0008959999999,
+      "measured_run_ms": 865.7061874999999,
+      "measured_frame_wall_ms": 868.0486875,
+      "measured_run_minus_estimate_ms": 7.705291500000044,
+      "measured_frame_wall_minus_estimate_ms": 10.04779150000013,
+      "reuse_effect": {
+        "hybrid_best": {
+          "run_ms": 27.609375,
+          "run_percent": 3.294294237636186,
+          "frame_wall_minus_static_run_ms": 29.951875000000086,
+          "frame_wall_vs_static_run_percent": 3.573796553485886
+        },
+        "full_gpu_simd": {
+          "run_ms": 4.807291500000019,
+          "run_percent": 0.5987495925952047,
+          "frame_wall_minus_static_run_ms": 5.458479000000011,
+          "frame_wall_vs_static_run_percent": 0.6798551902749139
+        }
+      }
+    },
+    "many512_pose": {
+      "estimate_ms": 2430.5853325,
+      "measured_run_ms": 2463.909042,
+      "measured_frame_wall_ms": 2467.3273335,
+      "measured_run_minus_estimate_ms": 33.323709500000405,
+      "measured_frame_wall_minus_estimate_ms": 36.74200100000007,
+      "reuse_effect": {
+        "hybrid_best": {
+          "run_ms": 73.72637550000036,
+          "run_percent": 3.084549835178896,
+          "frame_wall_minus_static_run_ms": 77.14466700000003,
+          "frame_wall_vs_static_run_percent": 3.2275636536585273
+        },
+        "full_gpu_simd": {
+          "run_ms": 6.454896500000359,
+          "run_percent": 0.23068562634889211,
+          "frame_wall_minus_static_run_ms": 8.267229000000043,
+          "frame_wall_vs_static_run_percent": 0.2954549155102182
+        }
+      }
+    },
+    "controlled6": {
+      "estimate_ms": 61.149271500000005,
+      "measured_run_ms": 61.9259375,
+      "measured_frame_wall_ms": 62.567437,
+      "measured_run_minus_estimate_ms": 0.7766659999999987,
+      "measured_frame_wall_minus_estimate_ms": 1.4181654999999935,
+      "reuse_effect": {
+        "hybrid_best": {
+          "run_ms": 2.2462705000000014,
+          "run_percent": 3.7638790779445985,
+          "frame_wall_minus_static_run_ms": 2.887769999999996,
+          "frame_wall_vs_static_run_percent": 4.838783701658378
+        },
+        "full_gpu_simd": {
+          "run_ms": 0.8647704999999917,
+          "run_percent": 1.2362043101730613,
+          "frame_wall_minus_static_run_ms": 0.922562499999998,
+          "frame_wall_vs_static_run_percent": 1.3188189686212048
+        }
+      }
+    },
+    "8k_t256_angle180_3scales": {
+      "estimate_ms": 255.765896,
+      "measured_run_ms": 258.5060625,
+      "measured_frame_wall_ms": 259.879479,
+      "measured_run_minus_estimate_ms": 2.7401664999999866,
+      "measured_frame_wall_minus_estimate_ms": 4.1135830000000055,
+      "reuse_effect": {
+        "hybrid_best": {
+          "run_ms": 2.7401664999999866,
+          "run_percent": 1.0713572617985,
+          "frame_wall_minus_static_run_ms": 4.1135830000000055,
+          "frame_wall_vs_static_run_percent": 1.6083391352536003
+        },
+        "full_gpu_simd": {
+          "run_ms": 8.065354,
+          "run_percent": 12.099237112451554,
+          "frame_wall_minus_static_run_ms": 10.830833499999997,
+          "frame_wall_vs_static_run_percent": 16.247869918912873
+        }
+      }
+    }
+  },
+  "memory": {
+    "many128_pose": {
+      "hybrid_best_frames": {
+        "peak_rss_bytes": 281935872,
+        "named_gpu_bytes": null,
+        "frame_gpu_bytes": [
+          45054114
+        ],
+        "pose_gpu_bytes": [
+          67969984
+        ]
+      },
+      "full_gpu_simd_frames": {
+        "peak_rss_bytes": 133545984,
+        "named_gpu_bytes": [
+          122131456
+        ],
+        "frame_gpu_bytes": null,
+        "pose_gpu_bytes": null
+      },
+      "hybrid_best_static": {
+        "peak_rss_bytes": 243400704,
+        "named_gpu_bytes": null,
+        "frame_gpu_bytes": [
+          45054114
+        ],
+        "pose_gpu_bytes": [
+          67969984
+        ]
+      },
+      "full_gpu_simd_static": {
+        "peak_rss_bytes": 98648064,
+        "named_gpu_bytes": [
+          122131456
+        ],
+        "frame_gpu_bytes": null,
+        "pose_gpu_bytes": null
+      }
+    },
+    "many512_pose": {
+      "hybrid_best_frames": {
+        "peak_rss_bytes": 534937600,
+        "named_gpu_bytes": null,
+        "frame_gpu_bytes": [
+          67630166
+        ],
+        "pose_gpu_bytes": [
+          137396944
+        ]
+      },
+      "full_gpu_simd_frames": {
+        "peak_rss_bytes": 245678080,
+        "named_gpu_bytes": [
+          247774208
+        ],
+        "frame_gpu_bytes": null,
+        "pose_gpu_bytes": null
+      },
+      "hybrid_best_static": {
+        "peak_rss_bytes": 464060416,
+        "named_gpu_bytes": null,
+        "frame_gpu_bytes": [
+          67630166
+        ],
+        "pose_gpu_bytes": [
+          137396944
+        ]
+      },
+      "full_gpu_simd_static": {
+        "peak_rss_bytes": 175718400,
+        "named_gpu_bytes": [
+          247774208
+        ],
+        "frame_gpu_bytes": null,
+        "pose_gpu_bytes": null
+      }
+    },
+    "controlled6": {
+      "hybrid_best_frames": {
+        "peak_rss_bytes": 51200000,
+        "named_gpu_bytes": null,
+        "frame_gpu_bytes": [
+          6251337
+        ],
+        "pose_gpu_bytes": [
+          3479808
+        ]
+      },
+      "full_gpu_simd_frames": {
+        "peak_rss_bytes": 38600704,
+        "named_gpu_bytes": [
+          6451456
+        ],
+        "frame_gpu_bytes": null,
+        "pose_gpu_bytes": null
+      },
+      "hybrid_best_static": {
+        "peak_rss_bytes": 44531712,
+        "named_gpu_bytes": null,
+        "frame_gpu_bytes": [
+          6251337
+        ],
+        "pose_gpu_bytes": [
+          3479808
+        ]
+      },
+      "full_gpu_simd_static": {
+        "peak_rss_bytes": 31473664,
+        "named_gpu_bytes": [
+          6451456
+        ],
+        "frame_gpu_bytes": null,
+        "pose_gpu_bytes": null
+      }
+    },
+    "8k_t256_angle180_3scales": {
+      "hybrid_best_frames": {
+        "peak_rss_bytes": 527024128,
+        "named_gpu_bytes": null,
+        "frame_gpu_bytes": [
+          109460724
+        ],
+        "pose_gpu_bytes": [
+          0
+        ]
+      },
+      "full_gpu_simd_frames": {
+        "peak_rss_bytes": 431767552,
+        "named_gpu_bytes": [
+          169342976
+        ],
+        "frame_gpu_bytes": null,
+        "pose_gpu_bytes": null
+      },
+      "hybrid_best_static": {
+        "peak_rss_bytes": 391217152,
+        "named_gpu_bytes": null,
+        "frame_gpu_bytes": [
+          109460724
+        ],
+        "pose_gpu_bytes": [
+          0
+        ]
+      },
+      "full_gpu_simd_static": {
+        "peak_rss_bytes": 296599552,
+        "named_gpu_bytes": [
+          169342976
+        ],
+        "frame_gpu_bytes": null,
+        "pose_gpu_bytes": null
+      }
+    }
+  },
+  "universal_default_changed": false,
+  "gui_default_changed": false,
+  "research_recommendation": "Unchanged explicit full-GPU research option peak1/fine4; with a new frame per call it is faster than the hybrid at the 128-object and 8K workloads and slower at 512 objects and the six-object control.",
+  "accuracy": {
+    "direct_gt_calls": 1176,
+    "formal_direct_gt_calls": 1008,
+    "pilot_direct_gt_calls": 168,
+    "all_zero_fp_fn": true
+  },
+  "all_routes_pass": true,
+  "all_repeat_exact": true,
+  "all_failed_gates": [
+    {
+      "case": "many512_pose",
+      "arm": "full_gpu_simd_frames",
+      "method": "full_gpu_simd",
+      "baseline": "hybrid_best_frames",
+      "gate": "time_budget",
+      "block": 0,
+      "dataset": "pilot"
+    },
+    {
+      "case": "many512_pose",
+      "arm": "full_gpu_simd_frames",
+      "method": "full_gpu_simd",
+      "baseline": "hybrid_best_frames",
+      "gate": "time_budget",
+      "block": 0,
+      "dataset": "formal"
+    },
+    {
+      "case": "many512_pose",
+      "arm": "full_gpu_simd_frames",
+      "method": "full_gpu_simd",
+      "baseline": "hybrid_best_frames",
+      "gate": "time_budget",
+      "block": 1,
+      "dataset": "formal"
+    },
+    {
+      "case": "many512_pose",
+      "arm": "full_gpu_simd_frames",
+      "method": "full_gpu_simd",
+      "baseline": "hybrid_best_frames",
+      "gate": "time_budget",
+      "block": 2,
+      "dataset": "formal"
+    },
+    {
+      "case": "many512_pose",
+      "arm": "full_gpu_simd_frames",
+      "method": "full_gpu_simd",
+      "baseline": "hybrid_best_frames",
+      "gate": "time_budget",
+      "block": 3,
+      "dataset": "formal"
+    },
+    {
+      "case": "many512_pose",
+      "arm": "full_gpu_simd_frames",
+      "method": "full_gpu_simd",
+      "baseline": "hybrid_best_frames",
+      "gate": "time_budget",
+      "block": 4,
+      "dataset": "formal"
+    },
+    {
+      "case": "many512_pose",
+      "arm": "full_gpu_simd_frames",
+      "method": "full_gpu_simd",
+      "baseline": "hybrid_best_frames",
+      "gate": "time_budget",
+      "block": 5,
+      "dataset": "formal"
+    },
+    {
+      "case": "controlled6",
+      "arm": "full_gpu_simd_frames",
+      "method": "full_gpu_simd",
+      "baseline": "hybrid_best_frames",
+      "gate": "time_budget",
+      "block": 0,
+      "dataset": "formal"
+    },
+    {
+      "case": "controlled6",
+      "arm": "full_gpu_simd_frames",
+      "method": "full_gpu_simd",
+      "baseline": "hybrid_best_frames",
+      "gate": "time_budget",
+      "block": 1,
+      "dataset": "formal"
+    },
+    {
+      "case": "controlled6",
+      "arm": "full_gpu_simd_frames",
+      "method": "full_gpu_simd",
+      "baseline": "hybrid_best_frames",
+      "gate": "time_budget",
+      "block": 2,
+      "dataset": "formal"
+    },
+    {
+      "case": "controlled6",
+      "arm": "full_gpu_simd_frames",
+      "method": "full_gpu_simd",
+      "baseline": "hybrid_best_frames",
+      "gate": "time_budget",
+      "block": 3,
+      "dataset": "formal"
+    },
+    {
+      "case": "controlled6",
+      "arm": "full_gpu_simd_frames",
+      "method": "full_gpu_simd",
+      "baseline": "hybrid_best_frames",
+      "gate": "time_budget",
+      "block": 4,
+      "dataset": "formal"
+    },
+    {
+      "case": "controlled6",
+      "arm": "full_gpu_simd_frames",
+      "method": "full_gpu_simd",
+      "baseline": "hybrid_best_frames",
+      "gate": "time_budget",
+      "block": 5,
+      "dataset": "formal"
+    }
+  ],
+  "failed_gate_counts": {
+    "pilot:time_budget:many512_pose": 1,
+    "formal:time_budget:many512_pose": 6,
+    "formal:time_budget:controlled6": 6
+  },
+  "failure_reading": "All retained failures are time_budget gates of full GPU against the hybrid per new frame (pilot 512 block 0; formal 512 and six-object, every block). No GT, route, parity, warm-up, RSS or host gate failed.",
+  "not_run": [
+    "Changing-content camera sequence",
+    "Other Metal devices, CUDA, Windows/Linux",
+    "Hardware counters for the extra hybrid search time or the 8K full-GPU per-frame slowdown"
+  ]
+}

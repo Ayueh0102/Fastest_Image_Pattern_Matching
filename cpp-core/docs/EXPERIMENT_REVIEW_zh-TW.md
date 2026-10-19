@@ -1,6 +1,6 @@
 # Template Matching 研究總索引與人工審查指南
 
-更新：2026-10-19。此頁按第1–40輪列出問題、證據與採用決定。數字是各輪的證據快照，不是同一套輸入的連續加速曲線；不同輪次倍率不能相乘。最新輪次見頁末，第一次閱讀先看[外部導覽](../../docs/PROJECT_GUIDE_zh-TW.md)。
+更新：2026-10-19。此頁按第1–41輪列出問題、證據與採用決定。數字是各輪的證據快照，不是同一套輸入的連續加速曲線；不同輪次倍率不能相乘。最新輪次見頁末，第一次閱讀先看[外部導覽](../../docs/PROJECT_GUIDE_zh-TW.md)。
 
 ## 目前推薦方案
 
@@ -9,7 +9,7 @@
 | 主題 | 閱讀入口 |
 |---|---|
 | 核心、GUI與語言移植 | 第1輪；[建置](../README_zh-TW.md)、[移植契約](PORTING_zh-TW.md) |
-| GPU並行、同步與記憶體 | 第5–14、19–25、28–34、36–40輪；依工作量看CPU／Metal對照 |
+| GPU並行、同步與記憶體 | 第5–14、19–25、28–34、36–41輪；依工作量看CPU／Metal對照 |
 | 固定尺度與稀疏前段 | 第15–21輪；與金字塔路徑分開比較 |
 | 原始NCC與旋轉細搜尋 | 第26–30輪；保留未加速與記憶體失敗 |
 | 新場景、Blender、新影格與穩定性 | [第34輪](STAGE34_CLOSURE_zh-TW.md) |
@@ -441,3 +441,13 @@ Release 54/54、相關ASan／UBSan 2/2及Python工具75項通過。正式／有�
 - 驗證：六組177程序／507次直接GT＋跨版本54＋soak首次1＝562次直接GT；另107次原生一致性確認。Release70／70、工具73／73、Metal及ASan／UBSan各7／7、凍結來源重建10次結果一致、八份摘要換目錄重播。五分鐘108次、一次Session重建，RSS首末中位數增加1.16MiB。LeakSanitizer未啟用。
 - 決定：本有界精確Metal大階段完成，GPU研究推薦peak1／fine4，不改通用／GUI預設。不是RGB完整常駐、CUDA或實拍序列驗收，也不宣稱理論極限。
 - 證據：[完整報告與文獻](GPU_NCC_CLOSURE_zh-TW.md)、[正式摘要](stage40-ncc-closure/formal-summary.json)、[採用與失敗](stage40-ncc-closure/decision-and-failures.json)、[驗證](stage40-ncc-closure/validation.json)、[完整源碼與Log封存](stage40-ncc-closure/archive.json)。
+
+### 41. 每換一張影格的成本實測（2026-10-19）
+
+- 問題／實作：第40輪更正指出混合正式呼叫重用首次建立的pose context，只以封存數字相加估算。本輪讓每次呼叫都經過`Session::updateSource`（runner `source_frames`序列模式reuse，同一fixture重複），同批block另跑第40輪靜態job作同建置對照；新增量測工具與26項負控制，不改算法。
+- 正式結果：每影格（updateSource＋執行）fine4對混合為128 808.35對868.05ms（−6.9%）、512 2806.40對2467.33ms（+13.7%）、六物件70.88對62.57ms（+13.3%）、8K 77.49對259.88ms（−70.2%），各6/6 block同向。只算執行時間的方向相同；同建置靜態對照為−4.2%／+17.1%／+17.2%／−73.9%。
+- pose context：每影格`pose_create_ms`中位19.94／40.19／1.35ms，與首次值相差不到1ms；8K不精修為0。混合每影格比靜態多27.61／73.73ms，除pose重建外主要在候選搜尋（+6.2／+29.8ms）；原因未以硬體計數器量測。
+- 估算：封存估算−4.4%／+15.3%／+14.1%／−74.8%的方向四組全部成立，差距−2.5／−1.6／−0.8／+4.6點。
+- 驗證：96程序、288次正式呼叫、正式1008＋pilot 168次直接GT全部零FP／FN；同arm與同方法靜態的有序輸出一致。保留13筆fine4每影格time_budget失敗（pilot 1、512與六物件各6），沒有GT、route、暖機、RSS或host失敗。Release 73／73、Python harness 567／567、color verify 5／5；不匯入harness的獨立稽核重算GT、中位數與門檻零差異，摘要由凍結工具從封存重算逐位相同。
+- 決定：只量測，不改GUI或通用預設；完整GPU仍為明確研究選項，換新影格時128與8K較快、512與六物件較慢。不是變化內容的相機串流驗收。
+- 證據：[完整報告](NEW_FRAME_COST_zh-TW.md)、[正式摘要](stage41-new-frame-cost/formal-summary.json)、[判定與失敗](stage41-new-frame-cost/decision-and-failures.json)、[驗證](stage41-new-frame-cost/validation.json)、[封存清單](stage41-new-frame-cost/archive.json)。

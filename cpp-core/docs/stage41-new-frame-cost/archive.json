@@ -1,0 +1,76 @@
+{
+  "stage": 41,
+  "date": "2026-10-19",
+  "path_base": "cpp-core/docs/stage41-new-frame-cost",
+  "all_archives_fully_read": true,
+  "source_files": 286,
+  "source_commit": "7270946d547970a71a39e623648146a328a2d88e",
+  "unique_input_files": 7,
+  "input_bytes_archived_in": "cpp-core/docs/stage40-ncc-closure/fixtures.tar.gz",
+  "artifacts": [
+    {
+      "path": "decision-and-failures.json",
+      "bytes": 18079,
+      "sha256": "3e1f250b2c969a44d3e09a8dd11f727e2d8929e415efe77c0ed355b96674fb10"
+    },
+    {
+      "path": "formal-summary.json",
+      "bytes": 153554,
+      "sha256": "2bf4c0f8f61d447185e2d854f5f1d86cac73acd3e6c9e1c405a83d514fe87f28"
+    },
+    {
+      "path": "input-sha256.json",
+      "bytes": 852,
+      "sha256": "c2bdf8117ded06d86f83315c4e866155c4317b8331e38ba32190669dff5fb14e"
+    },
+    {
+      "path": "pilot-summary.json",
+      "bytes": 64562,
+      "sha256": "71ec0fb00db397677d8cdac2936f2d06e983f4b1d174992c188da1d4c9057373"
+    },
+    {
+      "path": "protocol.json",
+      "bytes": 8104,
+      "sha256": "42b338ef5eb20e78e8cfdf42dbcfd8555f711a6ceb519115b59503cbf66d279c"
+    },
+    {
+      "path": "raw-results.tar.gz",
+      "bytes": 65786952,
+      "sha256": "e6f8f29f20d5332f48cbea28e1d21654cc38ab187be24738b937eeae18e66552",
+      "regular_files": 450,
+      "uncompressed_bytes": 288777757,
+      "all_members_read_and_safe_paths": true
+    },
+    {
+      "path": "source-sha256.json",
+      "bytes": 32970,
+      "sha256": "ffd3b6f9e5299d378aa951cd8731505be2aa0ae653d02475fac50b0106c75da4"
+    },
+    {
+      "path": "source-snapshot.tar.gz",
+      "bytes": 840895,
+      "sha256": "60c450789674a4ced9d8bf50c9b15905800a9baccbe86a3423c1636a18afc71d",
+      "regular_files": 287,
+      "uncompressed_bytes": 3501532,
+      "all_members_read_and_safe_paths": true
+    },
+    {
+      "path": "stage-breakdown.json",
+      "bytes": 6371,
+      "sha256": "b91f97eabb8dde8532e75c87dce4ae3c29ab1621a97bfcdc37152f6d70af8310"
+    },
+    {
+      "path": "validation-logs.tar.gz",
+      "bytes": 60215,
+      "sha256": "d0ef0e1b8d341b4a0a767feca1ccb6015d40692aa32c94f60943dd25f8353ebc",
+      "regular_files": 21,
+      "uncompressed_bytes": 337620,
+      "all_members_read_and_safe_paths": true
+    },
+    {
+      "path": "validation.json",
+      "bytes": 7679,
+      "sha256": "59d09b5837c71f98811a03a1ec584e16a84abe12a5813b3bd0f5e6ddda02092b"
+    }
+  ]
+}

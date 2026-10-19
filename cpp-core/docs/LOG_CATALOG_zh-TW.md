@@ -45,6 +45,7 @@
 | 38 | 128／512 GPU分段計時、精確分塊排序／合併 | [stage38-gpu-peaks](stage38-gpu-peaks/)、[報告](GPU_TILED_PEAKS_zh-TW.md) |
 | 39 | 細搜尋分列快取、實際路徑計數、主假說失敗與stop0補充 | [stage39-fine-tiles](stage39-fine-tiles/)、[報告](GPU_FINE_TILES_zh-TW.md) |
 | 40 | 精確u32／SIMD NCC、負面統計重用、七組保留場景、跨版本與大階段結案 | [stage40-ncc-closure](stage40-ncc-closure/)、[報告](GPU_NCC_CLOSURE_zh-TW.md) |
+| 41 | 每換一張影格的成本：updateSource序列模式、同建置靜態對照與封存估算驗證 | [stage41-new-frame-cost](stage41-new-frame-cost/)、[報告](NEW_FRAME_COST_zh-TW.md) |
 
 新一輪正式結果由[實驗總索引](EXPERIMENT_REVIEW_zh-TW.md)連接，重新產生機器索引即可列出新增資料。沒有階段對照的目錄保留 `stage: null`，不猜測輪次或把它算成通過項目。
 
@@ -111,3 +112,5 @@ for member in index["members"]:
 第38輪將profile-original、profile-tiled與未插樁formal分開；診斷不混入速度gate。早期GPU counter resolve零值、修正前host來源、獨立stage稽核、64組選峰差分、JSON負控制、乾淨重建與sanitizer分別保留。九個相對混合的速度gate失敗不因分塊較舊GPU顯著改善而移除；下一輪細搜尋建議明確標示為尚未實測的源碼分析。
 
 第39輪formal／profile保留原設定，stop0-formal／stop0-profile是診斷後新增的單一參數補充，8k-profile說明原8K的分列適用性。主假說的兩項改善失敗與共14個相對混合的速度block失敗均保留；不能把stop0收益算成原128／512加速。完整來源、96組細搜尋差分、計數審查、乾淨重建、離線重播與圖表程式分開封存。
+
+第41輪的protocol與凍結源碼在任何計時前提交；pilot與formal分開保存，pilot只供篩選。每影格arm的冷呼叫、暖機與正式呼叫都在同一份runner輸出內，摘要依protocol的暖機次數切分，沒有另存刪減後的資料。13筆每影格time_budget失敗（含pilot 1筆）保留在摘要與判定檔。輸入檔與第40輪fixtures逐位相同，因此只保存雜湊；獨立稽核腳本、封存重播與最終測試log在validation-logs.tar.gz。
