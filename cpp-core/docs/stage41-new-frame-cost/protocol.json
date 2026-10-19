@@ -1,0 +1,94 @@
+{
+  "stage": 41,
+  "date": "2026-10-19",
+  "title": "Per-new-frame cost of the hybrid path versus full-GPU fine4",
+  "question": "Round 40 compared formal calls that reuse one unchanged source: the hybrid Session reuses the pose context built by its first call, the complete GPU path rebuilds all source-dependent state every call. Which method is faster when every call receives a new frame through Session::updateSource, at many128_pose and many512_pose, with the six-object and 8K controls?",
+  "replaces": "The archive-only estimate in GPU_NCC_CLOSURE_zh-TW.md section 2026-10-19 (hybrid formal median plus the median first-call pose_create_ms; marked NOT RUN for a real per-new-frame measurement).",
+  "source": {
+    "frozen_commit": "7270946d547970a71a39e623648146a328a2d88e",
+    "build_head": "1ae7a80",
+    "compiled_source_changes_since_build_head": "none; the frozen commit only adds cpp-core/tools/benchmark_new_frame_cost.py and cpp-core/tests/test_new_frame_cost_harness.py",
+    "snapshot": "source-snapshot.tar.gz (286 committed files, stage-40 selection rule) and source-sha256.json",
+    "driver": "cpp-core/tools/benchmark_new_frame_cost.py",
+    "negative_controls": "cpp-core/tests/test_new_frame_cost_harness.py (26 tests)"
+  },
+  "build": {
+    "directory": "build/stage41-release",
+    "type": "Release",
+    "options": ["FPM_BUILD_GUI=ON", "FPM_BUILD_EXPERIMENTS=ON", "FPM_WITH_OPENCV=ON"],
+    "pre_measurement_validation": "ctest 73/73, Python harness 567/567, color_verify_runner_test --metal 5/5, all before any timing"
+  },
+  "inputs": {
+    "fixtures_manifest": "stage-37 formal manifest; every source/template SHA256 checked against it",
+    "archived_copy": "The same input bytes are in stage40-ncc-closure/fixtures.tar.gz; input-sha256.json lists them and validation checks the hashes match."
+  },
+  "cases": {
+    "primary": ["many128_pose", "many512_pose"],
+    "controls": ["controlled6", "8k_t256_angle180_3scales"],
+    "note": "8k is core_only (no refinement, so the hybrid never creates a pose context) on a constant background, as disclosed on 2026-10-19."
+  },
+  "methods": {
+    "hybrid_best": {"full_gpu": false, "coarse_peak_mode": 1, "full_gpu_peak_mode": 0, "full_gpu_fine_mode": 0},
+    "full_gpu_simd": {"full_gpu": true, "coarse_peak_mode": 1, "full_gpu_peak_mode": 1, "full_gpu_fine_mode": 4},
+    "shared_settings": "Round-40 formal jobs (benchmark_gpu_ncc_closure.job): pose_input_mode 1, pose_storage_mode 1, refinement_backend 1, fine_ncc_mode 2, fine_fused, fine_angle_reuse, stop_layer 1."
+  },
+  "arms": {
+    "frames": "Runner source_frames sequence mode, sequence_mode reuse, warmup_seconds 0, source_frames = [the case fixture], repeats = 1 + warmup_calls + measured cycles. Call 0 constructs the Session; every later call decodes the same file again (excluded), then Session::updateSource copies it and releases the hybrid pose context, which the next refinement rebuilds.",
+    "static": "Round-40 formal job (first call, 1 s time-based warm-up, measured repeats on one unchanged source): same-build control reproducing the round-40 asymmetric scope.",
+    "frame_choice": "One archived fixture repeated (allowed by the task): content-identical frames keep data-dependent work equal to round 40; this is not a changing camera stream."
+  },
+  "schedule": {
+    "fresh_process_per_case_arm_block": true,
+    "blocks": 6,
+    "measured_calls_per_process": 3,
+    "order": "per case, per block: hybrid_best_frames, full_gpu_simd_frames, hybrid_best_static, full_gpu_simd_static in even blocks; reversed in odd blocks",
+    "pilot": "Same jobs, 1 block, run first after the build (also absorbs first-use Metal shader compilation); screening only, never decision evidence, retained.",
+    "host": "No builds, tests or other experiments during timing. The driver refuses a formal start if competing build/benchmark processes exist and records load average, GPU device utilization and competing process names before every worker; any recorded competitor is a retained host_busy gate."
+  },
+  "warmup": {
+    "rule": "warmup_calls = max(1, ceil(1500 ms / faster round-40 formal median of the two methods)); planned from stage40-ncc-closure/formal-summary.json",
+    "planned_calls": {"many128_pose": 2, "many512_pose": 1, "controlled6": 26, "8k_t256_angle180_3scales": 23},
+    "exclusion": "Call 0 (Session construction, cold) and the planned warm-up calls are excluded from every timing distribution and still evaluated against GT.",
+    "gate": "elapsed_ms(last warm-up call) - elapsed_ms(call 0) >= 1000 ms in every sequence process, matching the round-40 one-second warm-up; failures retained per block."
+  },
+  "metrics": {
+    "primary": "frame_wall_ms of measured calls: Session::updateSource (validation, copy, pose release) plus run; excludes image decode, output comparison and JSON.",
+    "secondary": ["total_ms (run only; round-40 scope)", "pose_create_ms per call (nested in run)", "source_update_ms", "source_decode_ms (reported, excluded)"],
+    "static_control": "total_ms of measured repeats, first-call pose_create_ms, measured pose_create_ms (must be 0 for the hybrid)",
+    "memory": "Per-process peak RSS and per-call current RSS; named Metal bytes (full GPU gpu_bytes; hybrid frame coarse+fine and pose-context buffers separately). RSS and Metal bytes are never added."
+  },
+  "accuracy": {
+    "position_px": 2,
+    "angle_deg": 1,
+    "relative_scale": 0.02,
+    "false_positives": 0,
+    "false_negatives": 0,
+    "scope": "Independent GT in the parent process on every cold, warm-up and measured call of the frames arms and every first/measured call of the static arms; static warm-ups have native exactness only.",
+    "separate_output_checks": "Exact ordered matches and proposals across all calls of an arm, and between each frames arm and the same method's static control."
+  },
+  "gates": [
+    "independent_ground_truth",
+    "route_and_residency (full GPU: one command buffer, one wait, no intermediate readback, peak1/fine4; hybrid: Metal refinement route)",
+    "requested_algorithm_not_executed (fine_effective_mode must be 4)",
+    "exact_repeat",
+    "sequence_route (call 0 constructs; later calls copy w*h bytes, keep the template models, bump the source generation; every refining hybrid call has pose_create_ms > 0 and an invalidated pose; full GPU and core-only calls never create one; runner drained)",
+    "static_route (hybrid measured repeats reuse the first-call pose context: pose_create_ms = 0)",
+    "same_method_output_parity",
+    "warmup_shorter_than_1s",
+    "time_budget (per block, full GPU frames <= hybrid frames + max(2 ms, 10%), round-40 tolerance)",
+    "rss_budget (full GPU frames peak RSS <= hybrid frames + max(8 MiB, 10%))",
+    "host_busy"
+  ],
+  "decision_rules": {
+    "faster_per_frame": "Name a method faster at a case only if the pooled measured median of frame_wall_ms favours it AND all six paired block medians agree in sign; otherwise report the medians and state that the direction is not established.",
+    "also_reported": "The same rule on total_ms (frames), on the static control (round-40 scope), the per-method reuse effect (frames minus static), and the round-40 estimate method applied to this build's static control.",
+    "estimate_held": "The archive-only round-40 estimate (fine4 vs hybrid plus first-call pose_create_ms: 128 -4.4%, 512 +15.3%, controlled6 +14.1%, 8K -74.8%) is judged on direction only: held if the measured per-frame direction is established and has the same sign, not held if established with the opposite sign, inconclusive otherwise. The point difference is reported, not gated.",
+    "no_adoption_change": "Measurement only; GUI and core defaults are not changed."
+  },
+  "limits": [
+    "Single Apple M4 Pro (48 GiB) Metal device",
+    "Repeated identical frame; no changing-content camera sequence or real-video accuracy",
+    "Sequence RSS includes per-call decoding and the runner retaining all output rows",
+    "Cross-round numbers come from different builds and are compared only as an estimate check, never multiplied"
+  ]
+}
