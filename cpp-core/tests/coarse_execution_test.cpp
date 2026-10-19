@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: BSD-2-Clause
 #include "coarse_internal.hpp"
+#include "metal_device.hpp"
 #include <algorithm>
 #include <cstring>
 #include <iostream>
@@ -136,6 +137,7 @@ void stressSourceCap()
 }
 int main(int argc, char** argv)
 {
+    if (!fpm_test::metalDeviceAvailable()) { std::cout << "SKIP: no Metal device\n"; return 77; }
     try {
         const bool stress = argc == 2 && std::string(argv[1]) == "--stress";
         require(argc == 1 || stress, "Usage: coarse_execution_test [--stress]");
@@ -150,9 +152,5 @@ int main(int argc, char** argv)
         }
         std::cout << "Exact Metal pyramid/batch outputs, stale-content protection, ordering and bounded allocations passed\n";
         return 0;
-    } catch (const std::exception& error) {
-        const std::string text(error.what());
-        if (text.find("is unavailable") != std::string::npos) { std::cout << "SKIP: " << text << '\n'; return 77; }
-        std::cerr << text << '\n'; return 1;
-    }
+    } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }
 }

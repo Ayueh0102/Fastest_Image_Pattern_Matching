@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: BSD-2-Clause
 #include "coarse_internal.hpp"
+#include "metal_device.hpp"
 #include <algorithm>
 #include <cmath>
 #include <iostream>
@@ -46,6 +47,7 @@ void compare(fpm_coarse_detail::Backend& backend, fpm::ImageView source,
 }
 int main(int argc, char** argv)
 {
+    if (!fpm_test::metalDeviceAvailable()) { std::cout << "SKIP: no Metal device\n"; return 77; }
     try {
         auto backend = fpm_coarse_detail::makeMetalBackend();
         int mode = 0;
@@ -261,9 +263,5 @@ int main(int argc, char** argv)
         require(fpm_frame_set_fine_ncc_mode(nullptr,0,nullptr,0)==FPM_ERROR,"null frame accepted");
         std::cout << "Guarded Q28 Metal warp and batched NCC equal CPU at borders, half pixels, large/flat templates and changed frames\n";
         return 0;
-    } catch (const std::exception& e) {
-        const std::string error = e.what();
-        if (error.find("is unavailable") != std::string::npos) { std::cout << "SKIP: " << error << '\n'; return 77; }
-        std::cerr << error << '\n'; return 1;
-    }
+    } catch (const std::exception& e) { std::cerr << e.what() << '\n'; return 1; }
 }

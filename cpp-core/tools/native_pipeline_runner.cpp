@@ -10,6 +10,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QStringList>
 #include <chrono>
 #include <cmath>
 #include <iostream>
@@ -67,11 +68,14 @@ QJsonObject record(const Result& r,bool outputs) {
         {"reached_candidates",qint64(w.reachedCandidates)},{"angles",qint64(w.angles)},
         {"cached_angles",qint64(w.cachedAngles)},{"direct_angles",qint64(w.directAngles)},
         {"tiled_angles",qint64(w.tiledAngles)},{"source_samples",qint64(w.sourceSamples)},
-        {"tile_loads",qint64(w.tileLoads)}});
+        {"tile_loads",qint64(w.tileLoads)},{"simd32_windows",qint64(w.simd32Windows)},
+        {"fallback_windows",qint64(w.fallbackWindows)}});
+    auto fineWindows=[&](uint64_t value) {return gpu.fineWorkAvailable ? QJsonValue(qint64(value)):QJsonValue(QJsonValue::Null);};
     o["full_gpu"]=QJsonObject{{"enabled",gpu.enabled},{"command_buffers",double(gpu.commandBuffers)},
         {"peak_mode",gpu.peakMode},{"peak_scratch_bytes",double(gpu.peakScratchBytes)},
         {"fine_mode",gpu.fineMode},{"fine_effective_mode",gpu.fineEffectiveMode},
         {"fine_simd_width",int(gpu.fineSimdWidth)},{"fine_work_available",gpu.fineWorkAvailable},{"fine_work",fineWork},
+        {"fine_simd32_windows",fineWindows(gpu.fineSimd32Windows)},{"fine_fallback_windows",fineWindows(gpu.fineFallbackWindows)},
         {"fine_diagnostic_bytes",qint64(gpu.fineDiagnosticBytes)},
         {"fine_diagnostic_readback_bytes",qint64(gpu.fineDiagnosticReadbackBytes)},
         {"fine_threadgroup_bytes",qint64(gpu.fineThreadgroupBytes)},
@@ -184,6 +188,24 @@ QJsonObject record(const Result& r,bool outputs) {
     if(outputs) {o["matches"]=matches(r.matches,r.scales);o["proposals"]=matches(r.proposals,r.proposalScales);}
     return o;
 }
+// Every key main() reads. Any other key fails before images are decoded, so a
+// misspelled or unsupported option cannot silently keep its default.
+const char* const jobKeys[]={"angle","backend","coarse_peak_mode","cpu_threads","fine_angle_reuse","fine_fused",
+    "fine_ncc_mode","fine_profiling","full_gpu","full_gpu_fine_mode","full_gpu_peak_mode","full_gpu_profiling",
+    "gray_load_mode","invert_source","limit","min_area","ncc_mode","overlap","overlap_enabled","pose_input_mode",
+    "pose_resident_mode","pose_storage_mode","proposal_method","proposal_score","refine","refinement_backend",
+    "repeats","run_resource_diagnostics","scale_support_refine","scales","score","sequence_mode","soak_seconds",
+    "source","source_frames","sparse_angle_step","sparse_candidate_limit","sparse_cpu_gradient_mode",
+    "sparse_features","sparse_metal_submission_mode","sparse_min_gradient","sparse_response_mode",
+    "sparse_search_backend","sparse_spread","sparse_stride","sparse_threshold","stop_layer","stream_path",
+    "subpixel","template","warmup_seconds"};
+void validateJobKeys(const QJsonObject& job) {
+    QStringList accepted,unknown;
+    for(const char* key:jobKeys) accepted.append(QString::fromLatin1(key));
+    for(const auto& key:job.keys()) if(!accepted.contains(key)) unknown.append(key);
+    if(!unknown.isEmpty()) throw std::invalid_argument(("Unknown job key(s): "+unknown.join(", ")+
+        "; accepted keys: "+accepted.join(", ")).toStdString());
+}
 bool equal(const Result& a,const Result& b) {
     // Serialized double precision endpoints plus exact ordered proposal fields;
     // serialization is outside every reported algorithm interval.
@@ -196,6 +218,7 @@ int main(int argc,char** argv) {
         QFile file(QString::fromLocal8Bit(argv[1]));if(!file.open(QIODevice::ReadOnly)) throw std::invalid_argument("Cannot open job");
         const auto j=QJsonDocument::fromJson(file.readAll()).object();
         if(j.isEmpty() || j.contains("truth")) throw std::invalid_argument("Expected job without ground truth");
+        validateJobKeys(j);
         const auto loadModeName=j["gray_load_mode"].toString("direct_gray8");
         if(loadModeName!="direct_gray8" && loadModeName!="legacy_rgb") throw std::invalid_argument("Invalid gray load mode");
         const auto loadMode=loadModeName=="direct_gray8"?fpm::io::GrayLoadMode::DirectGray8:fpm::io::GrayLoadMode::LegacyRgb;

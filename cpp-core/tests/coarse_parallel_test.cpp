@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: BSD-2-Clause
 #include "coarse_internal.hpp"
+#include "metal_device.hpp"
 #include <algorithm>
 #include <iostream>
 #include <random>
@@ -22,6 +23,7 @@ void equal(const fpm::detail::ScoreMap& a, const fpm::detail::ScoreMap& b)
 }
 int main()
 {
+    if (!fpm_test::metalDeviceAvailable()) { std::cout << "SKIP: no Metal device\n"; return 77; }
     try {
         auto backend = fpm_coarse_detail::makeMetalBackend();
         FpmCoarseExecutionConfigV1 execution{}; fpm_coarse_execution_default_config(&execution);
@@ -56,9 +58,5 @@ int main()
         require(backend->metrics().command_buffers > 1, "chunked nonzero first-window path not covered");
         std::cout << "Exact coarse SIMD NCC: " << maps+1 << " maps, modes toggled, uint64 overflow values, stride and chunk offsets\n";
         return 0;
-    } catch (const std::exception& e) {
-        const std::string message = e.what();
-        if (message.find("is unavailable") != std::string::npos) { std::cout << "SKIP: " << message << '\n'; return 77; }
-        std::cerr << message << '\n'; return 1;
-    }
+    } catch (const std::exception& e) { std::cerr << e.what() << '\n'; return 1; }
 }

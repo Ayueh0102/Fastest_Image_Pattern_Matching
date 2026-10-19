@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: BSD-2-Clause
 #include "coarse_internal.hpp"
+#include "metal_device.hpp"
 #include <algorithm>
 #include <cstring>
 #include <iostream>
@@ -296,14 +297,11 @@ void configurationErrors()
 }
 int main()
 {
+    if (!fpm_test::metalDeviceAvailable()) { std::cout << "SKIP: no Metal device\n"; return 77; }
     try {
         configurationErrors(); inputOwnershipAndReuse(); cancellationAndDestruction();
         synchronousFallbacks(); matchingOrder();
         std::cout << "Coarse overlap: two pending batches, owned inputs, exact ordering, drain/reuse, fallback and bounded memory passed\n";
         return 0;
-    } catch (const std::exception& error) {
-        const std::string message(error.what());
-        if (message.find("is unavailable") != std::string::npos) { std::cout << "SKIP: " << message << '\n'; return 77; }
-        std::cerr << message << '\n'; return 1;
-    }
+    } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }
 }
