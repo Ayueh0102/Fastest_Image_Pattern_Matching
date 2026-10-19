@@ -31,6 +31,23 @@ void resident(const Result& result) {
     require(metrics.gpuBytes>0 && metrics.uploadBytes>0 && metrics.readbackBytes>0,"resident allocation/transfer accounting missing");
     require(std::isfinite(result.totalMs) && result.totalMs>0,"invalid pipeline elapsed time");
 }
+// Mode 4 scores a level's 7x7 windows with the SIMD32 kernel only when its ROI
+// fits the cache and its four stripes are uint32-safe; these criteria are
+// recomputed here from the level size. Every other mode-4 window is a mode-2
+// fallback, and the other modes report neither route.
+void fineRoutes(const FullGpuMetrics& metrics) {
+    uint64_t simd=0,fallback=0;
+    for(const auto& w:metrics.fineWork) {
+        const bool cached=uint64_t(w.templateWidth+6)*(w.templateHeight+6)<=w.roiCacheBytes;
+        const bool narrow=(uint64_t(w.templateWidth)*w.templateHeight+3)/4<=66051;
+        const uint64_t simdAngles=metrics.fineEffectiveMode==4 && cached && narrow ? w.angles:0;
+        const uint64_t fallbackAngles=metrics.fineEffectiveMode==4 ? w.angles-simdAngles:0;
+        require(w.simd32Windows==49*simdAngles && w.fallbackWindows==49*fallbackAngles,
+            "SIMD32/fallback window counts disagree with the ROI cache and uint32 bounds");
+        simd+=w.simd32Windows;fallback+=w.fallbackWindows;
+    }
+    require(metrics.fineSimd32Windows==simd && metrics.fineFallbackWindows==fallback,"Fine window totals differ from levels");
+}
 void one(const Result& result,double x,double y,double angle=0,double scale=1.,double score=.85) {
     resident(result);
     std::cerr<<"truth "<<x<<","<<y<<","<<angle<<","<<scale<<" proposals="<<result.proposals.size()<<" matches="<<result.matches.size()<<'\n';
@@ -99,7 +116,9 @@ int main(int argc,char** argv) {
                 reached+=w.reachedCandidates;angles+=w.angles;
             }
             require(reached && angles,"Fine diagnostic fixture did not exercise evaluation");
-        } else require(first.fullGpu.fineWork.empty() && first.fullGpu.fineDiagnosticReadbackBytes==0,
+            fineRoutes(first.fullGpu);
+        } else require(first.fullGpu.fineWork.empty() && first.fullGpu.fineDiagnosticReadbackBytes==0 &&
+            first.fullGpu.fineSimd32Windows==0 && first.fullGpu.fineFallbackWindows==0,
             "Disabled fine diagnostics report observations");
         require(first.fullGpu.profileRequested==profile,"Profiling request reporting mismatch");
         if(profile && first.fullGpu.profileAvailable) {
@@ -220,6 +239,12 @@ int main(int argc,char** argv) {
         if(profile && fineMode!=0) {
             uint64_t tiledAngles=0;for(const auto& w:largeResult.fullGpu.fineWork)tiledAngles+=w.tiledAngles;
             require(tiledAngles>0,"Oversized ROI fixture did not exercise row tiling");
+        }
+        if(profile) {
+            fineRoutes(largeResult.fullGpu);
+            require(first.fullGpu.fineEffectiveMode!=4 ||
+                (first.fullGpu.fineSimd32Windows>0 && largeResult.fullGpu.fineFallbackWindows>0),
+                "Mode-4 fixtures did not exercise both SIMD32 and fallback windows");
         }
         Image mediumTemplate(96,64);
         for(int y=0;y<mediumTemplate.height();++y)for(int x=0;x<mediumTemplate.width();++x)mediumTemplate.row(y)[x]=uint8_t(rng());

@@ -260,16 +260,30 @@ inline void fg_fine_angle_moments_simd(device const uchar* source, device const 
     threadgroup_barrier(mem_flags::mem_threadgroup);
 }
 
+// Moment routine for one angle evaluation. The dispatch and its diagnostic
+// counters share this selection, so the counters report the executed route.
+constant uint FG_FINE_ROUTE_SIMD32 = 0;
+constant uint FG_FINE_ROUTE_REUSE = 1;
+constant uint FG_FINE_ROUTE_UINT32 = 2;
+constant uint FG_FINE_ROUTE_UINT64 = 3;
+inline uint fg_fine_moment_route(FGLevel level, uint path, uint mode)
+{
+    const bool narrow = mode >= 2 && fg_fine_narrow_moments(level);
+    if (mode == 4 && path == 0 && narrow) return FG_FINE_ROUTE_SIMD32;
+    if (mode == 3 && path == 0 && narrow) return FG_FINE_ROUTE_REUSE;
+    return narrow ? FG_FINE_ROUTE_UINT32 : FG_FINE_ROUTE_UINT64;
+}
+
 inline void fg_fine_angle_moments(device const uchar* source, device const uchar* templ,
     FGLevel level, float2 anchor, float c, float s, threadgroup uchar* roi,
     threadgroup ulong* partial, uint lane, uint path, uint mode)
 {
-    const bool narrow = mode >= 2 && fg_fine_narrow_moments(level);
-    if (mode == 4 && path == 0 && narrow)
+    const uint route = fg_fine_moment_route(level, path, mode);
+    if (route == FG_FINE_ROUTE_SIMD32)
         fg_fine_angle_moments_simd(source, templ, level, anchor, c, s, roi, partial, lane);
-    else if (mode == 3 && path == 0 && narrow)
+    else if (route == FG_FINE_ROUTE_REUSE)
         fg_fine_angle_moments_reuse(source, templ, level, anchor, c, s, roi, partial, lane);
-    else if (narrow)
+    else if (route == FG_FINE_ROUTE_UINT32)
         fg_fine_angle_moments_accum<uint>(source, templ, level, anchor, c, s, roi, partial, lane, path);
     else
         fg_fine_angle_moments_accum<ulong>(source, templ, level, anchor, c, s, roi, partial, lane, path);
@@ -281,6 +295,7 @@ inline void fg_fine_evaluate(device const uchar* source, device const uchar* tem
     uint lane, constant FGFineOptions& options, device FGFineCounters& counters)
 {
     const uint path = fg_fine_path(level, options.mode);
+    const uint route = fg_fine_moment_route(level, path, options.mode);
     if (lane == 0) state.best = 0xffffffffu;
     threadgroup_barrier(mem_flags::mem_threadgroup);
     for (uint a = 0; a < state.angleCount; ++a) {
@@ -290,6 +305,10 @@ inline void fg_fine_evaluate(device const uchar* source, device const uchar* tem
             if (path == 0) atomic_fetch_add_explicit(&counters.cachedAngles, 1u, memory_order_relaxed);
             else if (path == 1) atomic_fetch_add_explicit(&counters.directAngles, 1u, memory_order_relaxed);
             else atomic_fetch_add_explicit(&counters.tiledAngles, 1u, memory_order_relaxed);
+            if (options.mode == 4) {
+                if (route == FG_FINE_ROUTE_SIMD32) atomic_fetch_add_explicit(&counters.simd32Angles, 1u, memory_order_relaxed);
+                else atomic_fetch_add_explicit(&counters.fallbackAngles, 1u, memory_order_relaxed);
+            }
         }
         fg_fine_angle_moments(source, templ, level, state.anchor, c, s, roi, partial, lane, path, options.mode);
         if (lane < FG_FINE_WINDOWS) {

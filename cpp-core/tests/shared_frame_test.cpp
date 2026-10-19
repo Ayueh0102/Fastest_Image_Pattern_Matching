@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BSD-2-Clause
 #include "coarse_ncc.h"
 #include "fpm/matcher.hpp"
+#include "metal_device.hpp"
 #include <algorithm>
 #include <cstring>
 #include <iostream>
@@ -260,12 +261,9 @@ int main(int argc, char** argv)
         coarseOptimized = argc == 2 && std::string(argv[1]) == "--optimized";
         const bool fine = coarseOptimized || (argc == 2 && std::string(argv[1]) == "--fine");
         require(argc == 1 || metal || fine, "Usage: shared_frame_test [--metal|--fine|--optimized]");
+        if ((metal || fine) && !fpm_test::metalDeviceAvailable()) { std::cout << "SKIP: no Metal device\n"; return 77; }
         configurationErrors(); lifecycle(metal || fine, fine); templateLifetime(metal || fine, fine);
         std::cout << "Shared source lifecycle, refresh, model identity, exact matching and ABI errors passed\n";
         return 0;
-    } catch (const std::exception& error) {
-        const std::string text(error.what());
-        if (text.find("is unavailable") != std::string::npos) { std::cout << "SKIP: " << text << '\n'; return 77; }
-        std::cerr << text << '\n'; return 1;
-    }
+    } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }
 }

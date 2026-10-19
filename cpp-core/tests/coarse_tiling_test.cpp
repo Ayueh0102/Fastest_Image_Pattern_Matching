@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: BSD-2-Clause
 #include "coarse_internal.hpp"
+#include "metal_device.hpp"
 #include <algorithm>
 #include <cstring>
 #include <iostream>
@@ -283,16 +284,11 @@ void configuration()
 
 int main()
 {
+    if (!fpm_test::metalDeviceAvailable()) { std::cout << "SKIP: no Metal device\n"; return 77; }
     try {
         configuration(); mapsAndBatchBoundaries(); twoPendingSlots();
         chunkOffsetsAndAsyncFallback(); matchingOrder();
         std::cout << "Coarse tiling preserves exact maps, boundaries, chunk offsets, async ownership and full matching\n";
         return 0;
-    } catch (const std::exception& error) {
-        const std::string message = error.what();
-        if (message.find("is unavailable") != std::string::npos) {
-            std::cout << "SKIP: " << message << '\n'; return 77;
-        }
-        std::cerr << message << '\n'; return 1;
-    }
+    } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }
 }

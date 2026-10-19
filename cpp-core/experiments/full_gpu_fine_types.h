@@ -18,6 +18,7 @@
 // Mode 4 maps each cached window to a 32-thread SIMD group, reconstructing
 // the same four exact stripe moments. The host uses mode 2 when the fine
 // pipeline's SIMD width is not 32; noncached ROIs also follow mode 2.
+// Profiling counts which mode-4 angle evaluations took each of those routes.
 struct FGFineOptions {
     FG_FINE_UINT mode;
     FG_FINE_UINT diagnosticsEnabled;
@@ -29,11 +30,16 @@ struct FGFineOptions {
 // reevaluations + 2 finer resolutions) * 35 angles = 1260 angle evaluations
 // at one level. With the host's <= 2,000,000 candidate bound, each counter
 // remains <= 2,520,000,000, below UINT32_MAX.
+// In effective mode 4, each angle evaluation's 49 windows used either the
+// SIMD32 kernel or the mode-2 stripe loop (uncached ROI or uint64 moments);
+// both route counters stay zero in every other mode.
 struct FGFineCounters {
     FG_FINE_COUNTER reachedCandidates;
     FG_FINE_COUNTER cachedAngles;
     FG_FINE_COUNTER directAngles;
     FG_FINE_COUNTER tiledAngles;
+    FG_FINE_COUNTER simd32Angles;
+    FG_FINE_COUNTER fallbackAngles;
 };
 
 #undef FG_FINE_UINT

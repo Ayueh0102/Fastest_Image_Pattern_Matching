@@ -316,6 +316,59 @@ class GpuNccClosureHarness(unittest.TestCase):
                     gpu['fine_work'][0][category] = 6
                     self.assertEqual(bench.fine_work_record(row, True)[(0, 0)]['source_samples'], samples)
 
+    @staticmethod
+    def current_routes(method, row):
+        """Current runner: 24-byte level records with mode-4 route windows."""
+        gpu = row['full_gpu']
+        fallback = gpu['fine_effective_mode'] == 4  # The 181x134 level-0 ROI exceeds 16 KiB.
+        for level in gpu['fine_work']:
+            level.update(simd32_windows=0, fallback_windows=49*level['angles'] if fallback else 0)
+        profiled = gpu['fine_work_available']
+        gpu.update(fine_diagnostic_readback_bytes=24*len(gpu['fine_work']),
+                   fine_simd32_windows=0 if profiled else None,
+                   fine_fallback_windows=sum(level['fallback_windows'] for level in gpu['fine_work']) if profiled else None)
+
+    def test_current_route_records_and_legacy_records_validate(self):
+        for profile in (False, True):
+            for change in (None, self.current_routes):
+                with self.subTest(profile=profile, routes=change is not None), tempfile.TemporaryDirectory() as directory:
+                    root = Path(directory)
+                    self.assertTrue(bench.summarize(self.fixture(root, profile=profile, change=change), root)['all_gpu_resident'])
+
+    def test_route_windows_follow_cache_and_uint32_rule(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            manifest = self.fixture(root, profile=True, methods=['full_gpu_simd'], change=self.current_routes)
+            row = json.loads((root/manifest['executions'][0]['result']).read_text())['first']
+        self.assertEqual(bench.fine_work_record(row, True)[(0, 0)]['fallback_windows'], 294)
+        cached = copy.deepcopy(row)
+        cached['full_gpu']['fine_work'][0].update(template_width=87, template_height=64, cached_angles=6, tiled_angles=0,
+                                                  tile_loads=0, source_samples=6*93*70, simd32_windows=294, fallback_windows=0)
+        cached['full_gpu'].update(fine_simd32_windows=294, fine_fallback_windows=0)
+        self.assertEqual(bench.fine_work_record(cached, True)[(0, 0)]['simd32_windows'], 294)
+        unprofiled = copy.deepcopy(row)
+        unprofiled['full_gpu'].update(fine_work_available=False, fine_work=[], fine_diagnostic_readback_bytes=0,
+                                      fine_simd32_windows=None, fine_fallback_windows=None)
+        self.assertIsNone(bench.fine_work_record(unprofiled, False))
+        mutations = [
+            (row, True, lambda gpu: gpu['fine_work'][0].update(simd32_windows=294, fallback_windows=0)),
+            (row, True, lambda gpu: gpu['fine_work'][0].update(fallback_windows=245)),
+            (row, True, lambda gpu: gpu['fine_work'][0].update(fallback_windows=294.)),
+            (row, True, lambda gpu: gpu.update(fine_fallback_windows=293)),
+            (row, True, lambda gpu: gpu.update(fine_diagnostic_readback_bytes=32)),
+            (row, True, lambda gpu: gpu['fine_work'][1].pop('simd32_windows')),
+            (row, True, lambda gpu: gpu.pop('fine_simd32_windows')),
+            (row, True, lambda gpu: gpu.update(fine_mode=2, fine_effective_mode=2)),
+            (cached, True, lambda gpu: gpu['fine_work'][0].update(simd32_windows=0, fallback_windows=294)),
+            (unprofiled, False, lambda gpu: gpu.update(fine_simd32_windows=0)),
+        ]
+        for index, (source, requested, mutate) in enumerate(mutations):
+            with self.subTest(index=index):
+                changed = copy.deepcopy(source)
+                mutate(changed['full_gpu'])
+                with self.assertRaises(ValueError):
+                    bench.fine_work_record(changed, requested)
+
     def test_unavailable_timestamps_do_not_erase_diagnostics(self):
         def change(method, row):
             row['full_gpu'].update(profile_available=False, profile_status='unsupported', stages=[], profile_gpu_ms=None,

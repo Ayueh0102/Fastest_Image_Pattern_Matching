@@ -21,7 +21,7 @@ struct ProbeConfig {
     float anchorX,anchorY,angle,threshold;
     uint32_t mode,reserved[3];
 };
-static_assert(sizeof(ProbeConfig)==32 && sizeof(FGFineOptions)==8 && sizeof(FGFineCounters)==16);
+static_assert(sizeof(ProbeConfig)==32 && sizeof(FGFineOptions)==8 && sizeof(FGFineCounters)==24);
 // Independent copy of Stage 38's original moment loops. It intentionally does
 // not call the production path selector or new moment helper. Thus mode 0's
 // refactoring is checked as well as modes 1/2, down to each lane's integer

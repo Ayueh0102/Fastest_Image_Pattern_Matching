@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BSD-2-Clause
 #include "coarse_ncc.h"
 #include "internal.hpp"
+#include "metal_device.hpp"
 #include <algorithm>
 #include <cstring>
 #include <iostream>
@@ -142,10 +143,7 @@ void fullMatches() {
 }
 int main() {
     static_assert(sizeof(FpmCoarseMetrics) == 160, "coarse metrics ABI changed");
+    if (!fpm_test::metalDeviceAvailable()) { std::cout << "SKIP: no Metal device\n"; return 77; }
     try { maps(); fullMatches(); std::cout << "Metal coarse NCC exact maps / matches passed\n"; return 0; }
-    catch (const std::exception& e) {
-        const std::string text = e.what();
-        if (text.find("is unavailable") != std::string::npos) { std::cout << text << '\n'; return 77; }
-        std::cerr << text << '\n'; return 1;
-    }
+    catch (const std::exception& e) { std::cerr << e.what() << '\n'; return 1; }
 }

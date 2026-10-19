@@ -1,7 +1,9 @@
 """Stage 40: exact NCC variants, screening, and phase-closure benchmarks.
 
 Stage-37/38/39 helpers and validators remain unmodified. New-mode fine-work
-validation is local, including exact source-sampler formulas. Every measured
+validation is local, including exact source-sampler formulas; since
+2026-10-19 it also checks the runner's 24-byte mode-4 route records, which the
+earlier-stage validators (16 bytes per level) reject. Every measured
 and first call is checked against independent truth; every GPU candidate is
 checked against complete ordered baseline matches AND proposals. Pilots are
 explicitly labelled and cannot support adoption. Profile timings are separate.
@@ -51,6 +53,11 @@ def job(case, method, repeats, warmup, profile=False):
 FINE_COUNT_FIELDS = ('reached_candidates', 'angles', 'cached_angles', 'direct_angles',
                      'tiled_angles', 'source_samples', 'tile_loads')
 FINE_GEOMETRY_FIELDS = ('template_width', 'template_height', 'roi_cache_bytes')
+# Since 2026-10-19 the runner also reports which mode-4 windows used the SIMD32
+# kernel or its mode-2 fallback; each level record is then 24 diagnostic bytes.
+# Archived records carry none of these fields and are validated as before.
+FINE_ROUTE_FIELDS = ('simd32_windows', 'fallback_windows')
+FINE_ROUTE_TOTALS = ('fine_simd32_windows', 'fine_fallback_windows')
 
 
 def fine_work_record(record, requested):
@@ -76,17 +83,26 @@ def fine_work_record(record, requested):
     rows = metrics.get('fine_work')
     if not isinstance(rows, list):
         raise ValueError('Missing fine_work array')
+    routes = any(field in metrics for field in FINE_ROUTE_TOTALS)
+    if routes and not all(field in metrics for field in FINE_ROUTE_TOTALS):
+        raise ValueError('Partial fine route totals')
     if not requested:
         if rows or metrics['fine_diagnostic_readback_bytes']:
             raise ValueError('Disabled fine diagnostics contain work or current payload')
+        if routes and any(metrics[field] is not None for field in FINE_ROUTE_TOTALS):
+            raise ValueError('Disabled fine diagnostics report route windows')
         return None
-    if metrics['fine_diagnostic_readback_bytes'] != 16*len(rows):
+    if metrics['fine_diagnostic_readback_bytes'] != (24 if routes else 16)*len(rows):
         raise ValueError('Fine diagnostic payload differs from level coverage')
+    for field in FINE_ROUTE_TOTALS if routes else ():
+        integer(metrics[field], field)
     result = {}
     for row in rows:
         if not isinstance(row, dict):
             raise ValueError('Invalid fine-work row')
-        for field in ('model', 'layer', *FINE_GEOMETRY_FIELDS, *FINE_COUNT_FIELDS):
+        if not routes and any(field in row for field in FINE_ROUTE_FIELDS):
+            raise ValueError('Fine route windows without call totals')
+        for field in ('model', 'layer', *FINE_GEOMETRY_FIELDS, *FINE_COUNT_FIELDS, *(FINE_ROUTE_FIELDS if routes else ())):
             integer(row.get(field), 'fine_work.'+field)
         if any(row[field] == 0 for field in FINE_GEOMETRY_FIELDS):
             raise ValueError('Empty fine-search geometry')
@@ -121,7 +137,17 @@ def fine_work_record(record, requested):
                             (width+6)*(height*row['tiled_angles']+6*row['tile_loads']))
         if row['source_samples'] != expected_samples:
             raise ValueError('Fine sampler-call count differs from executed categories')
+        if routes:
+            # SIMD32 needs a cached ROI and uint32-safe four-lane stripes.
+            simd = effective == 4 and cache_fits and (width*height+3)//4 <= 66051
+            windows = 49*row['angles']
+            expected = (windows, 0) if simd else (0, windows if effective == 4 else 0)
+            if (row['simd32_windows'], row['fallback_windows']) != expected:
+                raise ValueError('Fine SIMD32/fallback windows differ from the cache and uint32 route rule')
         result[key] = row
+    if routes and tuple(metrics[field] for field in FINE_ROUTE_TOTALS) != tuple(
+            sum(row[field] for row in rows) for field in FINE_ROUTE_FIELDS):
+        raise ValueError('Fine route totals differ from levels')
     return result
 
 

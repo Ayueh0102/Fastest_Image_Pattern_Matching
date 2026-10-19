@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BSD-2-Clause
 #include "coarse_ncc.h"
 #include "fpm/matcher.hpp"
+#include "metal_device.hpp"
 #include <algorithm>
 #include <cmath>
 #include <cstring>
@@ -192,12 +193,9 @@ int main(int argc, char** argv)
     try {
         const bool metal = argc == 2 && std::string(argv[1]) == "--metal";
         require(argc == 1 || metal, "Usage: coarse_profile_test [--metal]");
+        if (metal && !fpm_test::metalDeviceAvailable()) { std::cout << "SKIP: no Metal device\n"; return 77; }
         tests(metal ? 1 : 0);
         std::cout << "Coarse profiling preserves outputs, exclusive stages, byte/count semantics and capacity behavior\n";
         return 0;
-    } catch (const std::exception& error) {
-        const std::string text(error.what());
-        if (text.find("is unavailable") != std::string::npos) { std::cout << "SKIP: " << text << '\n'; return 77; }
-        std::cerr << text << '\n'; return 1;
-    }
+    } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }
 }

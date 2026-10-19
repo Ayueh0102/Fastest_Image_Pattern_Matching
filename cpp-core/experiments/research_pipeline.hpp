@@ -56,17 +56,24 @@ struct FullGpuFineWork {
     uint32_t model = 0, layer = 0, templateWidth = 0, templateHeight = 0, roiCacheBytes = 0;
     uint64_t reachedCandidates = 0, angles = 0, cachedAngles = 0, directAngles = 0, tiledAngles = 0;
     uint64_t sourceSamples = 0, tileLoads = 0; // Exact sampler-call counts derived from measured angle counts, not memory traffic.
+    // Effective mode 4 only: windows (49 per angle) scored by the SIMD32 kernel or by its mode-2 fallback.
+    uint64_t simd32Windows = 0, fallbackWindows = 0;
 };
 struct FullGpuMetrics {
     bool enabled = false;
     int peakMode = 0;
     int fineMode = 0;
-    int fineEffectiveMode = 0;
+    int fineEffectiveMode = 0; // Kernel option after the SIMD-width check; per-window routes are below.
     uint32_t fineSimdWidth = 0;
     bool fineWorkAvailable = false;
     uint64_t fineDiagnosticBytes = 0, fineDiagnosticReadbackBytes = 0, fineThreadgroupBytes = 0;
     std::vector<FullGpuFineWork> fineWork;
+    uint64_t fineSimd32Windows = 0, fineFallbackWindows = 0; // Sums of fineWork; profiling runs only.
     uint64_t peakScratchBytes = 0;
+    // Counted where run() submits, waits and reads GPU output: submitted command
+    // buffers, host completion waits, GPU-output reads followed by another
+    // submission, and those later submissions (host decisions between GPU
+    // stages). Host work after the final wait is outside the last two counters.
     uint64_t commandBuffers = 0, cpuWaits = 0, intermediateReadbacks = 0, cpuAlgorithmSteps = 0;
     uint64_t gpuBytes = 0, uploadBytes = 0, readbackBytes = 0, dispatches = 0, fineRoiCacheBytes = 0;
     double encodeMs = 0, waitMs = 0, deviceMs = 0, uploadMs = 0, readbackMs = 0;

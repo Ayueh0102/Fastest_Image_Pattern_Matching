@@ -38,7 +38,7 @@ struct Coarse {
 };
 struct StatsConfig {uint32_t sw,tw,th,width;uint64_t first;uint32_t count,reserved;};
 static_assert(sizeof(FGCandidate)==48 && sizeof(FGFineConfig)==64 && sizeof(FGResult)==64 && sizeof(Coarse)==96 && sizeof(StatsConfig)==32,"Full GPU ABI");
-static_assert(sizeof(FGFineOptions)==8 && sizeof(FGFineCounters)==16,"Fine mode/counter ABI");
+static_assert(sizeof(FGFineOptions)==8 && sizeof(FGFineCounters)==24,"Fine mode/counter ABI");
 std::runtime_error failure(const char* what,NSError* error) {
     return std::runtime_error(std::string(what)+(error?std::string(": ")+[[error localizedDescription] UTF8String]:""));
 }
@@ -71,6 +71,12 @@ class MetalFull final:public FullGpuPipeline {
     std::map<std::string,id<MTLComputePipelineState>> pipelines_;
     std::map<std::string,id<MTLBuffer>> buffers_;
     FullGpuMetrics metrics_{};
+    // Residency counters are derived at the only submission/wait and GPU-output
+    // read sites below (submitAndWait, hostRead). Reads followed by another
+    // submission are intermediate readbacks; each such submission is a host
+    // decision point between GPU stages (cpuAlgorithmSteps). The residency test
+    // intercepts the Metal methods themselves and compares them with these.
+    uint64_t hostReadsSinceSubmission_=0;
     uint32_t fineRoiCacheBytes_=16384;
     // Stage-boundary timestamps preserve the original encoder ordering and the
     // sole command-buffer completion wait. Counter storage is opaque to Metal:
@@ -134,6 +140,7 @@ class MetalFull final:public FullGpuPipeline {
                 // reusing that result could hide stale samples on later calls.
                 // This shared counter storage and transient NSData are purely
                 // diagnostic; algorithm intermediates remain GPU-private.
+                ++hostReadsSinceSubmission_; // GPU-written samples, like hostRead().
                 NSData* resolved=[profileCounters_[first/profileSamplesPerBuffer] resolveCounterRange:NSMakeRange(0,count)];
                 if(!resolved || resolved.length!=count*sizeof(MTLCounterResultTimestamp)) {
                     metrics_.profileStatus="counter_resolution_failed";valid=false;break;
@@ -226,6 +233,14 @@ class MetalFull final:public FullGpuPipeline {
         auto e=blit(command);
         [e copyFromBuffer:src sourceOffset:from toBuffer:dst destinationOffset:to size:bytes];[e endEncoding];
     }
+    void submitAndWait(id<MTLCommandBuffer> command) {
+        if(hostReadsSinceSubmission_) {
+            metrics_.intermediateReadbacks+=hostReadsSinceSubmission_;++metrics_.cpuAlgorithmSteps;hostReadsSinceSubmission_=0;
+        }
+        [command commit];++metrics_.commandBuffers;[command waitUntilCompleted];++metrics_.cpuWaits;
+    }
+    // Host view of GPU-written memory, valid only after its producer completed.
+    const void* hostRead(id<MTLBuffer> buffer) {++hostReadsSinceSubmission_;return buffer.contents;}
     Plan plan(const Options& o) {
         Plan p;uint32_t maxTop=0;
         const uint64_t side=uint64_t(std::sqrt(double(settings_.minReducedArea)));
@@ -313,7 +328,7 @@ public:
     void updateSource(ImageView source) override {Image replacement(source);source_=std::move(replacement);}
     Result run(const Options& o) override {
       @autoreleasepool {
-        const auto started=Clock::now();metrics_={};metrics_.enabled=true;metrics_.fineRoiCacheBytes=fineRoiCacheBytes_;metrics_.peakMode=o.fullGpuPeakMode;
+        const auto started=Clock::now();metrics_={};hostReadsSinceSubmission_=0;metrics_.enabled=true;metrics_.fineRoiCacheBytes=fineRoiCacheBytes_;metrics_.peakMode=o.fullGpuPeakMode;
         metrics_.fineMode=o.fullGpuFineMode;metrics_.fineThreadgroupBytes=pipeline("fg_fine_search").staticThreadgroupMemoryLength;
         metrics_.fineSimdWidth=uint32_t(pipeline("fg_fine_search").threadExecutionWidth);
         metrics_.fineEffectiveMode=o.fullGpuFineMode==4 && metrics_.fineSimdWidth!=32 ? 2 : o.fullGpuFineMode;
@@ -461,13 +476,13 @@ public:
             const auto begin=Clock::now();[device_ sampleTimestamps:&profileCpuStart_ gpuTimestamp:&profileGpuStart_];
             metrics_.profileHostMs+=elapsed(begin);
         }
-        const auto wait=Clock::now();[command commit];++metrics_.commandBuffers;[command waitUntilCompleted];++metrics_.cpuWaits;metrics_.waitMs=elapsed(wait);
+        const auto wait=Clock::now();submitAndWait(command);metrics_.waitMs=elapsed(wait);
         if(command.status!=MTLCommandBufferStatusCompleted)throw failure("Complete GPU execution",command.error);
         metrics_.deviceMs=command.GPUStartTime>0 && command.GPUEndTime>=command.GPUStartTime ? 1000*(command.GPUEndTime-command.GPUStartTime):-1;
         collectProfile();
         if(o.fullGpuProfiling) {
             const auto diagnosticStart=Clock::now();
-            const auto* counters=static_cast<const FGFineCounters*>(fineWorkReadback.contents);
+            const auto* counters=static_cast<const FGFineCounters*>(hostRead(fineWorkReadback));
             metrics_.fineWorkAvailable=true;metrics_.fineDiagnosticReadbackBytes=fineWorkBytes;
             for(size_t model=0;model<p.models.size();++model)for(uint32_t layer=0;layer<=p.models[model].top;++layer) {
                 const size_t index=p.models[model].levelBase+layer;
@@ -476,6 +491,11 @@ public:
                 w.roiCacheBytes=fineRoiCacheBytes_;w.reachedCandidates=c.reachedCandidates;
                 w.cachedAngles=c.cachedAngles;w.directAngles=c.directAngles;w.tiledAngles=c.tiledAngles;
                 w.angles=w.cachedAngles+w.directAngles+w.tiledAngles;
+                // Every angle evaluation scores all 7x7 windows through one moment route.
+                if(uint64_t(c.simd32Angles)+c.fallbackAngles!=(metrics_.fineEffectiveMode==4?w.angles:0))
+                    throw std::runtime_error("Fine work counters report an inconsistent mode-4 route split");
+                w.simd32Windows=49*uint64_t(c.simd32Angles);w.fallbackWindows=49*uint64_t(c.fallbackAngles);
+                metrics_.fineSimd32Windows+=w.simd32Windows;metrics_.fineFallbackWindows+=w.fallbackWindows;
                 const uint64_t roiWidth=uint64_t(level.tw)+6,roiHeight=uint64_t(level.th)+6;
                 const uint64_t rows=fineRoiCacheBytes_/roiWidth;
                 const uint64_t tileRows=rows>6?std::min<uint64_t>(16,rows-6):0;
@@ -492,7 +512,7 @@ public:
             }
             metrics_.profileHostMs+=elapsed(diagnosticStart);
         }
-        const auto read=Clock::now();const auto* bytes=static_cast<const uint8_t*>(readback.contents);FGStatus resultStatus{};std::memcpy(&resultStatus,bytes,sizeof(resultStatus));
+        const auto read=Clock::now();const auto* bytes=static_cast<const uint8_t*>(hostRead(readback));FGStatus resultStatus{};std::memcpy(&resultStatus,bytes,sizeof(resultStatus));
         if(resultStatus.overflow || resultStatus.proposals>p.capacity || resultStatus.matches>uint32_t(o.match.maxTargets))throw std::runtime_error("Full GPU overflow/capacity flag: "+std::to_string(resultStatus.overflow));
         Result r;
         auto collect=[&](size_t offset,uint32_t count,std::vector<Match>& output,std::vector<double>& scales){
