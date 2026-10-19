@@ -58,3 +58,6 @@ Include/
 !/cpp-core/README_zh-TW.md
 !/cpp-core/docs/*.md
 !/docs/PROJECT_GUIDE_zh-TW.md
+
+# Claude Code project guidance
+!/CLAUDE.md
