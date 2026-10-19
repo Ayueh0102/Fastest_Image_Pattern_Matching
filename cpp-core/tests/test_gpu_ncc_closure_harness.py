@@ -179,6 +179,23 @@ class GpuNccClosureHarness(unittest.TestCase):
                 self.assertIn(expected_gate, [row['gate'] for row in summary['failed_gates']])
                 self.assertFalse(summary['candidates']['full_gpu_u32']['comparisons'][bench.BASELINE]['all_observed_gates_pass'])
 
+    def test_one_extra_false_positive_fails_ground_truth(self):
+        # Every truth object stays matched; one extra prediction alone must fail the GT gate.
+        extras = {'far_from_truth': dict(pos_x=150., pos_y=20., angle=0., scale=1., score=.9),
+                  'duplicate_of_truth': dict(pos_x=50., pos_y=50., angle=0., scale=1., score=.9)}
+        for label, extra in extras.items():
+            for call in ('first', 'measured'):
+                with self.subTest(extra=label, call=call), tempfile.TemporaryDirectory() as directory:
+                    root = Path(directory)
+                    manifest = self.fixture(root)
+                    def mutate(worker):
+                        (worker['first'] if call == 'first' else worker['runs'][-1])['matches'].append(copy.deepcopy(extra))
+                    self.revise(root, manifest, 'full_gpu_u32', 'result', mutate)
+                    summary = bench.summarize(manifest, root)
+                    self.assertFalse(summary['all_accuracy_pass'])
+                    self.assertIn(dict(case='one', method='full_gpu_u32', gate='independent_ground_truth'), summary['failed_gates'])
+                    self.assertFalse(summary['candidates']['full_gpu_u32']['comparisons'][bench.BASELINE]['all_observed_gates_pass'])
+
     def test_primary_gate_is_not_vacuously_true_for_missing_or_single_primary_case(self):
         for names in [['holdout_case'], ['many128_pose']]:
             with self.subTest(names=names), tempfile.TemporaryDirectory() as directory:
