@@ -22,6 +22,15 @@ class ManyObjectAccuracyTest(unittest.TestCase):
         self.assertEqual(result['localization']['pairs'][0]['prediction_index'], 0)
         self.assertEqual(result['strict']['unmatched_prediction_indices'], [0])
 
+    def test_each_extra_prediction_is_one_false_positive(self):
+        truths = [pose(), pose(x=100)]
+        for label, extra in (('far_from_truth', pose(x=50, y=50)), ('duplicate_of_truth', pose(x=.5))):
+            with self.subTest(extra=label):
+                result = evaluate([pose(), pose(x=100), extra], truths)
+                for metric in ('strict', 'localization'):
+                    self.assertEqual(tuple(result[metric][key] for key in ('tp', 'fp', 'fn')), (2, 1, 0))
+                self.assertEqual(result['strict']['unmatched_prediction_indices'], [2])
+
     def test_augmenting_path_recovers_both_and_order_invariance(self):
         truths = [pose(), pose(x=3)]
         # The first truth prefers prediction 0, but it is truth 1's only edge.

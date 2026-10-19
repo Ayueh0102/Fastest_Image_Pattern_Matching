@@ -257,6 +257,23 @@ class NewFrameCostHarness(unittest.TestCase):
                 self.assertIn('independent_ground_truth', self.gates(summary))
                 self.assertFalse(summary['all_accuracy_pass'])
 
+    def test_one_extra_false_positive_fails_ground_truth(self):
+        # Every truth object stays matched; one extra prediction alone must fail the GT gate.
+        extras = {'far_from_truth': dict(pos_x=150., pos_y=20., angle=0., scale=1., score=.9),
+                  'duplicate_of_truth': dict(POSES[0], score=.9)}
+        targets = [(FRAMES[HYBRID], lambda worker: worker['runs'][-1]),
+                   (FRAMES[GPU], lambda worker: worker['runs'][0]),
+                   (STATIC[GPU], lambda worker: worker['first'])]
+        for label, extra in extras.items():
+            for target, call in targets:
+                def change(name, arm, block, worker):
+                    if arm == target and block == 2:
+                        call(worker)['matches'].append(copy.deepcopy(extra))
+                with self.subTest(extra=label, arm=target):
+                    summary = self.summary(change=change)
+                    self.assertIn('independent_ground_truth', self.gates(summary))
+                    self.assertFalse(summary['all_accuracy_pass'])
+
     def test_output_parity_with_static_control_is_separate_from_gt(self):
         def change(name, arm, block, worker):
             if arm == FRAMES[GPU]:
