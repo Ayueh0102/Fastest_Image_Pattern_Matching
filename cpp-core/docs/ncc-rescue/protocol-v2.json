@@ -1,0 +1,34 @@
+{
+  "version": 2,
+  "purpose": "Preserve the original formal failure while correcting caller threshold semantics and separating wrapper overhead from process-to-process timing variation.",
+  "original_protocol": "protocol.json",
+  "original_results_are_retained": true,
+  "algorithm_policy_unchanged": true,
+  "integration": {
+    "full_pipeline_trigger": "min(frozen rescue trigger_score, actual case minimum detection score)",
+    "reason": "A match already accepted by the caller's threshold does not need low-score rescue.",
+    "no_truth_used": true,
+    "cases": ["controlled_scale", "held_out_scale", "src7"],
+    "methods": ["old_cpu", "old_resident_verified", "rescue_cpu", "rescue_resident_verified"],
+    "repeats": 9,
+    "warmup_ms": 1000,
+    "fresh_process_per_variant": true
+  },
+  "paired_diagnostic": {
+    "selection": "All original formal easy-case overhead failures with zero retry parents; selected using the already saved report, never geometric truth.",
+    "variants": ["old_baseline", "new_baseline", "new_rescue"],
+    "same_process_per_case_and_backend": true,
+    "rounds": 9,
+    "schedule": "Each round contains old_baseline/rescue/rescue/old_baseline and new_baseline/rescue/rescue/new_baseline. Reverse each ABBA on odd rounds and alternate which pair runs first.",
+    "warmup_ms_per_variant": 1000,
+    "metrics": ["outer wall", "C API wall", "rescue nested baseline_ms", "rescue retry_ms", "C API wall minus nested baseline_ms", "owned buffers per handle", "overall process peak RSS"],
+    "memory_limit": "Three live contexts share one process. Its peak RSS is not comparable to single-handle fresh-process RSS; owned buffers are reported separately."
+  },
+  "acceptance": {
+    "all_outputs": "Exact frozen CPU scores, original seed bounds, monotonic score, unchanged precision gates, bounded work; no retry parents in paired diagnostic.",
+    "src7": "Every first/repeated result must match frozen same-backend detections uniquely within 2px/1degree/2%; agreement is not ground truth.",
+    "full_pipeline_overhead": "Warm median increase <= max(10% of matching baseline, 2ms).",
+    "paired_no_retry_overhead": "Median ABBA-paired increase <= max(10% of paired baseline, 0.5ms); report both frozen and same-binary baseline comparisons separately.",
+    "interpretation": "This follow-up cannot rewrite the original formal failure. No claim of universal speedup or global NCC optimality."
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "baseline_commit": "2c28ffbde86d3ef9840cb00c2d15268b5cf72624",
+  "status": "Formal protocol frozen after pilot and 128/512 tuning; report.json records the measured outcome",
+  "methods": [
+    "frozen_cpu",
+    "previous_combined",
+    "current_unshared",
+    "shared_cpu_fine",
+    "shared_metal_fine"
+  ],
+  "fine_batch_size": {
+    "default": 128,
+    "allowed_range": [
+      1,
+      1024
+    ],
+    "tuning_candidates": [
+      128,
+      512
+    ],
+    "policy": "Select through --fine-batch-size before the run, record in report and every job; shared CPU fine always uses zero. Default remains 128 pending measured tuning."
+  },
+  "previous_combined": "Frozen direct Metal pyramid, four-angle coarse NCC batches, CPU fine search",
+  "prepare_boundary": "Every timed full pipeline call explicitly prepares a fresh source frame once, including warmups and repeated source pointer/dimensions. All scales then consume that immutable prepared frame. Preparation is never moved outside the timer or reused across calls.",
+  "shared_patterns": "CPU-only template handles share one Metal frame/backend. No per-scale Metal contexts are created. Per-model returned metrics references are retained immediately. The wrapper converts returned structs into dictionaries within the timed call; separate diagnostic getters, deep copies and report serialization happen after timing.",
+  "timing": "Fresh worker process for each method/case/block, serial execution, forward and reverse method order, five measured repetitions after at least one second warmup. Record construction and first call separately. Frame prepare is already inside proposal/total wall. GPU device/wait/copy diagnostics are nested and must not be added again.",
+  "scope": "Real Src7/controlled6/heldout12 share the same current resident rescue and min-score bounded rescue policy. Large 8K cases use core-only cross-scale NMS; include t256/t512 angle0, t256 full180 search and t256 angle0/full180 three-scale reuse. Small 512x640 cases exercise stop_layer0/subpixel1 at one and three scales.",
+  "accuracy": "Every ordered proposal, final match, refined pose and score must equal frozen CPU exactly. First/measured calls checked directly; warmups use identical output digest. GT evaluated only after time/RSS with zero FP/FN and <=2px/1degree/2% relative scale. Src7 only supports agreement. 8K/small fixtures contain upright planted copies; real rotated/scaled GT is tested separately.",
+  "performance": "Each matching order block whole-pipeline warm median must be <= reference+max(10% of reference,2ms). Compare frozen CPU, previous combined, current unshared and shared CPU fine separately. Correctness passing does not imply speed improvement. Include failure cases and outliers.",
+  "memory": "Process peak RSS includes Python/images/driver; retained buffers overlap RSS. Count the shared frame host/coarse-GPU/fine-GPU capacity once, never sum the same shared backend capacity across model snapshots. Save per-model diagnostics as breakdowns. Warmups retain compact digests/time/errors rather than complete result arrays.",
+  "provenance": "Strict baseline commit and three-library SHA manifest; source/current libraries/input SHA before and after. Save every job and worker result with SHA. Pure-data summary supports relocated archives with authoritative worker-root override.",
+  "limits": "Default GUI/core behavior is unchanged. CPU control, stopping and NMS may remain host-side. No claims of whole pipeline GPU residency, RGB speed, arbitrary-image global optimality or improved accuracy from an exact-output performance change.",
+  "formal_fine_batch_size": 512,
+  "tuning_decision": "Pilot preserved serial-window NCC; SIMD reduction tuning compared map caps 128 and 512 on controlled6, small_fullres and 8k_t256_angle180_3scales. Chose explicit 512 for formal runs to reduce candidate-group waits; API default fine remains disabled and CLI default stays 128. No per-case switching or CPU fallback."
+}

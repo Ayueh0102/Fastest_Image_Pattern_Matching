@@ -1,0 +1,24 @@
+{
+  "complete": true,
+  "integrity_passed": true,
+  "detection_all_passed": true,
+  "worker_count": 6,
+  "first_calls": 6,
+  "measured_calls": 30,
+  "warmup_calls": 6,
+  "all_sources_libraries_inputs_hashes_valid": true,
+  "all_jobs_workers_hashes_valid": true,
+  "all_measured_frame_capacities_equal_first": true,
+  "warmup_digests_match_first": true,
+  "formal_workers_have_no_truth": true,
+  "archive_files": 95,
+  "archive_sha256": "82f751862655d8d6af0f6a923290d96e1217d630dc3f110d50cfd0eb27997904",
+  "archive_bytes": 13188684,
+  "manifest_sha256": "261204e9c66bcfafd00b47c13e4bc76a2eba1a08abce003173f27771a61e7910",
+  "replayed_summary_sha256": "ef0454b5a5680011eab7b71de3c062c2fd387cc596efb1f96cf8db880b3798ac",
+  "relocated_replay_byte_identical": true,
+  "user_facing_files": {
+    "results.json": "b343cf0abcdff532a97cf49b4927024450fed9c547454481c7308ad4614bb2f9"
+  },
+  "performance_all_passed": true
+}

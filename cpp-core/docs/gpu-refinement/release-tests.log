@@ -1,0 +1,128 @@
+Start testing: Oct 12 17:24 CST
+----------------------------------------------------------
+1/6 Testing: portable_core
+1/6 Test: portable_core
+Command: "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/fourier-gpu/fpm_core_test"
+Directory: /Users/Ayueh/Fastest_Image_Pattern_Matching/build/fourier-gpu
+"portable_core" start time: Oct 12 17:24 CST
+Output:
+----------------------------------------------------------
+PASS image/pyramid
+PASS NCC/reference/stride
+PASS NCC/conservative-pruning
+PASS SIMD/overflow/tails
+PASS peaks/BlockMax
+PASS geometry/NMS
+six-copy area 64, subpixel 0: max position error 0.623613, max angle error 0.981055, minimum score 0.99245
+six-copy area 64, subpixel 1: max position error 0.126007, max angle error 1.12952, minimum score 0.999078
+six-copy area 256, subpixel 0: max position error 0.564933, max angle error 2.10171, minimum score 0.994269
+six-copy area 256, subpixel 1: max position error 0.00501178, max angle error 0.0216751, minimum score 0.999881
+six-copy area 1024, subpixel 0: max position error 0.468067, max angle error 1.23496, minimum score 0.995719
+six-copy area 1024, subpixel 1: max position error 0.00490835, max angle error 0.0188608, minimum score 0.99988
+PASS match/six-rotated-copies
+PASS subpixel/fits
+PASS match/validation/invert
+PASS rotation/ranges/layer0
+fractional pose 0: integer error 0.5, refined error 0.0021523, angle -0
+fractional pose 21.3: integer error 0.260298, refined error 0.0024494, angle 21.3033
+PASS subpixel/known-fractional-pose
+<end of output>
+Test time =   0.46 sec
+----------------------------------------------------------
+Test Passed.
+"portable_core" end time: Oct 12 17:24 CST
+"portable_core" time elapsed: 00:00:00
+----------------------------------------------------------
+
+2/6 Testing: c_abi
+2/6 Test: c_abi
+Command: "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/fourier-gpu/fpm_c_api_test"
+Directory: /Users/Ayueh/Fastest_Image_Pattern_Matching/build/fourier-gpu
+"c_abi" start time: Oct 12 17:24 CST
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"c_abi" end time: Oct 12 17:24 CST
+"c_abi" time elapsed: 00:00:00
+----------------------------------------------------------
+
+3/6 Testing: opencv_stage_comparison
+3/6 Test: opencv_stage_comparison
+Command: "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/fourier-gpu/fpm_opencv_test"
+Directory: /Users/Ayueh/Fastest_Image_Pattern_Matching/build/fourier-gpu
+"opencv_stage_comparison" start time: Oct 12 17:24 CST
+Output:
+----------------------------------------------------------
+pyrDown exact; maximum NCC error = 1.32142e-06
+rotation canvas/ROI: maximum gray error = 5, largest mean = 0.932534
+<end of output>
+Test time =   0.14 sec
+----------------------------------------------------------
+Test Passed.
+"opencv_stage_comparison" end time: Oct 12 17:24 CST
+"opencv_stage_comparison" time elapsed: 00:00:00
+----------------------------------------------------------
+
+4/6 Testing: gui_workflow
+4/6 Test: gui_workflow
+Command: "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/fourier-gpu/fpm_gui_test"
+Directory: /Users/Ayueh/Fastest_Image_Pattern_Matching/build/fourier-gpu
+"gui_workflow" start time: Oct 12 17:24 CST
+Output:
+----------------------------------------------------------
+********* Start testing of GuiTest *********
+Config: Using QtTest library 6.10.2, Qt 6.10.2 (arm64-little_endian-lp64 shared (dynamic) release build; by Apple LLVM 17.0.0 (clang-1700.6.3.2)), macos 26.6.2
+PASS   : GuiTest::initTestCase()
+QWARN  : GuiTest::rotorRotationAndOverlap() qt.qpa.fonts: Populating font family aliases took 63 ms. Replace uses of missing font family "Sans Serif" with one that exists to avoid this cost.
+PASS   : GuiTest::rotorRotationAndOverlap()
+QWARN  : GuiTest::workflow() This plugin does not support propagateSizeHints()
+QWARN  : GuiTest::workflow() This plugin does not support propagateSizeHints()
+PASS   : GuiTest::workflow()
+PASS   : GuiTest::cleanupTestCase()
+Totals: 4 passed, 0 failed, 0 skipped, 0 blacklisted, 5518ms
+********* Finished testing of GuiTest *********
+<end of output>
+Test time =   5.62 sec
+----------------------------------------------------------
+Test Passed.
+"gui_workflow" end time: Oct 12 17:24 CST
+"gui_workflow" time elapsed: 00:00:05
+----------------------------------------------------------
+
+5/6 Testing: experimental_pose_cpu
+5/6 Test: experimental_pose_cpu
+Command: "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/fourier-gpu/experiments/fpm_pose_test"
+Directory: /Users/Ayueh/Fastest_Image_Pattern_Matching/build/fourier-gpu/experiments
+"experimental_pose_cpu" start time: Oct 12 17:24 CST
+Output:
+----------------------------------------------------------
+Experimental pose ABI, lifetime, NCC identity and continuous RGB/gray refinement passed
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"experimental_pose_cpu" end time: Oct 12 17:24 CST
+"experimental_pose_cpu" time elapsed: 00:00:00
+----------------------------------------------------------
+
+6/6 Testing: experimental_pose_metal_derivatives
+6/6 Test: experimental_pose_metal_derivatives
+Command: "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/fourier-gpu/experiments/fpm_pose_linearization_test"
+Directory: /Users/Ayueh/Fastest_Image_Pattern_Matching/build/fourier-gpu/experiments
+"experimental_pose_metal_derivatives" start time: Oct 12 17:24 CST
+Output:
+----------------------------------------------------------
+2026-10-12 17:24:15.679 fpm_pose_linearization_test[27973:41457526] Metal API Validation Enabled
+Metal normalized NCC Jacobian/Hessian finite differences passed
+<end of output>
+Test time =   0.41 sec
+----------------------------------------------------------
+Test Passed.
+"experimental_pose_metal_derivatives" end time: Oct 12 17:24 CST
+"experimental_pose_metal_derivatives" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Oct 12 17:24 CST

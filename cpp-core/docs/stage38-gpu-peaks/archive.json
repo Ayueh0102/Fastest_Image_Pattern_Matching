@@ -1,0 +1,107 @@
+{
+  "stage": 38,
+  "date": "2026-10-18",
+  "path_base": "cpp-core/docs/stage38-gpu-peaks",
+  "all_archives_fully_read": true,
+  "artifacts": [
+    {
+      "path": "comparison.png",
+      "bytes": 80763,
+      "sha256": "8f7c49e69acf4da450c2c89c620d3ef6df029b135154a70289aa38d31612728c",
+      "purpose": "Scientific figure: formal algorithm time and peak process RSS, three methods and four cases."
+    },
+    {
+      "path": "decision-and-failures.json",
+      "bytes": 2420,
+      "sha256": "e0bf6cd9fe52f30606cf47d0b8738df9cb5f7ff8dd3c419e69ed57b189837966",
+      "purpose": "Adoption decision and all nine failed tiled-versus-hybrid timing blocks."
+    },
+    {
+      "path": "fixtures.tar.gz",
+      "bytes": 25371935,
+      "sha256": "dee016d9080962fec21f8ada97feb77b8da83b453dc4d741c2c39ff4f9b76208",
+      "purpose": "Seven unique formal input images with repository-relative paths.",
+      "regular_files": 7,
+      "uncompressed_bytes": 25500190,
+      "all_members_read_and_safe_paths": true
+    },
+    {
+      "path": "formal-summary.json",
+      "bytes": 70162,
+      "sha256": "8dc42897a9e7ef0dfc570ed398910bab3ecc3b5df1d4b6bf9cf6c0f4b32e2f53",
+      "purpose": "Offline reproducible four-case formal summary, including all acceptance gates."
+    },
+    {
+      "path": "input-sha256.json",
+      "bytes": 852,
+      "sha256": "c2bdf8117ded06d86f83315c4e866155c4317b8331e38ba32190669dff5fb14e",
+      "purpose": "Seven unique formal input SHA256 fingerprints."
+    },
+    {
+      "path": "profile-original-summary.json",
+      "bytes": 26462,
+      "sha256": "a92616d21d7085d87231a9a98f17ad079df9383fa0bc747b71a321bf0b018280",
+      "purpose": "Separate diagnostic stage timings for original GPU; instrumented versus formal comparison."
+    },
+    {
+      "path": "profile-tiled-summary.json",
+      "bytes": 26749,
+      "sha256": "dd86b09409344cc732159471edb80e2c532edcc800ee2a6b4fecd40ea846ab5a",
+      "purpose": "Separate diagnostic stage timings for tiled GPU; instrumented versus formal comparison."
+    },
+    {
+      "path": "protocol.json",
+      "bytes": 2394,
+      "sha256": "2e2c40240e40f37ef38238aadd315cf84f6092cdff1e26eebf024418d11c116a",
+      "purpose": "Pre-measurement workload definition, measurement scopes and acceptance gates."
+    },
+    {
+      "path": "raw-results.tar.gz",
+      "bytes": 15863162,
+      "sha256": "3b359ccf67f594bd26e219f3f33a74eab78f0dc635b32627db2cb0348d4b885a",
+      "purpose": "Formal and both diagnostic process jobs, outputs, logs and manifests; fixtures are archived separately.",
+      "regular_files": 166,
+      "uncompressed_bytes": 69219290,
+      "all_members_read_and_safe_paths": true
+    },
+    {
+      "path": "source-sha256.json",
+      "bytes": 30709,
+      "sha256": "2b271b60c042fec2d73c10db3be15a22b2608e332fe7545e355e3192794fccd3",
+      "purpose": "272 frozen source SHA256 fingerprints."
+    },
+    {
+      "path": "source-snapshot.tar.gz",
+      "bytes": 801220,
+      "sha256": "4df22c9a4a5e96edcea47d00536cfee774e8e4e2cd3681104307df60f12db5ee",
+      "purpose": "Frozen formal algorithm, shader, test and tool sources; 272 files plus internal source hash manifest.",
+      "regular_files": 273,
+      "uncompressed_bytes": 3220451,
+      "all_members_read_and_safe_paths": true
+    },
+    {
+      "path": "validation-logs.tar.gz",
+      "bytes": 74355,
+      "sha256": "a42577bc544088436d9597bb5a5d62fa82152f4bc2d3fc9417b8bac9edcb2551",
+      "purpose": "Build/test logs, early counter-resolution failure, source audits, clean rebuild/parity and offline replay checks.",
+      "regular_files": 62,
+      "uncompressed_bytes": 406923,
+      "all_members_read_and_safe_paths": true
+    },
+    {
+      "path": "validation.json",
+      "bytes": 4153,
+      "sha256": "298c900f25187aa193026265ebf1339612a9fe078adfa2e60e5d6abf7d32631a",
+      "purpose": "Validation results and exact scopes; untested areas and post-formal documentation/index changes."
+    }
+  ],
+  "notes": [
+    "This manifest excludes its own hash to avoid a circular digest.",
+    "Frozen formal algorithm sources are retained; later documentation and log-index classification changes do not alter recorded performance.",
+    "Source/input SHA256 verification and byte-identical offline summary replay are recorded separately in validation.json.",
+    "Raw jobs retain original absolute paths. Rebase input paths in new jobs when using an extracted source tree.",
+    "Formal timing excludes diagnostic profiling. Signed timestamp residuals and failed profiling attempts are retained.",
+    "All nine tiled-versus-hybrid timing failures are preserved. The general hybrid default is unchanged.",
+    "No CUDA, RGB, new long soak or fine-search tiling performance claims."
+  ]
+}

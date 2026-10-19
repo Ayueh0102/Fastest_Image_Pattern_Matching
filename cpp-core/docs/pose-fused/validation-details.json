@@ -1,0 +1,213 @@
+{
+  "main": {
+    "workers": 64,
+    "measured_calls": 192,
+    "all_integrity_checks": {
+      "all_workers_succeeded": true,
+      "exact_proposals_all": true,
+      "exact_resident_final_all": true,
+      "paired_final_all": true,
+      "fused_final_all": true,
+      "cpu_final_comparison_all": true,
+      "route_integrity_all": true,
+      "frontend_identical_all": true,
+      "normal_gt_all": true
+    },
+    "all_fused_outputs_exact": true,
+    "all_speed_gates": false,
+    "all_memory_gates": false,
+    "failed_speed_pairs": [
+      {
+        "case": "crop_small360",
+        "method": "current_fused",
+        "reference": "current_cpu",
+        "attribution": "fused_vs_cpu",
+        "block": 0,
+        "time_ratio": 1.8977753862176703,
+        "speedup": 0.526932748344383,
+        "refinement_speedup": 0.26571703973439004,
+        "speed_gate": false,
+        "rss_delta_bytes": 720896,
+        "memory_gate": true
+      },
+      {
+        "case": "crop_small360",
+        "method": "current_fused",
+        "reference": "current_cpu",
+        "attribution": "fused_vs_cpu",
+        "block": 1,
+        "time_ratio": 1.9005118268307584,
+        "speedup": 0.5261740473710036,
+        "refinement_speedup": 0.2549202366015415,
+        "speed_gate": false,
+        "rss_delta_bytes": 1114112,
+        "memory_gate": true
+      },
+      {
+        "case": "crop_lowcontrast20",
+        "method": "current_fused",
+        "reference": "current_cpu",
+        "attribution": "fused_vs_cpu",
+        "block": 0,
+        "time_ratio": 1.7464964002165058,
+        "speedup": 0.5725748990241458,
+        "refinement_speedup": 0.3824100789184396,
+        "speed_gate": false,
+        "rss_delta_bytes": 1556480,
+        "memory_gate": true
+      },
+      {
+        "case": "crop_lowcontrast20",
+        "method": "current_fused",
+        "reference": "current_cpu",
+        "attribution": "fused_vs_cpu",
+        "block": 1,
+        "time_ratio": 2.0035943245362002,
+        "speedup": 0.499103030865035,
+        "refinement_speedup": 0.3812735529828979,
+        "speed_gate": false,
+        "rss_delta_bytes": 1425408,
+        "memory_gate": true
+      },
+      {
+        "case": "thin_detail20",
+        "method": "current_fused",
+        "reference": "current_cpu",
+        "attribution": "fused_vs_cpu",
+        "block": 0,
+        "time_ratio": 1.9283417049109242,
+        "speedup": 0.5185802897138466,
+        "refinement_speedup": 0.36776059672546846,
+        "speed_gate": false,
+        "rss_delta_bytes": 835584,
+        "memory_gate": true
+      },
+      {
+        "case": "thin_detail20",
+        "method": "current_fused",
+        "reference": "current_cpu",
+        "attribution": "fused_vs_cpu",
+        "block": 1,
+        "time_ratio": 2.0960289562235808,
+        "speedup": 0.47709264561005965,
+        "refinement_speedup": 0.35321761281135117,
+        "speed_gate": false,
+        "rss_delta_bytes": 933888,
+        "memory_gate": true
+      },
+      {
+        "case": "scale_violation20",
+        "method": "current_fused",
+        "reference": "current_cpu",
+        "attribution": "fused_vs_cpu",
+        "block": 0,
+        "time_ratio": 2.5566983667061343,
+        "speedup": 0.39112943983624,
+        "refinement_speedup": 0.30154438265044187,
+        "speed_gate": false,
+        "rss_delta_bytes": 950272,
+        "memory_gate": true
+      },
+      {
+        "case": "scale_violation20",
+        "method": "current_fused",
+        "reference": "current_cpu",
+        "attribution": "fused_vs_cpu",
+        "block": 1,
+        "time_ratio": 2.1090131284257616,
+        "speedup": 0.47415541730004956,
+        "refinement_speedup": 0.30839894759304787,
+        "speed_gate": false,
+        "rss_delta_bytes": 835584,
+        "memory_gate": true
+      }
+    ],
+    "failed_memory_pairs": [
+      {
+        "case": "large4096_6",
+        "method": "current_fused",
+        "reference": "current_cpu",
+        "attribution": "fused_vs_cpu",
+        "block": 0,
+        "time_ratio": 1.071214602076278,
+        "speedup": 0.9335197616441686,
+        "refinement_speedup": 0.6600131264033161,
+        "speed_gate": true,
+        "rss_delta_bytes": 67944448,
+        "memory_gate": false
+      },
+      {
+        "case": "large4096_6",
+        "method": "current_fused",
+        "reference": "current_cpu",
+        "attribution": "fused_vs_cpu",
+        "block": 1,
+        "time_ratio": 1.07502862293245,
+        "speedup": 0.9302077904420929,
+        "refinement_speedup": 0.6561495566502463,
+        "speed_gate": true,
+        "rss_delta_bytes": 67747840,
+        "memory_gate": false
+      }
+    ],
+    "fused_vs_resident_all_blocks_faster": true,
+    "source_binary_input_snapshot_unchanged": true
+  },
+  "independent_recheck": {
+    "workers": 16,
+    "measured_calls": 48,
+    "all_integrity_checks": {
+      "all_workers_succeeded": true,
+      "exact_proposals_all": true,
+      "exact_resident_final_all": true,
+      "paired_final_all": true,
+      "fused_final_all": true,
+      "cpu_final_comparison_all": true,
+      "route_integrity_all": true,
+      "frontend_identical_all": true,
+      "normal_gt_all": true
+    },
+    "all_fused_outputs_exact": true,
+    "all_speed_gates": true,
+    "all_memory_gates": false,
+    "failed_speed_pairs": [],
+    "failed_memory_pairs": [
+      {
+        "case": "large4096_6",
+        "method": "current_fused",
+        "reference": "current_cpu",
+        "attribution": "fused_vs_cpu",
+        "block": 0,
+        "time_ratio": 1.0689034553363623,
+        "speedup": 0.9355381863606383,
+        "refinement_speedup": 0.70307491626472,
+        "speed_gate": true,
+        "rss_delta_bytes": 67813376,
+        "memory_gate": false
+      },
+      {
+        "case": "large4096_6",
+        "method": "current_fused",
+        "reference": "current_cpu",
+        "attribution": "fused_vs_cpu",
+        "block": 1,
+        "time_ratio": 1.0912319895084084,
+        "speedup": 0.9163954224348687,
+        "refinement_speedup": 0.6648291999450133,
+        "speed_gate": true,
+        "rss_delta_bytes": 67796992,
+        "memory_gate": false
+      }
+    ],
+    "fused_vs_resident_all_blocks_faster": true,
+    "source_binary_input_snapshot_unchanged": true
+  },
+  "scope": "Recheck is reported separately and does not replace or pool with main evidence; negative performance gates are retained.",
+  "validation": {
+    "release": "34/34",
+    "asan_ubsan": "6/6; detect_leaks=0",
+    "metal_validation": "59 GPU calls",
+    "harness_tests": 30
+  },
+  "relocated_recheck_summary_byte_identical": true
+}

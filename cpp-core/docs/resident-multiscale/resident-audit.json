@@ -1,0 +1,245 @@
+{
+  "stage": 33,
+  "role": "resident integration read-only audit",
+  "reviewed_commit": "f6b7d3868b833c0a0cd83f976f768d86d6075c0c",
+  "scope": "Static source, tests, stage22-25 and stage30-32 evidence review; no compilation, GPU execution or production-source changes.",
+  "confirmed_bug": null,
+  "conclusion": "No specific correctness defect was established by this read-only review. The immediate missing evidence is same-build mode0/1/2 composition with the current multiscale fine-fused, direct-u8, shared-image route at 6/128/512 objects and full-resolution fine search.",
+  "contracts": [
+    {
+      "topic": "mode support",
+      "detail": "mode0 is original multi-kernel resident. mode1 is fused256; mode2 is SIMD128. mode1/2 require Metal or auto C handle, grayscale and ORIGINAL refinement-template area <=16384. Native Session only supports explicit CPU/Metal backend and is grayscale throughout.",
+      "refs": [
+        "cpp-core/experiments/pose_ncc.h:142",
+        "cpp-core/experiments/pose_ncc.cpp:629",
+        "cpp-core/experiments/research_pipeline.cpp:116"
+      ]
+    },
+    {
+      "topic": "scale-bank limit",
+      "detail": "The area guard applies to original template, not every resized proposal template. Current 140x102 =14280 original is supported although scale1.25 proposal is175x128=22400. Pose samples original template at continuous scale. Do not reject this legitimate composition.",
+      "refs": [
+        "cpp-core/experiments/research_pipeline.cpp:116",
+        "cpp-core/experiments/research_pipeline.cpp:131",
+        "cpp-core/experiments/research_pipeline.cpp:155"
+      ]
+    },
+    {
+      "topic": "batch meaning",
+      "detail": "512 limits proposals per fused GPU submission, not detected objects. Current512-object case has1301 proposals and therefore at least3 baseline submissions in modes1/2; retries may add submissions. Separate per-call tail test verifies the513th proposal exactly against singleton.",
+      "refs": [
+        "cpp-core/experiments/pose_metal.mm:220",
+        "cpp-core/tests/pose_fused_test.cpp:406",
+        "cpp-core/docs/RUN_VARIABILITY_POSE_MEMORY_zh-TW.md:12"
+      ]
+    },
+    {
+      "topic": "fallback",
+      "detail": "Unsupported fused mode errors; it does not silently choose CPU or mode0. mode2 checks device SIMD width32 and group resources at first lazy dispatch. Mode setter cannot change previous mode on failure and does not eagerly initialize Metal.",
+      "refs": [
+        "cpp-core/experiments/pose_ncc.cpp:629",
+        "cpp-core/experiments/pose_metal.mm:198",
+        "cpp-core/tests/pose_fused_test.cpp:365"
+      ]
+    },
+    {
+      "topic": "shared storage",
+      "detail": "Storage1 requires unified-memory Metal and no-copy image wrapping. Failure is explicit. Unique image bytes = host image bytes + GPU image bytes - shared image bytes; each image independently rounds to OS pages. Input1 removes temporary conversion; repeat input0 already has no temporary.",
+      "refs": [
+        "cpp-core/experiments/pose_metal.mm:64",
+        "cpp-core/experiments/pose_ncc.cpp:613",
+        "cpp-core/experiments/research_pipeline.cpp:142"
+      ]
+    },
+    {
+      "topic": "CPU verification",
+      "detail": "Session invokes rescue with backend=settings.backend. GPU baseline and all retry candidates are CPU rescored before acceptance; no CPU polish. Thus GPU-resident solve is not a whole-pipeline all-GPU claim.",
+      "refs": [
+        "cpp-core/experiments/research_pipeline.cpp:232",
+        "cpp-core/experiments/pose_ncc.cpp:883",
+        "cpp-core/experiments/pose_ncc.cpp:1090"
+      ]
+    },
+    {
+      "topic": "CPU comparison confounding",
+      "detail": "For multiscale pipeline, settings.backend selects BOTH frame backend and refinement backend. Setting backend0 changes frontend and rejects fine GPU options. Unlike old sparse frontend, a fair same-Metal-frontend CPU-refinement arm needs a separate refinement backend setting or lower-level replay. Do not reuse historical CPU times or call backend0 an isolated solver ablation.",
+      "refs": [
+        "cpp-core/experiments/research_pipeline.cpp:135",
+        "cpp-core/experiments/research_pipeline.cpp:78",
+        "cpp-core/experiments/research_pipeline.cpp:232"
+      ]
+    },
+    {
+      "topic": "RGB",
+      "detail": "Original local pose API supports1/3channels; u8/shared have gray andRGB equivalence coverage. mode1/2 intentionally rejectRGB. Native full-image Session ImageView isgray8, so RGB source files are converted togray and cannot validate color-aware search quality.",
+      "refs": [
+        "cpp-core/experiments/pose_ncc.cpp:635",
+        "cpp-core/tests/pose_u8_test.cpp:261",
+        "cpp-core/tools/qt_gray_loader.hpp"
+      ]
+    }
+  ],
+  "existing_coverage": [
+    {
+      "claim": "mode1/2 original-template exact area boundary16384, just-below16383, rotation and continuous-scale analytic GT",
+      "refs": [
+        "cpp-core/tests/pose_fused_test.cpp:266"
+      ]
+    },
+    {
+      "claim": "oversized129x129, RGB, CPU and invalid mode rejection; lazy resource invariants",
+      "refs": [
+        "cpp-core/tests/pose_fused_test.cpp:365"
+      ]
+    },
+    {
+      "claim": "513 proposals with512+1 tail, output bounds, failure reset, valid recovery and exact tail vs singleton",
+      "refs": [
+        "cpp-core/tests/pose_fused_test.cpp:390"
+      ]
+    },
+    {
+      "claim": "2x2 storage/input Session combinations for resident1/2, exact input-format parity within mode/storage, retained-image reporting, inversion, repeated calls",
+      "refs": [
+        "cpp-core/tests/research_pipeline_test.cpp:161"
+      ]
+    },
+    {
+      "claim": "mode2 shared-storage variant runs pose fused boundary/rescue test source",
+      "refs": [
+        "cpp-core/experiments/CMakeLists.txt:182"
+      ]
+    },
+    {
+      "claim": "direct-u8 mode0/2 with float-reference exact poses/scores/stats, grayscale/RGB, copy/shared and lazy variants",
+      "refs": [
+        "cpp-core/tests/pose_u8_test.cpp:158",
+        "cpp-core/tests/pose_u8_test.cpp:261"
+      ]
+    },
+    {
+      "claim": "fine-fused/angle-reuse/full-resolution subpixel composition validates fine dispatches, but options.refine=false in that test block",
+      "refs": [
+        "cpp-core/tests/research_pipeline_test.cpp:96"
+      ]
+    },
+    {
+      "claim": "stage32 combines u8/shared and fine-fused in512 fast/fullres but only residentMode0; stage23 mode2 performance is fixed-scale sparse pipeline",
+      "refs": [
+        "cpp-core/docs/RUN_VARIABILITY_POSE_MEMORY_zh-TW.md",
+        "cpp-core/docs/POSE_SIMD_zh-TW.md"
+      ]
+    }
+  ],
+  "specific_gaps": [
+    {
+      "priority": 1,
+      "gap": "Same-build multiscale mode0/1/2 with all current optimizations has not been measured together at growing candidate counts; test blocks cover components separately."
+    },
+    {
+      "priority": 1,
+      "gap": "Native JSON exposes only rescued_seeds, not eligible_seeds/retry_starts/continuations/reserved_retry_sample_iterations/retry_evaluations or cpu_verified. Route can show GPU activity but exact baseline-vs-retry dispatch attribution is incomplete.",
+      "refs": [
+        "cpp-core/tools/native_pipeline_runner.cpp:51",
+        "cpp-core/experiments/pose_ncc.h:186"
+      ]
+    },
+    {
+      "priority": 1,
+      "gap": "Current multiscale CPU-refinement isolation needs explicit independent backend plumbing; cannot infer latestCPU/GPU crossover from sparse-stage data."
+    },
+    {
+      "priority": 2,
+      "gap": "Full-pipeline Session constructor oversized-template rejection is code-inspected but native integration test does not exercise it; primitive API boundary tests already exist."
+    },
+    {
+      "priority": 2,
+      "gap": "Mode1 plus direct-u8/shared has small Session coverage, but the expansive shared pose test is mode2. Keep claims scoped to measured composition."
+    },
+    {
+      "priority": 2,
+      "gap": "512 synthetic copies are many instances of one template, not512 independent classes/templates, scenes or cameras. Independent real labeled scenes, background-only negatives, occlusion/repetition/illumination and new frames remain weak or missing."
+    },
+    {
+      "priority": 2,
+      "gap": "Two fresh-process blocks provide limited timing confidence; repeated calls in one process are correlated. No GPU hardware counters, thermal trace or transfer timeline supports bandwidth/cache occupancy claims."
+    }
+  ],
+  "minimal_next_experiment": {
+    "same_build_arms": {
+      "resident0": 0,
+      "fused256": 1,
+      "simd128": 2
+    },
+    "common": {
+      "backend": 1,
+      "pose_input_mode": 1,
+      "pose_storage_mode": 1,
+      "fine_ncc_mode": 2,
+      "fine_angle_reuse": true,
+      "fine_fused": true,
+      "gray_load_mode": "direct_gray8",
+      "run_resource_diagnostics": false,
+      "scales": [
+        0.75,
+        1.0,
+        1.25
+      ]
+    },
+    "cases": [
+      "controlled6",
+      "many128_pose",
+      "many512_pose",
+      "many512_pose_fullres_subpixel"
+    ],
+    "design": "Minimal two fresh-process forward/reverse blocks with first+2 repeats gives24 workers/72 calls. Prefer a predeclared third rotated block if budget allows to expose order effects; do not manufacture independent n by pooling repeats. Run serially, no compilation or otherGPU tests during performance runs.",
+    "purpose": "mode0 vs mode1 isolates per-candidate fused solver; mode1 vs mode2 isolates group/reduction implementation. Comparing mode0 vs mode2 alone cannot separate them.",
+    "negative_controls": "Existing pose tests cover16384 accepted,16641 rejected,RGB rejected,CPU rejected,513 tail. Add/execute a small native Session above-limit rejection check if adding composition tests; this need not become an expensive8K search benchmark.",
+    "validity": "Declare pair tolerances before running. Require ordered proposals and frontend non-clock state exact; own repeated outputs exact; complete one-to-one final matching plus independentGT. Retain any final exactness difference even if within tolerances.",
+    "pair_tolerance_from_prior": {
+      "position_px": 0.25,
+      "angle_deg": 0.25,
+      "relative_scale": 0.002,
+      "score": 0.0001
+    },
+    "gt_gate_from_prior": {
+      "position_px": 2,
+      "angle_deg": 1,
+      "relative_scale": 0.02,
+      "fp": 0,
+      "fn": 0
+    },
+    "performance_gate_from_stage32": "Per-block first and repeat separately <= reference + max(10%,2ms); peakRSS <=reference+max(10%,16MiB). Passing tolerance is not proof ofspeedup.",
+    "timing": "Report total, proposal, refine, pose_create, refinement encode/wait/device/verify; first vs repeats separated. prepare nested in proposal, pose_create nested inrefine, device nested inwait. Never add nested scopes or callwait-device transfer time.",
+    "memory": "Same fresh input should retain identical image capacities/shared alias. Different resident modes legitimately differ auxiliary and other workspace capacities. Report image bytes, auxiliary bytes, host/gpu totals and processpeakRSS separately; donot sumoverlappinghost/GPU/RSS."
+  },
+  "comparison_partition": {
+    "must_equal_across_modes": [
+      "ordered proposals including scales",
+      "frame capacities",
+      "per-model frontend non-clock work and capacities",
+      "fine search/reuse/fusion route and work counts",
+      "pose input/storage mode and image capacities",
+      "configured thresholds, angle/scale bank, budgets and matching options"
+    ],
+    "may_change_with_mode": [
+      "refinement_mode",
+      "refinement_threads",
+      "refinement_simd_width",
+      "refinement_threadgroup_bytes",
+      "refinement_dispatches",
+      "refinement_command_buffers",
+      "refinement_cpu_waits",
+      "refinement_auxiliary_bytes",
+      "pose_host_bytes non-image component",
+      "pose_gpu_bytes non-image component",
+      "rescued_seeds and detailed rescue counts if added",
+      "final floats/order subject to predeclared complete one-to-one tolerance"
+    ],
+    "route_checks_mode0": "selected_refinement_backend1, mode0, kernel geometry zero; active work commands=waits>0, dispatches>commands; auxiliary positive <=16MiB.",
+    "route_checks_mode1_or2": "selected_refinement_backend1; active commands=waits=dispatches>0; commands>=ceil(proposal_count/512); threads256 or128, mode2SIMDwidth32, positive actual threadgroup bytes within device limit; auxiliary positive<=16MiB. Do not demand exactlyceil when rescue canaddcalls.",
+    "zero_proposals": "Selection alone is not execution evidence: counters may bezero and posecontext notcreated. Do not force allocated images or kernelgeometry in an inactive case.",
+    "gpu_clock_missing": "-1 means unavailable; do not sum negative sentinels or infer CPUfallback from missing device timestamp."
+  },
+  "review_notes": "No issue found justifies changing kernel math, precision, iteration bounds, rescue budget, defaults or GUI in this ablation. A bounded composition experiment is more defensible than another algorithm rewrite before gaps are measured."
+}

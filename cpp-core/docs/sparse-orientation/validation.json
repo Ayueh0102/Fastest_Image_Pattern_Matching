@@ -1,0 +1,20 @@
+{
+  "source_binary_input_hashes_unchanged": true,
+  "workers": 32,
+  "measured_calls": 96,
+  "all_workers_succeeded": true,
+  "route_integrity_passed": true,
+  "fixed_scale_gt_all_passed": true,
+  "fixed_scale_proposal_coverage_passed": false,
+  "validation_logs": {
+    "tests-release-final.log": "cb42342f9496b1c2c056126579b677bb804379a4f49bda13b9a57e0ca0e7615e",
+    "tests-asan.log": "947e14a18aba19863afba581db21ff88b9221b2a7b9ab68684d57309e5b41c3c",
+    "build-asan-final.log": "359f881219d92ca846befba4dba6de97ddcfe77f846627c55348156a7ae3aa4f",
+    "tests-asan-final.log": "0dd8056630c686712ccb8fb5492d6836393385dc8c121cf9e1a1775aab1c0162",
+    "tests-python.log": "dc7f93f93e1038d8236df811c12278773f9930219fff5d675e25c3e6482f6116",
+    "metal-validation-job.json": "3a2d930ab4eda15cc1932b6f91db354ad777d0442c31a089a8345ecc9f5724d8",
+    "metal-validation-output.json": "9519d586f2cc569b81f23a68478b0eee052327c8f05912bb58213b63ad3e4164",
+    "metal-validation-summary.json": "f2f36355c17cd4ac2bf8281930cd4f6076b3b946d3a6a169d0d49687a6ff8254",
+    "metal-validation.log": "c60b596219d006373f69b64dfdd36155589c148d7be90b9ed504d016a1554986"
+  }
+}

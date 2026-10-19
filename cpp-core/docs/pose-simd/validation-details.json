@@ -1,0 +1,212 @@
+{
+  "scope": "Stage23 SIMD128 versus frozen/current fused256 and CPU refinement; same Metal sparse frontend. Recheck is separate post-hoc evidence.",
+  "formal": {
+    "checks": {
+      "workers": 64,
+      "expected_workers": 64,
+      "measured_calls": 192,
+      "all_workers_succeeded": true,
+      "exact_proposals_all": true,
+      "exact_resident_final_all": true,
+      "paired_final_all": true,
+      "fused_final_all": true,
+      "cpu_final_comparison_all": true,
+      "route_integrity_all": true,
+      "frontend_identical_all": true,
+      "normal_gt_all": true
+    },
+    "sources_binaries_inputs_unchanged": true,
+    "simd_final_exact_all": true,
+    "fused_simd_dispatch_wait_buffer_capacity_exact_all": true,
+    "performance_failures": [
+      {
+        "case": "crop_small360",
+        "method": "current_simd",
+        "reference": "current_cpu",
+        "attribution": "simd_vs_cpu",
+        "block": 0,
+        "time_ratio": 1.6798944444481985,
+        "speedup": 0.5952754968056782,
+        "refinement_speedup": 0.3419980799142128,
+        "speed_gate": false,
+        "rss_delta_bytes": 999424,
+        "memory_gate": true
+      },
+      {
+        "case": "crop_lowcontrast20",
+        "method": "current_simd",
+        "reference": "current_cpu",
+        "attribution": "simd_vs_cpu",
+        "block": 0,
+        "time_ratio": 1.6023941605839416,
+        "speedup": 0.6240661783462702,
+        "refinement_speedup": 0.4900836863425683,
+        "speed_gate": false,
+        "rss_delta_bytes": 1441792,
+        "memory_gate": true
+      },
+      {
+        "case": "crop_lowcontrast20",
+        "method": "current_simd",
+        "reference": "current_cpu",
+        "attribution": "simd_vs_cpu",
+        "block": 1,
+        "time_ratio": 1.5479997630612485,
+        "speedup": 0.6459949309181088,
+        "refinement_speedup": 0.5054882183420919,
+        "speed_gate": false,
+        "rss_delta_bytes": 1572864,
+        "memory_gate": true
+      },
+      {
+        "case": "thin_detail20",
+        "method": "current_simd",
+        "reference": "current_cpu",
+        "attribution": "simd_vs_cpu",
+        "block": 0,
+        "time_ratio": 1.7271824659124468,
+        "speedup": 0.5789776238098351,
+        "refinement_speedup": 0.43621293196364014,
+        "speed_gate": false,
+        "rss_delta_bytes": 1097728,
+        "memory_gate": true
+      },
+      {
+        "case": "thin_detail20",
+        "method": "current_simd",
+        "reference": "current_cpu",
+        "attribution": "simd_vs_cpu",
+        "block": 1,
+        "time_ratio": 1.763716455740576,
+        "speedup": 0.5669845607808341,
+        "refinement_speedup": 0.4489482940389368,
+        "speed_gate": false,
+        "rss_delta_bytes": 1032192,
+        "memory_gate": true
+      },
+      {
+        "case": "scale_violation20",
+        "method": "current_simd",
+        "reference": "current_cpu",
+        "attribution": "simd_vs_cpu",
+        "block": 1,
+        "time_ratio": 1.9775043539656392,
+        "speedup": 0.5056878878646331,
+        "refinement_speedup": 0.3867159562146597,
+        "speed_gate": false,
+        "rss_delta_bytes": 868352,
+        "memory_gate": true
+      },
+      {
+        "case": "large4096_6",
+        "method": "current_simd",
+        "reference": "current_cpu",
+        "attribution": "simd_vs_cpu",
+        "block": 0,
+        "time_ratio": 1.0234840007072463,
+        "speedup": 0.9770548433673429,
+        "refinement_speedup": 0.8072812790593034,
+        "speed_gate": true,
+        "rss_delta_bytes": 68091904,
+        "memory_gate": false
+      },
+      {
+        "case": "large4096_6",
+        "method": "current_simd",
+        "reference": "current_cpu",
+        "attribution": "simd_vs_cpu",
+        "block": 1,
+        "time_ratio": 1.0183400276840135,
+        "speedup": 0.9819902712400258,
+        "refinement_speedup": 0.8143621162829244,
+        "speed_gate": true,
+        "rss_delta_bytes": 68141056,
+        "memory_gate": false
+      }
+    ],
+    "normal_gt_distinct_poses": 144,
+    "simd_normal_gt_max_errors": {
+      "position_px": 0.12118859549098636,
+      "angle_deg": 0.23170166015626137,
+      "relative_scale": 0.0
+    }
+  },
+  "recheck": {
+    "checks": {
+      "workers": 32,
+      "expected_workers": 32,
+      "measured_calls": 96,
+      "all_workers_succeeded": true,
+      "exact_proposals_all": true,
+      "exact_resident_final_all": true,
+      "paired_final_all": true,
+      "fused_final_all": true,
+      "cpu_final_comparison_all": true,
+      "route_integrity_all": true,
+      "frontend_identical_all": true,
+      "normal_gt_all": true
+    },
+    "sources_binaries_inputs_unchanged": true,
+    "simd_final_exact_all": true,
+    "fused_simd_dispatch_wait_buffer_capacity_exact_all": true,
+    "performance_failures": [
+      {
+        "case": "large4096_6",
+        "method": "current_simd",
+        "reference": "current_cpu",
+        "attribution": "simd_vs_cpu",
+        "block": 0,
+        "time_ratio": 1.0169903361999668,
+        "speedup": 0.9832935126370503,
+        "refinement_speedup": 0.785540153059033,
+        "speed_gate": true,
+        "rss_delta_bytes": 68108288,
+        "memory_gate": false
+      },
+      {
+        "case": "large4096_6",
+        "method": "current_simd",
+        "reference": "current_cpu",
+        "attribution": "simd_vs_cpu",
+        "block": 1,
+        "time_ratio": 1.0059924966667286,
+        "speedup": 0.9940431994407669,
+        "refinement_speedup": 0.9066307067849424,
+        "speed_gate": true,
+        "rss_delta_bytes": 67911680,
+        "memory_gate": false
+      }
+    ],
+    "normal_gt_distinct_poses": 135,
+    "simd_normal_gt_max_errors": {
+      "position_px": 0.08924024099076883,
+      "angle_deg": 0.16034895435720387,
+      "relative_scale": 0.0
+    }
+  },
+  "validation": {
+    "release_tests": 35,
+    "release_passed": 35,
+    "asan_ubsan_tests": 7,
+    "asan_ubsan_passed": 7,
+    "leak_sanitizer": false,
+    "metal_api_shader_validation_calls": 119,
+    "harness_controls": 31,
+    "new_long_duration_soak": false,
+    "hardware_counters_measured": false,
+    "independent_agent_review_completed": false,
+    "agent_limitation": "Three delegated agents interrupted by service quota; parent completed implementation and review."
+  },
+  "compiled_kernel": {
+    "fused256": {
+      "threads": 256,
+      "simd_width": 32,
+      "threadgroup_bytes": 9536
+    },
+    "simd128": {
+      "threads": 128,
+      "simd_width": 32,
+      "threadgroup_bytes": 6976
+    }
+  }
+}

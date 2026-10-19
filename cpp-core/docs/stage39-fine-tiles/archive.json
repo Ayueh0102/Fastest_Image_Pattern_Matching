@@ -1,0 +1,125 @@
+{
+  "stage": 39,
+  "date": "2026-10-19",
+  "path_base": "cpp-core/docs/stage39-fine-tiles",
+  "all_archives_fully_read": true,
+  "artifacts": [
+    {
+      "path": "8k-profile-summary.json",
+      "bytes": 101582,
+      "sha256": "cc0d0cf82198b1d94ed84592d8eeb361711503f5117ac7c873f54035f6d16cf6",
+      "purpose": "Original8K work/timing diagnostics explaining conditional row-cache applicability."
+    },
+    {
+      "path": "comparison.png",
+      "bytes": 110992,
+      "sha256": "b41cc5a6762cc824257a4d675e832af18fe25d951238e25cd5429d8cc96c7bb2",
+      "purpose": "Original andsupplementary time/RSS figures, median/minmax and peak scope stated."
+    },
+    {
+      "path": "decision-and-failures.json",
+      "bytes": 4076,
+      "sha256": "e9bc5b9e82a6bc7f2e2e26adbcbbe1ee170587cbf31304608e07f9b88a6d2039",
+      "purpose": "Nonadoption for primary workload and16retained failed target/timing gates."
+    },
+    {
+      "path": "fixtures.tar.gz",
+      "bytes": 25371935,
+      "sha256": "dee016d9080962fec21f8ada97feb77b8da83b453dc4d741c2c39ff4f9b76208",
+      "purpose": "Seven unique original images under repository-relative paths; supplementary cases reuse them.",
+      "regular_files": 7,
+      "uncompressed_bytes": 25500190,
+      "all_members_read_and_safe_paths": true
+    },
+    {
+      "path": "formal-summary.json",
+      "bytes": 83506,
+      "sha256": "af254400d97253ac32b65334bdf84dd41083b5678844cf4d0bc5390940194576",
+      "purpose": "Originalfour-case unprofiled formal summary and all failed gates."
+    },
+    {
+      "path": "input-sha256.json",
+      "bytes": 852,
+      "sha256": "c2bdf8117ded06d86f83315c4e866155c4317b8331e38ba32190669dff5fb14e",
+      "purpose": "Seven unique measured input image fingerprints."
+    },
+    {
+      "path": "profile-summary.json",
+      "bytes": 182038,
+      "sha256": "7336157ba7c83538b4547a3582787e6b3d689243d0d5a47ad60507233a9b8fc6",
+      "purpose": "Original128/512 diagnostic timestamp/work summary; zero tiled-angle finding."
+    },
+    {
+      "path": "protocol.json",
+      "bytes": 2382,
+      "sha256": "109e8bfe7c70eb8a88f359af8c2bb055b98bcc0041d93d85dbd959914c9ee65b",
+      "purpose": "Pre-measurement primary protocol and10percent target; original settings retained."
+    },
+    {
+      "path": "raw-results.tar.gz",
+      "bytes": 31471845,
+      "sha256": "6c479ea8c890285797633a86145c01d0cc691825f9161827c830864fe84ed673",
+      "purpose": "Bothformal andthreeprofile jobs/results/logs/manifests, plus derived stop0 fixture manifest.",
+      "regular_files": 267,
+      "uncompressed_bytes": 136401038,
+      "all_members_read_and_safe_paths": true
+    },
+    {
+      "path": "source-sha256.json",
+      "bytes": 31170,
+      "sha256": "c568a9d38f67e873c9a2d67dd508ec6aa2baee7a857ef6b358610d9ee07dc0ff",
+      "purpose": "276 frozen source fingerprints."
+    },
+    {
+      "path": "source-snapshot.tar.gz",
+      "bytes": 814360,
+      "sha256": "27c734bde618d2ccb2045cc9f261c1ea1b3fa7603c57e7e3fdafcb989fead6cf",
+      "purpose": "276 frozen source files plus internal hash manifest, including complete kernels, host, tests and tools.",
+      "regular_files": 277,
+      "uncompressed_bytes": 3310951,
+      "all_members_read_and_safe_paths": true
+    },
+    {
+      "path": "stop0-formal-summary.json",
+      "bytes": 43147,
+      "sha256": "763c49a8d5f705ed0a4eb73e2449fa9c6994345d315793c12c644b5e6a052007",
+      "purpose": "Supplemental stop0 unprofiled formal summary; not original workload acceleration."
+    },
+    {
+      "path": "stop0-profile-summary.json",
+      "bytes": 183945,
+      "sha256": "90cbcd29923ebad32546b2ec819cc129cbf22c01f53259576c329519253b42a0",
+      "purpose": "Supplemental stop0 actual work/timing diagnostics."
+    },
+    {
+      "path": "supplemental-protocol.json",
+      "bytes": 797,
+      "sha256": "10b25b588a330d41b3e4db2f8a41cd967049e7d02062e7c3d2c5b4e6c1b7e5e3",
+      "purpose": "Diagnostic-driven stop0 supplementary protocol, separate from original primary target."
+    },
+    {
+      "path": "validation-logs.tar.gz",
+      "bytes": 46888,
+      "sha256": "bcd0e93c3a79492ae7aab3d51945383c15bd7d64154c7e14a52b5b7d7eb39a60",
+      "purpose": "Tests,sanitizers,clean rebuild,JSON checks,two independent audits,replay,environment,andfigure source.",
+      "regular_files": 59,
+      "uncompressed_bytes": 284104,
+      "all_members_read_and_safe_paths": true
+    },
+    {
+      "path": "validation.json",
+      "bytes": 3948,
+      "sha256": "82cf0f88b529897102369ccf02252579060ecc53547a230a40020953690d549e",
+      "purpose": "Test,build,source,replay scopes and explicit limitations."
+    }
+  ],
+  "notes": [
+    "Own hash excluded toavoid circular digest.",
+    "Original primary target failed; supplementalstop0 and8K conditionalbenefits are not primary128/512acceleration.",
+    "All algorithm/runner/harness sources frozen beforemeasurements; only catalogmapping anddocumentation updatedafter.",
+    "Source/input verification andbyteidentical replay are separately recordedinvalidation.json.",
+    "Originaljobs keepabsolute paths; rebase innewjobs when usingextractedsource.",
+    "Formalprofiling excluded; logical sampler counts are notphysicalmemorytraffic.",
+    "Allfailures preserved; noCUDA/RGB/newlongsoak claim."
+  ]
+}

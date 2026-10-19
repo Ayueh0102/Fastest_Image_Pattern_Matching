@@ -1,0 +1,8 @@
+{
+  "commit": "4144ffcb8897ead17d9cea20c346638bab933d24",
+  "note": "Frozen existing Release binary before resident changes were built; source HEAD is baseline.",
+  "sha256": {
+    "experiments/libfpm_pose_experiment.dylib": "a8fee695fab005e07005338082d37aa319492c84e730cca176d2fa710cb3cf60",
+    "libfpm_c.dylib": "e772ab0004591f63b4bbc711b5626355de81671386c5cc2c31600465a36eb3b4"
+  }
+}

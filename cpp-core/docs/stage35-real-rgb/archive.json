@@ -1,0 +1,17 @@
+{
+  "source-and-fixtures.tar.gz": {
+    "bytes": 53963318,
+    "sha256": "3f2ad419a9d981f22a11b001c9233bd40685b44b9a7ac4885473a1a4e9d44c15",
+    "files": 350
+  },
+  "raw-results.tar.gz": {
+    "bytes": 16325852,
+    "sha256": "052189950bac00ac5fa79f48a29d2a726f3f3af44d4a293c9367f7a693aef275",
+    "files": 1864
+  },
+  "content_files": 2213,
+  "content_manifest_sha256": "24762970990c6128ebee4b9b17d5297607b0342f94411a507ebbc0eb1d34b5de",
+  "frozen_source_files": 268,
+  "source_files": 350,
+  "note": "Extract both archives into the same directory. FSC photograph bytes and derived control images excluded; offline statistics fully replayable, algorithm rerun requires pinned fetch/render."
+}

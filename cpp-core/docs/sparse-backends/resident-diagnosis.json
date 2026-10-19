@@ -1,0 +1,89 @@
+{
+  "scope": "Isolated Metal resident refinement diagnosis on two saved proposal batches without rescue. Not full-image performance or a new accuracy dataset.",
+  "runtime_commit": "ae0489fe90f035e4dcbdc0b7e9c989b15ac7361b",
+  "library_sha256": "4ddf77053aaaf24a9e59d9d03307166ffea50e5934f4cda7a5d6b5628541a297",
+  "note": "Seven measured calls after one-second warmup per backend/case, single process per backend; CPUs measured afterwards, not interleaved. Representative is actual run with median C API wall. GPU command interval is included in wait, not added to it. No runtime changes; existing timers. Does not decompose device interval into useful compute, barriers or dispatch processing.",
+  "cases": [
+    {
+      "name": "crop_small360",
+      "proposals": 5,
+      "gpu": {
+        "wall_ms": 3.979,
+        "device_ms": 3.5291665699332952,
+        "host_buffer_bytes": 274732,
+        "gpu_buffer_bytes": 280272,
+        "gpu_allocated_bytes": 737280,
+        "resident": {
+          "command_buffers": 1,
+          "cpu_waits": 1,
+          "encoded_dispatches": 1023,
+          "auxiliary_buffer_bytes": 5840,
+          "setup_ms": 0.0,
+          "encode_ms": 0.276666,
+          "wait_ms": 3.656375,
+          "cpu_verify_ms": 0.039833,
+          "cpu_verified": 1,
+          "reserved": 0
+        }
+      },
+      "cpu": {
+        "wall_ms": 1.080333,
+        "device_ms": -1.0,
+        "host_buffer_bytes": 274492,
+        "gpu_buffer_bytes": 0,
+        "gpu_allocated_bytes": 0
+      },
+      "gpu_iterations": 87,
+      "cpu_iterations": 89,
+      "gpu_evaluations": 246,
+      "cpu_evaluations": 239,
+      "same_as_rescue_entry_point": true
+    },
+    {
+      "name": "heldout_crowd128_20",
+      "proposals": 256,
+      "gpu": {
+        "wall_ms": 9.4715,
+        "device_ms": 7.767291739583015,
+        "host_buffer_bytes": 4746240,
+        "gpu_buffer_bytes": 4938496,
+        "gpu_allocated_bytes": 5406720,
+        "resident": {
+          "command_buffers": 1,
+          "cpu_waits": 1,
+          "encoded_dispatches": 1023,
+          "auxiliary_buffer_bytes": 207616,
+          "setup_ms": 0.0,
+          "encode_ms": 0.281333,
+          "wait_ms": 7.880458,
+          "cpu_verify_ms": 1.298959,
+          "cpu_verified": 1,
+          "reserved": 0
+        }
+      },
+      "cpu": {
+        "wall_ms": 9.131833,
+        "device_ms": -1.0,
+        "host_buffer_bytes": 4733952,
+        "gpu_buffer_bytes": 0,
+        "gpu_allocated_bytes": 0
+      },
+      "gpu_iterations": 1858,
+      "cpu_iterations": 2070,
+      "gpu_evaluations": 6106,
+      "cpu_evaluations": 5699,
+      "same_as_rescue_entry_point": true
+    }
+  ],
+  "diagnostic_files_sha256": {
+    "cpu-probe.log": "c3451d205b855599401d123848802cc3e2a89876d66767bfd5ec2970ccf3d033",
+    "cpu-results.json": "f43108915a1e92d7f6a12800c5525cff4251d280b631c3fa044d17c23ca5220c",
+    "cpu_probe.py": "8e0aa40934e0291935397a7b5665a8da30c6170f0bbaf1fa8c9d81a60741e0e2",
+    "probe.log": "eae89f57a4e43085df3adcab8d6ed6856c5011067937e746a12a2f697a946bb9",
+    "probe.py": "e82d5e860cd9ca8a6a9c09f711ce8c799e02da7b6520bf0c32400fee30267578",
+    "results.json": "77143bcf9b21109ed986fe8a807dbcea7e77297d613ac7fd0287aa3516166cbf",
+    "README.txt": "b49ad8006d3205358b4096c69d350fb410a369b037b2550e82e9c40de1881b43"
+  },
+  "archive_sha256": "bd1058f47a879279a57e4fdb4b6d6340f073f2d6b82d028b261362530fded019",
+  "archive_members_verified": true
+}

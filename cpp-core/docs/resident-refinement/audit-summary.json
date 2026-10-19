@@ -1,0 +1,79 @@
+{
+  "protocol": {
+    "saved_data_only": true,
+    "score_tolerance": 3e-05,
+    "verified_methods": [
+      "legacy_cpu",
+      "legacy_hybrid",
+      "resident_verified"
+    ],
+    "gpu_only_monotonicity": "Every raw CPU-score loss is reported; GPU-only monotonicity is not a solver guarantee or an acceptance gate.",
+    "threshold": "Use case.score, default .8; disagreements more than 3e-5 from the CPU score threshold are material.",
+    "local_truth": "NCC>=.8, position<=.5px, angle<=.5deg, relative scale<=1%.",
+    "full_geometry": "Position<=2px, angle<=1deg, relative scale<=2%; deterministic globally nearest unique positional pairs.",
+    "src7": "Same first/measured call compared with frozen CPU. This is agreement, NOT calibrated detection accuracy.",
+    "score_loss": "Inter-method matched-detection score losses are reported, not independently gated; score/oracle and actual-threshold gates are checked separately.",
+    "coverage": "Reuses saved CPU rechecks from every timed output; does not rerun NCC or recover information absent from the input report."
+  },
+  "gates": {
+    "original_benchmark_acceptance_passed": false,
+    "complete_comparison_coverage": true,
+    "absolute_local_accuracy_passed": false,
+    "absolute_full_accuracy_passed": true,
+    "verified_monotonic_and_exact_passed": true,
+    "material_score_and_threshold_agreement_passed": true,
+    "src7_cpu_agreement_passed": true,
+    "observed_nonregression_passed": true
+  },
+  "selection_counts": {
+    "cases": 46,
+    "runs": 184,
+    "calls": 1104,
+    "local_truth_calls": 720,
+    "local_truth_pose_checks": 7824,
+    "full_truth_calls": 48,
+    "full_truth_object_checks": 432,
+    "src7_comparison_calls": 24
+  },
+  "summary": {
+    "raw_cpu_score_regressions": 0,
+    "maximum_cpu_score_loss": 0.0,
+    "beyond_tolerance_cpu_score_regressions": 0,
+    "threshold_disagreements": 0,
+    "threshold_disagreements_outside_tolerance": 0
+  },
+  "errors": [
+    "Benchmark did not pass acceptance_passed",
+    "heldout_16/legacy_cpu/first: local truth precision failed",
+    "heldout_16/legacy_cpu/measured_0: local truth precision failed",
+    "heldout_16/legacy_cpu/measured_1: local truth precision failed",
+    "heldout_16/legacy_cpu/measured_2: local truth precision failed",
+    "heldout_16/legacy_cpu/measured_3: local truth precision failed",
+    "heldout_16/legacy_cpu/measured_4: local truth precision failed",
+    "heldout_16/legacy_hybrid/first: local truth precision failed",
+    "heldout_16/legacy_hybrid/measured_0: local truth precision failed",
+    "heldout_16/legacy_hybrid/measured_1: local truth precision failed",
+    "heldout_16/legacy_hybrid/measured_2: local truth precision failed",
+    "heldout_16/legacy_hybrid/measured_3: local truth precision failed",
+    "heldout_16/legacy_hybrid/measured_4: local truth precision failed",
+    "heldout_16/resident/first: local truth precision failed",
+    "heldout_16/resident/measured_0: local truth precision failed",
+    "heldout_16/resident/measured_1: local truth precision failed",
+    "heldout_16/resident/measured_2: local truth precision failed",
+    "heldout_16/resident/measured_3: local truth precision failed",
+    "heldout_16/resident/measured_4: local truth precision failed",
+    "heldout_16/resident_verified/first: local truth precision failed",
+    "heldout_16/resident_verified/measured_0: local truth precision failed",
+    "heldout_16/resident_verified/measured_1: local truth precision failed",
+    "heldout_16/resident_verified/measured_2: local truth precision failed",
+    "heldout_16/resident_verified/measured_3: local truth precision failed",
+    "heldout_16/resident_verified/measured_4: local truth precision failed"
+  ],
+  "passed": false,
+  "input_report": "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/docs/resident-refinement/report.json.gz",
+  "input_report_sha256": "ef3bdf0cf88ffd04d7a4ccb5a935667edcca7065ac58b61925c1a9b28ecac308",
+  "audit_source_sha256": "4b7fbdd622aad2a09eb38a06baa075ca8dd98e9419e2d2379e72f9c8903d2d9e",
+  "created_at": "2026-10-13T11:37:39.409405+08:00",
+  "input_report_decompressed_sha256": "ee2e9209c041bf4512d64891f0694d5db204de065700d32b9e557a50bbf1dc35",
+  "detail_file": "supplemental-audit.json.gz"
+}

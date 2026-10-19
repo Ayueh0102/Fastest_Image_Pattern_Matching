@@ -1,0 +1,25 @@
+{
+  "checks": {
+    "relocated_summary_byte_identical": true,
+    "invalid_bound_rejected": true,
+    "invalid_count_rejected": true,
+    "invalid_source_hash_rejected": true,
+    "document_links_resolve": true
+  },
+  "observations": {
+    "probe_self_checks": {
+      "bound_checks": 664,
+      "pyramid_shapes": 5,
+      "passed": true
+    },
+    "inputs_unchanged": true,
+    "probe_source_unchanged": true,
+    "observed_bound_pairs": 11010,
+    "bounds_and_nested_monotonicity_passed": true,
+    "summary_recomputed_from_observations": true,
+    "all_recorded_thresholds_zero_false_rejection": true
+  },
+  "raw_sha256": "3fa034f06d9455b60e95c331cb37d5695188c26c92b473ad167493298de620d7",
+  "summary_sha256": "aee9576275142e67a1c525c8b13402ab0bc4f28cce2dea8b9a9b9f3b819e945e",
+  "scope": "Exploratory mathematics and artifact integrity only; no production matcher modifications or performance validation"
+}

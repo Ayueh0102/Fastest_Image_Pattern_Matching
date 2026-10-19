@@ -1,0 +1,64 @@
+{
+  "version": 1,
+  "release": {
+    "passed": 41,
+    "total": 41,
+    "log": "logs/final-ctest.log"
+  },
+  "asan_ubsan": {
+    "passed": 9,
+    "total": 9,
+    "leak_detection": false,
+    "log": "logs/asan-final-tests.log"
+  },
+  "metal_api_shader_validation": {
+    "passed": true,
+    "log": "logs/shader-final-validation.log"
+  },
+  "python_binding": {
+    "passed": 2,
+    "total": 2,
+    "log": "logs/binding-tests.log"
+  },
+  "harness": {
+    "passed": 7,
+    "total": 7,
+    "log": "logs/harness-final-tests.log"
+  },
+  "independent_agent_review": true,
+  "formal": {
+    "workers": 80,
+    "formal_calls": 620,
+    "strict_gt_poses": 666,
+    "cpu_reference_windows": 365344,
+    "all_exact": true,
+    "fp": 0,
+    "fn": 0,
+    "source_binary_input_unchanged_during_measurement": true
+  },
+  "negative_controls": {
+    "all_missed_summary_nonzero_exit": true,
+    "errors_null_when_no_true_positives": true,
+    "record": "postprocess-negative-control.json"
+  },
+  "archive": {
+    "path": "raw-results.tar.gz",
+    "sha256": "5cedf772e709c5f0b41fab86523fc0365dd2ab956421013347dd80c9c3a89e1d",
+    "bytes": 38215488,
+    "content_files": 656,
+    "all_content_hashes_verified": true,
+    "relocated_replay_byte_equal": true
+  },
+  "postprocess": {
+    "measured_source": "measurement-source/",
+    "final_source": "source/",
+    "only_failure_reporting_changed": true,
+    "summary_byte_equal": true
+  },
+  "limitations": [
+    "existing synthetic data reused",
+    "not new GUI/RGB/CUDA/Windows coverage",
+    "not a new soak",
+    "not hardware bandwidth/cache profiling"
+  ]
+}

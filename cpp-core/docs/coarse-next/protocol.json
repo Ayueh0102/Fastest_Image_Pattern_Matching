@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "baseline_commit": "010c8982890c4abbbaedb1968b6b1e158c554578",
+  "status": "Protocol fixed before pilot/formal measurements",
+  "routes": {
+    "previous_shared": "frozen shared frame, fine512",
+    "current_control": "new build, modes0/0",
+    "peak_only": "CPU tile tournament1, old GPU NCC0",
+    "simd_only": "old CPU peaks0, SIMD NCC1",
+    "combined": "both1"
+  },
+  "unchanged": "pyramid mode1, four coarse angles, fine512, exact normalization, candidate budget, thresholds, fine search, pose/rescue; every frame prepare within timed call",
+  "timing": "new process per case/method/block, serial, forward/reverse blocks, at least1s warmup,5measured; setup/first separate, profile runs separate",
+  "accuracy": "all ordered proposals/results/refinement scores/poses exact vs frozen010c898; GT aftertime/RSS; mapcounts same; source/lib/input SHA beforeandafter",
+  "performance": "perblockwarmmedian<=reference+max(10%,2ms) againstprevious_shared/current_control; gateisnotclaimofspeedup;retainallregressions",
+  "memory": "process peak RSS overlaps frame retained capacities; count shared allocationonce; tile scratch analytically<4*ceil(W/32)*ceil(H/32)*sizeof(Peak)",
+  "scope": "CPU peak selector optional; GPU SIMD optional; no asynchronous overlap or reduced command count claimed; fullsourceprovided; noGUIdefaultchange"
+}

@@ -1,0 +1,17 @@
+{
+  "stage": 35,
+  "formal_workers": 500,
+  "algorithm_calls": 1000,
+  "integrity_passed": true,
+  "real_color_accuracy_passed": false,
+  "all_performance_gates_passed": false,
+  "gui_defaults_changed": false,
+  "adoption": "Retain opt-in tools and the bounded small-template recipe; do not promote to universal or real-color default.",
+  "known_limits": [
+    "Provisional calibration: one of three normal VisA images has candidates.",
+    "All three heldout anomaly images have no candidates.",
+    "Chroma detects prescribed offsets but flags all 49 objects under white-balance change.",
+    "Adjusted search improves the small development template but slows a heldout template that already worked.",
+    "RGB Metal color context uses storage_mode=0; existing shared storage is not measured here."
+  ]
+}

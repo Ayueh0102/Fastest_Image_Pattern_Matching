@@ -1,0 +1,83 @@
+{
+  "stage": 40,
+  "date": "2026-10-19",
+  "baseline_commit": "3fb6d231f53d91bf60edd0f4b0cc41bbd8ddd3bf",
+  "scope": "Close the current exact Metal gray8 resident NCC optimization phase, not all future algorithm research.",
+  "sequence": [
+    "Research primary papers and official implementations",
+    "Screen bounded u32 accumulation, cached sliding source moments, SIMD32 mapping",
+    "If complementary winners exist, test combination; retain unsuccessful variants",
+    "Formal main and full-resolution supplement, independent holdouts and separate profiles",
+    "Release, differential overflow/boundary, Metal validation, sanitizers and source replay",
+    "Archive all sources/results/failed gates; summarize conditional best route and remaining limits"
+  ],
+  "primary_cases": [
+    "many128_pose",
+    "many512_pose"
+  ],
+  "regressions": [
+    "controlled6",
+    "8k_t256_angle180_3scales"
+  ],
+  "holdouts": [
+    "heldout12",
+    "small_fullres",
+    "boundary_one",
+    "empty_scene",
+    "constant_source"
+  ],
+  "pilot": {
+    "blocks": 1,
+    "repeats": 1,
+    "warmup_seconds": 0,
+    "eligible_for_adoption": false
+  },
+  "formal": {
+    "blocks": 3,
+    "repeats": 2,
+    "warmup_seconds": 1,
+    "fresh_process_per_case_method_block": true,
+    "order": "alternating per block",
+    "clock": "algorithm total, excludes decode/session construction/JSON/truth"
+  },
+  "accuracy": {
+    "position_px": 2,
+    "angle_deg": 1,
+    "relative_scale": 0.02,
+    "false_positives": 0,
+    "false_negatives": 0,
+    "exact_ordered_gpu_matches_and_proposals": true
+  },
+  "gates": {
+    "primary_target": "at least10% median end-to-end reduction on both128/512 vs peak-tiled/fine0 baseline",
+    "time": "each block <= baseline+max(2ms,10%); also report hybrid separately",
+    "rss": "each block <= baseline+max(8MiB,10%)",
+    "residency": {
+      "command_buffers": 1,
+      "cpu_waits": 1,
+      "intermediate_readbacks": 0,
+      "cpu_algorithm_steps": 0
+    }
+  },
+  "memory": "RSS, retained named Metal allocations, and static threadgroup storage separately; never sum RSS and Metal bytes",
+  "retention": "Keep original and experimental modes and complete source. Default remains unchanged until explicit evidence-based decision.",
+  "closure": "Finish finite variants, formal best/controls, regression/holdout/profile and validation before final summary. No unbounded search for universal GPU superiority.",
+  "limits": [
+    "Single M4 Pro Metal device",
+    "gray8 resident matcher; RGB and CUDA are separate scopes",
+    "Synthetic independent ground truth; no annotated real sequence available",
+    "No claim that current GPU search exhausts algorithmic improvements",
+    "No new30-minute soak required for arithmetic-only variant; use repeated calls and full validation and report any stability limit"
+  ],
+  "cross_version_control": "Frozen Stage39 binary vs current fine0 and fine4 on original128/512,3 alternating blocks2repeats1secwarmup; detect shared-kernel baseline regressions.",
+  "stability_supplement": {
+    "duration_seconds": 300,
+    "minimum_calls": 101,
+    "case": "many512_pose",
+    "method": "full_gpu_simd",
+    "purpose": "Short arithmetic-variant regression and at least one session teardown/recreation; not new30-minute qualification",
+    "rss_gate": "last10calls median <=first10calls median+max(8MiB,10%)",
+    "exact_outputs": "Each loop compares complete outputs to independently GT-validated first result; stream omits poses to keep bounded host memory",
+    "timing": "Separate from formal speed gates"
+  }
+}

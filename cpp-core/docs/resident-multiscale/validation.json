@@ -1,0 +1,179 @@
+{
+  "existing_cpp_metal_tests": {
+    "passed": 5,
+    "total": 5
+  },
+  "harness_negative_controls": 22,
+  "scene_checks": 4,
+  "native_algorithm_changed": false,
+  "defaults_changed": false,
+  "formal": {
+    "workers": 48,
+    "algorithm_calls": 96,
+    "integrity_passed": true,
+    "paired_final_passed": true,
+    "accuracy_passed": false,
+    "normal_accuracy_passed": false,
+    "correctness_passed": false,
+    "all_performance_tolerances_passed": false,
+    "unchanged": true,
+    "accuracy_failures": [
+      {
+        "case": "new_small12",
+        "method": "resident0",
+        "validity": "normal",
+        "origin": "new",
+        "max_fp": 5,
+        "max_fn": 5
+      },
+      {
+        "case": "new_small12",
+        "method": "fused256",
+        "validity": "normal",
+        "origin": "new",
+        "max_fp": 5,
+        "max_fn": 5
+      },
+      {
+        "case": "new_small12",
+        "method": "simd128",
+        "validity": "normal",
+        "origin": "new",
+        "max_fp": 5,
+        "max_fn": 5
+      },
+      {
+        "case": "degraded12",
+        "method": "resident0",
+        "validity": "challenge",
+        "origin": "new",
+        "max_fp": 3,
+        "max_fn": 8
+      },
+      {
+        "case": "degraded12",
+        "method": "fused256",
+        "validity": "challenge",
+        "origin": "new",
+        "max_fp": 3,
+        "max_fn": 8
+      },
+      {
+        "case": "degraded12",
+        "method": "simd128",
+        "validity": "challenge",
+        "origin": "new",
+        "max_fp": 3,
+        "max_fn": 8
+      }
+    ],
+    "performance_failures": [
+      {
+        "case": "controlled6",
+        "comparison": "fused256_vs_resident0",
+        "block": 1,
+        "failed_time_phases": [
+          "first",
+          "repeat1"
+        ],
+        "rss_failed": false
+      },
+      {
+        "case": "controlled6",
+        "comparison": "simd128_vs_resident0",
+        "block": 1,
+        "failed_time_phases": [
+          "first",
+          "repeat1"
+        ],
+        "rss_failed": false
+      },
+      {
+        "case": "degraded12",
+        "comparison": "fused256_vs_resident0",
+        "block": 0,
+        "failed_time_phases": [
+          "first",
+          "repeat1"
+        ],
+        "rss_failed": false
+      },
+      {
+        "case": "degraded12",
+        "comparison": "fused256_vs_resident0",
+        "block": 1,
+        "failed_time_phases": [
+          "first",
+          "repeat1"
+        ],
+        "rss_failed": false
+      },
+      {
+        "case": "degraded12",
+        "comparison": "simd128_vs_resident0",
+        "block": 0,
+        "failed_time_phases": [
+          "repeat1"
+        ],
+        "rss_failed": false
+      },
+      {
+        "case": "degraded12",
+        "comparison": "simd128_vs_resident0",
+        "block": 1,
+        "failed_time_phases": [
+          "first",
+          "repeat1"
+        ],
+        "rss_failed": false
+      },
+      {
+        "case": "empty_scene",
+        "comparison": "fused256_vs_resident0",
+        "block": 1,
+        "failed_time_phases": [
+          "repeat1"
+        ],
+        "rss_failed": false
+      }
+    ]
+  },
+  "independent_review": {
+    "passed": true,
+    "source_files": 239,
+    "binaries": 3,
+    "inputs": 20,
+    "worker_files": 144,
+    "independent_gt_recomputed": true
+  },
+  "cpu_scale_oracle": {
+    "scores": 1032,
+    "verification_passed": true,
+    "max_abs_difference": 2.9637410353666738e-06
+  },
+  "archive_checks": {
+    "fresh_source_tests": {
+      "passed": 2,
+      "total": 2
+    },
+    "three_modes_new_texture12_ordered_exact": true,
+    "relocated_replay_byte_identical": true,
+    "replay_exit": 1,
+    "accuracy_failures_preserved": true
+  },
+  "limits": [
+    "Two fresh processes per case/method; repeated calls not independent scenes",
+    "24 different new synthetic poses; degraded condition reuses12; no new camera capture",
+    "Existing 30-minute soak is older configuration, not this combination",
+    "No new CPU/GPU isolated-refinement comparison, CUDA or full RGB search"
+  ],
+  "archive": {
+    "file": "raw-results.tar.gz",
+    "bytes": 57179948,
+    "sha256": "dab2a5548fe8895456a82cdda4a35948292a5151ecb85ca33f91caa180c81ba9",
+    "verified_manifest_files": 537,
+    "extracted_replay_byte_identical": true,
+    "extracted_replay_exit": 1,
+    "accuracy_failures_preserved": true
+  }
+}

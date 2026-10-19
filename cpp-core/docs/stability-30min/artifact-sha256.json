@@ -1,0 +1,12 @@
+{
+  "archive_sha256": "396db22c98845990e13e26d06539fb8ae817b0830efcef63ed4ad70f5de70ce2",
+  "archive_bytes": 2223216,
+  "manifest_sha256": "265d28cc5037d5b27069ab335fb051fd9ee087dc26972cd0acd7cab3f274d943",
+  "members": 103,
+  "summary_sha256": "9cc9eaff3116cf7e90d89650b16b07254243ca20c09200b123c19e3deed1731c",
+  "extracted_summary_byte_identical": true,
+  "original_sources_binaries_inputs_hashes_valid": true,
+  "settings_equal_formal_native_combined": true,
+  "reference_outputs_exact": true,
+  "stability_passed": true
+}

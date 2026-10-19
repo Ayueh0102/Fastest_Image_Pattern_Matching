@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "frozen_before_pilot": true,
+  "baseline": "409275452dc1d676f37830ae73c520ca4389d3cd",
+  "change": "Two owned Metal coarse source/statistics/template slots. Submit next before consuming previous, overlap CPU rotation/normalization/peak selection with GPU. Same integer kernels, double normalization, search limits and result order.",
+  "methods": "previous_peak (frozen409); current_peak (same new build, disabled); overlap (enabled); separate current/overlap profile workers. All peak_mode1/ncc_mode0, fine512, pyramid1, coarse batch4.",
+  "cases": "controlled6,heldout12,8k_t256_angle180_3scales,small_fullres,many128_pose,many512_pose",
+  "timing": "Fresh serial worker per case/method/block. Forward/reverse2blocks,5measured after>=1s warmup. Setup/first separate; prepare once per timed call. Current sync and async both retrieve overlap diagnostics. Pilot is not formal speed evidence.",
+  "accuracy": "GT absent from worker jobs; all GT evaluation parent-side after timing/RSS. Exact ordered proposals/matches/poses/scores vs frozen409 plus identical coarse/fine map counts. Independent maximum-cardinality strict2px1deg2percent gate, retain common failures.",
+  "memory": "Per-slot source<=64MiB,statistics<=16MiB,template separately; capacities included in coarse GPU memory and overlap processRSS. Retained capacity measured afterfirst and all measurements; no leak-proof claim.",
+  "diagnostics": "Host submit includes copy+encode+commit; finish wait only remaining host wait. Device duration/span overlap CPU times and cannot be added. Pending/unconsumed counts do not prove concurrent GPU kernels; queue order remains serial. No hardware timeline capture claimed.",
+  "fallback": "single/degenerate/aggregate oversized batches use original synchronous computeBatch and record exclusive reason; no silent CPU fallback.",
+  "gate": "All exactness/lifecycle/boundedmemory checks; paired per-block total<=reference+max10percent or2ms. Passing regression tolerance is not a speedup. Keep defaults off unless evidence supports activation."
+}

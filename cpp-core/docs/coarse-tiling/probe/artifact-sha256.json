@@ -1,0 +1,18 @@
+{
+  "complete": true,
+  "exact": true,
+  "sources_and_binaries_unchanged": true,
+  "worker_count": 54,
+  "measured_calls": 540,
+  "first_calls": 54,
+  "warmup_calls": 120399,
+  "archive_files": 199,
+  "archive_bytes": 2029868,
+  "archive_sha256": "72156a70f92cef93df1d7c50f3e0d54d270fffabd9cffd3f76ef78b59d0f8ed7",
+  "manifest_sha256": "8faa4b20a7c1e1348b1cdc1a54cf68086bc12c98baf5d4512def3874d48519cf",
+  "replayed_summary_sha256": "e11d133a99690731d4ac0ba076bdb9f368b124fe16c95e596f76d03c192d2dd4",
+  "relocated_summary_byte_identical": true,
+  "review_file_sha256": {
+    "results.json": "e11d133a99690731d4ac0ba076bdb9f368b124fe16c95e596f76d03c192d2dd4"
+  }
+}

@@ -1,0 +1,2 @@
+// Generated embedding: authoritative complete control/solver source is pose_resident.metal.
+static constexpr const char* fpmResidentMetalSource = R"FPM_RESIDENT(@FPM_RESIDENT_METAL_SOURCE@)FPM_RESIDENT";

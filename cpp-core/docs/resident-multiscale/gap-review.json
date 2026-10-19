@@ -1,0 +1,340 @@
+{
+  "review_version": 1,
+  "as_of_commit": "f6b7d3868b833c0a0cd83f976f768d86d6075c0c",
+  "scope": "Read-only review of stage 1–32 published evidence and implementation contracts; no GPU, compilation, or new accuracy experiment. This JSON is the only review output written.",
+  "headline": "最新組合仍缺 resident mode 0/1/2 同版消融；可先用一輪封閉比較補齊，但最高優先的外部有效性缺口是獨立場景／真實GT與新影格。重複舊512場景不能替代此證據。",
+  "must_validate_before_broad_claims": [
+    {
+      "priority": 1,
+      "id": "independent_accuracy",
+      "title": "獨立模板、背景與真實GT的準確度",
+      "evidence": "第32輪快速與完整次像素兩設定共用同一8192×4096影像及14280像素模板，512為同模板分離實例；數萬次窗口等值與多次重跑都不是獨立實景。早期有held-out解析／合成探針，不能說完全沒有held-out，但最新組合沒有新實拍盲測。Src4／Src7部分數量一致沒有校準GT。",
+      "required_work": [
+        "固定參數後另建保留測試集，按模板／原始照片／背景分組，避免同一裁片的增強版本跨校準與評估組。",
+        "先加入多種未用模板與獨立背景、密集接觸或遮擋、低對比／模糊／噪聲、旋轉與尺度邊界、無目標與相似干擾物；人工標註真實資料時記錄標註不確定度。",
+        "GT只傳評估器；分列提案recall與最終TP/FP/FN、定位／角度／尺度誤差及每場景時間／RSS，保留所有失敗。",
+        "沒有實拍GT時可先完成固定種子的獨立合成壓力集，但須明說不是相機泛化證明。"
+      ],
+      "evidence_refs": [
+        {
+          "path": "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/docs/RUN_VARIABILITY_POSE_MEMORY_zh-TW.md",
+          "line": 96
+        },
+        {
+          "path": "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/docs/run-diagnostics/pose-memory-protocol.json",
+          "detail": "cases[0] and cases[1] use identical source and template paths"
+        },
+        {
+          "path": "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/docs/EXPERIMENT_REVIEW_zh-TW.md",
+          "line": 355
+        },
+        {
+          "path": "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/docs/EXPERIMENT_REVIEW_zh-TW.md",
+          "line": 359
+        }
+      ]
+    },
+    {
+      "priority": 2,
+      "id": "complete_current_composition",
+      "title": "最新多尺度整體組合的求解器同版比較",
+      "evidence": "fineNccMode2＋fineFused＋fineAngleReuse＋direct gray8＋pose input1/storage1已驗，但第32輪residentMode固定0。mode1/2完整流程證據來自第22–25輪固定尺度稀疏前段，不能直接套用其倍率或稱最新多尺度組合全部驗畢。",
+      "required_work": [
+        "保留相同binary、圖像、尺度、門檻、搜尋候選、救援預算和shared/u8，只變resident mode 0/1/2。",
+        "至少納入小圖、128、512快速、512完整次像素，保留首次與repeat、solver device/wait/verify與total、RSS和明確workspace。",
+        "最終輸出逐值比較並另對GT；檢查實際mode、threads／SIMD以及跨512候選batch。不得要求不同kernel模式的dispatch或workspace與mode0數值相同。",
+        "模式限灰階模板≤16384像素，超限和RGB維持原路徑／明確拒絕，不暗中截模板。"
+      ],
+      "evidence_refs": [
+        {
+          "path": "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/docs/RUN_VARIABILITY_POSE_MEMORY_zh-TW.md",
+          "line": 75
+        },
+        {
+          "path": "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/docs/RUN_VARIABILITY_POSE_MEMORY_zh-TW.md",
+          "line": 90
+        },
+        {
+          "path": "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/docs/pose-simd/protocol.json",
+          "detail": "shared_settings.scales=[1.0], optimize_scale=false; scope compact sparse Metal frontend"
+        },
+        {
+          "path": "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/experiments/research_pipeline.hpp",
+          "line": 17
+        },
+        {
+          "path": "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/experiments/research_pipeline.cpp",
+          "line": 116
+        }
+      ]
+    },
+    {
+      "priority": 3,
+      "id": "new_frames_and_lifetimes",
+      "title": "新影格更新與最新組合的生命週期",
+      "evidence": "30分鐘534次測試是第14輪a989183固定圖＋overlap組合，早於細搜尋融合、gray8 loader與shared/u8最新組合。Session明定持有不可變source/template；固定Session重跑不是相機更新。",
+      "required_work": [
+        "先以有界新影格序列比較每次重建Session與可用重用契約，逐frame換內容，交替尺寸／模板／模式，包含取消、失敗恢復與釋放。",
+        "分開建模、影像更新／轉換、prepare、first、steady run、銷毀成本；量current RSS趨勢、peak RSS、容量、未排空工作與持有關係。",
+        "最新組合需要生命週期驗證，但不必再要求24小時；先完成有界可重現序列，若需持續測試依既定30分鐘上限安排。",
+        "沒有新的可變frame API便不能宣稱高效率相機串流已實作；用Session重建跑序列可驗正確性與實際成本。"
+      ],
+      "evidence_refs": [
+        {
+          "path": "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/docs/stability-30min/protocol.json",
+          "detail": "baseline_commit=a989183..., settings includes overlap enabled; limitations fixed synthetic image"
+        },
+        {
+          "path": "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/experiments/research_pipeline.hpp",
+          "line": 10
+        },
+        {
+          "path": "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/docs/PROJECT_STATUS_zh-TW.md",
+          "line": 67
+        },
+        {
+          "path": "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/docs/RUN_VARIABILITY_POSE_MEMORY_zh-TW.md",
+          "line": 94
+        }
+      ]
+    },
+    {
+      "priority": 4,
+      "id": "ambiguity_and_candidate_pressure",
+      "title": "高分錯峰、候選上限與不同模板數量",
+      "evidence": "已知近週期錯峰NCC約0.999992但位移8px不觸發低分救援；稀疏128前段捕獲鄰域仍127/128並碰到256候選上限。512同模板實例並非512模板庫，也未覆蓋密集重疊。",
+      "required_work": [
+        "將已知高分錯峰與候選上限案例列為永久challenge，保持原GT／門檻，不只驗新舊一致。",
+        "測物件密度、干擾物、角度／尺度bank及maxTargets獨立變化，記錄候選數、fine maps／windows、救援數與NMS。",
+        "若研究次峰差／幾何／多解回報，需明訂歧義決策語義，量新增誤拒與速度成本；影像資訊不足時不得保證唯一正解。"
+      ],
+      "evidence_refs": [
+        {
+          "path": "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/docs/NCC_RESCUE_AND_METAL_COARSE_zh-TW.md",
+          "line": 22
+        },
+        {
+          "path": "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/docs/EXPERIMENT_REVIEW_zh-TW.md",
+          "line": 244
+        },
+        {
+          "path": "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/docs/PROJECT_STATUS_zh-TW.md",
+          "line": 31
+        }
+      ]
+    },
+    {
+      "priority": 5,
+      "id": "fairness_and_statistics",
+      "title": "CPU／GPU公平範圍與統計不確定性",
+      "evidence": "第32輪每方法每case只有兩個獨立程序，repeat嵌套其中；max(10%,2ms)為回歸容忍而非加速顯著性。舊CPU/Metal局部精修比較多共用Metal前段；CPU LUT仍非最佳CPU實作，不能稱硬體上限。",
+      "required_work": [
+        "比較完整流程與純精修需分開，標示前段backend、CPU threads、同一工作量／搜尋界、建模攤銷及解碼是否納入。",
+        "若要主張小幅速度提升，預先固定更多平衡／隨機block，對獨立程序或場景做配對區間，不把同程序repeat當獨立樣本；兩block資料只做描述性與回歸判讀。",
+        "保留所有慢樣本，分報first／steady／建模與每影格重建。fresh process不等於清空OS／shader cache的完全冷機。",
+        "48%歷史異常僅未重現，probe可協助下次定位但沒有當年CPU/GPU時間線；不要宣稱已確定OS／熱或已排除間歇性問題。",
+        "硬體cache／頻寬／occupancy／功耗資料仍缺，先量GPU timeline與最耗時scope再宣稱記憶體或算力上限。"
+      ],
+      "evidence_refs": [
+        {
+          "path": "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/docs/run-diagnostics/reproduction-protocol.json",
+          "detail": "blocks=2, repeats=3 and timing/probes/tolerance rules"
+        },
+        {
+          "path": "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/docs/RUN_VARIABILITY_POSE_MEMORY_zh-TW.md",
+          "line": 73
+        },
+        {
+          "path": "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/docs/EXPERIMENT_REVIEW_zh-TW.md",
+          "line": 354
+        },
+        {
+          "path": "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/docs/CURRENT_BEST_zh-TW.md",
+          "line": 57
+        },
+        {
+          "path": "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/docs/POSE_SIMD_zh-TW.md",
+          "line": 90
+        }
+      ]
+    }
+  ],
+  "optional_research_extensions": [
+    {
+      "id": "rgb_full_search",
+      "title": "RGB完整全圖流程",
+      "status": "局部RGB score/refine與storage/input API已有證據；全圖RGB提案、通道數學權重／光照模型及GUI尚未完成。需同灰階scene做加色／等亮度干擾對照，不能假設三通道必然GPU較快。",
+      "evidence_refs": [
+        {
+          "path": "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/docs/PROJECT_STATUS_zh-TW.md",
+          "line": 63
+        },
+        {
+          "path": "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/docs/POSE_U8_INPUT_zh-TW.md",
+          "line": 110
+        }
+      ]
+    },
+    {
+      "id": "fourier_cpp_metal",
+      "title": "FFT／Fourier原型移植與新數學方法",
+      "status": "已有CPU NumPy原型且裁切／背景失敗，尚非全C++／Metal。先證明候選召回與總成本價值，再投入移植；不是現有灰階交付的必要阻塞。",
+      "evidence_refs": [
+        {
+          "path": "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/docs/PROJECT_STATUS_zh-TW.md",
+          "line": 64
+        },
+        {
+          "path": "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/docs/EXPERIMENT_REVIEW_zh-TW.md",
+          "line": 96
+        }
+      ]
+    },
+    {
+      "id": "cross_platform",
+      "title": "跨硬體與Windows／Linux",
+      "status": "M4 Pro/Metal是已測平台；CUDA、跨Apple晶片與本輪Windows/Linux GUI實測缺。可繼續在現有Metal推進算法與驗證，不需要先取得CUDA。跨平台可移植性主張須對應實際build/test範圍。",
+      "evidence_refs": [
+        {
+          "path": "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/docs/PROJECT_STATUS_zh-TW.md",
+          "line": 66
+        }
+      ]
+    },
+    {
+      "id": "all_gpu_or_advanced_kernels",
+      "title": "全GPU／硬體counter／更進階分塊與自動分流",
+      "status": "仍可研究；目前沒有全GPU失敗或性能已達極限證據。CPU normalized selection/verification/rescue等可分別分析，先量收益上限再移植；auto routing需跨負載與新場景證據。",
+      "evidence_refs": [
+        {
+          "path": "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/docs/PROJECT_STATUS_zh-TW.md",
+          "line": 65
+        },
+        {
+          "path": "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/docs/POSE_SIMD_zh-TW.md",
+          "line": 76
+        },
+        {
+          "path": "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/docs/EXPERIMENT_REVIEW_zh-TW.md",
+          "line": 354
+        }
+      ]
+    }
+  ],
+  "mode_ablation_vs_new_scenes": {
+    "recommendation": "本輪可先做小範圍同版0/1/2消融以補最新組合缺口，不能繼續擴成只重跑舊圖的多輪調參。下一個主要準確度里程碑應是獨立新場景／challenge；若本輪資源只足一件且目標是泛化，優先新場景。",
+    "reason": "14280像素模板在mode1/2≤16384範圍內，分派跨512候選有既有單測但最新多尺度與完整次像素全流程未量。現有完整時間大多在前段，末端求解再優化的整體收益上限有限。",
+    "interpretation": "以下Amdahl比例只是在其他階段完全不變且末端成本可全部移除的描述性時間節省上限；不是實際預測、硬體下限或精修倍率。各scope中位數不必嚴格相加。",
+    "same_scene_combined_repeat_stage_medians": [
+      {
+        "total_ms": 2385.2005625,
+        "proposal_ms": 2177.6473125,
+        "refine_ms": 206.9288125,
+        "refinement_device_ms": 185.14391651842743,
+        "refinement_wait_ms": 187.6448535,
+        "refinement_verify_ms": 18.698041500000002,
+        "case": "many512_pose",
+        "refine_fraction": 0.08675530928229855,
+        "evidence": {
+          "path": "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/docs/run-diagnostics/pose-memory-summary.json",
+          "detail": "cases[name=many512_pose].methods.combined.blocks[*].calls[phase=repeat1].stages.root"
+        }
+      },
+      {
+        "total_ms": 14723.0425625,
+        "proposal_ms": 14525.698896,
+        "refine_ms": 196.724541,
+        "refinement_device_ms": 174.5108749018982,
+        "refinement_wait_ms": 177.139479,
+        "refinement_verify_ms": 18.684834000000002,
+        "case": "many512_pose_fullres_subpixel",
+        "refine_fraction": 0.013361677123793887,
+        "evidence": {
+          "path": "/Users/Ayueh/Fastest_Image_Pattern_Matching/cpp-core/docs/run-diagnostics/pose-memory-summary.json",
+          "detail": "cases[name=many512_pose_fullres_subpixel].methods.combined.blocks[*].calls[phase=repeat1].stages.root"
+        }
+      }
+    ]
+  },
+  "documentation_findings": [
+    {
+      "severity": "medium",
+      "path": "cpp-core/docs/PROJECT_STATUS_zh-TW.md",
+      "line": 38,
+      "issue": "仍說下一個重點是旋轉與NCC之間同步，但第30輪已實作融合；當前優先表還停在第14/24輪。",
+      "fix": "改為已完成連結，列第32輪數據與真正待辦；保留舊數據但標輪次。"
+    },
+    {
+      "severity": "medium",
+      "path": "cpp-core/docs/PROJECT_STATUS_zh-TW.md",
+      "line": 42,
+      "issue": "大圖記憶體列仍說接續量解碼；第31/32輪已完成相應部分。大量局部搜尋/重疊列用3352ms舊組合，容易被看成現行最佳。",
+      "fix": "分列已完成與尚缺：GUI換圖RSS、gray8 source持有副本、新影格；性能數字標明流程/版本。"
+    },
+    {
+      "severity": "medium",
+      "path": "cpp-core/docs/PROJECT_STATUS_zh-TW.md",
+      "line": 73,
+      "issue": "標題「本輪30分鐘驗證」未指明第14輪a989183，可能讓人誤認最新shared/u8/fused組合已30分鐘。",
+      "fix": "改為第14輪歷史固定圖30分鐘驗證；明寫不涵蓋第32輪最新組合。"
+    },
+    {
+      "severity": "low",
+      "path": "cpp-core/docs/PROJECT_STATUS_zh-TW.md",
+      "line": 69,
+      "issue": "研究總索引標29階段，實際32階段。",
+      "fix": "更新32或採不帶輪數的連結。"
+    },
+    {
+      "severity": "medium",
+      "path": "cpp-core/docs/CURRENT_BEST_zh-TW.md",
+      "line": 74,
+      "issue": "仍以舊GUI 8K數字說下一個記憶體重點讀圖暫存；第31/32輪已做部分。",
+      "fix": "標明14輪歷史比較，連到31/32輪並留下真正尚缺的GUI和影格更新問題。"
+    },
+    {
+      "severity": "low",
+      "path": "cpp-core/docs/CURRENT_BEST_zh-TW.md",
+      "line": 88,
+      "issue": "16輪段落仍稱Metal建圖及精修分界是下一步，19–25輪已做；缺乏就地「後續已完成」標記。",
+      "fix": "歷史段落保留但加後續完成連結，避免當前待辦互相衝突。"
+    },
+    {
+      "severity": "low",
+      "path": "cpp-core/docs/EXPERIMENT_REVIEW_zh-TW.md",
+      "line": 397,
+      "issue": "用「666獨立GT姿態」描述合成姿態可被誤讀為666獨立圖像；大多仍來自少量模板/場景，且設定重用。",
+      "fix": "用「666個不同合成GT姿態，非666個獨立實拍場景」；不要推翻原逐姿態檢查。"
+    },
+    {
+      "severity": "low",
+      "path": "cpp-core/docs/PROJECT_STATUS_zh-TW.md",
+      "line": 34,
+      "issue": "「前一輪六個固定場景72workers360次」實際指14輪，不是31輪；該段與頂部32輪日期不一致。",
+      "fix": "直接用第14輪整合驗證。"
+    }
+  ],
+  "not_a_contradiction": [
+    "固定尺度稀疏推薦residentMode2與最新多尺度residentMode0是不同流程證據，並非程序功能互斥；缺的是同版組合驗證與清楚的推薦表。",
+    "歷史實驗索引各節寫當輪尚未實作/下一步，可保留歷史敘述；真正應修的是CURRENT_BEST與PROJECT_STATUS的當前指向及未標輪次段落。",
+    "已有很多單元/契約/數值/原始證據封存，不應把待補泛化和串流寫成目前完全沒測；也不能把全部測試通過寫成任意相機/模板已保證。"
+  ],
+  "source_sha256": {
+    "cpp-core/docs/CURRENT_BEST_zh-TW.md": "145574da8314bad2d4086a14e3fa9f20573a2abcc3e522f3a403f03307643e4e",
+    "cpp-core/docs/PROJECT_STATUS_zh-TW.md": "6b7698dbba4bff0359e774637781ab506b7e67492c9b8b9078754c5f7f6b1664",
+    "cpp-core/docs/EXPERIMENT_REVIEW_zh-TW.md": "d29b7ac0326cab6566b921b7444f0303bccc0ad2da8246fdbbbbb07b6675b7df",
+    "cpp-core/docs/RUN_VARIABILITY_POSE_MEMORY_zh-TW.md": "e211f046de6fc50f1eec6740848de310b4bda660079193b9111332450d9b1093",
+    "cpp-core/docs/run-diagnostics/pose-memory-protocol.json": "763ef594c539f2f4ed0d30ab1d1107e08d3e2df87e64996bb0dd1c688767bdcf",
+    "cpp-core/docs/run-diagnostics/pose-memory-summary.json": "4cbd4a9b5676dc5e3fdd3e2db6815aa233e1a3d55a5fcd39ad2241ae5ca6fab5",
+    "cpp-core/docs/run-diagnostics/reproduction-protocol.json": "c2cb966d10afb62f1eb9c329d43de06a56a585d0a8aa1b61544c2e54c2a72388",
+    "cpp-core/docs/POSE_SIMD_zh-TW.md": "6c2e1fd9bd6b15d8037140a487dbf7468bd92681f248fdf551282accc15f628c",
+    "cpp-core/docs/pose-simd/protocol.json": "38c162fb055038045fefa4d546d5d62e885fe74845bcdc705561bee7c8793c70",
+    "cpp-core/docs/stability-30min/protocol.json": "7b896ae4b119f18ba475cd05eb48a069ff6fb6f48e84bb77ba2f491f61d24f11",
+    "cpp-core/docs/NCC_RESCUE_AND_METAL_COARSE_zh-TW.md": "039b4615c3612e49ca7a4ec032ee3642c203dcf2983541b8a987d155d4dda15d",
+    "cpp-core/docs/POSE_U8_INPUT_zh-TW.md": "3a4bf2762beedaea16ac5d4bf5d146a8189e4a7149b067d5824f5464207bbe6a",
+    "cpp-core/docs/POSE_SHARED_STORAGE_zh-TW.md": "00553731b2fd62c1bacfaae77ed31f46196165be4ba4d8cf545a5fe022989c13",
+    "cpp-core/experiments/research_pipeline.hpp": "fe01da62d181f59777898fc1e1fc1ca3e47eee5c3ff29c15941d28bb7ec42e75",
+    "cpp-core/experiments/research_pipeline.cpp": "b962e1d25af8e43fa00c153cf767ac36ab9d0510f30ff01d85d35277c8c870ca",
+    "cpp-core/tools/benchmark_run_diagnostics.py": "393f24139c33f978f2e1cd06e704098c84bf99486ba51a0465193d7197c61174"
+  }
+}

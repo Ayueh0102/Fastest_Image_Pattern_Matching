@@ -1,0 +1,215 @@
+{
+  "case": {
+    "name": "small_fullres",
+    "source": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/gui-integration-results/inputs/small_fullres.png",
+    "template": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/gui-integration-results/inputs/small_template.png",
+    "scales": [
+      1.0
+    ],
+    "angle": 180,
+    "limit": 8,
+    "score": 0.7,
+    "overlap": 0.0,
+    "truth": [
+      {
+        "pos_x": 128,
+        "pos_y": 128,
+        "angle": 0.0,
+        "scale": 1.0
+      },
+      {
+        "pos_x": 480,
+        "pos_y": 384,
+        "angle": 0.0,
+        "scale": 1.0
+      }
+    ],
+    "workflow": "core_only",
+    "stop_layer": 0,
+    "subpixel": 1
+  },
+  "first": {
+    "frame_coarse_gpu_bytes": 781324,
+    "frame_fine_gpu_bytes": 114320,
+    "frame_host_bytes": 435200,
+    "generation": 1,
+    "matches": [
+      {
+        "angle": 0,
+        "corners": [
+          [
+            79.99997175693937,
+            95.99999588494046
+          ],
+          [
+            175.99997175693937,
+            95.99999588494046
+          ],
+          [
+            175.99997175693937,
+            159.99999588494046
+          ],
+          [
+            79.99997175693937,
+            159.99999588494046
+          ]
+        ],
+        "pos_x": 127.99997175693937,
+        "pos_y": 127.99999588494046,
+        "scale": 1,
+        "score": 1
+      },
+      {
+        "angle": 0,
+        "corners": [
+          [
+            431.99997175693943,
+            351.9999958849405
+          ],
+          [
+            527.9999717569394,
+            351.9999958849405
+          ],
+          [
+            527.9999717569394,
+            415.9999958849405
+          ],
+          [
+            431.99997175693943,
+            415.9999958849405
+          ]
+        ],
+        "pos_x": 479.99997175693943,
+        "pos_y": 383.9999958849405,
+        "scale": 1,
+        "score": 1
+      }
+    ],
+    "memory": {
+      "current_rss_bytes": 27803648,
+      "peak_rss_bytes": 27803648
+    },
+    "models_matched": 1,
+    "nms_ms": 0.00125,
+    "pose_conversion_temporary_bytes": 0,
+    "pose_create_ms": 0,
+    "pose_gpu_bytes": 0,
+    "pose_gpu_image_bytes": 0,
+    "pose_host_bytes": 0,
+    "pose_host_image_bytes": 0,
+    "pose_input_mode": 0,
+    "pose_shared_image_bytes": 0,
+    "pose_storage_mode": 0,
+    "pose_unique_image_bytes": 0,
+    "prepare_ms": 2.630292,
+    "proposal_ms": 16.920584,
+    "proposals": [
+      {
+        "angle": 0,
+        "corners": [
+          [
+            79.99997175693937,
+            95.99999588494046
+          ],
+          [
+            175.99997175693937,
+            95.99999588494046
+          ],
+          [
+            175.99997175693937,
+            159.99999588494046
+          ],
+          [
+            79.99997175693937,
+            159.99999588494046
+          ]
+        ],
+        "pos_x": 127.99997175693937,
+        "pos_y": 127.99999588494046,
+        "scale": 1,
+        "score": 1
+      },
+      {
+        "angle": 0,
+        "corners": [
+          [
+            431.99997175693943,
+            351.9999958849405
+          ],
+          [
+            527.9999717569394,
+            351.9999958849405
+          ],
+          [
+            527.9999717569394,
+            415.9999958849405
+          ],
+          [
+            431.99997175693943,
+            415.9999958849405
+          ]
+        ],
+        "pos_x": 479.99997175693943,
+        "pos_y": 383.9999958849405,
+        "scale": 1,
+        "score": 1
+      }
+    ],
+    "refine_ms": 0,
+    "refinement_auxiliary_bytes": 0,
+    "refinement_command_buffers": 0,
+    "refinement_cpu_waits": 0,
+    "refinement_device_ms": 0,
+    "refinement_dispatches": 0,
+    "refinement_encode_ms": 0,
+    "refinement_mode": 0,
+    "refinement_setup_ms": 0,
+    "refinement_simd_width": 0,
+    "refinement_threadgroup_bytes": 0,
+    "refinement_threads": 0,
+    "refinement_verify_ms": 0,
+    "refinement_wait_ms": 0,
+    "rescued_seeds": 0,
+    "selected_refinement_backend": 0,
+    "total_ms": 16.922209,
+    "work": [
+      {
+        "async_completed": 0,
+        "async_copy_ms": 0,
+        "async_device_ms": 0,
+        "async_fallback_maps": 0,
+        "async_maps": 0,
+        "async_max_pending": 0,
+        "async_submitted": 0,
+        "async_wait_ms": 0,
+        "copy_ms": 0.02325,
+        "device_ms": 2.5431662797927856,
+        "fine_commands": 30,
+        "fine_maps": 162,
+        "fine_ncc_mode": 2,
+        "fine_ncc_ms": 4.101126000000001,
+        "fine_normalization_ms": 0.033417,
+        "fine_peak_batch": 18,
+        "fine_repair_ms": 0.052751000000000006,
+        "fine_repair_pixels": 253,
+        "fine_roi_pixels": 948456,
+        "fine_rotation_ms": 3.735124,
+        "fine_row_bytes": 0,
+        "fine_row_dispatches": 0,
+        "fine_stats_device_ms": 1.9964170642197132,
+        "fine_stats_dispatches": 15,
+        "fine_upload_bytes": 0,
+        "fine_uploads": 0,
+        "fine_wait_ms": 7.634374000000001,
+        "maps": 40,
+        "normalization_ms": 0.608373,
+        "wait_ms": 4.509375,
+        "windows": 227392
+      }
+    ]
+  },
+  "final_memory": {
+    "current_rss_bytes": 28459008,
+    "peak_rss_bytes": 28459008
+  }
+}

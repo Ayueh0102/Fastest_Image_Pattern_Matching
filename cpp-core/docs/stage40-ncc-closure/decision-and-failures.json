@@ -1,0 +1,459 @@
+{
+  "stage": 40,
+  "date": "2026-10-19",
+  "phase_complete": true,
+  "scope": "Bounded exact gray8 Metal resident NCC phase; not all future research",
+  "recommended_explicit_gpu_settings": {
+    "full_gpu": true,
+    "full_gpu_peak_mode": 1,
+    "full_gpu_fine_mode": 4
+  },
+  "universal_default_changed": false,
+  "adoption": "SIMD32 mode4 passes main >=10% reduction and all GPU-baseline block time/RSS/parity gates; keep hybrid for case-dependent latency.",
+  "mode_decisions": {
+    "0": "Retain original complete ROI/direct uint64 reference",
+    "1": "Retain oversized row cache, not sufficient for main stop1 cases",
+    "2": "Retain safe bounded uint32 and fallback; fails 10% primary target alone",
+    "3": "Retain complete source and negative pilot/profile; screened out for slower primary cases",
+    "4": "Preferred explicit GPU research option on measured SIMD32 device; includes mode2"
+  },
+  "no_additional_combination": "No complementary winner: mode4 already contains bounded accumulation and row-cache fallback; mode3 lost.",
+  "comparison_scope": "128 approximately matches hybrid; 512 still17.3% slower than hybrid. No universal all-GPU win.",
+  "accuracy": {
+    "direct_gt_calls": 562,
+    "all_zero_fp_fn": true,
+    "six_dataset_direct_gt": 507,
+    "cross_version_direct_gt": 54,
+    "soak_initial_direct_gt": 1,
+    "separate_native_soak_exact_attestations": 107
+  },
+  "named_gpu_allocation_change_bytes": 0,
+  "static_threadgroup_bytes": 28560,
+  "all_failed_gates": [
+    {
+      "case": "many128_pose",
+      "method": "full_gpu_fine_tiled",
+      "baseline": "full_gpu_tiled",
+      "gate": "primary_10_percent_improvement",
+      "dataset": "pilot"
+    },
+    {
+      "case": "many128_pose",
+      "method": "full_gpu_fine_tiled",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 0,
+      "dataset": "pilot"
+    },
+    {
+      "case": "many128_pose",
+      "method": "full_gpu_u32",
+      "baseline": "full_gpu_tiled",
+      "gate": "primary_10_percent_improvement",
+      "dataset": "pilot"
+    },
+    {
+      "case": "many128_pose",
+      "method": "full_gpu_moments",
+      "baseline": "full_gpu_tiled",
+      "gate": "time_budget",
+      "block": 0,
+      "dataset": "pilot"
+    },
+    {
+      "case": "many128_pose",
+      "method": "full_gpu_moments",
+      "baseline": "full_gpu_tiled",
+      "gate": "primary_10_percent_improvement",
+      "dataset": "pilot"
+    },
+    {
+      "case": "many128_pose",
+      "method": "full_gpu_moments",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 0,
+      "dataset": "pilot"
+    },
+    {
+      "case": "many128_pose",
+      "method": "full_gpu_moments",
+      "baseline": "full_gpu_fine_tiled",
+      "gate": "time_budget",
+      "block": 0,
+      "dataset": "pilot"
+    },
+    {
+      "case": "many512_pose",
+      "method": "full_gpu_fine_tiled",
+      "baseline": "full_gpu_tiled",
+      "gate": "primary_10_percent_improvement",
+      "dataset": "pilot"
+    },
+    {
+      "case": "many512_pose",
+      "method": "full_gpu_fine_tiled",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 0,
+      "dataset": "pilot"
+    },
+    {
+      "case": "many512_pose",
+      "method": "full_gpu_u32",
+      "baseline": "full_gpu_tiled",
+      "gate": "primary_10_percent_improvement",
+      "dataset": "pilot"
+    },
+    {
+      "case": "many512_pose",
+      "method": "full_gpu_u32",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 0,
+      "dataset": "pilot"
+    },
+    {
+      "case": "many512_pose",
+      "method": "full_gpu_moments",
+      "baseline": "full_gpu_tiled",
+      "gate": "time_budget",
+      "block": 0,
+      "dataset": "pilot"
+    },
+    {
+      "case": "many512_pose",
+      "method": "full_gpu_moments",
+      "baseline": "full_gpu_tiled",
+      "gate": "primary_10_percent_improvement",
+      "dataset": "pilot"
+    },
+    {
+      "case": "many512_pose",
+      "method": "full_gpu_moments",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 0,
+      "dataset": "pilot"
+    },
+    {
+      "case": "many512_pose",
+      "method": "full_gpu_moments",
+      "baseline": "full_gpu_fine_tiled",
+      "gate": "time_budget",
+      "block": 0,
+      "dataset": "pilot"
+    },
+    {
+      "case": "many512_pose",
+      "method": "full_gpu_simd",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 0,
+      "dataset": "pilot"
+    },
+    {
+      "case": "controlled6",
+      "method": "full_gpu_fine_tiled",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 0,
+      "dataset": "pilot"
+    },
+    {
+      "case": "controlled6",
+      "method": "full_gpu_u32",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 0,
+      "dataset": "pilot"
+    },
+    {
+      "case": "controlled6",
+      "method": "full_gpu_moments",
+      "baseline": "full_gpu_tiled",
+      "gate": "time_budget",
+      "block": 0,
+      "dataset": "pilot"
+    },
+    {
+      "case": "controlled6",
+      "method": "full_gpu_moments",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 0,
+      "dataset": "pilot"
+    },
+    {
+      "case": "controlled6",
+      "method": "full_gpu_moments",
+      "baseline": "full_gpu_fine_tiled",
+      "gate": "time_budget",
+      "block": 0,
+      "dataset": "pilot"
+    },
+    {
+      "case": "controlled6",
+      "method": "full_gpu_simd",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 0,
+      "dataset": "pilot"
+    },
+    {
+      "case": "many128_pose",
+      "method": "full_gpu_u32",
+      "baseline": "full_gpu_tiled",
+      "gate": "primary_10_percent_improvement",
+      "dataset": "formal"
+    },
+    {
+      "case": "many512_pose",
+      "method": "full_gpu_u32",
+      "baseline": "full_gpu_tiled",
+      "gate": "primary_10_percent_improvement",
+      "dataset": "formal"
+    },
+    {
+      "case": "many512_pose",
+      "method": "full_gpu_u32",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 0,
+      "dataset": "formal"
+    },
+    {
+      "case": "many512_pose",
+      "method": "full_gpu_u32",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 1,
+      "dataset": "formal"
+    },
+    {
+      "case": "many512_pose",
+      "method": "full_gpu_u32",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 2,
+      "dataset": "formal"
+    },
+    {
+      "case": "many512_pose",
+      "method": "full_gpu_simd",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 0,
+      "dataset": "formal"
+    },
+    {
+      "case": "many512_pose",
+      "method": "full_gpu_simd",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 1,
+      "dataset": "formal"
+    },
+    {
+      "case": "many512_pose",
+      "method": "full_gpu_simd",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 2,
+      "dataset": "formal"
+    },
+    {
+      "case": "controlled6",
+      "method": "full_gpu_u32",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 0,
+      "dataset": "formal"
+    },
+    {
+      "case": "controlled6",
+      "method": "full_gpu_u32",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 1,
+      "dataset": "formal"
+    },
+    {
+      "case": "controlled6",
+      "method": "full_gpu_u32",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 2,
+      "dataset": "formal"
+    },
+    {
+      "case": "controlled6",
+      "method": "full_gpu_simd",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 0,
+      "dataset": "formal"
+    },
+    {
+      "case": "controlled6",
+      "method": "full_gpu_simd",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 1,
+      "dataset": "formal"
+    },
+    {
+      "case": "controlled6",
+      "method": "full_gpu_simd",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 2,
+      "dataset": "formal"
+    },
+    {
+      "case": "many128_pose_stop0",
+      "method": "full_gpu_fine_tiled",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 0,
+      "dataset": "stop0-formal"
+    },
+    {
+      "case": "many128_pose_stop0",
+      "method": "full_gpu_fine_tiled",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 1,
+      "dataset": "stop0-formal"
+    },
+    {
+      "case": "many128_pose_stop0",
+      "method": "full_gpu_fine_tiled",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 2,
+      "dataset": "stop0-formal"
+    },
+    {
+      "case": "many128_pose_stop0",
+      "method": "full_gpu_simd",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 0,
+      "dataset": "stop0-formal"
+    },
+    {
+      "case": "many512_pose_stop0",
+      "method": "full_gpu_fine_tiled",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 0,
+      "dataset": "stop0-formal"
+    },
+    {
+      "case": "many512_pose_stop0",
+      "method": "full_gpu_fine_tiled",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 1,
+      "dataset": "stop0-formal"
+    },
+    {
+      "case": "many512_pose_stop0",
+      "method": "full_gpu_fine_tiled",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 2,
+      "dataset": "stop0-formal"
+    },
+    {
+      "case": "many512_pose_stop0",
+      "method": "full_gpu_simd",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 0,
+      "dataset": "stop0-formal"
+    },
+    {
+      "case": "many512_pose_stop0",
+      "method": "full_gpu_simd",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 1,
+      "dataset": "stop0-formal"
+    },
+    {
+      "case": "many512_pose_stop0",
+      "method": "full_gpu_simd",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 2,
+      "dataset": "stop0-formal"
+    },
+    {
+      "case": "small_fullres",
+      "method": "full_gpu_simd",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 0,
+      "dataset": "holdout"
+    },
+    {
+      "case": "small_fullres",
+      "method": "full_gpu_simd",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 1,
+      "dataset": "holdout"
+    },
+    {
+      "case": "small_fullres",
+      "method": "full_gpu_simd",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 2,
+      "dataset": "holdout"
+    },
+    {
+      "case": "many512_holdout",
+      "method": "full_gpu_simd",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 0,
+      "dataset": "holdout"
+    },
+    {
+      "case": "many512_holdout",
+      "method": "full_gpu_simd",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 1,
+      "dataset": "holdout"
+    },
+    {
+      "case": "many512_holdout",
+      "method": "full_gpu_simd",
+      "baseline": "hybrid_best",
+      "gate": "time_budget",
+      "block": 2,
+      "dataset": "holdout"
+    }
+  ],
+  "failure_counts": {
+    "pilot": 22,
+    "formal": 14,
+    "stop0-formal": 10,
+    "holdout": 6,
+    "profile": 0,
+    "stop0-profile": 0
+  },
+  "failure_interpretation": "Speed tolerance or primary10% target failures; no accuracy or RSS failures. All retained, including hybrid comparisons.",
+  "limits": [
+    "One Apple M4 Pro",
+    "Gray8 full resident path; not RGB or CUDA",
+    "Synthetic pose GT, not annotated real image sequence",
+    "No claim of algorithmic limit",
+    "No physical DMA, occupancy or cache-hit counters",
+    "Five-minute new-variant regression, not new30-minute qualification"
+  ]
+}

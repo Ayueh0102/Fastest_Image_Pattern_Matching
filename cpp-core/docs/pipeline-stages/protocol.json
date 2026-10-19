@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "baseline_commit": "91842dd8a94d7278a221bd177ee964dc98d0db46",
+  "hardware": "Apple M4 Pro, 48 GiB, macOS 26.6.2",
+  "sequence": [
+    "Instrument existing CPU/Metal coarse paths with exclusive stages",
+    "Measure pilot before selecting the GPU migration",
+    "Freeze the selected implementation and benchmark sources",
+    "Run serial fresh-process comparisons with forward/reverse matched-order blocks for profiling on/off overhead; no same-process overhead claim."
+  ],
+  "selection": "Prioritize measured wall-time share, preserving exact gray8/NCC outputs; report scene dependence. Do not infer bottlenecks solely from image dimensions.",
+  "accuracy": {
+    "all_saved_calls": "Every first and measured call must match frozen baseline output exactly. Independently check known synthetic truth; Src7 agreement is not calibrated accuracy.",
+    "known_truth": "No extra or missed detections and <=2 pixels / 1 degree / 2 percent scale on final outputs. Never feed truth into selection or kernels."
+  },
+  "performance": {
+    "formal_repeats": 5,
+    "warmup_seconds": 1,
+    "easy_scene_regression_limit": "max(10 percent, 2 ms) warm whole-pipeline median; report raw samples and any failed gates",
+    "claim": "Require repeatable improvement in the targeted measured bottleneck and report total wall time; improvements are not assumed universal."
+  },
+  "memory": "Separate peak process RSS, retained host/device buffer capacities, and temporary host storage estimates. Apple shared memory overlaps RSS. Record cold creation and first call separately.",
+  "scope": "Opt-in experimental paths; stable C ABI/GUI defaults retained; keep complete C++/Metal kernels and reference implementations.",
+  "design_clarification_before_formal": "Overhead workers use separate processes to isolate RSS; block pairing does not eliminate clock/frequency drift."
+}

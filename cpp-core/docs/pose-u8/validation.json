@@ -1,0 +1,31 @@
+{
+  "workers": 80,
+  "expected_workers": 80,
+  "measured_calls": 240,
+  "all_workers_succeeded": true,
+  "exact_proposals_all": true,
+  "exact_resident_final_all": true,
+  "exact_cpu_direct_all": true,
+  "initialization_only_all": true,
+  "paired_final_all": true,
+  "fused_final_all": true,
+  "cpu_final_comparison_all": true,
+  "route_integrity_all": true,
+  "frontend_identical_all": true,
+  "normal_gt_all": true,
+  "source_binary_input_hashes_unchanged": true,
+  "validation_logs": {
+    "configure.log": "03289b583b6a7837103d38ddcc3dd854e07b2a577ec4dc7c4f10e30a200cb4a8",
+    "build.log": "e3e7ab85674dac34d3a355775fb07aaa61fce6a8ec2a9e1d7154e681b510657e",
+    "release-tests.log": "f180cba0375592c8f7a82d064a11c18a51e066e427d579bb4eaaa7c660b0086f",
+    "asan-configure.log": "4d771cc669bfa01260ba6dbab00777c97f6aed87400231791cba414acc4efb74",
+    "asan-build.log": "7fbac28e35b31d95669eb2238e0652829eb7de1b6bf02d0ea8cd50868fc05a12",
+    "asan-tests.log": "6a039af3c093e48350df39c13f9008ba3af2b101c3493db7f013612ce710cfd7",
+    "metal-u8-validation.log": "a47571a12164216bee1f07a043266c9f300521677be7ddf097ea55142cf1931e",
+    "metal-shared-validation.log": "2d8e311b26f742c58e9923d9533ca134f0fdc5e37e03a12bfa6079dfd32c695e",
+    "harness-tests.log": "8635434d250067784308f66ff153edadc044f7825e33a686d3f6bdfaf3a50efc",
+    "formal-run.log": "5b080473496711ef527d75278ce9219f4b4a4d52aa45ca44787696f887df2ef8",
+    "recheck-run.log": "2471c9959befc0a2f6e9c25e3d488e68b506e40b2bccb124984d35a5eddff6cf",
+    "pilot-run.log": "1270d9b7c42db49dfcde6c4f4bfd6ac9c5f2dd598c8fc2c7a3dfbe4b8669b9c6"
+  }
+}

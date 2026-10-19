@@ -1,0 +1,25 @@
+{
+  "stage": 39,
+  "reason": "Main profile measured zero oversized-ROI evaluations at stop_layer1. Add isolated full-resolution search settings to test applicability; do not replace original formal workloads or primary improvement gates.",
+  "difference": "Only stop_layer1->0, sameGT andinputs; names suffixed_stop0",
+  "cases": [
+    "many128_pose_stop0",
+    "many512_pose_stop0"
+  ],
+  "methods": [
+    "hybrid_best",
+    "full_gpu_tiled",
+    "full_gpu_fine_tiled"
+  ],
+  "formal": {
+    "blocks": 3,
+    "repeats": 2,
+    "warmup_seconds": 1
+  },
+  "profile": {
+    "blocks": 1,
+    "repeats": 2,
+    "warmup_seconds": 0
+  },
+  "acceptance": "Same GT, ordered exact GPU parity,10% regression tolerance, memory andresidency gates; no original primary target claim from supplemental cases."
+}

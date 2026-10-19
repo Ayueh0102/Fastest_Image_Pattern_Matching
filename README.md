@@ -1,4 +1,33 @@
 # Fastest Image Pattern Matching
+
+## Portable C++ core and Qt desktop refactor
+
+New readers: start with the [project guide and component map](docs/PROJECT_GUIDE_zh-TW.md),
+then consult the [current recommendations](cpp-core/docs/CURRENT_BEST_zh-TW.md)
+and [categorized experiment logs](cpp-core/docs/LOG_CATALOG_zh-TW.md).
+
+The new [`cpp-core`](cpp-core/README_zh-TW.md) provides a C++17 matching library
+with all image-processing algorithms in source, a C ABI, a Python ctypes example,
+and a Qt6 GUI sharing the same implementation. The core builds without OpenCV or
+Qt; image codecs and the GUI are optional. The original MFC sources remain below.
+See the [version audit](cpp-core/docs/AUDIT_zh-TW.md) for verified porting gaps,
+17 image comparisons, performance costs, and platform limits, and the
+[porting contract](cpp-core/docs/PORTING_zh-TW.md) for future language rewrites.
+The [research review](cpp-core/docs/EXPERIMENT_REVIEW_zh-TW.md) preserves the
+experiment history, including the
+[Metal sparse frontend](cpp-core/docs/SPARSE_METAL_FRONTEND_zh-TW.md),
+[CPU lookup comparison](cpp-core/docs/SPARSE_CPU_LUT_zh-TW.md), and
+[Metal submission merge experiment](cpp-core/docs/SPARSE_METAL_MERGE_zh-TW.md),
+with time, memory, accuracy, and complete source archives.
+
+The latest [dense RGB scene study](cpp-core/docs/STAGE35_REAL_RGB_zh-TW.md)
+compares 25 scenes across five methods. It documents small-template pyramid
+recall improvements, their runtime cost, and failures on white-balance changes
+and real capsule images. These research options do not change GUI defaults.
+
+The sections below preserve the original author's documentation and benchmark
+claims for the upstream implementation and its stated hardware.
+
 ## **The best template matching implementation in the world.**
 
 Using C++/MFC/OpenCV to build a Normalized Cross Corelation-based image alignment algorithm
@@ -168,6 +197,6 @@ RotatedRect::RotatedRect(const Point2f& _point1, const Point2f& _point2, const P
 }
 ```
 
-modify threshold value of **CV_Assert line** to a bigger one
+modify threshold value FLT_EPSILON of **CV_Assert line** to a bigger one
 
 then recompile the source code

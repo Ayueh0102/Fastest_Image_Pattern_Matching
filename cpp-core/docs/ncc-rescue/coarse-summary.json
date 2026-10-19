@@ -1,0 +1,954 @@
+{
+  "scope": "Read-only analysis of frozen coarse benchmarks; no new execution or source edits.",
+  "inputs": {
+    "build/coarse-ncc/report.json": "b9642ced030a1424f8f1ff43f0b0ecd9c383164e67a85fe746e7166dda10caf5",
+    "build/coarse-ncc/full-rescue.json": "842c5a89f41566e64737e50af2055d9d5d6d263a298a7f445f078f67b4d10dd0"
+  },
+  "analysis_conventions": [
+    "Warm comparison uses recorded median of five measured calls in independent processes. These are not paired measurements and have no confidence-interval claim.",
+    "Stage fractions and Amdahl limits use one actual Metal call closest to that median, summing serial per-scale handle metrics within that call; independent medians are never added.",
+    "wait_ms contains GPU command duration. residual_wait=wait_ms-device_ms includes submission, scheduling, synchronization and wakeup; it is not measured CPU busy time.",
+    "upload_ms is CPU memcpy into Apple shared buffers, not PCIe transfer. device_ms includes GPU memory/stalls and is not ALU-only time or utilization.",
+    "Retained GPU/source/template/stat buffers exclude driver allocations and CPU images/pyramid. RSS overlaps shared-buffer memory; never add RSS to GPU bytes.",
+    "Top-NCC zero-cost speed limit assumes all other stages fixed: speedup <= T/(T-NCC). It is an inference for this measured GPU variant, not a bound on moving other CPU stages."
+  ],
+  "suites": [
+    {
+      "source": "build/coarse-ncc/report.json",
+      "passed": true,
+      "baseline_verified": true,
+      "sources_unchanged": true,
+      "cases": [
+        {
+          "name": "src7",
+          "warm_median_ms": {
+            "cpu_coarse": 138.13179195858538,
+            "metal_coarse": 143.22466682642698
+          },
+          "metal_minus_cpu_percent": 3.6869679279687873,
+          "warm_ranges_ms": {
+            "cpu_coarse": [
+              135.923583060503,
+              138.8332499191165
+            ],
+            "metal_coarse": [
+              141.34291606023908,
+              148.22249999269843
+            ]
+          },
+          "ranges_overlap": false,
+          "constructor_plus_first_ms": {
+            "cpu": 164.83550006523728,
+            "metal": 249.2450422141701
+          },
+          "memory": {
+            "process_peak_rss_bytes": {
+              "cpu": 131497984,
+              "metal": 144818176
+            },
+            "rss_difference_bytes": 13320192,
+            "metal_coarse_retained_buffers": {
+              "host_bytes": 529900,
+              "gpu_bytes": 44268,
+              "workspace_bytes": 39672,
+              "source_buffer_bytes": 4488,
+              "template_buffer_bytes": 108
+            },
+            "sum_per_handle_cpu_scoremap_peak_bytes": 26448,
+            "scoremap_peak_note": "Sum of per-handle scoremap maxima, not simultaneous global peak; each scale executes serially."
+          },
+          "representative_metal_call": {
+            "index": 0,
+            "total_ms": 143.22466682642698,
+            "coarse_api_sum_ms": 143.159,
+            "stages": {
+              "wall_ms": 143.159,
+              "setup_ms": 0.0,
+              "upload_ms": 0.019293000000000005,
+              "device_ms": 2.0425000693649054,
+              "wait_ms": 8.255288999999998,
+              "normalization_ms": 0.31279399999999996,
+              "ncc_ms": 8.726997,
+              "reserved_ms": 0.0,
+              "score_maps": 40,
+              "windows": 115216,
+              "command_buffers": 40,
+              "integer32_maps": 40,
+              "integer64_maps": 0,
+              "host_bytes": 529900,
+              "gpu_bytes": 44268,
+              "workspace_bytes": 39672,
+              "source_buffer_bytes": 4488,
+              "template_buffer_bytes": 108,
+              "scoremap_peak_bytes": 26448,
+              "reserved_bytes": 0
+            },
+            "fractions_of_total_percent": {
+              "upload_ms": 0.013470445020047463,
+              "device_ms": 1.4260812153539149,
+              "wait_ms": 5.763873767641245,
+              "normalization_ms": 0.2183939449334331,
+              "ncc_ms": 6.093222063889449
+            },
+            "fractions_of_top_ncc_percent": {
+              "upload_ms": 0.22107260951275684,
+              "device_ms": 23.404386060461636,
+              "wait_ms": 94.5948417307809,
+              "normalization_ms": 3.584211155337855
+            },
+            "residual_wait_ms": 6.212788930635092,
+            "residual_wait_percent_of_top_ncc": 71.19045567031927,
+            "outside_top_ncc_ms": 134.49766982642697,
+            "outside_top_ncc_percent": 93.90677793611054,
+            "theoretical_top_ncc_zero_cost_speedup": 1.064885860188228,
+            "theoretical_top_ncc_zero_cost_saving_percent": 6.093222063889449
+          },
+          "accuracy": {
+            "exact_cpu_agreement_all_calls": true,
+            "truth_passed": null,
+            "exact_seeds": null
+          },
+          "source_shape": [
+            3036,
+            4024
+          ],
+          "template_shape": [
+            521,
+            762
+          ]
+        },
+        {
+          "name": "controlled6",
+          "warm_median_ms": {
+            "cpu_coarse": 200.61820815317333,
+            "metal_coarse": 219.50908307917416
+          },
+          "metal_minus_cpu_percent": 9.416331199398176,
+          "warm_ranges_ms": {
+            "cpu_coarse": [
+              199.68258310109377,
+              212.31241710484028
+            ],
+            "metal_coarse": [
+              210.3769169189036,
+              306.0725419782102
+            ]
+          },
+          "ranges_overlap": true,
+          "constructor_plus_first_ms": {
+            "cpu": 200.1479589380324,
+            "metal": 265.01879189163446
+          },
+          "memory": {
+            "process_peak_rss_bytes": {
+              "cpu": 73351168,
+              "metal": 88408064
+            },
+            "rss_difference_bytes": 15056896,
+            "metal_coarse_retained_buffers": {
+              "host_bytes": 59521,
+              "gpu_bytes": 544202,
+              "workspace_bytes": 494148,
+              "source_buffer_bytes": 49592,
+              "template_buffer_bytes": 462
+            },
+            "sum_per_handle_cpu_scoremap_peak_bytes": 329432,
+            "scoremap_peak_note": "Sum of per-handle scoremap maxima, not simultaneous global peak; each scale executes serially."
+          },
+          "representative_metal_call": {
+            "index": 0,
+            "total_ms": 219.50908307917416,
+            "coarse_api_sum_ms": 219.30866600000002,
+            "stages": {
+              "wall_ms": 219.30866600000002,
+              "setup_ms": 0.0,
+              "upload_ms": 0.11336700000000005,
+              "device_ms": 29.219790594652295,
+              "wait_ms": 49.440542,
+              "normalization_ms": 4.7729989999999995,
+              "ncc_ms": 55.195874,
+              "reserved_ms": 0.0,
+              "score_maps": 140,
+              "windows": 1720662,
+              "command_buffers": 140,
+              "integer32_maps": 140,
+              "integer64_maps": 0,
+              "host_bytes": 59521,
+              "gpu_bytes": 544202,
+              "workspace_bytes": 494148,
+              "source_buffer_bytes": 49592,
+              "template_buffer_bytes": 462,
+              "scoremap_peak_bytes": 329432,
+              "reserved_bytes": 0
+            },
+            "fractions_of_total_percent": {
+              "upload_ms": 0.051645698852065276,
+              "device_ms": 13.311426654774502,
+              "wait_ms": 22.523232891537077,
+              "normalization_ms": 2.174397037720047,
+              "ncc_ms": 25.145143529250472
+            },
+            "fractions_of_top_ncc_percent": {
+              "upload_ms": 0.20539035218465795,
+              "device_ms": 52.938360201801125,
+              "wait_ms": 89.57289452468856,
+              "normalization_ms": 8.647383679439516
+            },
+            "residual_wait_ms": 20.220751405347706,
+            "residual_wait_percent_of_top_ncc": 36.63453432288744,
+            "outside_top_ncc_ms": 164.31320907917416,
+            "outside_top_ncc_percent": 74.85485647074952,
+            "theoretical_top_ncc_zero_cost_speedup": 1.3359186659996636,
+            "theoretical_top_ncc_zero_cost_saving_percent": 25.145143529250472
+          },
+          "accuracy": {
+            "exact_cpu_agreement_all_calls": true,
+            "truth_passed": null,
+            "exact_seeds": null
+          },
+          "source_shape": [
+            740,
+            1100
+          ],
+          "template_shape": [
+            102,
+            140
+          ]
+        },
+        {
+          "name": "heldout12",
+          "warm_median_ms": {
+            "cpu_coarse": 614.2845409922302,
+            "metal_coarse": 500.9757911320776
+          },
+          "metal_minus_cpu_percent": -18.445645673766975,
+          "warm_ranges_ms": {
+            "cpu_coarse": [
+              505.34495804458857,
+              737.8552921582013
+            ],
+            "metal_coarse": [
+              489.4348750822246,
+              530.8280000463128
+            ]
+          },
+          "ranges_overlap": true,
+          "constructor_plus_first_ms": {
+            "cpu": 499.8835837468505,
+            "metal": 547.3909580614418
+          },
+          "memory": {
+            "process_peak_rss_bytes": {
+              "cpu": 81313792,
+              "metal": 94224384
+            },
+            "rss_difference_bytes": 12910592,
+            "metal_coarse_retained_buffers": {
+              "host_bytes": 59521,
+              "gpu_bytes": 1661434,
+              "workspace_bytes": 1519860,
+              "source_buffer_bytes": 141112,
+              "template_buffer_bytes": 462
+            },
+            "sum_per_handle_cpu_scoremap_peak_bytes": 1013240,
+            "scoremap_peak_note": "Sum of per-handle scoremap maxima, not simultaneous global peak; each scale executes serially."
+          },
+          "representative_metal_call": {
+            "index": 4,
+            "total_ms": 500.9757911320776,
+            "coarse_api_sum_ms": 500.755917,
+            "stages": {
+              "wall_ms": 500.755917,
+              "setup_ms": 0.0,
+              "upload_ms": 0.21974800000000008,
+              "device_ms": 37.5518340151757,
+              "wait_ms": 65.95087299999997,
+              "normalization_ms": 13.868465000000004,
+              "ncc_ms": 81.14400900000003,
+              "reserved_ms": 0.0,
+              "score_maps": 140,
+              "windows": 5201988,
+              "command_buffers": 140,
+              "integer32_maps": 140,
+              "integer64_maps": 0,
+              "host_bytes": 59521,
+              "gpu_bytes": 1661434,
+              "workspace_bytes": 1519860,
+              "source_buffer_bytes": 141112,
+              "template_buffer_bytes": 462,
+              "scoremap_peak_bytes": 1013240,
+              "reserved_bytes": 0
+            },
+            "fractions_of_total_percent": {
+              "upload_ms": 0.043863995803754434,
+              "device_ms": 7.495738253203439,
+              "wait_ms": 13.164483028404987,
+              "normalization_ms": 2.7682904534490196,
+              "ncc_ms": 16.19719164805055
+            },
+            "fractions_of_top_ncc_percent": {
+              "upload_ms": 0.27081235288732164,
+              "device_ms": 46.27801174474346,
+              "wait_ms": 81.27633057913117,
+              "normalization_ms": 17.091175517344723
+            },
+            "residual_wait_ms": 28.399038984824273,
+            "residual_wait_percent_of_top_ncc": 34.99831883438772,
+            "outside_top_ncc_ms": 419.83178213207754,
+            "outside_top_ncc_percent": 83.80280835194945,
+            "theoretical_top_ncc_zero_cost_speedup": 1.1932774326610471,
+            "theoretical_top_ncc_zero_cost_saving_percent": 16.19719164805055
+          },
+          "accuracy": {
+            "exact_cpu_agreement_all_calls": true,
+            "truth_passed": null,
+            "exact_seeds": null
+          },
+          "source_shape": [
+            1200,
+            1800
+          ],
+          "template_shape": [
+            102,
+            140
+          ]
+        },
+        {
+          "name": "8k_t256",
+          "warm_median_ms": {
+            "cpu_coarse": 101.64841590449214,
+            "metal_coarse": 104.12829089909792
+          },
+          "metal_minus_cpu_percent": 2.439659263294214,
+          "warm_ranges_ms": {
+            "cpu_coarse": [
+              100.47474992461503,
+              119.21137501485646
+            ],
+            "metal_coarse": [
+              101.19237494654953,
+              108.34166593849659
+            ]
+          },
+          "ranges_overlap": true,
+          "constructor_plus_first_ms": {
+            "cpu": 113.4333738591522,
+            "metal": 168.50674897432327
+          },
+          "memory": {
+            "process_peak_rss_bytes": {
+              "cpu": 408879104,
+              "metal": 421593088
+            },
+            "rss_difference_bytes": 12713984,
+            "metal_coarse_retained_buffers": {
+              "host_bytes": 87296,
+              "gpu_bytes": 3226508,
+              "workspace_bytes": 2964108,
+              "source_buffer_bytes": 262144,
+              "template_buffer_bytes": 256
+            },
+            "sum_per_handle_cpu_scoremap_peak_bytes": 1976072,
+            "scoremap_peak_note": "Sum of per-handle scoremap maxima, not simultaneous global peak; each scale executes serially."
+          },
+          "representative_metal_call": {
+            "index": 4,
+            "total_ms": 104.12829089909792,
+            "coarse_api_sum_ms": 104.06375,
+            "stages": {
+              "wall_ms": 104.06375,
+              "setup_ms": 0.0,
+              "upload_ms": 0.005,
+              "device_ms": 2.221666742116213,
+              "wait_ms": 2.607916,
+              "normalization_ms": 0.402083,
+              "ncc_ms": 3.047833,
+              "reserved_ms": 0.0,
+              "score_maps": 1,
+              "windows": 247009,
+              "command_buffers": 1,
+              "integer32_maps": 1,
+              "integer64_maps": 0,
+              "host_bytes": 87296,
+              "gpu_bytes": 3226508,
+              "workspace_bytes": 2964108,
+              "source_buffer_bytes": 262144,
+              "template_buffer_bytes": 256,
+              "scoremap_peak_bytes": 1976072,
+              "reserved_bytes": 0
+            },
+            "fractions_of_total_percent": {
+              "upload_ms": 0.004801769007084813,
+              "device_ms": 2.1335861012729436,
+              "wait_ms": 2.50452204437612,
+              "normalization_ms": 0.3861419375351366,
+              "ncc_ms": 2.9269980076340656
+            },
+            "fractions_of_top_ncc_percent": {
+              "upload_ms": 0.1640509831083265,
+              "device_ms": 72.89332263664751,
+              "wait_ms": 85.56623673278688,
+              "normalization_ms": 13.192422288229048
+            },
+            "residual_wait_ms": 0.38624925788378706,
+            "residual_wait_percent_of_top_ncc": 12.672914096139358,
+            "outside_top_ncc_ms": 101.08045789909792,
+            "outside_top_ncc_percent": 97.07300199236595,
+            "theoretical_top_ncc_zero_cost_speedup": 1.0301525444516926,
+            "theoretical_top_ncc_zero_cost_saving_percent": 2.9269980076340656
+          },
+          "accuracy": {
+            "exact_cpu_agreement_all_calls": true,
+            "truth_passed": true,
+            "exact_seeds": null,
+            "calls_checked": 12,
+            "objects_per_call": 6,
+            "min_true_positives": 6,
+            "max_false_positives": 0,
+            "max_false_negatives": 0,
+            "max_geometry_error": {
+              "position_px": 0.0,
+              "angle_deg": 0.0,
+              "relative_scale": 0.0
+            }
+          },
+          "source_shape": [
+            8192,
+            8192
+          ],
+          "template_shape": [
+            256,
+            256
+          ],
+          "scope_detail": {
+            "source_pixels": 67108864,
+            "fixed_rotation_degrees": 0,
+            "fixed_scale": 1,
+            "six_planted_exact_template_copies": true,
+            "gpu_top_source_shape": [
+              512,
+              512
+            ],
+            "gpu_top_template_shape": [
+              16,
+              16
+            ],
+            "dimension_basis": "Square fixture source/template dimensions and the preserved CPU pyramid; agrees with retained source bytes and reported window count."
+          }
+        },
+        {
+          "name": "8k_t512",
+          "warm_median_ms": {
+            "cpu_coarse": 97.8994588367641,
+            "metal_coarse": 99.94945884682238
+          },
+          "metal_minus_cpu_percent": 2.09398502751319,
+          "warm_ranges_ms": {
+            "cpu_coarse": [
+              93.03579106926918,
+              103.09975012205541
+            ],
+            "metal_coarse": [
+              94.85975001007318,
+              108.45933319069445
+            ]
+          },
+          "ranges_overlap": true,
+          "constructor_plus_first_ms": {
+            "cpu": 115.81395915709436,
+            "metal": 158.37075002491474
+          },
+          "memory": {
+            "process_peak_rss_bytes": {
+              "cpu": 404488192,
+              "metal": 419889152
+            },
+            "rss_difference_bytes": 15400960,
+            "metal_coarse_retained_buffers": {
+              "host_bytes": 349440,
+              "gpu_bytes": 762764,
+              "workspace_bytes": 696972,
+              "source_buffer_bytes": 65536,
+              "template_buffer_bytes": 256
+            },
+            "sum_per_handle_cpu_scoremap_peak_bytes": 464648,
+            "scoremap_peak_note": "Sum of per-handle scoremap maxima, not simultaneous global peak; each scale executes serially."
+          },
+          "representative_metal_call": {
+            "index": 1,
+            "total_ms": 99.94945884682238,
+            "coarse_api_sum_ms": 99.883875,
+            "stages": {
+              "wall_ms": 99.883875,
+              "setup_ms": 0.0,
+              "upload_ms": 0.002,
+              "device_ms": 1.7094998620450497,
+              "wait_ms": 2.123791,
+              "normalization_ms": 0.161166,
+              "ncc_ms": 2.31075,
+              "reserved_ms": 0.0,
+              "score_maps": 1,
+              "windows": 58081,
+              "command_buffers": 1,
+              "integer32_maps": 1,
+              "integer64_maps": 0,
+              "host_bytes": 349440,
+              "gpu_bytes": 762764,
+              "workspace_bytes": 696972,
+              "source_buffer_bytes": 65536,
+              "template_buffer_bytes": 256,
+              "scoremap_peak_bytes": 464648,
+              "reserved_bytes": 0
+            },
+            "fractions_of_total_percent": {
+              "upload_ms": 0.002001011334203521,
+              "device_ms": 1.7103642998857502,
+              "wait_ms": 2.1248649312397156,
+              "normalization_ms": 0.1612474963441224,
+              "ncc_ms": 2.3119184702553937
+            },
+            "fractions_of_top_ncc_percent": {
+              "upload_ms": 0.08655198528616251,
+              "device_ms": 73.98030345320998,
+              "wait_ms": 91.90916369144217,
+              "normalization_ms": 6.974618630314834
+            },
+            "residual_wait_ms": 0.41429113795495054,
+            "residual_wait_percent_of_top_ncc": 17.9288602382322,
+            "outside_top_ncc_ms": 97.63870884682238,
+            "outside_top_ncc_percent": 97.6880815297446,
+            "theoretical_top_ncc_zero_cost_speedup": 1.0236663309797056,
+            "theoretical_top_ncc_zero_cost_saving_percent": 2.3119184702553937
+          },
+          "accuracy": {
+            "exact_cpu_agreement_all_calls": true,
+            "truth_passed": true,
+            "exact_seeds": null,
+            "calls_checked": 12,
+            "objects_per_call": 6,
+            "min_true_positives": 6,
+            "max_false_positives": 0,
+            "max_false_negatives": 0,
+            "max_geometry_error": {
+              "position_px": 0.0,
+              "angle_deg": 0.0,
+              "relative_scale": 0.0
+            }
+          },
+          "source_shape": [
+            8192,
+            8192
+          ],
+          "template_shape": [
+            512,
+            512
+          ],
+          "scope_detail": {
+            "source_pixels": 67108864,
+            "fixed_rotation_degrees": 0,
+            "fixed_scale": 1,
+            "six_planted_exact_template_copies": true,
+            "gpu_top_source_shape": [
+              256,
+              256
+            ],
+            "gpu_top_template_shape": [
+              16,
+              16
+            ],
+            "dimension_basis": "Square fixture source/template dimensions and the preserved CPU pyramid; agrees with retained source bytes and reported window count."
+          }
+        }
+      ]
+    },
+    {
+      "source": "build/coarse-ncc/full-rescue.json",
+      "passed": true,
+      "baseline_verified": true,
+      "sources_unchanged": true,
+      "cases": [
+        {
+          "name": "src7",
+          "warm_median_ms": {
+            "cpu_coarse": 179.47683297097683,
+            "metal_coarse": 179.30333293043077
+          },
+          "metal_minus_cpu_percent": -0.09666988082752681,
+          "warm_ranges_ms": {
+            "cpu_coarse": [
+              175.44266604818404,
+              180.04716699942946
+            ],
+            "metal_coarse": [
+              178.7312920205295,
+              181.83062504976988
+            ]
+          },
+          "ranges_overlap": true,
+          "constructor_plus_first_ms": {
+            "cpu": 275.58629191480577,
+            "metal": 270.761291263625
+          },
+          "memory": {
+            "process_peak_rss_bytes": {
+              "cpu": 294273024,
+              "metal": 295092224
+            },
+            "rss_difference_bytes": 819200,
+            "metal_coarse_retained_buffers": {
+              "host_bytes": 529900,
+              "gpu_bytes": 44268,
+              "workspace_bytes": 39672,
+              "source_buffer_bytes": 4488,
+              "template_buffer_bytes": 108
+            },
+            "sum_per_handle_cpu_scoremap_peak_bytes": 26448,
+            "scoremap_peak_note": "Sum of per-handle scoremap maxima, not simultaneous global peak; each scale executes serially.",
+            "pose_owned_buffers_identical": true,
+            "device_allocated_snapshot_delta_bytes": 49152
+          },
+          "representative_metal_call": {
+            "index": 0,
+            "total_ms": 179.30333293043077,
+            "coarse_api_sum_ms": 140.509375,
+            "stages": {
+              "wall_ms": 140.509375,
+              "setup_ms": 0.0,
+              "upload_ms": 0.020419000000000003,
+              "device_ms": 0.5551243666559458,
+              "wait_ms": 6.612419000000001,
+              "normalization_ms": 0.326253,
+              "ncc_ms": 7.112124,
+              "reserved_ms": 0.0,
+              "score_maps": 40,
+              "windows": 115216,
+              "command_buffers": 40,
+              "integer32_maps": 40,
+              "integer64_maps": 0,
+              "host_bytes": 529900,
+              "gpu_bytes": 44268,
+              "workspace_bytes": 39672,
+              "source_buffer_bytes": 4488,
+              "template_buffer_bytes": 108,
+              "scoremap_peak_bytes": 26448,
+              "reserved_bytes": 0
+            },
+            "fractions_of_total_percent": {
+              "upload_ms": 0.011387964554971505,
+              "device_ms": 0.309600695973305,
+              "wait_ms": 3.6878394238023464,
+              "normalization_ms": 0.18195590381277818,
+              "ncc_ms": 3.9665319566365707
+            },
+            "fractions_of_top_ncc_percent": {
+              "upload_ms": 0.2871012935095058,
+              "device_ms": 7.805324635171516,
+              "wait_ms": 92.97389921773019,
+              "normalization_ms": 4.58727941188877
+            },
+            "residual_wait_ms": 6.057294633344055,
+            "residual_wait_percent_of_top_ncc": 85.16857458255868,
+            "outside_top_ncc_ms": 172.19120893043078,
+            "outside_top_ncc_percent": 96.03346804336343,
+            "theoretical_top_ncc_zero_cost_speedup": 1.0413036417142147,
+            "theoretical_top_ncc_zero_cost_saving_percent": 3.9665319566365707,
+            "full_pipeline_stages_ms": {
+              "cpu_search_ms": 140.60733281075954,
+              "refine_ms": 38.626084104180336,
+              "nms_ms": 0.06150011904537678
+            }
+          },
+          "accuracy": {
+            "exact_cpu_agreement_all_calls": true,
+            "truth_passed": null,
+            "exact_seeds": true
+          },
+          "effective_rescue_policy": {
+            "trigger_min_score": 0.1,
+            "trigger_score": 0.5,
+            "max_rescued_seeds": 4,
+            "translation_radius": 3.0,
+            "angle_radius_degrees": 6.0,
+            "log_scale_radius": 0.06,
+            "short_iterations": 8,
+            "max_retry_sample_iterations": 536870912
+          },
+          "stage_medians_ms": {
+            "cpu": {
+              "coarse": 141.2843340076506,
+              "refine": 38.23229088447988
+            },
+            "metal": {
+              "coarse": 140.85054211318493,
+              "refine": 38.48174982704222
+            }
+          }
+        },
+        {
+          "name": "controlled6",
+          "warm_median_ms": {
+            "cpu_coarse": 226.22195817530155,
+            "metal_coarse": 223.0603750795126
+          },
+          "metal_minus_cpu_percent": -1.397558009527533,
+          "warm_ranges_ms": {
+            "cpu_coarse": [
+              222.39416604861617,
+              228.54079212993383
+            ],
+            "metal_coarse": [
+              213.3674588985741,
+              226.51604213751853
+            ]
+          },
+          "ranges_overlap": true,
+          "constructor_plus_first_ms": {
+            "cpu": 271.6375000309199,
+            "metal": 294.31537515483797
+          },
+          "memory": {
+            "process_peak_rss_bytes": {
+              "cpu": 97517568,
+              "metal": 97796096
+            },
+            "rss_difference_bytes": 278528,
+            "metal_coarse_retained_buffers": {
+              "host_bytes": 59521,
+              "gpu_bytes": 544202,
+              "workspace_bytes": 494148,
+              "source_buffer_bytes": 49592,
+              "template_buffer_bytes": 462
+            },
+            "sum_per_handle_cpu_scoremap_peak_bytes": 329432,
+            "scoremap_peak_note": "Sum of per-handle scoremap maxima, not simultaneous global peak; each scale executes serially.",
+            "pose_owned_buffers_identical": true,
+            "device_allocated_snapshot_delta_bytes": 835584
+          },
+          "representative_metal_call": {
+            "index": 1,
+            "total_ms": 223.0603750795126,
+            "coarse_api_sum_ms": 194.45804099999998,
+            "stages": {
+              "wall_ms": 194.45804099999998,
+              "setup_ms": 0.0,
+              "upload_ms": 0.11300200000000006,
+              "device_ms": 6.913373479619622,
+              "wait_ms": 27.643420000000003,
+              "normalization_ms": 4.973632,
+              "ncc_ms": 33.343624,
+              "reserved_ms": 0.0,
+              "score_maps": 140,
+              "windows": 1720662,
+              "command_buffers": 140,
+              "integer32_maps": 140,
+              "integer64_maps": 0,
+              "host_bytes": 59521,
+              "gpu_bytes": 544202,
+              "workspace_bytes": 494148,
+              "source_buffer_bytes": 49592,
+              "template_buffer_bytes": 462,
+              "scoremap_peak_bytes": 329432,
+              "reserved_bytes": 0
+            },
+            "fractions_of_total_percent": {
+              "upload_ms": 0.05065982694582985,
+              "device_ms": 3.0993283666609392,
+              "wait_ms": 12.392797237136433,
+              "normalization_ms": 2.229724574894617,
+              "ncc_ms": 14.948250664473354
+            },
+            "fractions_of_top_ncc_percent": {
+              "upload_ms": 0.3389013743677054,
+              "device_ms": 20.73371952496712,
+              "wait_ms": 82.90466567161387,
+              "normalization_ms": 14.91629104262932
+            },
+            "residual_wait_ms": 20.73004652038038,
+            "residual_wait_percent_of_top_ncc": 62.17094614664675,
+            "outside_top_ncc_ms": 189.7167510795126,
+            "outside_top_ncc_percent": 85.05174933552664,
+            "theoretical_top_ncc_zero_cost_speedup": 1.1757547702576105,
+            "theoretical_top_ncc_zero_cost_saving_percent": 14.948250664473354,
+            "full_pipeline_stages_ms": {
+              "cpu_search_ms": 194.72900009714067,
+              "refine_ms": 28.2600000500679,
+              "nms_ms": 0.059999991208314896
+            }
+          },
+          "accuracy": {
+            "exact_cpu_agreement_all_calls": true,
+            "truth_passed": true,
+            "exact_seeds": true,
+            "calls_checked": 12,
+            "objects_per_call": 6,
+            "min_true_positives": 6,
+            "max_false_positives": 0,
+            "max_false_negatives": 0,
+            "max_geometry_error": {
+              "position_px": 0.022762758554983418,
+              "angle_deg": 0.0270538330078125,
+              "relative_scale": 0.0019094709532277987
+            }
+          },
+          "effective_rescue_policy": {
+            "trigger_min_score": 0.1,
+            "trigger_score": 0.8,
+            "max_rescued_seeds": 4,
+            "translation_radius": 3.0,
+            "angle_radius_degrees": 6.0,
+            "log_scale_radius": 0.06,
+            "short_iterations": 8,
+            "max_retry_sample_iterations": 536870912
+          },
+          "stage_medians_ms": {
+            "cpu": {
+              "coarse": 199.36412503011525,
+              "refine": 26.784166926518083
+            },
+            "metal": {
+              "coarse": 194.72900009714067,
+              "refine": 28.2600000500679
+            }
+          }
+        },
+        {
+          "name": "heldout12",
+          "warm_median_ms": {
+            "cpu_coarse": 530.3715830668807,
+            "metal_coarse": 496.7157079372555
+          },
+          "metal_minus_cpu_percent": -6.345716136413204,
+          "warm_ranges_ms": {
+            "cpu_coarse": [
+              529.4074169360101,
+              533.1075410358608
+            ],
+            "metal_coarse": [
+              495.21637498401105,
+              502.2720000706613
+            ]
+          },
+          "ranges_overlap": false,
+          "constructor_plus_first_ms": {
+            "cpu": 590.6133751850575,
+            "metal": 574.2493749130517
+          },
+          "memory": {
+            "process_peak_rss_bytes": {
+              "cpu": 119848960,
+              "metal": 121847808
+            },
+            "rss_difference_bytes": 1998848,
+            "metal_coarse_retained_buffers": {
+              "host_bytes": 59521,
+              "gpu_bytes": 1661434,
+              "workspace_bytes": 1519860,
+              "source_buffer_bytes": 141112,
+              "template_buffer_bytes": 462
+            },
+            "sum_per_handle_cpu_scoremap_peak_bytes": 1013240,
+            "scoremap_peak_note": "Sum of per-handle scoremap maxima, not simultaneous global peak; each scale executes serially.",
+            "pose_owned_buffers_identical": true,
+            "device_allocated_snapshot_delta_bytes": 1933312
+          },
+          "representative_metal_call": {
+            "index": 2,
+            "total_ms": 496.7157079372555,
+            "coarse_api_sum_ms": 470.34137499999997,
+            "stages": {
+              "wall_ms": 470.34137499999997,
+              "setup_ms": 0.0,
+              "upload_ms": 0.2207470000000001,
+              "device_ms": 19.52691632322967,
+              "wait_ms": 42.805665000000005,
+              "normalization_ms": 12.818259,
+              "ncc_ms": 56.793001000000004,
+              "reserved_ms": 0.0,
+              "score_maps": 140,
+              "windows": 5201988,
+              "command_buffers": 140,
+              "integer32_maps": 140,
+              "integer64_maps": 0,
+              "host_bytes": 59521,
+              "gpu_bytes": 1661434,
+              "workspace_bytes": 1519860,
+              "source_buffer_bytes": 141112,
+              "template_buffer_bytes": 462,
+              "scoremap_peak_bytes": 1013240,
+              "reserved_bytes": 0
+            },
+            "fractions_of_total_percent": {
+              "upload_ms": 0.04444131652625018,
+              "device_ms": 3.931205720133233,
+              "wait_ms": 8.617739345864852,
+              "normalization_ms": 2.5806027059686194,
+              "ncc_ms": 11.433703442930785
+            },
+            "fractions_of_top_ncc_percent": {
+              "upload_ms": 0.3886869792283033,
+              "device_ms": 34.38261049672242,
+              "wait_ms": 75.37137366627273,
+              "normalization_ms": 22.57013852816124
+            },
+            "residual_wait_ms": 23.278748676770334,
+            "residual_wait_percent_of_top_ncc": 40.988763169550296,
+            "outside_top_ncc_ms": 439.9227069372555,
+            "outside_top_ncc_percent": 88.56629655706922,
+            "theoretical_top_ncc_zero_cost_speedup": 1.1290976803525175,
+            "theoretical_top_ncc_zero_cost_saving_percent": 11.433703442930785,
+            "full_pipeline_stages_ms": {
+              "cpu_search_ms": 470.73591710068285,
+              "refine_ms": 25.846707867458463,
+              "nms_ms": 0.11562509462237358
+            }
+          },
+          "accuracy": {
+            "exact_cpu_agreement_all_calls": true,
+            "truth_passed": true,
+            "exact_seeds": true,
+            "calls_checked": 12,
+            "objects_per_call": 12,
+            "min_true_positives": 12,
+            "max_false_positives": 0,
+            "max_false_negatives": 0,
+            "max_geometry_error": {
+              "position_px": 0.09024940753950134,
+              "angle_deg": 0.05026388549362082,
+              "relative_scale": 0.0024967771473467515
+            }
+          },
+          "effective_rescue_policy": {
+            "trigger_min_score": 0.1,
+            "trigger_score": 0.8,
+            "max_rescued_seeds": 4,
+            "translation_radius": 3.0,
+            "angle_radius_degrees": 6.0,
+            "log_scale_radius": 0.06,
+            "short_iterations": 8,
+            "max_retry_sample_iterations": 536870912
+          },
+          "stage_medians_ms": {
+            "cpu": {
+              "coarse": 501.8545410130173,
+              "refine": 28.87854096479714
+            },
+            "metal": {
+              "coarse": 469.51241698116064,
+              "refine": 28.260790975764394
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "conclusions": [
+    "Correctness gates pass: frozen CPU and Metal coarse produce exact outputs; same-rescue full search has exact seeds/final outputs; 6/12 scenes pass calibrated truth; both 8192-square tests detect all six objects in first plus every measured call with zero geometry error.",
+    "Joint full-search Src7 and six-object median gains are only 0.10% and 1.40%, with overlapping five-call ranges; treat as unchanged or inconclusive. Twelve-object joint search improves 6.35% with disjoint ranges in this run, not a universal guarantee.",
+    "Standalone twelve-object apparent 18.45% gain is confounded by CPU within-run drift (approximately 738 to 505 ms); do not use as the headline acceleration result.",
+    "Both 8192-square fixed-angle cases show no useful speed improvement (Metal medians 2.44% and 2.09% higher, overlapping ranges). CPU stages outside top NCC remain 97.1% and 97.7% of Metal wall time.",
+    "Shared-buffer copies are below 0.06% of total wall in every representative case. Data copying is not the measured bottleneck of this implementation.",
+    "Small top-level maps issue 40 or 140 synchronous GPU commands per search. Residual submission/wait cost exceeds command GPU duration on all three joint real cases; batching angles or eliminating repeated waits is a supported next experiment, not a demonstrated gain.",
+    "No per-stage CPU baseline instrumentation exists, so these reports do not identify an isolated CPU-NCC-to-Metal kernel speedup or separately quantify pyramid versus rotation versus fine-search cost.",
+    "Retain opt-in selection. The experiment validates exactness and identifies a workload-specific benefit; it does not justify enabling GPU coarse search everywhere or claiming the entire coarse pipeline is GPU-resident."
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "workers": 64,
+  "expected_workers": 64,
+  "measured_calls": 192,
+  "all_workers_succeeded": true,
+  "route_integrity_all": true,
+  "proposal_equality_all": true,
+  "normal_gt_all": true,
+  "source_binary_input_hashes_unchanged": true,
+  "validation_logs": {
+    "tests-python.log": "56f4d6c0f6f7db95e07858bf1ea5e73b4d54836b26a9b894ac85032c7060453c"
+  }
+}

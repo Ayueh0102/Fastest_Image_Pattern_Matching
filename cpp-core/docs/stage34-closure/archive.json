@@ -1,0 +1,17 @@
+{
+  "archives": [
+    {
+      "file": "raw-results.tar.gz",
+      "sha256": "ac1c7268820d3c1b0439fa1b1c4bd9c8247228e7915457969b37cfcfb1978085",
+      "bytes": 65743632
+    },
+    {
+      "file": "source-and-fixtures.tar.gz",
+      "sha256": "5bfc41ee1aa54a4e3ef72a32ca668e1ab363ce709c50c04a46f83b84c7b582b3",
+      "bytes": 54046631
+    }
+  ],
+  "content_files": 1895,
+  "source_files": 257,
+  "instruction": "Extract both archives into the same directory."
+}

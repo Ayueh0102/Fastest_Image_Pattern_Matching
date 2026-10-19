@@ -1,0 +1,105 @@
+{
+  "checked_at": "2026-10-12T17:30:36.791797+08:00",
+  "source_sha256": {
+    "cpp-core/experiments/pose_ncc.cpp": "846f29ff4e2d1080be5b89a4dbda9837fff50dfb3ab3dcbf1015ea61189d3d90",
+    "cpp-core/experiments/pose_ncc.h": "edfd62544e6f2be4665e9e741eb33db978d14dfc1f0b798c37b3d0dbac7b3faf",
+    "cpp-core/experiments/pose_ncc.metal": "761f22efba16b41b47ddef7027d1abf3763fe5fe19e9defa31c9a2290997dd0a",
+    "cpp-core/experiments/pose_internal.hpp": "08d3c4c68cea28d599a6eb15a249efdc83d64812194d1df7df38a3562a38aff5",
+    "cpp-core/experiments/pose_metal.mm": "7a72ab876bb5bec6d357be6344f54b3de9ef533abb2e632951c56c87fbe14211",
+    "cpp-core/experiments/CMakeLists.txt": "6cb14849711a1ff5fad31adb72327763318ed5d2f0725a16c57ffc7442f5e319",
+    "cpp-core/tests/pose_experiment_test.cpp": "35b59c8afbad93876c8b3b7202657bfc1d2f77e6e7cf63bd36ad2a0d4f0b48dd",
+    "cpp-core/tests/pose_linearization_test.cpp": "5ae6e41112b0e42aedfb0a5e34499b3cffc54f5c01c5228328d65f8d87ff372b",
+    "cpp-core/tools/pose_experiment.py": "fd20c259c2ef852d6f291579af413766a8051d5425074385758d7e8747c00ef5",
+    "cpp-core/tools/benchmark_hybrid_refinement.py": "5826ad3119d97934d88614d78b7babbf0d151a4c297598f4d22c2efdc28946aa",
+    "cpp-core/tools/real_image_experiments.py": "9359641f28a62039e3135f3e5b32333af7b9c3f3e93e0bc0483a001f233b1642",
+    "cpp-core/tools/report_gpu_refinement.py": "2e0e7ea50ff0c5fe63dc0ad24fd7728fc1aa646a3ac112fbe8aaf78e825014d3"
+  },
+  "binary_sha256": {
+    "libfpm_pose_experiment.dylib": "2ca47eb743ee669e018c24cc1f668aa50170898069ea5900ecfba9ac317a3303",
+    "libfpm_c.dylib": "e772ab0004591f63b4bbc711b5626355de81671386c5cc2c31600465a36eb3b4"
+  },
+  "test_results": [
+    {
+      "command": "MTL_DEBUG_LAYER=1 ctest --test-dir build/fourier-gpu --output-on-failure",
+      "passed": 6,
+      "total": 6,
+      "log": "release-tests.log"
+    },
+    {
+      "command": "ctest --test-dir build/fourier-gpu-sanitized --output-on-failure",
+      "passed": 4,
+      "total": 4,
+      "log": "sanitizer-tests.log"
+    },
+    {
+      "command": "MTL_DEBUG_LAYER=1 build/fourier-gpu/experiments/fpm_pose_test metal",
+      "exit_code": 0,
+      "output": "Experimental pose ABI, lifetime, NCC identity and continuous RGB/gray refinement passed"
+    }
+  ],
+  "benchmark_integrity": {
+    "local_jobs": 90,
+    "local_precise_per_variant": "48/48",
+    "corrected_1024_precise_per_variant": "32/32",
+    "clipped_1024_precise_per_variant": "2/32 (failure preserved)",
+    "full_image_no_polish_jobs": 10,
+    "known_full_image_pose_tp": [
+      6,
+      12
+    ],
+    "known_full_image_pose_fp": 0,
+    "known_full_image_pose_fn": 0,
+    "large_and_new_full_image_binary_matches_final": true
+  },
+  "python_syntax_checked": [
+    "benchmark_hybrid_refinement.py",
+    "report_gpu_refinement.py",
+    "pose_experiment.py",
+    "real_image_experiments.py"
+  ],
+  "fixture_guard_check": "prepare() accepts 2048x2048 source for the 1024 truth and rejects the former 1280x1536 clipped source with ValueError.",
+  "provenance": {
+    "local-refinement.json": {
+      "source_files_changed_after_measurement": [
+        "cpp-core/experiments/pose_ncc.cpp",
+        "cpp-core/experiments/pose_ncc.h",
+        "cpp-core/experiments/pose_metal.mm",
+        "cpp-core/tools/benchmark_hybrid_refinement.py"
+      ]
+    },
+    "large-workloads-clipped.json": {
+      "source_files_changed_after_measurement": [
+        "cpp-core/tools/benchmark_hybrid_refinement.py"
+      ]
+    },
+    "large-1024-complete-support.json": {
+      "source_files_changed_after_measurement": [
+        "cpp-core/tools/benchmark_hybrid_refinement.py"
+      ]
+    },
+    "full-image.json": {
+      "source_files_changed_after_measurement": [
+        "cpp-core/experiments/pose_ncc.cpp",
+        "cpp-core/experiments/pose_ncc.h",
+        "cpp-core/experiments/pose_metal.mm"
+      ]
+    },
+    "full-image-no-polish.json": {
+      "source_files_changed_after_measurement": []
+    }
+  },
+  "provenance_note": "Original measurement hashes remain unchanged. Earlier local and polish=2 full-image runs precede boundedFloat and timestamp-finiteness hardening. New large and polish=0 full-image runs use the final experimental binary. Fixture source-size and preflight guard edits occurred after the earlier large run; guard alone changed after the corrected run. The derived view selects rows without rerunning them.",
+  "artifact_sha256": {
+    "local-refinement.json": "0b0c94a2bccb732e183905cead81ae53038ff5deba2cff01138900113fe8dec8",
+    "large-workloads-clipped.json": "8edfc5f45b6b7a27be3f4f8f82d17ef029dc82d9a8138d6f22d2e5df77297017",
+    "large-1024-complete-support.json": "969b5e4fa4a94b0312519f9660efabba339e220130d7b097e8cfaa81ad95436f",
+    "large-workloads.json": "a2f68fcb5582f0783ff6d6e4278fbe609bd241102f5be6f518acfc379b39e6dc",
+    "full-image.json": "32c10e783e249e0379a81721840cbd488761f1fa3cec5301fed82ca3085cddb6",
+    "full-image-no-polish.json": "1d065da0e7bcf140835948479c78a3c67956d7d27ca3fee2a2890bb905a09497",
+    "local-performance.png": "5dcb6f83a66868101e624e351980c925cee2a825e4dc628bdbe6d62ea58cf27f",
+    "full-image-performance.png": "941f9265defc6950ce267628308127391287c7f82682b28a533ad84af9a55402",
+    "release-tests.log": "b0274b647801fe58e098ab09eda911b5b22af124c8e1a903e17ad541db45915a",
+    "sanitizer-tests.log": "201456893bfd30caa9bf832fa3d2268796ee577529888b89d45d6c786780272d"
+  },
+  "test_log_note": "Copied CTest logs with trailing whitespace stripped; test content unchanged."
+}

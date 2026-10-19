@@ -1,0 +1,141 @@
+{
+  "stage": 37,
+  "date": "2026-10-18",
+  "machine": {
+    "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+    "cpu": "Apple M4 Pro",
+    "memory_bytes": 51539607552,
+    "branch": "codex/ncc-fourier-gpu-experiments",
+    "base_commit": "25226065ba3fffe3b76c46eccee452fa0898bef7"
+  },
+  "release_tests": {
+    "passed": 58,
+    "failed": 0,
+    "log": "validation/ctest-final.log",
+    "detailed_log": "validation/release-tests-detail.log"
+  },
+  "metal_api_validation": {
+    "passed": 2,
+    "failed": 0,
+    "fine_roi_cache_bytes": 16384,
+    "log": "validation/metal-api.log"
+  },
+  "metal_api_and_shader_validation": {
+    "passed": 2,
+    "failed": 0,
+    "fine_roi_cache_bytes": 4096,
+    "log": "validation/metal-validation-final.log",
+    "limitation": "Instrumentation doubles shared allocation; 4KiB cache uses identical direct GPU sampling for larger ROIs. Formal performance uses 16KiB."
+  },
+  "asan_ubsan": {
+    "passed": 2,
+    "failed": 0,
+    "leak_detection": false,
+    "log": "validation/asan-final.log"
+  },
+  "harness_negative_controls": {
+    "passed": 12,
+    "failed": 0,
+    "log": "validation/harness-final.log"
+  },
+  "formal": {
+    "fresh_processes": 72,
+    "first_calls_with_independent_gt": 72,
+    "measured_calls_with_independent_gt": 216,
+    "warmups_timing_only": 92393,
+    "all_9_cases_both_methods_zero_fp_fn": true,
+    "all_full_gpu_residency_gates_pass": true,
+    "all_adoption_gates_pass": false,
+    "failed_performance_paired_blocks": 20,
+    "all_rss_gates_pass": true,
+    "frozen_sources_binary_inputs_unchanged_during_formal": true
+  },
+  "archive_integrity": {
+    "source_files": 267,
+    "unique_input_files": 14,
+    "verified_files": 281,
+    "all_sha256_match": true,
+    "formal_source_fingerprints_covered": 253,
+    "log": "validation/archive-integrity.json"
+  },
+  "offline_replay": {
+    "pass": true,
+    "byte_identical_summary": true,
+    "sha256": "d3d0b93331633cee761e0f157352957bdcba9ac16e0e5e39ec54a90e04517e83",
+    "replayed_sha256": "d3d0b93331633cee761e0f157352957bdcba9ac16e0e5e39ec54a90e04517e83",
+    "tool_source": "source-snapshot.tar.gz",
+    "data": "raw-results.tar.gz"
+  },
+  "clean_rebuild": {
+    "pass": true,
+    "targets": [
+      "fpm_full_gpu_test",
+      "fpm_full_gpu_finish_test",
+      "fpm_native_pipeline_runner"
+    ],
+    "configure_log": "validation/clean-configure.log",
+    "build_log": "validation/clean-build.log",
+    "initial_runtime_attempt": {
+      "pipeline_test": "timeout 300 seconds",
+      "finish_test": "passed after 116.25 seconds including startup delay",
+      "hybrid_runner": "timeout 180 seconds",
+      "log": "validation/clean-tests.log",
+      "samples": [
+        "validation/clean-startup-sample.txt",
+        "validation/clean-finish-startup-sample.txt",
+        "validation/clean-runner-startup-sample.txt"
+      ],
+      "observation": "Blocked before main in dyld; pipeline/runner samples end in fcntl during library mapping. Root cause not established. On-disk signatures verified. No security settings changed."
+    },
+    "unchanged_binary_retry": {
+      "tests_passed": 2,
+      "tests_failed": 0,
+      "log": "validation/clean-tests-retry.log",
+      "details": "validation/clean-tests-retry-detail.log",
+      "controlled6": {
+        "initial_attempt": {
+          "method": "hybrid_best",
+          "timeout_seconds": 180,
+          "outcome": "timeout before main; dyld fcntl stack retained"
+        },
+        "binary_sha256": "45f2e5e8735a57fc2cba19a872e4112a55ada86ec19b425cb2be51a7fca67cba",
+        "retry": {
+          "hybrid_best": {
+            "exit_code": 0,
+            "wall_seconds": 0.3812548749992857,
+            "calls": 2,
+            "matches_and_proposals_exact": true
+          },
+          "full_gpu": {
+            "exit_code": 0,
+            "wall_seconds": 0.41327629100123886,
+            "calls": 2,
+            "matches_and_proposals_exact": true
+          }
+        }
+      },
+      "scope": "Both methods first+one repeated call compared for complete ordered matches and proposals. Other eight cases not rerun. No performance claim from reproduction."
+    }
+  },
+  "source_audit": "validation/source-audit.json",
+  "post_formal_modified_fingerprinted_files": [
+    "cpp-core/tools/build_log_catalog.py"
+  ],
+  "post_formal_change_scope": "Documentation and log-index stage mapping only; frozen experiment source retained.",
+  "preserved_failures": [
+    "early unit fixture shared with CPU on too-deep pyramid",
+    "stopLayer1 expected score mismatch",
+    "fine shared-memory synchronization findings",
+    "initial Metal validation undersized test buffer and instrumented shared memory limit",
+    "20 formal performance gates",
+    "clean-rebuild initial dyld startup timeouts"
+  ],
+  "not_validated": [
+    "RGB in this backend",
+    "CUDA",
+    "new-backend 30-minute soak",
+    "new-frame end-to-end throughput",
+    "universal real-scene generalization",
+    "GPU stage timing or hardware occupancy/bandwidth counters"
+  ]
+}

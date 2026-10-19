@@ -1,0 +1,59 @@
+{
+  "stage": 36,
+  "base_commit": "996aff6d2b4271e6c86e83a62487f9c3dc293491",
+  "source_snapshot": "Measured source, before documentation-only updates; not an upstream-clean commit.",
+  "source_extract_together": [
+    "source-snapshot.tar.gz",
+    "repository-fixtures.tar.gz",
+    "generated-fixtures.tar.gz"
+  ],
+  "raw_extract_separately": [
+    "raw-results.tar.gz",
+    "validation-logs.tar.gz"
+  ],
+  "dependencies": "External Qt, OpenCV, Apple Metal and Python packages are not vendored.",
+  "binary_retention": "Measured binary hashes retained in formal/manifest.json; executable rebuilt from archived source for validation.",
+  "artifacts": {
+    "decision-and-failures.json": {
+      "bytes": 1991,
+      "sha256": "3c953fee3c856c192878ae0c3671fe45997ac0b1d704a22b55cabd370ed53007"
+    },
+    "formal-summary.json": {
+      "bytes": 31259,
+      "sha256": "21b3b2320d7cf43be53f60aba69417505dd7697df27b5c8ab476e9eb838eb4d1"
+    },
+    "generated-fixtures.tar.gz": {
+      "bytes": 26392228,
+      "sha256": "8661b6485647f5773f00a34895c806634b278b8312d4899544d65c5e58709274",
+      "regular_files": 9
+    },
+    "protocol.json": {
+      "bytes": 2030,
+      "sha256": "609bba02221fc760e41dfe6682ef8123b8bee952116f63318fca6e2bc27d8ea8"
+    },
+    "raw-results.tar.gz": {
+      "bytes": 11628101,
+      "sha256": "931fbc4e1fcfeb9a7fa5cc69b4aa3916f8de8b60186acf443f7dad8ad4c18d1a",
+      "regular_files": 171
+    },
+    "repository-fixtures.tar.gz": {
+      "bytes": 41570213,
+      "sha256": "89a9b7b24dc8ebcbd7d201a3c7bdbe239556651fff5a0cc8ce0e2a90806c100a",
+      "regular_files": 67
+    },
+    "source-snapshot.tar.gz": {
+      "bytes": 756743,
+      "sha256": "a86bb66e55872f6cdbf3be1dcad0bcf06ba3865ff2b7828acb5f5a0ac386487d",
+      "regular_files": 256
+    },
+    "validation-logs.tar.gz": {
+      "bytes": 22564,
+      "sha256": "c74073c42f9c718f588c655700493fef53497da848f86b19707f8d17c9678729",
+      "regular_files": 23
+    },
+    "validation.json": {
+      "bytes": 3547,
+      "sha256": "71d85bd04b7628705bdb7cf2013274995a22673f567f9feb3238eb0f599856f3"
+    }
+  }
+}

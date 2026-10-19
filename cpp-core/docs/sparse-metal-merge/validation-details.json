@@ -1,0 +1,102 @@
+{
+  "release_tests": 33,
+  "asan_ubsan_tests": 4,
+  "leak_sanitizer": false,
+  "metal_three_route_cases": 58,
+  "python_negative_controls": 19,
+  "formal_workers": 48,
+  "formal_calls": 144,
+  "recheck_workers": 12,
+  "recheck_calls": 36,
+  "formal_performance_failures": [
+    {
+      "case": "heldout_crowd128_20",
+      "method": "merged",
+      "reference": "split",
+      "attribution": "merged_vs_split",
+      "block": 0,
+      "time_ratio": 1.3560195099501542,
+      "speedup": 0.7374525164735712,
+      "speed_gate": false,
+      "rss_delta_bytes": -262144,
+      "memory_gate": true
+    },
+    {
+      "case": "heldout_crowd128_20",
+      "method": "merged",
+      "reference": "split",
+      "attribution": "merged_vs_split",
+      "block": 1,
+      "time_ratio": 1.351215903842325,
+      "speedup": 0.7400741784909387,
+      "speed_gate": false,
+      "rss_delta_bytes": 32768,
+      "memory_gate": true
+    },
+    {
+      "case": "heldout_crowd128_20",
+      "method": "merged",
+      "reference": "frozen_metal",
+      "attribution": "merged_vs_frozen",
+      "block": 0,
+      "time_ratio": 1.5351467413769349,
+      "speedup": 0.6514035258304101,
+      "speed_gate": false,
+      "rss_delta_bytes": -360448,
+      "memory_gate": true
+    }
+  ],
+  "recheck_performance_failures": [
+    {
+      "case": "heldout_crowd128_20",
+      "method": "merged",
+      "reference": "split",
+      "attribution": "merged_vs_split",
+      "block": 1,
+      "time_ratio": 1.18911096544889,
+      "speedup": 0.8409644087526343,
+      "speed_gate": false,
+      "rss_delta_bytes": -147456,
+      "memory_gate": true
+    },
+    {
+      "case": "heldout_crowd128_20",
+      "method": "split",
+      "reference": "frozen_metal",
+      "attribution": "split_vs_frozen",
+      "block": 0,
+      "time_ratio": 1.24705674225733,
+      "speedup": 0.8018881307596909,
+      "speed_gate": false,
+      "rss_delta_bytes": 557056,
+      "memory_gate": true
+    },
+    {
+      "case": "heldout_crowd128_20",
+      "method": "merged",
+      "reference": "frozen_metal",
+      "attribution": "merged_vs_frozen",
+      "block": 0,
+      "time_ratio": 1.2285917560812838,
+      "speedup": 0.81394002120737,
+      "speed_gate": false,
+      "rss_delta_bytes": 557056,
+      "memory_gate": true
+    },
+    {
+      "case": "heldout_crowd128_20",
+      "method": "merged",
+      "reference": "frozen_metal",
+      "attribution": "merged_vs_frozen",
+      "block": 1,
+      "time_ratio": 1.1799275963103635,
+      "speedup": 0.8475096295120162,
+      "speed_gate": false,
+      "rss_delta_bytes": -180224,
+      "memory_gate": true
+    }
+  ],
+  "default_changed": false,
+  "merged_mode_promoted": false,
+  "source_binary_input_hashes_unchanged": true
+}

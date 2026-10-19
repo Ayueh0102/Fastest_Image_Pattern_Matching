@@ -1,0 +1,114 @@
+{
+  "stage": 36,
+  "date": "2026-10-18",
+  "checks_passed": true,
+  "scope": "Build, numerical/resource checks, archive integrity and exact replay; NOT a universal performance/accuracy acceptance.",
+  "release_ctest": {
+    "passed": true,
+    "tests": 56,
+    "log": "validation/ctest-final.log"
+  },
+  "resident_numerics": {
+    "passed": true,
+    "maps": 360,
+    "max_score_error": 7.22211e-08,
+    "ordered_peak_entry_differences": 62,
+    "binary64_identical": false,
+    "log": "validation/resident-unit.log"
+  },
+  "metal_api_and_shader_validation": {
+    "passed": true,
+    "log": "validation/metal-validation.log"
+  },
+  "asan_ubsan": {
+    "passed": true,
+    "leak_detection_enabled": false,
+    "log": "validation/asan-resident.log"
+  },
+  "python_harness_negative_controls": {
+    "passed": true,
+    "test_methods": 3,
+    "log": "validation/harness.log"
+  },
+  "formal": {
+    "complete": true,
+    "sources_inputs_binaries_unchanged_during_run": true,
+    "fresh_processes": 48,
+    "first_calls": 48,
+    "measured_calls": 144,
+    "warmup_calls_timing_only": 1754,
+    "all_first_and_measured_gt_pass": true
+  },
+  "source_archives": {
+    "verified_files": 331,
+    "all_sha256_match": true,
+    "extracted_root": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/stage36-rebuild/source"
+  },
+  "offline_replay": {
+    "passed": true,
+    "extracted_raw_files": 171,
+    "summary_bytes_equal": true,
+    "summary_sha256": "21b3b2320d7cf43be53f60aba69417505dd7697df27b5c8ab476e9eb838eb4d1",
+    "code_used": "Extracted measured source snapshot"
+  },
+  "clean_rebuild": {
+    "passed": true,
+    "targets": [
+      "fpm_coarse_resident_test",
+      "fpm_native_pipeline_runner"
+    ],
+    "resident_unit_passed": true,
+    "full_ctest_rerun": false,
+    "output_check": {
+      "binary_sha256": "57a5d09f88d384ed81db65a7960939384550c9934cca1282c881b0120389fa00",
+      "cases": [
+        {
+          "method": "cpu_peaks",
+          "calls": 2,
+          "matches": 6,
+          "proposals": 15,
+          "ordered_outputs_equal_formal": true
+        },
+        {
+          "method": "metal_resident_peaks",
+          "calls": 2,
+          "matches": 6,
+          "proposals": 15,
+          "ordered_outputs_equal_formal": true
+        }
+      ],
+      "performance_comparison": false
+    },
+    "logs": [
+      "validation/rebuild-configure.log",
+      "validation/rebuild-build.log",
+      "validation/rebuild-resident.log"
+    ]
+  },
+  "postmeasurement_source_changes": {
+    "algorithm_changed": false,
+    "files": {
+      "cpp-core/experiments/coarse_ncc.h": "Comment clarifies mode2 FP32 exception",
+      "cpp-core/tools/build_log_catalog.py": "Register stage36 catalog category"
+    },
+    "reports": "Documentation added after measurement; source snapshot is the measured version."
+  },
+  "preserved_early_failures": [
+    {
+      "log": "validation/ctest-before-enum-test-update.log",
+      "reason": "Old invalid peak_mode=2 assertion updated to invalid value3 after defining mode2."
+    },
+    {
+      "log": "validation/asan-build.log",
+      "reason": "Existing build needed CMake reconfiguration to register the new test target."
+    }
+  ],
+  "performance_adoption_pass": false,
+  "decision": "decision-and-failures.json",
+  "limitations": [
+    "Gray8 controlled/synthetic cases; no new RGB or real-stream acceptance.",
+    "Not full pipeline GPU residency.",
+    "FP32 near ties or thresholds may change coarse candidates.",
+    "No CUDA, hardware occupancy/cache counters, or new long-duration soak."
+  ]
+}

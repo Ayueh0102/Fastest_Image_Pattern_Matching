@@ -1,0 +1,92 @@
+{
+  "stage": 31,
+  "baseline_commit": "e392a018fd4f857b8c8c09737ef71173fff31a48",
+  "formal_workers": 18,
+  "algorithm_calls": 36,
+  "warmup_calls": 0,
+  "correctness_passed": true,
+  "unchanged": true,
+  "all_performance_tolerances_passed": false,
+  "performance_gates": {
+    "first_time_tolerance_pass": 18,
+    "repeat_time_tolerance_pass": 17,
+    "rss_tolerance_pass": 18
+  },
+  "performance_failures": [
+    {
+      "case": "many512_pose",
+      "comparison": "current_legacy_vs_frozen",
+      "block": 1,
+      "rss_delta_bytes": -1540096,
+      "rss_tolerance_pass": true,
+      "first_time_delta_percent": -7.9019588852001,
+      "first_time_tolerance_pass": true,
+      "repeat_time_delta_percent": 48.339868566487645,
+      "repeat_time_tolerance_pass": false
+    }
+  ],
+  "direct_pairs_all_passed": 12,
+  "release_tests": 50,
+  "final_focused_loader_tests": 1,
+  "final_loader_and_gui_tests": 2,
+  "loader_asan_ubsan_tests": 1,
+  "asan_detect_leaks": false,
+  "harness_tests": 23,
+  "memory_tool_tests": 17,
+  "memory_tool_new_and_frozen_build_only": true,
+  "archive_checks": {
+    "fresh_build": true,
+    "loader_and_gui_tests": 2,
+    "ordered_outputs_exact": true,
+    "nonclock_work_and_capacities_exact": true,
+    "loader_route_exact": true,
+    "relocated_summary_byte_identical": true,
+    "source_hashes_verified": 230
+  },
+  "independent_review": {
+    "reviewer": "gray_loader_benchmark",
+    "source_hashes": 230,
+    "binary_hashes": 6,
+    "input_hashes": 4,
+    "job_and_raw_hashes": 36,
+    "ordered_output_comparisons": 72,
+    "capacity_fields": 432,
+    "nonclock_work_records": 252,
+    "all_exact": true,
+    "summary_recomputed_identical": true,
+    "direct_comparison_pairs_passed": 12,
+    "full_repeat_change_percent": 1.4234004087847474,
+    "no_ncc_speedup_claim": true
+  },
+  "logs": {
+    "gray-loader-tests.log": "3981ce0069bc790c6893bcbe5b897abf9d455a06544600c28bf2713c3829802e",
+    "gray-loader-focused-tests.log": "d0e85a2d1d1197477639461676340d4cfc130f210db729c532e9b1b395ab0dee",
+    "gray-loader-gui-final-tests.log": "7d14d0324f8ee5eaa9ea3bca7386fd47707a1e86219d7b90235832b165145dd7",
+    "gray-loader-asan-tests.log": "4bdf9a28a0436b2f58a5383919ad55c29bb07a666414eb54bf2ae4aa8fd1051a",
+    "gray-loader-harness-tests.log": "ddf19da1a261b7890dc04fab1793a705f4463f868896febd72324207a0fac3dc",
+    "gray-loader-memory-tool-tests.log": "707d17a2ecf45983575cc9d2d20fe00349a2d6d7cf4702da14f6835a9115eaa6",
+    "gray-loader-archive-tests.log": "a4c72be660893fe1fc8d06ac221a2245bb5800327f20d2f2fdd09c81f15f10e1",
+    "gray-loader-gui-fixture-failure.log": "ee9cdfa72db0f019c51da50a6150ceb47526ea80f19432c3eee4483ab281e661",
+    "gray-loader-archive-missing-fixtures.log": "af39ff55b9891572f3b9c9f02c13bad61fb5450aef9e072bf225d750c35940e1"
+  },
+  "development_failures_retained": [
+    "Invalid RGB ICC metadata in a gray PNG test fixture; corrected fixture and final GUI regression passed.",
+    "First archive lacked two GUI test fixtures; added Src7/Dst7 and reran successfully."
+  ],
+  "limits": [
+    "Two serial fresh processes per method/case, first+one repeat; no warm steady-state claim.",
+    "Two reused synthetic scenes; not new camera generalization.",
+    "GUI memory was not measured.",
+    "Full subpixel repeat median increases1.42% vs current legacy.",
+    "One legacy control repeat exceeds tolerance; no cause claimed or replacement run.",
+    "No long soak, CUDA, Windows or changed NCC math this round."
+  ],
+  "archive": {
+    "path": "raw-results.tar.gz",
+    "sha256": "3589af5f1e719f874c1a733d5663045a9751cb073c85578cfef3bf8617e65ff8",
+    "bytes": 39137300,
+    "manifest_files": 598,
+    "all_extracted_hashes_verified": true,
+    "extracted_summary_byte_identical": true
+  }
+}

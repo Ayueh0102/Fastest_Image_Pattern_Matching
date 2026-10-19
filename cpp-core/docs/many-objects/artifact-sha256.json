@@ -1,0 +1,35 @@
+{
+  "complete": true,
+  "integrity_passed": true,
+  "detection_all_passed": true,
+  "worker_count": 50,
+  "first_calls": 50,
+  "measured_calls": 250,
+  "warmup_calls": 623,
+  "all_sources_libraries_inputs_hashes_valid": true,
+  "all_jobs_workers_hashes_valid": true,
+  "all_measured_frame_capacities_equal_first": true,
+  "warmup_digests_match_first": true,
+  "formal_workers_have_no_truth": true,
+  "archive_files": 251,
+  "archive_sha256": "d3ec7f74bcd8d4f58bdc5c3dcb45a84f960e4219ba074e35e02410bb117b3509",
+  "archive_bytes": 47161944,
+  "manifest_sha256": "39da043b9f875f32c49ca4dd8da38562639c5bf79db7ff60ffb69bcd6f10e5ce",
+  "replayed_summary_sha256": "2b4538fe52952c9659f772a15cf60e3bb2c09814674374249937cafa6087ba5c",
+  "relocated_summary_byte_identical": true,
+  "tests": {
+    "scene_accuracy_worker_isolation": {
+      "passed": 14,
+      "total": 14,
+      "log": "logs/many-objects-tests.log"
+    }
+  },
+  "user_facing_artifacts": {
+    "many128_pose-detections.png": "d16c24416e25fcc701d84a9d3caa562a18ee2500d33237b06a73a29fe353296b",
+    "many256_pose-detections.png": "f1afd7476171aabffbd3edf93eff39bd885b2b30177616177cb54baf7022f8cf",
+    "many512_pose-detections.png": "411cc27dc78f0606a3a1d1097eacd8ed88aef2806615b3c05827b78f4130cf1c",
+    "performance.png": "c40a46fc18d9c57a0de73fcc87e26155a51a3c0eddb00cbf41c5e164c7cf15e5",
+    "protocol.json": "5b235efe0a327512c2b04a92d30fd79e87b0e23114211cbe7701d351cb45fd26",
+    "results.json": "7172800a213f6112531b59b6e68d244b23c12f5af6b85e6e941c3e35a439ac47"
+  }
+}

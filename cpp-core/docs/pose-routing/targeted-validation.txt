@@ -1,0 +1,17 @@
+Auto routing validation, 2026-10-13 Asia/Taipei
+Final defaults: min_pose_samples=131072, min_batch_samples=0, min_iterations=4, cpu_polish_iterations=0.
+
+PASS: CMake Release fpm_pose_test (CPU).
+PASS: MTL_DEBUG_LAYER=1 CMake Release fpm_pose_test metal.
+PASS: CMake ASan/UBSan fpm_pose_test (CPU); sanitizer checks enabled.
+PASS: direct CPU-only build and run:
+clang++ -std=c++17 -O2 -pthread -DFPM_TEST_NO_METAL -Icpp-core/experiments cpp-core/experiments/pose_ncc.cpp cpp-core/tests/pose_experiment_test.cpp -o build/fourier-gpu/pose-no-metal-test
+build/fourier-gpu/pose-no-metal-test
+Output: Experimental pose ABI, lifetime, NCC identity and continuous RGB/gray refinement passed
+
+PASS: typed unavailable versus runtime-error stub, tested before threshold-only update (stub forces sample thresholds=0, iteration minimum=1):
+clang++ -std=c++17 -O2 -pthread -DFPM_EXPERIMENT_METAL -Icpp-core/experiments cpp-core/experiments/pose_ncc.cpp build/fourier-gpu/auto-fallback-errors-test.cpp -o build/fourier-gpu/auto-fallback-errors-test
+build/fourier-gpu/auto-fallback-errors-test
+Output: Typed unavailable fallback and runtime-error propagation passed
+The stub source remains at build/fourier-gpu/auto-fallback-errors-test.cpp.
+This is a concise validation record; full command outputs are in the task tool transcript.

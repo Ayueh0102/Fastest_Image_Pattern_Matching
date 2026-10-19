@@ -1,0 +1,10 @@
+{
+  "archive_sha256": "eec265d30fac7e4cce02c254466346ff12eed23eeba12bb50dab3821b662e73f",
+  "archive_bytes": 2737586,
+  "members": 254,
+  "manifest_sha256": "f10626609d67b638ce1b859b9ecd071f30c250ab815a16b9fcedfd2ed22139d5",
+  "summary_sha256": "38c95ccd7d866df50d9db2d0de508841f337591ed6f963248d33c9e7eb6fc4ae",
+  "relocated_summary_byte_identical": true,
+  "all_member_hashes_valid": true,
+  "original_source_binary_input_hashes_valid": true
+}

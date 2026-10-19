@@ -1,0 +1,263 @@
+--- a/pose_metal.mm
++++ b/pose_metal.mm
+@@ -6,10 +6,97 @@
+ #include <algorithm>
+ #include <chrono>
+ #include <cmath>
++#include <cstdio>
+ #include <cstring>
+ #include <stdexcept>
+ 
+ namespace fpm_exp {
++// Diagnostic copy only: timings do not change buffer storage, kernels, dispatch,
++// numerical operations, or chunk limits. Shared-memory byte counts below are
++// logical CPU reads/writes, NOT measurements of separate DMA/PCIe traffic.
++using ProfileClock = std::chrono::steady_clock;
++static double profileMilliseconds(ProfileClock::time_point begin) {
++    return std::chrono::duration<double, std::milli>(ProfileClock::now()-begin).count();
++}
++struct ProfilePipeline {
++    size_t threadExecutionWidth = 0, maxThreads = 0, staticThreadgroupMemoryLength = 0;
++    void capture(id<MTLComputePipelineState> pipeline) {
++        threadExecutionWidth = size_t(pipeline.threadExecutionWidth);
++        maxThreads = size_t(pipeline.maxTotalThreadsPerThreadgroup);
++        staticThreadgroupMemoryLength = size_t(pipeline.staticThreadgroupMemoryLength);
++    }
++};
++struct ProfileSetup {
++    const ProfileClock::time_point begin = ProfileClock::now();
++    double setup_total_ms = 0, device_queue_ms = 0, library_ms = 0, pipelines_ms = 0;
++    double buffer_allocate_ms = 0, image_copy_ms = 0;
++    size_t image_copy_bytes = 0;
++    bool unified_memory = false, finished = false;
++    ProfilePipeline partial, finish, derivative, derivative_finish;
++    void complete() {
++        setup_total_ms = profileMilliseconds(begin);
++        finished = true;
++    }
++    ~ProfileSetup() {
++        // On exceptions still emit one marked record; only completed stages are
++        // populated. Failed records must not be mixed into timing aggregates.
++        if (!finished) setup_total_ms = profileMilliseconds(begin);
++        std::fprintf(stderr,
++            "FPM_PROFILE {\"operation\":\"setup\",\"status\":\"%s\","
++            "\"setup_total_ms\":%.9f,\"device_queue_ms\":%.9f,\"library_ms\":%.9f,"
++            "\"pipelines_ms\":%.9f,\"buffer_allocate_ms\":%.9f,\"image_copy_ms\":%.9f,"
++            "\"image_copy_bytes\":%zu,\"unified_memory\":%s,\"pipelines\":{"
++            "\"pose_partials\":{\"threadExecutionWidth\":%zu,\"maxThreads\":%zu,\"staticThreadgroupMemoryLength\":%zu},"
++            "\"pose_finish\":{\"threadExecutionWidth\":%zu,\"maxThreads\":%zu,\"staticThreadgroupMemoryLength\":%zu},"
++            "\"pose_derivative_partials\":{\"threadExecutionWidth\":%zu,\"maxThreads\":%zu,\"staticThreadgroupMemoryLength\":%zu},"
++            "\"pose_derivative_finish\":{\"threadExecutionWidth\":%zu,\"maxThreads\":%zu,\"staticThreadgroupMemoryLength\":%zu}}}\n",
++            finished ? "ok" : "error", setup_total_ms, device_queue_ms, library_ms,
++            pipelines_ms, buffer_allocate_ms, image_copy_ms, image_copy_bytes,
++            unified_memory ? "true" : "false",
++            partial.threadExecutionWidth, partial.maxThreads, partial.staticThreadgroupMemoryLength,
++            finish.threadExecutionWidth, finish.maxThreads, finish.staticThreadgroupMemoryLength,
++            derivative.threadExecutionWidth, derivative.maxThreads, derivative.staticThreadgroupMemoryLength,
++            derivative_finish.threadExecutionWidth, derivative_finish.maxThreads, derivative_finish.staticThreadgroupMemoryLength);
++    }
++};
++struct ProfileCall {
++    const ProfileClock::time_point begin = ProfileClock::now();
++    const char* operation;
++    size_t poses, chunks = 0, pose_copy_bytes = 0, result_read_bytes = 0;
++    // workspace_capacity is retained Metal buffer BYTES; the separate pose
++    // capacity is the maximum poses per chunk for this operation's layout.
++    size_t workspace_capacity = 0, workspace_pose_capacity = 0;
++    double workspace_ms = 0, host_output_resize_ms = 0, pose_copy_ms = 0;
++    double encode_ms = 0, commit_wait_ms = 0, readback_assemble_ms = 0;
++    double gpu_ms = -1, backend_wall_ms = 0;
++    bool finished = false;
++    ProfileCall(const char* kind, size_t count) : operation(kind), poses(count) {}
++    void complete(double device_ms, size_t retainedWorkspaceBytes) {
++        gpu_ms = device_ms;
++        workspace_capacity = retainedWorkspaceBytes;
++        backend_wall_ms = profileMilliseconds(begin);
++        finished = true;
++    }
++    ~ProfileCall() {
++        if (!finished) backend_wall_ms = profileMilliseconds(begin);
++        // commit_wait_ms ALREADY INCLUDES GPU execution. gpu_ms overlaps it and
++        // must never be added to host-stage totals. No GPU synchronization or
++        // timing queries beyond the original accumulateTime() are introduced.
++        // The single fprintf below is excluded from backend_wall_ms, although
++        // callers' enclosing API wall time necessarily includes logging cost.
++        std::fprintf(stderr,
++            "FPM_PROFILE {\"operation\":\"%s\",\"status\":\"%s\",\"poses\":%zu,\"chunks\":%zu,"
++            "\"workspace_ms\":%.9f,\"host_output_resize_ms\":%.9f,\"pose_copy_ms\":%.9f,"
++            "\"encode_ms\":%.9f,\"commit_wait_ms\":%.9f,\"readback_assemble_ms\":%.9f,"
++            "\"gpu_ms\":%.9f,\"backend_wall_ms\":%.9f,\"pose_copy_bytes\":%zu,"
++            "\"result_read_bytes\":%zu,\"workspace_capacity\":%zu,\"workspace_pose_capacity\":%zu,"
++            "\"commit_wait_includes_gpu\":true}\n",
++            operation, finished ? "ok" : "error", poses, chunks, workspace_ms,
++            host_output_resize_ms, pose_copy_ms, encode_ms, commit_wait_ms,
++            readback_assemble_ms, gpu_ms, backend_wall_ms, pose_copy_bytes,
++            result_read_bytes, workspace_capacity, workspace_pose_capacity);
++    }
++};
+ struct alignas(16) MetalConfig {
+     uint32_t sw, sh, tw, th, channels, tiles, count, unused;
+     float sourceMean[4], templateSum[4];
+@@ -99,12 +186,16 @@
+     }
+ public:
+     explicit Metal(const Data& d) {
++        ProfileSetup profile;
+         @autoreleasepool {
++            const auto deviceQueueBegin = ProfileClock::now();
+             device_ = MTLCreateSystemDefaultDevice();
+             if (!device_) throw MetalUnavailable("No Metal GPU available");
+             name_ = [device_.name UTF8String];
+             queue_ = [device_ newCommandQueue];
+             if (!queue_) throw std::runtime_error("Could not create Metal command queue");
++            profile.device_queue_ms = profileMilliseconds(deviceQueueBegin);
++            const auto libraryBegin = ProfileClock::now();
+             NSError* error = nil;
+             MTLCompileOptions* options = [[MTLCompileOptions alloc] init];
+ #if __MAC_OS_X_VERSION_MAX_ALLOWED >= 150000
+@@ -122,6 +213,8 @@
+             id<MTLLibrary> library = [device_ newLibraryWithSource:[NSString stringWithUTF8String:fpmMetalSource]
+                 options:options error:&error];
+             if (!library) throw std::runtime_error([[error localizedDescription] UTF8String]);
++            profile.library_ms = profileMilliseconds(libraryBegin);
++            const auto pipelinesBegin = ProfileClock::now();
+             partialPipeline_ = [device_ newComputePipelineStateWithFunction:[library newFunctionWithName:@"pose_partials"] error:&error];
+             if (!partialPipeline_) throw std::runtime_error([[error localizedDescription] UTF8String]);
+             finishPipeline_ = [device_ newComputePipelineStateWithFunction:[library newFunctionWithName:@"pose_finish"] error:&error];
+@@ -134,9 +227,15 @@
+                 throw std::runtime_error("Metal device cannot run 256-thread workgroups");
+             if (derivativePipeline_.maxTotalThreadsPerThreadgroup < 128)
+                 throw std::runtime_error("Metal device cannot run 128-thread derivative workgroups");
++            profile.pipelines_ms = profileMilliseconds(pipelinesBegin);
++            const auto bufferAllocateBegin = ProfileClock::now();
+             source_ = buffer(d.source.size()*sizeof(float)); template_ = buffer(d.templ.size()*sizeof(float));
++            profile.buffer_allocate_ms = profileMilliseconds(bufferAllocateBegin);
++            const auto imageCopyBegin = ProfileClock::now();
+             std::memcpy(source_.contents, d.source.data(), source_.length);
+             std::memcpy(template_.contents, d.templ.data(), template_.length);
++            profile.image_copy_ms = profileMilliseconds(imageCopyBegin);
++            profile.image_copy_bytes = source_.length+template_.length;
+             config_.sw = d.sw; config_.sh = d.sh; config_.tw = d.tw; config_.th = d.th;
+             config_.channels = d.channels; config_.tiles = (uint32_t(d.tw)*d.th+1023)/1024;
+             config_.templateEnergy = float(d.templateEnergy);
+@@ -145,6 +244,13 @@
+                 config_.sourceMean[c] = d.sourceMean[c]; config_.templateSum[c] = float(d.templateSum[c]);
+             }
+         }
++        // Read-only hardware/pipeline properties; these do not alter dispatch.
++        profile.unified_memory = device_.hasUnifiedMemory;
++        profile.partial.capture(partialPipeline_);
++        profile.finish.capture(finishPipeline_);
++        profile.derivative.capture(derivativePipeline_);
++        profile.derivative_finish.capture(derivativeFinishPipeline_);
++        profile.complete();
+     }
+     const char* name() const override { return name_.c_str(); }
+     void memory(FpmPoseMetrics& metrics) const override {
+@@ -152,15 +258,25 @@
+         metrics.gpu_allocated_bytes = device_.currentAllocatedSize;
+     }
+     void score(const std::vector<PackedPose>& poses, float* out, FpmPoseMetrics& metrics) override {
++        ProfileCall profile("score", poses.size());
+         @autoreleasepool {
++            const auto workspaceBegin = ProfileClock::now();
+             const auto workspace = prepareWorkspace(poses.size(), size_t(config_.tiles)*64, sizeof(float));
++            profile.workspace_ms += profileMilliseconds(workspaceBegin);
++            profile.workspace_capacity = workspace_.length;
++            profile.workspace_pose_capacity = workspace.capacity;
+             const size_t capacity = workspace.capacity;
+             metrics.device_ms = 0;
+             bool allChunksTimed = true;
+             for (size_t offset = 0; offset < poses.size(); offset += capacity) {
+               @autoreleasepool {
+             const size_t count = std::min(capacity, poses.size() - offset);
++            ++profile.chunks;
++            const auto poseCopyBegin = ProfileClock::now();
+             std::memcpy(workspace_.contents, poses.data() + offset, count*sizeof(PackedPose));
++            profile.pose_copy_ms += profileMilliseconds(poseCopyBegin);
++            profile.pose_copy_bytes += count*sizeof(PackedPose);
++            const auto encodeBegin = ProfileClock::now();
+             config_.count = uint32_t(count);
+             id<MTLCommandBuffer> command = [queue_ commandBuffer];
+             if (!command) throw std::runtime_error("Could not create Metal command buffer");
+@@ -181,23 +297,41 @@
+             const NSUInteger group = std::min(NSUInteger(64), finishPipeline_.maxTotalThreadsPerThreadgroup);
+             [encoder dispatchThreads:MTLSizeMake(count, 1, 1) threadsPerThreadgroup:MTLSizeMake(group, 1, 1)];
+             [encoder endEncoding];
++            profile.encode_ms += profileMilliseconds(encodeBegin);
++            const auto commitWaitBegin = ProfileClock::now();
+             complete(command);
++            profile.commit_wait_ms += profileMilliseconds(commitWaitBegin);
++            const auto readbackBegin = ProfileClock::now();
+             std::memcpy(out + offset, static_cast<const char*>(workspace_.contents)+workspace.resultOffset, count*sizeof(float));
++            profile.readback_assemble_ms += profileMilliseconds(readbackBegin);
++            profile.result_read_bytes += count*sizeof(float);
+             if (!accumulateTime(command, metrics)) allChunksTimed = false;
+               }
+             }
+             if (!allChunksTimed) metrics.device_ms = -1;
+             memory(metrics);
+         }
++        profile.complete(metrics.device_ms, workspace_.length);
+     }
+     bool linearize(const std::vector<PackedPose>& poses, const FpmPoseRefineConfig& options,
+         std::vector<Linearization>& output, FpmPoseMetrics& metrics) override {
++        ProfileCall profile("linearize", poses.size());
+         const auto begin = std::chrono::steady_clock::now();
+         metrics = {}; metrics.device_ms = 0;
++        const auto outputResizeBegin = ProfileClock::now();
+         output.resize(poses.size());
+-        if (poses.empty()) { memory(metrics); return true; }
++        profile.host_output_resize_ms = profileMilliseconds(outputResizeBegin);
++        if (poses.empty()) {
++            memory(metrics);
++            profile.complete(metrics.device_ms, workspace_.length);
++            return true;
++        }
+         @autoreleasepool {
++            const auto workspaceBegin = ProfileClock::now();
+             const auto workspace = prepareWorkspace(poses.size(), size_t(config_.tiles)*sizeof(DerivativePartial), sizeof(DerivativePartial));
++            profile.workspace_ms += profileMilliseconds(workspaceBegin);
++            profile.workspace_capacity = workspace_.length;
++            profile.workspace_pose_capacity = workspace.capacity;
+             config_.unused = (options.max_translation != 0 ? 1u : 0u)
+                 | (options.optimize_angle && options.max_angle_degrees != 0 ? 2u : 0u)
+                 | (options.optimize_scale && options.max_log_scale != 0 ? 4u : 0u);
+@@ -205,7 +339,12 @@
+             for (size_t offset = 0; offset < poses.size(); offset += workspace.capacity) {
+                 @autoreleasepool {
+                     const size_t count = std::min(workspace.capacity, poses.size()-offset);
++                    ++profile.chunks;
++                    const auto poseCopyBegin = ProfileClock::now();
+                     std::memcpy(workspace_.contents, poses.data()+offset, count*sizeof(PackedPose));
++                    profile.pose_copy_ms += profileMilliseconds(poseCopyBegin);
++                    profile.pose_copy_bytes += count*sizeof(PackedPose);
++                    const auto encodeBegin = ProfileClock::now();
+                     config_.count = uint32_t(count);
+                     id<MTLCommandBuffer> command = [queue_ commandBuffer];
+                     if (!command) throw std::runtime_error("Could not create Metal derivative command buffer");
+@@ -227,10 +366,16 @@
+                     const NSUInteger group = std::min(NSUInteger(32), derivativeFinishPipeline_.maxTotalThreadsPerThreadgroup);
+                     [encoder dispatchThreads:MTLSizeMake(count, 1, 1) threadsPerThreadgroup:MTLSizeMake(group, 1, 1)];
+                     [encoder endEncoding];
++                    profile.encode_ms += profileMilliseconds(encodeBegin);
++                    const auto commitWaitBegin = ProfileClock::now();
+                     complete(command);
++                    profile.commit_wait_ms += profileMilliseconds(commitWaitBegin);
++                    const auto readbackBegin = ProfileClock::now();
+                     const auto* result = reinterpret_cast<const DerivativePartial*>(
+                         static_cast<const char*>(workspace_.contents)+workspace.resultOffset);
+                     for (size_t i = 0; i < count; ++i) output[offset+i] = assemble(result[i]);
++                    profile.readback_assemble_ms += profileMilliseconds(readbackBegin);
++                    profile.result_read_bytes += count*sizeof(DerivativePartial);
+                     if (!accumulateTime(command, metrics)) allChunksTimed = false;
+                 }
+             }
+@@ -238,6 +383,7 @@
+             memory(metrics);
+         }
+         metrics.wall_ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now()-begin).count();
++        profile.complete(metrics.device_ms, workspace_.length);
+         return true;
+     }
+ };

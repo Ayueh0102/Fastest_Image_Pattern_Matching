@@ -1,0 +1,454 @@
+{
+  "scope": "Stage25 direct uint8 initialization into final owned float images. All five routes share the same Metal frontend. Recheck includes medium6 and128 due CPU warm-time failures, plus4K and repeated-scene8K24. Not new blind GT.",
+  "formal": {
+    "checks": {
+      "workers": 80,
+      "expected_workers": 80,
+      "measured_calls": 240,
+      "all_workers_succeeded": true,
+      "exact_proposals_all": true,
+      "exact_resident_final_all": true,
+      "exact_cpu_direct_all": true,
+      "initialization_only_all": true,
+      "paired_final_all": true,
+      "fused_final_all": true,
+      "cpu_final_comparison_all": true,
+      "route_integrity_all": true,
+      "frontend_identical_all": true,
+      "normal_gt_all": true
+    },
+    "sources_binaries_inputs_unchanged": true,
+    "performance_failures": [
+      {
+        "case": "crop_small360",
+        "method": "current_direct",
+        "reference": "current_cpu_direct",
+        "attribution": "direct_vs_cpu_direct",
+        "block": 0,
+        "time_ratio": 1.7453679968111964,
+        "speedup": 0.5729450762400877,
+        "refinement_speedup": 0.3141442419851553,
+        "first_time_ratio": 1.4638062285758304,
+        "first_pose_create_ratio": 3.987279843444227,
+        "first_pose_create_delta_ms": 0.381625,
+        "conversion_temporary_delta_bytes": 0,
+        "speed_gate": false,
+        "rss_delta_bytes": 835584,
+        "memory_gate": true
+      },
+      {
+        "case": "crop_medium20",
+        "method": "current_cpu_direct",
+        "reference": "current_cpu",
+        "attribution": "cpu_direct_vs_cpu",
+        "block": 0,
+        "time_ratio": 1.5904771050474296,
+        "speedup": 0.628742153424572,
+        "refinement_speedup": 0.9819570602807598,
+        "first_time_ratio": 1.0290217747002206,
+        "first_pose_create_ratio": 0.710111765756115,
+        "first_pose_create_delta_ms": -0.20295799999999997,
+        "conversion_temporary_delta_bytes": -1585152,
+        "speed_gate": false,
+        "rss_delta_bytes": -1687552,
+        "memory_gate": true
+      },
+      {
+        "case": "crop_lowcontrast20",
+        "method": "current_direct",
+        "reference": "current_cpu_direct",
+        "attribution": "direct_vs_cpu_direct",
+        "block": 0,
+        "time_ratio": 1.6611974477344231,
+        "speedup": 0.6019754011564499,
+        "refinement_speedup": 0.46492588593305195,
+        "first_time_ratio": 1.4228730163881227,
+        "first_pose_create_ratio": 2.52705223880597,
+        "first_pose_create_delta_ms": 0.40925,
+        "conversion_temporary_delta_bytes": 0,
+        "speed_gate": false,
+        "rss_delta_bytes": 983040,
+        "memory_gate": true
+      },
+      {
+        "case": "crop_lowcontrast20",
+        "method": "current_direct",
+        "reference": "current_cpu_direct",
+        "attribution": "direct_vs_cpu_direct",
+        "block": 1,
+        "time_ratio": 1.62605203696412,
+        "speedup": 0.6149864686169731,
+        "refinement_speedup": 0.4838461489766493,
+        "first_time_ratio": 1.4210773425790488,
+        "first_pose_create_ratio": 2.266487213997308,
+        "first_pose_create_delta_ms": 0.35287499999999994,
+        "conversion_temporary_delta_bytes": 0,
+        "speed_gate": false,
+        "rss_delta_bytes": 901120,
+        "memory_gate": true
+      },
+      {
+        "case": "thin_detail20",
+        "method": "current_direct",
+        "reference": "current_cpu_direct",
+        "attribution": "direct_vs_cpu_direct",
+        "block": 0,
+        "time_ratio": 1.739185069728621,
+        "speedup": 0.574981936888429,
+        "refinement_speedup": 0.43567399837283544,
+        "first_time_ratio": 1.9206286846275753,
+        "first_pose_create_ratio": 27.652477335800185,
+        "first_pose_create_delta_ms": 3.601416,
+        "conversion_temporary_delta_bytes": 0,
+        "speed_gate": false,
+        "rss_delta_bytes": 1015808,
+        "memory_gate": true
+      },
+      {
+        "case": "thin_detail20",
+        "method": "current_direct",
+        "reference": "current_cpu_direct",
+        "attribution": "direct_vs_cpu_direct",
+        "block": 1,
+        "time_ratio": 1.7760905173024182,
+        "speedup": 0.5630343669188839,
+        "refinement_speedup": 0.4129471818051495,
+        "first_time_ratio": 1.832460219398182,
+        "first_pose_create_ratio": 3.0548786453433676,
+        "first_pose_create_delta_ms": 0.273042,
+        "conversion_temporary_delta_bytes": 0,
+        "speed_gate": false,
+        "rss_delta_bytes": 802816,
+        "memory_gate": true
+      },
+      {
+        "case": "scale_violation20",
+        "method": "current_direct",
+        "reference": "current_cpu_direct",
+        "attribution": "direct_vs_cpu_direct",
+        "block": 1,
+        "time_ratio": 1.9117768680748866,
+        "speedup": 0.5230735954070708,
+        "refinement_speedup": 0.41488696567837047,
+        "first_time_ratio": 2.213475097454675,
+        "first_pose_create_ratio": 30.26849288272292,
+        "first_pose_create_delta_ms": 3.890251,
+        "conversion_temporary_delta_bytes": 0,
+        "speed_gate": false,
+        "rss_delta_bytes": 983040,
+        "memory_gate": true
+      },
+      {
+        "case": "heldout_crowd128_20",
+        "method": "current_cpu_direct",
+        "reference": "current_cpu",
+        "attribution": "cpu_direct_vs_cpu",
+        "block": 1,
+        "time_ratio": 1.1941241677304377,
+        "speedup": 0.837433850702987,
+        "refinement_speedup": 1.0527577766453782,
+        "first_time_ratio": 0.7751784842462904,
+        "first_pose_create_ratio": 0.7150387560958772,
+        "first_pose_create_delta_ms": -0.5654579999999998,
+        "conversion_temporary_delta_bytes": -4730880,
+        "speed_gate": false,
+        "rss_delta_bytes": -4620288,
+        "memory_gate": true
+      }
+    ],
+    "normal_gt_pose_count": 144,
+    "input_temporary_bytes": [
+      {
+        "case": "crop_small360",
+        "current_cpu": [
+          274432,
+          274432
+        ],
+        "current_cpu_direct": [
+          0,
+          0
+        ],
+        "current_shared": [
+          274432,
+          274432
+        ],
+        "current_direct": [
+          0,
+          0
+        ]
+      },
+      {
+        "case": "crop_medium20",
+        "current_cpu": [
+          1585152,
+          1585152
+        ],
+        "current_cpu_direct": [
+          0,
+          0
+        ],
+        "current_shared": [
+          1585152,
+          1585152
+        ],
+        "current_direct": [
+          0,
+          0
+        ]
+      },
+      {
+        "case": "crop_lowcontrast20",
+        "current_cpu": [
+          798720,
+          798720
+        ],
+        "current_cpu_direct": [
+          0,
+          0
+        ],
+        "current_shared": [
+          798720,
+          798720
+        ],
+        "current_direct": [
+          0,
+          0
+        ]
+      },
+      {
+        "case": "thin_detail20",
+        "current_cpu": [
+          274432,
+          274432
+        ],
+        "current_cpu_direct": [
+          0,
+          0
+        ],
+        "current_shared": [
+          274432,
+          274432
+        ],
+        "current_direct": [
+          0,
+          0
+        ]
+      },
+      {
+        "case": "scale_violation20",
+        "current_cpu": [
+          274432,
+          274432
+        ],
+        "current_cpu_direct": [
+          0,
+          0
+        ],
+        "current_shared": [
+          274432,
+          274432
+        ],
+        "current_direct": [
+          0,
+          0
+        ]
+      },
+      {
+        "case": "repo_src4",
+        "current_cpu": [
+          272644,
+          272644
+        ],
+        "current_cpu_direct": [
+          0,
+          0
+        ],
+        "current_shared": [
+          272644,
+          272644
+        ],
+        "current_direct": [
+          0,
+          0
+        ]
+      },
+      {
+        "case": "heldout_crowd128_20",
+        "current_cpu": [
+          4730880,
+          4730880
+        ],
+        "current_cpu_direct": [
+          0,
+          0
+        ],
+        "current_shared": [
+          4730880,
+          4730880
+        ],
+        "current_direct": [
+          0,
+          0
+        ]
+      },
+      {
+        "case": "large4096_6",
+        "current_cpu": [
+          67121152,
+          67121152
+        ],
+        "current_cpu_direct": [
+          0,
+          0
+        ],
+        "current_shared": [
+          67121152,
+          67121152
+        ],
+        "current_direct": [
+          0,
+          0
+        ]
+      }
+    ]
+  },
+  "recheck": {
+    "checks": {
+      "workers": 40,
+      "expected_workers": 40,
+      "measured_calls": 120,
+      "all_workers_succeeded": true,
+      "exact_proposals_all": true,
+      "exact_resident_final_all": true,
+      "exact_cpu_direct_all": true,
+      "initialization_only_all": true,
+      "paired_final_all": true,
+      "fused_final_all": true,
+      "cpu_final_comparison_all": true,
+      "route_integrity_all": true,
+      "frontend_identical_all": true,
+      "normal_gt_all": true
+    },
+    "sources_binaries_inputs_unchanged": true,
+    "performance_failures": [
+      {
+        "case": "large4096_6",
+        "method": "current_direct",
+        "reference": "current_cpu_direct",
+        "attribution": "direct_vs_cpu_direct",
+        "block": 0,
+        "time_ratio": 1.1361855574360988,
+        "speedup": 0.8801379259357834,
+        "refinement_speedup": 0.7799425576644065,
+        "first_time_ratio": 1.0404412646729464,
+        "first_pose_create_ratio": 1.007262527614218,
+        "first_pose_create_delta_ms": 0.13954100000000125,
+        "conversion_temporary_delta_bytes": 0,
+        "speed_gate": false,
+        "rss_delta_bytes": 851968,
+        "memory_gate": true
+      }
+    ],
+    "normal_gt_pose_count": 164,
+    "input_temporary_bytes": [
+      {
+        "case": "crop_medium20",
+        "current_cpu": [
+          1585152,
+          1585152
+        ],
+        "current_cpu_direct": [
+          0,
+          0
+        ],
+        "current_shared": [
+          1585152,
+          1585152
+        ],
+        "current_direct": [
+          0,
+          0
+        ]
+      },
+      {
+        "case": "heldout_crowd128_20",
+        "current_cpu": [
+          4730880,
+          4730880
+        ],
+        "current_cpu_direct": [
+          0,
+          0
+        ],
+        "current_shared": [
+          4730880,
+          4730880
+        ],
+        "current_direct": [
+          0,
+          0
+        ]
+      },
+      {
+        "case": "large4096_6",
+        "current_cpu": [
+          67121152,
+          67121152
+        ],
+        "current_cpu_direct": [
+          0,
+          0
+        ],
+        "current_shared": [
+          67121152,
+          67121152
+        ],
+        "current_direct": [
+          0,
+          0
+        ]
+      },
+      {
+        "case": "tiled8192_24",
+        "current_cpu": [
+          268447744,
+          268447744
+        ],
+        "current_cpu_direct": [
+          0,
+          0
+        ],
+        "current_shared": [
+          268447744,
+          268447744
+        ],
+        "current_direct": [
+          0,
+          0
+        ]
+      }
+    ]
+  },
+  "metal_shader_sources_unchanged_vs_stage24": {
+    "coarse_ncc.metal": "aef0509f410cc03169a962f04f6497b8a22b67936950c8c3802c0c5026cbd07b",
+    "pose_fused.metal": "f55eaa5d3f6b31972b04ebe9a5d9a92f6edbc54fcd8dce3503f0f3f83dcd7c2c",
+    "pose_ncc.metal": "1e475aa57768ab2d2474ba5e2420372191b3028c3e843858ef952f603885cf81",
+    "pose_resident.metal": "43bd7b74f87c426abdf90b5464b1bc807fc80a9fae859f2e7b18e300c2dae6c6",
+    "pose_simd.metal": "babdf06d30c831a95535e1945ea1bf5c36522df9be548b5baff6e9d29439606c",
+    "sparse_orientation.metal": "290e2b090ee340091a92c64f22ac5abdb3bab9a1cf2d5efdf0fdf6462712bdd9"
+  },
+  "validation": {
+    "release_passed": 39,
+    "release_tests": 39,
+    "asan_ubsan_passed": 12,
+    "asan_ubsan_tests": 12,
+    "leak_sanitizer": false,
+    "direct_u8_cpu_reference_pairs": 10,
+    "direct_u8_metal_reference_pairs": 10,
+    "metal_shared_resident_calls": 119,
+    "harness_controls": 42,
+    "checks": "gray/RGB all256 values, odd/dense/padded rows, inversion, caller mutation/free, exact score/pose/statistics, lazy auto and stride/span/address guards. Session exact equivalence, inversion rebuild and retained-context diagnostics.",
+    "new_long_soak": false,
+    "independent_agent_final_review": false
+  }
+}

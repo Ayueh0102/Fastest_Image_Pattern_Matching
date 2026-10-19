@@ -1,8 +1,16 @@
-cmake_minimum_required(VERSION 3.11)
+cmake_minimum_required(VERSION 3.16)
 
 set(project_name "MatchTool")
 
 project(${project_name})
+
+enable_testing()
+add_subdirectory(cpp-core)
+option(FPM_BUILD_MFC "Build the original Windows MFC application" ${MSVC})
+if(FPM_BUILD_MFC)
+if(NOT MSVC)
+    message(FATAL_ERROR "FPM_BUILD_MFC requires Visual Studio/MFC; use FPM_BUILD_GUI for the Qt GUI")
+endif()
 
 #for MFC
 add_definitions(-D_AFXDLL)
@@ -45,4 +53,4 @@ add_custom_command(TARGET ${project_name} POST_BUILD
 )
 
 target_link_libraries(${project_name} PRIVATE opencv_core opencv_imgproc opencv_highgui)
-
+endif()

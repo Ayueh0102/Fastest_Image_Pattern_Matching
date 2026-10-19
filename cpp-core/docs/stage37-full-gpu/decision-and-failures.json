@@ -1,0 +1,383 @@
+{
+  "stage": 37,
+  "full_dense_gray_data_path_implemented": true,
+  "all_formal_gt_pass": true,
+  "all_formal_resident": true,
+  "universal_adoption": false,
+  "default_changed": false,
+  "cuda_tested": false,
+  "failed_performance_blocks": [
+    {
+      "case": "controlled6",
+      "block": 0,
+      "delta_percent": 44.523022002507794,
+      "within_regression_budget": false
+    },
+    {
+      "case": "controlled6",
+      "block": 1,
+      "delta_percent": 44.31109512379632,
+      "within_regression_budget": false
+    },
+    {
+      "case": "controlled6",
+      "block": 2,
+      "delta_percent": 43.26722388761355,
+      "within_regression_budget": false
+    },
+    {
+      "case": "controlled6",
+      "block": 3,
+      "delta_percent": 45.48021674752436,
+      "within_regression_budget": false
+    },
+    {
+      "case": "heldout12",
+      "block": 0,
+      "delta_percent": 50.67949818306199,
+      "within_regression_budget": false
+    },
+    {
+      "case": "heldout12",
+      "block": 1,
+      "delta_percent": 49.14848825871934,
+      "within_regression_budget": false
+    },
+    {
+      "case": "heldout12",
+      "block": 2,
+      "delta_percent": 51.23869675415236,
+      "within_regression_budget": false
+    },
+    {
+      "case": "heldout12",
+      "block": 3,
+      "delta_percent": 51.62961668370401,
+      "within_regression_budget": false
+    },
+    {
+      "case": "small_fullres",
+      "block": 0,
+      "delta_percent": 105.13642505255562,
+      "within_regression_budget": false
+    },
+    {
+      "case": "small_fullres",
+      "block": 1,
+      "delta_percent": 105.42936892631585,
+      "within_regression_budget": false
+    },
+    {
+      "case": "small_fullres",
+      "block": 2,
+      "delta_percent": 107.66856326737462,
+      "within_regression_budget": false
+    },
+    {
+      "case": "small_fullres",
+      "block": 3,
+      "delta_percent": 105.95756444813054,
+      "within_regression_budget": false
+    },
+    {
+      "case": "many128_pose",
+      "block": 0,
+      "delta_percent": 446.00176701725366,
+      "within_regression_budget": false
+    },
+    {
+      "case": "many128_pose",
+      "block": 1,
+      "delta_percent": 587.2693061341062,
+      "within_regression_budget": false
+    },
+    {
+      "case": "many128_pose",
+      "block": 2,
+      "delta_percent": 583.8276504226665,
+      "within_regression_budget": false
+    },
+    {
+      "case": "many128_pose",
+      "block": 3,
+      "delta_percent": 588.2923604350443,
+      "within_regression_budget": false
+    },
+    {
+      "case": "many512_pose",
+      "block": 0,
+      "delta_percent": 1090.9926558705542,
+      "within_regression_budget": false
+    },
+    {
+      "case": "many512_pose",
+      "block": 1,
+      "delta_percent": 863.0414499532106,
+      "within_regression_budget": false
+    },
+    {
+      "case": "many512_pose",
+      "block": 2,
+      "delta_percent": 862.5990926760513,
+      "within_regression_budget": false
+    },
+    {
+      "case": "many512_pose",
+      "block": 3,
+      "delta_percent": 862.7120971304025,
+      "within_regression_budget": false
+    }
+  ],
+  "case_decisions": {
+    "controlled6": {
+      "delta_percent": 44.35751795091629,
+      "paired": [
+        {
+          "block": 0,
+          "delta_percent": 44.523022002507794,
+          "within_regression_budget": false
+        },
+        {
+          "block": 1,
+          "delta_percent": 44.31109512379632,
+          "within_regression_budget": false
+        },
+        {
+          "block": 2,
+          "delta_percent": 43.26722388761355,
+          "within_regression_budget": false
+        },
+        {
+          "block": 3,
+          "delta_percent": 45.48021674752436,
+          "within_regression_budget": false
+        }
+      ],
+      "memory_within_budget": true,
+      "candidate_for_adoption": false
+    },
+    "heldout12": {
+      "delta_percent": 50.436406453646754,
+      "paired": [
+        {
+          "block": 0,
+          "delta_percent": 50.67949818306199,
+          "within_regression_budget": false
+        },
+        {
+          "block": 1,
+          "delta_percent": 49.14848825871934,
+          "within_regression_budget": false
+        },
+        {
+          "block": 2,
+          "delta_percent": 51.23869675415236,
+          "within_regression_budget": false
+        },
+        {
+          "block": 3,
+          "delta_percent": 51.62961668370401,
+          "within_regression_budget": false
+        }
+      ],
+      "memory_within_budget": true,
+      "candidate_for_adoption": false
+    },
+    "small_fullres": {
+      "delta_percent": 106.38857576489258,
+      "paired": [
+        {
+          "block": 0,
+          "delta_percent": 105.13642505255562,
+          "within_regression_budget": false
+        },
+        {
+          "block": 1,
+          "delta_percent": 105.42936892631585,
+          "within_regression_budget": false
+        },
+        {
+          "block": 2,
+          "delta_percent": 107.66856326737462,
+          "within_regression_budget": false
+        },
+        {
+          "block": 3,
+          "delta_percent": 105.95756444813054,
+          "within_regression_budget": false
+        }
+      ],
+      "memory_within_budget": true,
+      "candidate_for_adoption": false
+    },
+    "8k_t256_angle180_3scales": {
+      "delta_percent": -61.56434673645115,
+      "paired": [
+        {
+          "block": 0,
+          "delta_percent": -61.78943999666193,
+          "within_regression_budget": true
+        },
+        {
+          "block": 1,
+          "delta_percent": -60.71755725808491,
+          "within_regression_budget": true
+        },
+        {
+          "block": 2,
+          "delta_percent": -62.415538577574004,
+          "within_regression_budget": true
+        },
+        {
+          "block": 3,
+          "delta_percent": -60.894483925999886,
+          "within_regression_budget": true
+        }
+      ],
+      "memory_within_budget": true,
+      "candidate_for_adoption": true
+    },
+    "many128_pose": {
+      "delta_percent": 584.6204505073938,
+      "paired": [
+        {
+          "block": 0,
+          "delta_percent": 446.00176701725366,
+          "within_regression_budget": false
+        },
+        {
+          "block": 1,
+          "delta_percent": 587.2693061341062,
+          "within_regression_budget": false
+        },
+        {
+          "block": 2,
+          "delta_percent": 583.8276504226665,
+          "within_regression_budget": false
+        },
+        {
+          "block": 3,
+          "delta_percent": 588.2923604350443,
+          "within_regression_budget": false
+        }
+      ],
+      "memory_within_budget": true,
+      "candidate_for_adoption": false
+    },
+    "many512_pose": {
+      "delta_percent": 862.8184146875981,
+      "paired": [
+        {
+          "block": 0,
+          "delta_percent": 1090.9926558705542,
+          "within_regression_budget": false
+        },
+        {
+          "block": 1,
+          "delta_percent": 863.0414499532106,
+          "within_regression_budget": false
+        },
+        {
+          "block": 2,
+          "delta_percent": 862.5990926760513,
+          "within_regression_budget": false
+        },
+        {
+          "block": 3,
+          "delta_percent": 862.7120971304025,
+          "within_regression_budget": false
+        }
+      ],
+      "memory_within_budget": true,
+      "candidate_for_adoption": false
+    },
+    "boundary_one": {
+      "delta_percent": -4.28835077356765,
+      "paired": [
+        {
+          "block": 0,
+          "delta_percent": -8.681445426631097,
+          "within_regression_budget": true
+        },
+        {
+          "block": 1,
+          "delta_percent": -1.0734076888124888,
+          "within_regression_budget": true
+        },
+        {
+          "block": 2,
+          "delta_percent": -17.138223775094087,
+          "within_regression_budget": true
+        },
+        {
+          "block": 3,
+          "delta_percent": 8.503038338585256,
+          "within_regression_budget": true
+        }
+      ],
+      "memory_within_budget": true,
+      "candidate_for_adoption": true
+    },
+    "empty_scene": {
+      "delta_percent": 11.308538486709141,
+      "paired": [
+        {
+          "block": 0,
+          "delta_percent": -9.939518590520201,
+          "within_regression_budget": true
+        },
+        {
+          "block": 1,
+          "delta_percent": 15.149228500169043,
+          "within_regression_budget": true
+        },
+        {
+          "block": 2,
+          "delta_percent": -14.731934731934738,
+          "within_regression_budget": true
+        },
+        {
+          "block": 3,
+          "delta_percent": 17.648098159509207,
+          "within_regression_budget": true
+        }
+      ],
+      "memory_within_budget": true,
+      "candidate_for_adoption": true
+    },
+    "constant_source": {
+      "delta_percent": 3.8357196158701035,
+      "paired": [
+        {
+          "block": 0,
+          "delta_percent": -7.295026331187837,
+          "within_regression_budget": true
+        },
+        {
+          "block": 1,
+          "delta_percent": 10.423406756645925,
+          "within_regression_budget": true
+        },
+        {
+          "block": 2,
+          "delta_percent": 3.9245059607639243,
+          "within_regression_budget": true
+        },
+        {
+          "block": 3,
+          "delta_percent": 3.8071294310374926,
+          "within_regression_budget": true
+        }
+      ],
+      "memory_within_budget": true,
+      "candidate_for_adoption": true
+    }
+  },
+  "limitations": [
+    "FP32 outputs are not binary64 exact.",
+    "Synthetic/controlled same-template cases; real RGB and sparse routes excluded.",
+    "No new 30-minute soak or new-frame throughput acceptance for this backend.",
+    "One-group greedy peaks remain sequential; cache/occupancy not hardware-profiled.",
+    "Pilot raw results and hashes retained but only formal source snapshot is independently rebuildable."
+  ]
+}

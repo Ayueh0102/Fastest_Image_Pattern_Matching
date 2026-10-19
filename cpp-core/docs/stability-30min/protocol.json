@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "baseline_commit": "a989183ffa51a49a8696afa3662726743f8fa90b",
+  "formal_report": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/gui-integration-results/formal.json",
+  "formal_report_sha256": "d853145947accef3502040a583d1b536873b6569d55e36225ac6457aaea0362d",
+  "scope": "30-minute bounded stability validation of the already-benchmarked native gray8 C++/Metal Session; not new feature implementation.",
+  "case": "many512_pose",
+  "duration_seconds": 1800,
+  "settings": "ncc_mode=2, overlap enabled, peak1, pyramid1, batch4, fine512, resident refinement and existing bounded rescue. Use unchanged native_combined formal job settings.",
+  "reason": "Largest existing 512-object workload exercises higher image, candidate and GPU buffer load; combined mode stresses asynchronous ownership, not a claim it is fastest.",
+  "lifecycle": "One persistent session, recreate every100calls; stream all measurements without retaining growing outputs.",
+  "checks": [
+    "Every ordered final match and proposal equal to frozen formal native_combined reference",
+    "Every asynchronous batch submitted equals completed",
+    "Frame generation increments within a session and restarts after recreation",
+    "Logical coarse/fine work and retained buffer capacities remain constant",
+    "No process failure",
+    "Last-fifth median currentRSS minus first-fifth median <=max(32MiB,10percent first-fifth median)",
+    "All original source, binary and input hashes unchanged before and after"
+  ],
+  "performance": "Record percall time, first call and setup separately; this soak is not a replacement for paired performance comparisons.",
+  "schedule": "No builds, other GPU tests or profiling concurrently. Read-only source review and documentation permitted.",
+  "evidence": "Keep original runner summary and stream. The existing harness has a historical10min/2min explanatory note; duration_seconds, seconds_requested and actual duration_ms govern this new30-minute run.",
+  "completion": "30minutes is the agreed stability check for this research stage. No additional24-hour gate is planned.",
+  "limitations": [
+    "Fixed synthetic image with512 separated instances of one template",
+    "Not a new-image camera stream or many different templates",
+    "Does not establish unseen-scene accuracy or guarantee absence of every possible leak"
+  ]
+}

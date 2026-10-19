@@ -1,0 +1,8 @@
+{
+  "path": "cpp-core/tests/research_pipeline_test.cpp",
+  "before_sha256": "0b62eab6f2a2e1e9ae14e75a9cbcb061b2c8934b94e27105df7cbed0c33abb08",
+  "after_sha256": "8cbba4dcbf6d7e226c79605d3bf04febf58a3f2ca499bd1a658c20b4c294ca25",
+  "kind": "Comment only; no executable code or test expectation changed after measurement.",
+  "reason": "scaledTemplate uses bilinear interpolation. Correct inaccurate interpolation label in added test comment.",
+  "patch": "--- cpp-core/tests/research_pipeline_test.cpp\n+++ cpp-core/tests/research_pipeline_test.cpp\n@@ -55,7 +55,7 @@\n             require(result.refinementMode==1 && result.resident.command_buffers>0 &&\n                 result.resident.encoded_dispatches==result.resident.command_buffers &&\n                 result.resident.cpu_waits==result.resident.command_buffers && result.resident.cpu_verified==1,\"fused pipeline route ignored\");\n-            // The .75 nearest-resized random patch passes the discrete matcher\n+            // The .75 bilinear-resized random patch passes the discrete matcher\n             // but both refiners reject it at .9 full-resolution NCC. Preserve\n             // that control outcome; continuous scale GT is tested separately.\n             require(result.matches.size()==refined.matches.size() && result.matches.size()==1 &&\n"
+}

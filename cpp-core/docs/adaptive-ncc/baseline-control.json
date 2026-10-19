@@ -1,0 +1,103 @@
+{
+  "workers": 72,
+  "serialized_output_identical": true,
+  "time_tolerance_all": true,
+  "rows": [
+    {
+      "case": "full_crop_small360",
+      "block": 0,
+      "frozen_ms": 9.292959,
+      "current_ms": 10.670834,
+      "serialized_output_identical": true,
+      "time_tolerance": true
+    },
+    {
+      "case": "full_crop_small360",
+      "block": 1,
+      "frozen_ms": 9.003875,
+      "current_ms": 9.090208,
+      "serialized_output_identical": true,
+      "time_tolerance": true
+    },
+    {
+      "case": "full_crop_medium20",
+      "block": 0,
+      "frozen_ms": 27.810667,
+      "current_ms": 27.789666,
+      "serialized_output_identical": true,
+      "time_tolerance": true
+    },
+    {
+      "case": "full_crop_medium20",
+      "block": 1,
+      "frozen_ms": 27.813875,
+      "current_ms": 27.177375,
+      "serialized_output_identical": true,
+      "time_tolerance": true
+    },
+    {
+      "case": "full_crop_lowcontrast20",
+      "block": 0,
+      "frozen_ms": 9.511916,
+      "current_ms": 9.870375,
+      "serialized_output_identical": true,
+      "time_tolerance": true
+    },
+    {
+      "case": "full_crop_lowcontrast20",
+      "block": 1,
+      "frozen_ms": 9.452833,
+      "current_ms": 9.712292,
+      "serialized_output_identical": true,
+      "time_tolerance": true
+    },
+    {
+      "case": "full_thin_detail20",
+      "block": 0,
+      "frozen_ms": 2.537,
+      "current_ms": 2.483959,
+      "serialized_output_identical": true,
+      "time_tolerance": true
+    },
+    {
+      "case": "full_thin_detail20",
+      "block": 1,
+      "frozen_ms": 2.451167,
+      "current_ms": 2.54275,
+      "serialized_output_identical": true,
+      "time_tolerance": true
+    },
+    {
+      "case": "full_repo_src4",
+      "block": 0,
+      "frozen_ms": 59.480916,
+      "current_ms": 61.041,
+      "serialized_output_identical": true,
+      "time_tolerance": true
+    },
+    {
+      "case": "full_repo_src4",
+      "block": 1,
+      "frozen_ms": 59.28325,
+      "current_ms": 60.892417,
+      "serialized_output_identical": true,
+      "time_tolerance": true
+    },
+    {
+      "case": "full_heldout_crowd128_20",
+      "block": 0,
+      "frozen_ms": 566.796584,
+      "current_ms": 574.044625,
+      "serialized_output_identical": true,
+      "time_tolerance": true
+    },
+    {
+      "case": "full_heldout_crowd128_20",
+      "block": 1,
+      "frozen_ms": 575.722375,
+      "current_ms": 579.39575,
+      "serialized_output_identical": true,
+      "time_tolerance": true
+    }
+  ]
+}

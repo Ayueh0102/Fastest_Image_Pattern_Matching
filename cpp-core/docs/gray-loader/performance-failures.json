@@ -1,0 +1,13 @@
+[
+  {
+    "case": "many512_pose",
+    "comparison": "current_legacy_vs_frozen",
+    "block": 1,
+    "rss_delta_bytes": -1540096,
+    "rss_tolerance_pass": true,
+    "first_time_delta_percent": -7.9019588852001,
+    "first_time_tolerance_pass": true,
+    "repeat_time_delta_percent": 48.339868566487645,
+    "repeat_time_tolerance_pass": false
+  }
+]

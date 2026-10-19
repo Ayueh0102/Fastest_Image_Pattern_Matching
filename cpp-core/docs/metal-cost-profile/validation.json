@@ -1,0 +1,109 @@
+{
+  "report_sha256": "7fb8fb9a1ab330fbcf60f8659a127d4ae21ec72f60246e3a5c27fc85f6545033",
+  "renderer_sha256": "2ee17ad4d9ca81ead279f1cf2c3ad25f23fe280dbbe2358ab82ca870c1ef5b4b",
+  "image_sha256": "5b16ef26560b0902c77e196547447f59f4bf1b8aedb9f5664000faaa48fca165",
+  "events_checked": 2480,
+  "all_checks_passed": true,
+  "checks": [
+    "Exact original/instrumented outputs for first and all measured calls",
+    "Host stage sums within backend wall; valid GPU intervals overlap commit/wait",
+    "Logical interface bytes match pose counts and layouts",
+    "Summed GPU profile time agrees with C API metric",
+    "Same-run additive decomposition (not sums of independent medians)"
+  ],
+  "series_order": [
+    "heldout_s0160_c1_n004",
+    "calibration_s0768_c1_n032",
+    "heldout_s0512_c3_n016",
+    "chunked_768_c1_n256_one_iteration",
+    "src7",
+    "held_out_scale"
+  ],
+  "component_order": [
+    "GPU command interval",
+    "Submit / schedule / completion residual",
+    "Host encoding and other backend work",
+    "Pose copy + result read / assembly",
+    "Outside backend (CPU scans / control / logging)"
+  ],
+  "representative_runs": {
+    "calibration_s0768_c1_n032": {
+      "api_wall_ms": 67.546625,
+      "parts_ms": [
+        49.346874469,
+        3.4807475309999987,
+        0.20163599999999907,
+        0.011451999999999999,
+        14.505915000000009
+      ],
+      "commands": 21,
+      "copy_assemble_percent": 0.016954214958926513,
+      "host_interface_logical_bytes": 24180
+    },
+    "heldout_s0512_c3_n016": {
+      "api_wall_ms": 46.335625,
+      "parts_ms": [
+        27.820042567999995,
+        3.286956432,
+        0.3138740000000042,
+        0.012291999999999997,
+        14.902460000000001
+      ],
+      "commands": 21,
+      "copy_assemble_percent": 0.02652818430743083,
+      "host_interface_logical_bytes": 12220
+    },
+    "chunked_768_c1_n256_one_iteration": {
+      "api_wall_ms": 217.708166,
+      "parts_ms": [
+        93.730208231,
+        0.7556667690000012,
+        0.10778999999999793,
+        0.007918,
+        123.106583
+      ],
+      "commands": 4,
+      "copy_assemble_percent": 0.0036369788719822294,
+      "host_interface_logical_bytes": 51200
+    },
+    "heldout_s0160_c1_n004": {
+      "api_wall_ms": 2.585042,
+      "parts_ms": [
+        0.694707967,
+        1.5395860329999997,
+        0.0527070000000001,
+        0.00221,
+        0.2958310000000002
+      ],
+      "commands": 14,
+      "copy_assemble_percent": 0.0854918411383645,
+      "host_interface_logical_bytes": 3580
+    },
+    "held_out_scale": {
+      "api_wall_ms": 47.6905,
+      "parts_ms": [
+        19.90891643200001,
+        25.233418567999994,
+        0.7978379999999633,
+        0.04637400000000002,
+        1.703953000000034
+      ],
+      "commands": 175,
+      "copy_assemble_percent": 0.09723949214204092,
+      "host_interface_logical_bytes": 136580
+    },
+    "src7": {
+      "api_wall_ms": 61.641375,
+      "parts_ms": [
+        45.725333968,
+        10.543461032000003,
+        0.5515799999999853,
+        0.022335000000000008,
+        4.798665000000007
+      ],
+      "commands": 76,
+      "copy_assemble_percent": 0.03623377966503831,
+      "host_interface_logical_bytes": 14160
+    }
+  }
+}

@@ -1,0 +1,396 @@
+{
+  "created": "2026-10-14T01:02:45.518196+00:00",
+  "complete": true,
+  "integrity_passed": true,
+  "detection_all_passed": true,
+  "design": {
+    "methods": [
+      "previous_peak",
+      "current_peak",
+      "overlap"
+    ],
+    "blocks": 2,
+    "repeats": 5,
+    "warmup_seconds": 1.0,
+    "pilot": false,
+    "pyramid_mode": 1,
+    "batch_angles": 4,
+    "fine_batch_size": 512,
+    "peak_mode": 1,
+    "ncc_mode": 0,
+    "routes": "Frozen4092754 peak tree; new current_peak overlap0; new overlap1; separate profile runs",
+    "timing": "Fresh serial workers in forward/reverse blocks; prepare inside every call; current sync/overlap both collect new metrics",
+    "accuracy": "Full ordered outputs/maps exact; GT kept in parent; independent 2px/1degree/2%scale gates",
+    "memory": "RSS overlaps frame/pose buffers; async slot bytes must be included in coarse_gpu_bytes"
+  },
+  "formal_report_sha256": "e0d05983b254b04a1e1f3b958cdf66e161e3b43b9a06f37731babd2e5bd0a532",
+  "purpose": "Post-hoc diagnostic repeat after formal512 regression; no code, library, input or parameter change. Does not replace failed formal gate.",
+  "matches_formal_source_hashes": true,
+  "matches_formal_library_hashes": true,
+  "same_input_contents": true,
+  "case": {
+    "exact_all_outputs": true,
+    "profile_valid": true,
+    "truth_passed": true,
+    "work_counts_match_reference": true,
+    "performance": {
+      "current_peak": {
+        "previous_peak": {
+          "available": true,
+          "passed": true,
+          "blocks": [
+            {
+              "block": 0,
+              "baseline_total_ms": 3673.8649578765035,
+              "candidate_total_ms": 3713.414042023942,
+              "delta_ms": 39.54908414743841,
+              "delta_percent": 1.0764980368330734,
+              "allowed_regression_ms": 367.38649578765035,
+              "passed": true
+            },
+            {
+              "block": 1,
+              "baseline_total_ms": 3677.4889999069273,
+              "candidate_total_ms": 3638.7608328368515,
+              "delta_ms": -38.72816707007587,
+              "delta_percent": -1.0531144232125755,
+              "allowed_regression_ms": 367.74889999069273,
+              "passed": true
+            }
+          ]
+        }
+      },
+      "overlap": {
+        "previous_peak": {
+          "available": true,
+          "passed": true,
+          "blocks": [
+            {
+              "block": 0,
+              "baseline_total_ms": 3673.8649578765035,
+              "candidate_total_ms": 3643.1258330121636,
+              "delta_ms": -30.73912486433983,
+              "delta_percent": -0.8366971899290254,
+              "allowed_regression_ms": 367.38649578765035,
+              "passed": true
+            },
+            {
+              "block": 1,
+              "baseline_total_ms": 3677.4889999069273,
+              "candidate_total_ms": 3635.1844591554254,
+              "delta_ms": -42.30454075150192,
+              "delta_percent": -1.1503648482040996,
+              "allowed_regression_ms": 367.74889999069273,
+              "passed": true
+            }
+          ]
+        },
+        "current_peak": {
+          "available": true,
+          "passed": true,
+          "blocks": [
+            {
+              "block": 0,
+              "baseline_total_ms": 3713.414042023942,
+              "candidate_total_ms": 3643.1258330121636,
+              "delta_ms": -70.28820901177824,
+              "delta_percent": -1.892819066668594,
+              "allowed_regression_ms": 371.3414042023942,
+              "passed": true
+            },
+            {
+              "block": 1,
+              "baseline_total_ms": 3638.7608328368515,
+              "candidate_total_ms": 3635.1844591554254,
+              "delta_ms": -3.5763736814260483,
+              "delta_percent": -0.09828548359518408,
+              "allowed_regression_ms": 363.87608328368515,
+              "passed": true
+            }
+          ]
+        }
+      }
+    },
+    "overlap_valid": true,
+    "methods": {
+      "previous_peak": {
+        "measured": {
+          "proposal_wall_ms": {
+            "count": 10,
+            "median": 3272.6805210113525,
+            "min": 3224.8841661494225,
+            "max": 3405.811999924481,
+            "values": [
+              3250.1382920891047,
+              3224.8841661494225,
+              3265.796999912709,
+              3405.811999924481,
+              3278.510000091046,
+              3266.851041931659,
+              3394.7554170154035,
+              3308.863708982244,
+              3256.397500168532,
+              3281.4417500048876
+            ]
+          },
+          "total_wall_ms": {
+            "count": 10,
+            "median": 3674.5675209676847,
+            "min": 3618.631625082344,
+            "max": 3800.6177498027682,
+            "values": [
+              3645.2920001465827,
+              3618.631625082344,
+              3673.8649578765035,
+              3800.6177498027682,
+              3674.841375090182,
+              3677.4889999069273,
+              3794.102624990046,
+              3707.3253341950476,
+              3655.0987500231713,
+              3674.2936668451875
+            ]
+          },
+          "call_wall_ms": {
+            "count": 10,
+            "median": 3674.589791917242,
+            "min": 3618.6516671441495,
+            "max": 3800.6395830307156,
+            "values": [
+              3645.330833038315,
+              3618.6516671441495,
+              3673.8852499984205,
+              3800.6395830307156,
+              3674.8642919119447,
+              3677.5323329493403,
+              3794.1242498345673,
+              3707.3458340018988,
+              3655.120125040412,
+              3674.3152919225395
+            ]
+          }
+        },
+        "blocks": [
+          {
+            "block": 0,
+            "total_ms": 3673.8649578765035,
+            "proposal_ms": 3265.796999912709
+          },
+          {
+            "block": 1,
+            "total_ms": 3677.4889999069273,
+            "proposal_ms": 3281.4417500048876
+          }
+        ],
+        "peak_rss_bytes": [
+          755466240,
+          755236864
+        ],
+        "first_total_ms": [
+          3781.50120889768,
+          3758.776457980275
+        ],
+        "construct_ms": [
+          298.59404219314456,
+          314.8983330465853
+        ]
+      },
+      "current_peak": {
+        "measured": {
+          "proposal_wall_ms": {
+            "count": 10,
+            "median": 3265.8791035646573,
+            "min": 3222.968249814585,
+            "max": 3489.402291830629,
+            "values": [
+              3357.320334063843,
+              3489.402291830629,
+              3313.048291951418,
+              3290.7194159924984,
+              3300.4179580602795,
+              3241.038791136816,
+              3238.1559580098838,
+              3222.968249814585,
+              3235.581957967952,
+              3234.5724578481168
+            ]
+          },
+          "total_wall_ms": {
+            "count": 10,
+            "median": 3664.4077494274825,
+            "min": 3626.5671248547733,
+            "max": 3886.8334169965237,
+            "values": [
+              3756.592750083655,
+              3886.8334169965237,
+              3713.414042023942,
+              3687.337540788576,
+              3700.0128750223666,
+              3640.2429160661995,
+              3641.477958066389,
+              3626.5671248547733,
+              3638.4616249706596,
+              3638.7608328368515
+            ]
+          },
+          "call_wall_ms": {
+            "count": 10,
+            "median": 3664.4286459777504,
+            "min": 3626.5893750824034,
+            "max": 3886.855083052069,
+            "values": [
+              3756.636417005211,
+              3886.855083052069,
+              3713.437916012481,
+              3687.3579169623554,
+              3700.036499882117,
+              3640.2911248151213,
+              3641.4993749931455,
+              3626.5893750824034,
+              3638.488749973476,
+              3638.786582974717
+            ]
+          }
+        },
+        "blocks": [
+          {
+            "block": 0,
+            "total_ms": 3713.414042023942,
+            "proposal_ms": 3313.048291951418
+          },
+          {
+            "block": 1,
+            "total_ms": 3638.7608328368515,
+            "proposal_ms": 3235.581957967952
+          }
+        ],
+        "peak_rss_bytes": [
+          758185984,
+          751271936
+        ],
+        "first_total_ms": [
+          3868.583375122398,
+          3724.7622080612928
+        ],
+        "construct_ms": [
+          304.2502498719841,
+          321.15145795978606
+        ]
+      },
+      "overlap": {
+        "measured": {
+          "proposal_wall_ms": {
+            "count": 10,
+            "median": 3233.641895581968,
+            "min": 3224.3723329156637,
+            "max": 3252.2627080325037,
+            "values": [
+              3238.9671250712126,
+              3252.2627080325037,
+              3224.3723329156637,
+              3241.8233749922365,
+              3229.4517080299556,
+              3240.646457998082,
+              3232.5447080656886,
+              3227.3016669787467,
+              3234.7390830982476,
+              3232.3505841195583
+            ]
+          },
+          "total_wall_ms": {
+            "count": 10,
+            "median": 3635.4644171660766,
+            "min": 3629.078249912709,
+            "max": 3656.8509170319885,
+            "values": [
+              3646.11079194583,
+              3656.8509170319885,
+              3629.078249912709,
+              3643.1258330121636,
+              3632.5536251533777,
+              3645.8966659847647,
+              3635.7443751767278,
+              3630.085791926831,
+              3632.9957500565797,
+              3635.1844591554254
+            ]
+          },
+          "call_wall_ms": {
+            "count": 10,
+            "median": 3635.486145853065,
+            "min": 3629.1013748850673,
+            "max": 3656.873374944553,
+            "values": [
+              3646.1563750635833,
+              3656.873374944553,
+              3629.1013748850673,
+              3643.1464578490704,
+              3632.5745000503957,
+              3645.9378330037,
+              3635.765374870971,
+              3630.106542026624,
+              3633.015832863748,
+              3635.206916835159
+            ]
+          }
+        },
+        "blocks": [
+          {
+            "block": 0,
+            "total_ms": 3643.1258330121636,
+            "proposal_ms": 3238.9671250712126
+          },
+          {
+            "block": 1,
+            "total_ms": 3635.1844591554254,
+            "proposal_ms": 3232.5447080656886
+          }
+        ],
+        "peak_rss_bytes": [
+          806666240,
+          807763968
+        ],
+        "first_total_ms": [
+          3776.282584061846,
+          3702.1007088478655
+        ],
+        "construct_ms": [
+          309.74562489427626,
+          322.8158748243004
+        ]
+      }
+    },
+    "accuracy": {
+      "previous_peak": {
+        "tp": 512,
+        "fp": 0,
+        "fn": 0,
+        "max_errors": {
+          "position_px": 0.12809542327516896,
+          "angle_deg": 0.09951369303348656,
+          "relative_scale": 0.0027443297876431627
+        }
+      },
+      "current_peak": {
+        "tp": 512,
+        "fp": 0,
+        "fn": 0,
+        "max_errors": {
+          "position_px": 0.12809542327516896,
+          "angle_deg": 0.09951369303348656,
+          "relative_scale": 0.0027443297876431627
+        }
+      },
+      "overlap": {
+        "tp": 512,
+        "fp": 0,
+        "fn": 0,
+        "max_errors": {
+          "position_px": 0.12809542327516896,
+          "angle_deg": 0.09951369303348656,
+          "relative_scale": 0.0027443297876431627
+        }
+      }
+    }
+  }
+}

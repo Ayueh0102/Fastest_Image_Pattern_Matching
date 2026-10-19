@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "fixed_before_formal": true,
+  "pilot_note": "Pilot confirmed scene generation and routes. Formal worker jobs exclude truth and metadata; all GT evaluation is in parent after worker exits. Pilot workers had loaded GT metadata before RSS, and are not used as formal performance evidence.",
+  "baseline": "010c8982890c4abbbaedb1968b6b1e158c554578",
+  "current": "409275452dc1d676f37830ae73c520ca4389d3cd",
+  "scenes": "4096x4096: 64,128,256 random-angle/log-scale instances with prefix placements; 128 upright control; 8192x4096:512 pose instances",
+  "scope": "One template with many instances, not hundreds of different template identities. Nonoverlapping, no occlusion. Independent OpenCV rendering; random gain/bias and mild noise.",
+  "fixed_search": "4K pose limit384, 8K pose limit768; proposal0.5/final0.8; overlap0.2; scale bank0.75,1,1.25; angle180; stop1; shared pyramid1/coarse4/fine512; default rescue max4",
+  "methods": "Frozen previous_shared; same-build current_control0/0; peak_only1/0; separate current/peak profiling. Rejected SIMD route not retested.",
+  "timing": "Fresh serial process per method/case/block, forward/reverse order, 5 measured runs after>=1s warmup, first/setup separate. Prepare included. Pilot1block1run0warmup is not speed evidence.",
+  "accuracy": "GT only after timing and RSS. Exact ordered outputs/maps across variants plus independent maximum-cardinality one-to-one 2px/1deg/2percent scale gates; separate20px localization. Retain failures; no threshold tuning to GT.",
+  "memory": "Process peakRSS includes images/Python/driver. Retained capacities overlapRSS; no double counting.",
+  "gates": "Record integrity and detection separately; exact agreement can still be a common miss. Per-block regression tolerance max10percent or2ms is not a speed claim.",
+  "limits": "8K512 changes area and candidate cap, so not a pure object-count scaling point against fixed4K64/128/256. New-scene results do not certify occlusion or all industrial data."
+}

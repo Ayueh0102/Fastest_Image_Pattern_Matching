@@ -1,0 +1,275 @@
+{
+  "full_image": [
+    {
+      "case": "held_out_scale",
+      "method": "hybrid_metal",
+      "median_ms": 541.051333071664,
+      "detections": 12,
+      "pose_pass": 7,
+      "peak_rss_mib": 114.921875
+    },
+    {
+      "case": "src5_45",
+      "method": "continuous_metal",
+      "median_ms": 37.40549995563924,
+      "detections": 1,
+      "pose_pass": null,
+      "peak_rss_mib": 159.484375
+    },
+    {
+      "case": "src7",
+      "method": "cpu_fixed",
+      "median_ms": 368.4069172013551,
+      "detections": 6,
+      "pose_pass": null,
+      "peak_rss_mib": 129.65625
+    },
+    {
+      "case": "src3",
+      "method": "cpu_fixed",
+      "median_ms": 8.910999866202474,
+      "detections": 36,
+      "pose_pass": null,
+      "peak_rss_mib": 76.8125
+    },
+    {
+      "case": "src7",
+      "method": "continuous_cpu",
+      "median_ms": 267.50162499956787,
+      "detections": 6,
+      "pose_pass": null,
+      "peak_rss_mib": 221.25
+    },
+    {
+      "case": "controlled_scale",
+      "method": "continuous_cpu",
+      "median_ms": 213.58058298937976,
+      "detections": 6,
+      "pose_pass": 6,
+      "peak_rss_mib": 76.875
+    },
+    {
+      "case": "controlled_scale",
+      "method": "hybrid_metal",
+      "median_ms": 221.64683300070465,
+      "detections": 6,
+      "pose_pass": 3,
+      "peak_rss_mib": 91.625
+    },
+    {
+      "case": "src7",
+      "method": "hybrid_metal",
+      "median_ms": 177.93658399023116,
+      "detections": 6,
+      "pose_pass": null,
+      "peak_rss_mib": 280.171875
+    },
+    {
+      "case": "controlled_scale",
+      "method": "cpu_fast",
+      "median_ms": 200.40337485261261,
+      "detections": 5,
+      "pose_pass": 2,
+      "peak_rss_mib": 70.421875
+    },
+    {
+      "case": "controlled_scale",
+      "method": "cpu_fixed",
+      "median_ms": 116.08875007368624,
+      "detections": 2,
+      "pose_pass": 1,
+      "peak_rss_mib": 70.0
+    },
+    {
+      "case": "src3",
+      "method": "continuous_metal",
+      "median_ms": 11.220542015507817,
+      "detections": 36,
+      "pose_pass": null,
+      "peak_rss_mib": 111.546875
+    },
+    {
+      "case": "src3",
+      "method": "cpu_fast",
+      "median_ms": 6.271915975958109,
+      "detections": 36,
+      "pose_pass": null,
+      "peak_rss_mib": 76.734375
+    },
+    {
+      "case": "src7",
+      "method": "continuous_metal",
+      "median_ms": 278.4975420217961,
+      "detections": 6,
+      "pose_pass": null,
+      "peak_rss_mib": 281.0625
+    },
+    {
+      "case": "src5_45",
+      "method": "cpu_fast",
+      "median_ms": 35.83174990490079,
+      "detections": 1,
+      "pose_pass": null,
+      "peak_rss_mib": 89.4375
+    },
+    {
+      "case": "src5_45",
+      "method": "hybrid_metal",
+      "median_ms": 38.00483397208154,
+      "detections": 1,
+      "pose_pass": null,
+      "peak_rss_mib": 159.109375
+    },
+    {
+      "case": "src3",
+      "method": "continuous_cpu",
+      "median_ms": 10.167875094339252,
+      "detections": 36,
+      "pose_pass": null,
+      "peak_rss_mib": 92.109375
+    },
+    {
+      "case": "held_out_scale",
+      "method": "continuous_metal",
+      "median_ms": 537.3531251680106,
+      "detections": 12,
+      "pose_pass": 12,
+      "peak_rss_mib": 114.296875
+    },
+    {
+      "case": "src7",
+      "method": "cpu_fast",
+      "median_ms": 141.29083300940692,
+      "detections": 6,
+      "pose_pass": null,
+      "peak_rss_mib": 125.59375
+    },
+    {
+      "case": "held_out_scale",
+      "method": "cpu_fast",
+      "median_ms": 510.32966701313853,
+      "detections": 11,
+      "pose_pass": 3,
+      "peak_rss_mib": 78.859375
+    },
+    {
+      "case": "src5_45",
+      "method": "cpu_fixed",
+      "median_ms": 38.705291924998164,
+      "detections": 1,
+      "pose_pass": null,
+      "peak_rss_mib": 89.9375
+    },
+    {
+      "case": "src3",
+      "method": "hybrid_metal",
+      "median_ms": 10.40483289398253,
+      "detections": 36,
+      "pose_pass": null,
+      "peak_rss_mib": 112.421875
+    },
+    {
+      "case": "controlled_scale",
+      "method": "continuous_metal",
+      "median_ms": 217.28245820850134,
+      "detections": 6,
+      "pose_pass": 6,
+      "peak_rss_mib": 92.5
+    },
+    {
+      "case": "held_out_scale",
+      "method": "cpu_fixed",
+      "median_ms": 305.73137500323355,
+      "detections": 5,
+      "pose_pass": 1,
+      "peak_rss_mib": 76.21875
+    },
+    {
+      "case": "held_out_scale",
+      "method": "continuous_cpu",
+      "median_ms": 545.3509581275284,
+      "detections": 12,
+      "pose_pass": 12,
+      "peak_rss_mib": 95.8125
+    },
+    {
+      "case": "src5_45",
+      "method": "continuous_cpu",
+      "median_ms": 38.91341597773135,
+      "detections": 1,
+      "pose_pass": null,
+      "peak_rss_mib": 128.984375
+    }
+  ],
+  "ablation": [
+    {
+      "case": "held_out_scale",
+      "method": "continuous_cpu",
+      "median_ms": 528.9556670468301,
+      "pose_pass": 12
+    },
+    {
+      "case": "controlled_scale",
+      "method": "continuous_direct_cpu",
+      "median_ms": 206.60537504591048,
+      "pose_pass": 6
+    },
+    {
+      "case": "held_out_scale",
+      "method": "continuous_direct_cpu",
+      "median_ms": 511.0473749227822,
+      "pose_pass": 12
+    },
+    {
+      "case": "controlled_scale",
+      "method": "continuous_cpu",
+      "median_ms": 215.40883416309953,
+      "pose_pass": 6
+    }
+  ],
+  "local_accuracy": [
+    {
+      "method": "grid",
+      "backend": "cpu",
+      "threads": 1,
+      "seeds": 48,
+      "precise_pass": 12,
+      "existing_gate_pass": 24
+    },
+    {
+      "method": "grid",
+      "backend": "cpu",
+      "threads": 8,
+      "seeds": 48,
+      "precise_pass": 12,
+      "existing_gate_pass": 24
+    },
+    {
+      "method": "grid",
+      "backend": "metal",
+      "threads": 1,
+      "seeds": 48,
+      "precise_pass": 12,
+      "existing_gate_pass": 24
+    },
+    {
+      "method": "lm",
+      "backend": "cpu",
+      "threads": 1,
+      "seeds": 48,
+      "precise_pass": 48,
+      "existing_gate_pass": 48
+    },
+    {
+      "method": "lm",
+      "backend": "cpu",
+      "threads": 8,
+      "seeds": 48,
+      "precise_pass": 48,
+      "existing_gate_pass": 48
+    }
+  ],
+  "consistency_passed": true,
+  "max_cpu_metal_score_difference": 1.0132789611816406e-06,
+  "pruning_all_threshold_parity": true
+}
