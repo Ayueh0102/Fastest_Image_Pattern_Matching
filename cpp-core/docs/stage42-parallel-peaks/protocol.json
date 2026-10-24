@@ -1,0 +1,266 @@
+{
+ "stage": 42,
+ "date": "2026-10-24",
+ "title": "Exact parallel-round coarse peak selection for the full-GPU path (full_gpu_peak_mode=2)",
+ "question": "Can coarse peak selection, 28-34% of full-GPU time in the round-40 profile, be made parallel without changing any output? How much faster is the full-GPU fine4 path with peak mode 2 than with peak mode 1, and where does it then stand against the hybrid per new frame?",
+ "background": {
+  "round40_profile": "stage40-ncc-closure raw-results profile/, method full_gpu_simd: coarse_peaks 229.8 ms (many128) and 934.3 ms (many512) of GPU time versus coarse_ncc 33.7 and 72.4 ms.",
+  "causes": [
+   "One shared coarse-scores buffer serializes the angle/scale maps (many512: 143 maps).",
+   "fg_coarse_peaks_tiled selects each map in one 256-lane threadgroup with up to limit = maxTargets+5 dependent pick/suppress iterations (773 at many512)."
+  ]
+ },
+ "algorithm": {
+  "candidates": "Finite scores not below the FP32 threshold; any +INFINITY stops the map with no output, as in modes 0/1.",
+  "priority": "FP32 score descending (-0 equals +0), then original index ascending: fg_better.",
+  "round": "Accept every live candidate that no live higher-priority candidate covers with its suppression rectangle; then remove the live candidates that a higher-priority point accepted in this round covers. Never remove a higher-priority point (rectangles are asymmetric: trunc(x-rw), int(2*rw)).",
+  "stop": "Once at least limit points are accepted and no live candidate ranks above the limit-th accepted one; output the first limit accepted points in priority order to the baseline's slots with its exact values.",
+  "batching": "full_gpu_peak_batch maps (default 8, 1..16) are scored into separate ring slots and selected by one dispatch, one threadgroup per map.",
+  "bounded_work": "Rounds visit a candidate list when a map has at most 65536 candidates, otherwise every window; both paths are exact and tested.",
+  "unchanged": "Peak modes 0 and 1, GUI, core and hybrid defaults."
+ },
+ "source": {
+  "frozen_commit": "4b0ad8f4b7dafb37fc91ec1899cdb92a96a08b34",
+  "snapshot": "source-snapshot.tar.gz and source-sha256.json from the frozen commit, round-40/41 selection rule: tracked cpp-core/ files outside cpp-core/docs/, plus root CMakeLists.txt, LICENSE, vcpkg.json and macos-cli/",
+  "driver": "cpp-core/tools/benchmark_parallel_peaks.py",
+  "negative_controls": "cpp-core/tests/test_parallel_peaks_harness.py (20 tests; 17/17 manual harness mutants killed)",
+  "differential_test": "cpp-core/tests/full_gpu_parallel_peaks_test.mm (170 fixtures x lane counts 256/512/1024 x list capacities 0/7/65536, plus three batched passes of up to 16 maps; byte comparison with mode 1 and a scalar greedy reference)",
+  "kernel_mutants": "16 compiled mutants: 15 killed; M05 (3x3 shortcut ignores the rectangle) survives and is output-equivalent: a false 'covered' in the pick phase only delays acceptance and never removes a point, and the best live point is never falsely covered, so only the round count changes."
+ },
+ "development_disclosure": {
+  "note": "Before this protocol, versions were screened with the development build build/dev on the shared machine (sibling sessions running), 1 process, 3 calls, profiling on. These numbers chose the kernel design, the default batch 8 and the batch-1 ablation; they are not evidence and are not used for any decision below. All variants were exact against mode 1 on both cases.",
+  "last_call_total_ms_and_coarse_peaks_ms": {
+   "mode1": {
+    "many128": [
+     797.9,
+     248.0
+    ],
+    "many512": [
+     2778.6,
+     987.6
+    ]
+   },
+   "v1_lane_serial_scans_batch8": {
+    "many128": [
+     853.2,
+     282.7
+    ],
+    "many512": [
+     2663.5,
+     837.0
+    ]
+   },
+   "v2_simd_group_scans": {
+    "many128": [
+     642.7,
+     71.7
+    ],
+    "many512": [
+     2020.0,
+     195.1
+    ]
+   },
+   "v3_neighbour_shortcut_and_scatter": {
+    "many128": [
+     606.3,
+     35.8
+    ],
+    "many512": [
+     1943.4,
+     114.7
+    ]
+   },
+   "v4_candidate_lists_batch8": {
+    "many128": [
+     583.3,
+     12.3
+    ],
+    "many512": [
+     1858.5,
+     33.4
+    ]
+   }
+  },
+  "batch_screen_v4_last_call_total_ms": {
+   "1": [
+    630.6,
+    2002.5
+   ],
+   "2": [
+    600.1,
+    1913.7
+   ],
+   "4": [
+    592.1,
+    1878.2
+   ],
+   "8": [
+    583.3,
+    1858.5
+   ],
+   "16": [
+    578.8,
+    1886.4
+   ]
+  },
+  "smoke": "Driver smoke runs (pilot/profile on controlled6, holdout on three cases) used build/dev while other sessions loaded the machine; discarded."
+ },
+ "build": {
+  "directory": "build/stage42-release",
+  "type": "Release",
+  "options": [
+   "FPM_BUILD_GUI=ON",
+   "FPM_BUILD_EXPERIMENTS=ON",
+   "FPM_WITH_OPENCV=ON"
+  ],
+  "pre_measurement_validation": "Fresh configure and build of build/stage42-release from the frozen commit (clean tree, 82 compile steps); before any timing: ctest 77/77, Python harness 590/590 (test_*.py, fine-binding tests pointed at this build), color_verify_runner_test --metal 5/5; MTL_SHADER_VALIDATION=1 MTL_DEBUG_LAYER=1 ctest -R 'experimental_full_gpu|native_runner' 21/21.",
+  "build_head": "4b0ad8f4b7dafb37fc91ec1899cdb92a96a08b34"
+ },
+ "inputs": {
+  "fixtures_manifest": "stage-37 formal manifest (main checkout build/stage37-full-gpu/formal/manifest.json); every source/template SHA256 checked",
+  "holdout_fixtures": "cpp-core/docs/stage40-ncc-closure/holdout-fixtures.json (seven round-40 holdout cases, inputs hashed)"
+ },
+ "cases": {
+  "primary": [
+   "many128_pose",
+   "many512_pose"
+  ],
+  "controls": [
+   "controlled6",
+   "8k_t256_angle180_3scales"
+  ],
+  "holdout": [
+   "heldout12",
+   "small_fullres",
+   "boundary_one",
+   "empty_scene",
+   "constant_source",
+   "many128_holdout",
+   "many512_holdout"
+  ]
+ },
+ "methods": {
+  "hybrid_best": {
+   "full_gpu": false,
+   "coarse_peak_mode": 1,
+   "full_gpu_peak_mode": 0,
+   "full_gpu_fine_mode": 0
+  },
+  "full_gpu_simd": {
+   "full_gpu": true,
+   "coarse_peak_mode": 1,
+   "full_gpu_peak_mode": 1,
+   "full_gpu_fine_mode": 4,
+   "role": "baseline (round-40/41 full-GPU best)"
+  },
+  "full_gpu_parallel_b1": {
+   "full_gpu": true,
+   "coarse_peak_mode": 1,
+   "full_gpu_peak_mode": 2,
+   "full_gpu_fine_mode": 4,
+   "full_gpu_peak_batch": 1,
+   "role": "ablation: parallel rounds only, one score map"
+  },
+  "full_gpu_parallel": {
+   "full_gpu": true,
+   "coarse_peak_mode": 1,
+   "full_gpu_peak_mode": 2,
+   "full_gpu_fine_mode": 4,
+   "full_gpu_peak_batch": 8,
+   "role": "candidate"
+  },
+  "shared_settings": "Round-40 formal jobs (benchmark_gpu_ncc_closure.job): pose_input_mode 1, pose_storage_mode 1, refinement_backend 1, fine_ncc_mode 2, fine_fused, fine_angle_reuse, stop_layer 1."
+ },
+ "arms": {
+  "static": "Round-40 job: Session construction, first call, 1 s time-based warm-up, measured repeats on one unchanged source. All four methods.",
+  "frames": "Round-41 sequence job (source_frames = [fixture], sequence_mode reuse, warmup_seconds 0): every call after the first goes through Session::updateSource. hybrid_best and full_gpu_parallel.",
+  "why": "Both full-GPU peak modes rebuild every source-dependent state on each call, so the static scope compares them symmetrically. The hybrid reuses its pose context on static calls, so it is compared per new frame."
+ },
+ "phases": {
+  "order": "pilot, formal, profile, holdout, each started only after the previous one completed",
+  "pilot": {
+   "blocks": 1,
+   "measured_calls": 2,
+   "static_warmup_seconds": 1,
+   "arms": "all six",
+   "role": "screening; also absorbs first-use Metal shader compilation; never decision evidence; retained"
+  },
+  "formal": {
+   "blocks": 6,
+   "measured_calls": 3,
+   "static_warmup_seconds": 1,
+   "arms": "all six",
+   "cases": "primary and controls"
+  },
+  "profile": {
+   "blocks": 1,
+   "measured_calls": 2,
+   "static_warmup_seconds": 1,
+   "profiling": true,
+   "arms": "static full_gpu_simd, full_gpu_parallel_b1, full_gpu_parallel",
+   "cases": "primary and controls",
+   "role": "encoder timestamps per stage; diagnostic only, never time-gated"
+  },
+  "holdout": {
+   "blocks": 2,
+   "measured_calls": 2,
+   "static_warmup_seconds": 1,
+   "arms": "static full_gpu_simd, full_gpu_parallel_b1, full_gpu_parallel",
+   "role": "exactness, GT and route on scenes not used for development; timing reported only"
+  },
+  "schedule": "One fresh process per (case, arm, block); arms in declared order on even blocks and reversed on odd blocks.",
+  "frame_warmup_calls": {
+   "many128_pose": 2,
+   "many512_pose": 1,
+   "controlled6": 26,
+   "8k_t256_angle180_3scales": 23,
+   "rule": "round-41 planned counts (1.5 s at the faster round-40 median), unchanged; observed gate: at least 1000 ms from the end of call 0 to the end of the last warm-up call"
+  }
+ },
+ "metrics": {
+  "static": "total_ms of measured repeats (run only; round-40 scope); full-GPU device_ms reported",
+  "frames": "frame_wall_ms (updateSource + run; excludes decode, comparison and JSON); total_ms also reported",
+  "memory": "Per-process peak RSS; named Metal bytes (gpu_bytes) with coarse_score_bytes (score map or ring) and peak_scratch_bytes as parts of it; peak_batch_maps; hybrid frame and pose-context buffers separately. RSS and Metal bytes are never added.",
+  "profile": "Per-stage encoder GPU ms, stage sum and signed device remainder"
+ },
+ "accuracy": {
+  "position_px": 2,
+  "angle_deg": 1,
+  "relative_scale": 0.02,
+  "false_positives": 0,
+  "false_negatives": 0,
+  "scope": "Independent one-to-one GT in the parent process on every first and measured call, and every cold and warm-up call of frames arms; static warm-ups have native repeat checks only."
+ },
+ "exactness": "Separate from GT: complete ordered matches AND proposals of every call of full_gpu_parallel (static and frames) and full_gpu_parallel_b1 equal the full_gpu_simd static first call of block 0 of the same case, in every phase.",
+ "gates": [
+  "independent_ground_truth",
+  "route_and_residency (one command buffer, one wait, no intermediate readback or CPU algorithm step; requested peak mode and batch bound; hybrid Metal refinement route)",
+  "requested_algorithm_not_executed (fine_effective_mode must be 4)",
+  "exact_repeat",
+  "static_route / sequence_route",
+  "same_method_output_parity (frames vs own static)",
+  "exact_ordered_matches_vs_mode1",
+  "exact_ordered_proposals_vs_mode1",
+  "warmup_shorter_than_1s (frames)",
+  "time_budget vs mode 1 (pilot/formal; each block of each peak-mode-2 static arm <= full_gpu_simd + max(2 ms, 10%))",
+  "rss_budget vs mode 1 (peak RSS <= full_gpu_simd + max(8 MiB, 10%))",
+  "primary_10_percent_improvement (full_gpu_parallel static at many128 and many512: pooled median at least 10% below full_gpu_simd and all six paired blocks faster)",
+  "time_budget and rss_budget vs hybrid per new frame (full_gpu_parallel frames vs hybrid_best frames, round-41 tolerance)",
+  "host_busy (any competing build/benchmark process recorded before a worker)"
+ ],
+ "decision_rules": {
+  "faster": "A method is named faster only when the pooled median favours it and all paired block medians agree in sign.",
+  "adopt_as_full_gpu_research_best": "full_gpu_parallel replaces full_gpu_simd as the recommended full-GPU research setting only if, in formal and holdout, every GT, exactness, route, repeat and parity gate passes, the primary target holds at both primary cases, and there is no time_budget or rss_budget failure against mode 1 at any formal case. Otherwise report which conditions failed and keep mode 1 as the recommendation.",
+  "hybrid": "The per-new-frame direction against the hybrid is reported by the faster rule; budget failures against the hybrid are retained and do not by themselves block the full-GPU decision above.",
+  "ablation": "full_gpu_parallel_b1 is gated against mode 1 like the candidate (failures retained) but takes no part in the adoption decision; it attributes the gain to parallel rounds versus batched maps.",
+  "no_default_change": "GUI, core and hybrid defaults are not changed; full_gpu_peak_mode stays an explicit opt-in research option."
+ },
+ "host": "No other builds, tests or experiments during pilot/formal/profile/holdout. The driver refuses a non-pilot start when competing processes exist and records load average, GPU utilization and competing process names before every worker. Sibling sessions are asked to hold via timing-lock-round42.txt in the shared notes folder.",
+ "limits": [
+  "Single Apple M4 Pro (48 GiB) Metal device",
+  "Synthetic scenes with independent GT plus the round-40 holdouts; no annotated real sequence",
+  "Repeated identical frame in frames arms; not a changing camera stream",
+  "Numbers from other rounds come from other builds and are never multiplied with these"
+ ],
+ "registered_before_timing": true
+}
