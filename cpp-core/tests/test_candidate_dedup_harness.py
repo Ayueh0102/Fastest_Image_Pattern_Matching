@@ -135,6 +135,17 @@ class GroundTruthPhase(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'Disabled full-GPU'):
             bench.summarize_gt(h.manifest, h.root)
 
+    def test_ignored_option_is_rejected(self):
+        h = gt_harness()
+        index = len(bench.ARMS)+1
+        payload = worker('full_gpu', 'k3')
+        payload['first']['candidate_dedup']['top_k'] = 0
+        path = h.root/h.manifest['executions'][index]['result']
+        bench.save(path, payload)
+        h.manifest['executions'][index]['result_sha256'] = bench.sha(path)
+        with self.assertRaisesRegex(ValueError, 'mismatched candidate_dedup.top_k'):
+            bench.summarize_gt(h.manifest, h.root)
+
     def test_residency_change_is_rejected(self):
         h = gt_harness()
         index = len(bench.ARMS)+1

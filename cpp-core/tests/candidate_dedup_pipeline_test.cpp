@@ -38,6 +38,32 @@ void truth(const Result& r,const std::vector<Truth>& expected,const char* why) {
         require(found,std::string(why)+": ground-truth object missing");
     }
 }
+// Dedup measures distances between object centers, not the coarse corner
+// points. Scene 1: the rotated corners of an upright and a 180-degree object
+// coincide. Scene 2: their corners offset by twice the half size coincide.
+// The centers are 66 px apart in both, so a position-only one-candidate
+// filter must keep both objects.
+void centerConvention(const Settings& base) {
+    Image templ(64,16);
+    for(int y=0;y<16;++y) for(int x=0;x<64;++x)
+        templ.row(y)[x]=uint8_t(std::clamp(128+60*std::sin(x/5.+y/7.)+40*std::cos(x/3.-y/9.)+1.5*x,0.,255.));
+    for(const auto& b:std::vector<Truth>{{36,84,180},{164,116,180}}) {
+        Image source(260,200);std::mt19937 random(43006);
+        for(int y=0;y<200;++y) for(int x=0;x<260;++x) source.row(y)[x]=uint8_t(90+random()%5);
+        for(int y=0;y<16;++y) for(int x=0;x<64;++x) {
+            source.row(92+y)[68+x]=templ.row(y)[x];
+            source.row(int(b.y)-8+y)[int(b.x)-32+x]=templ.row(15-y)[63-x];
+        }
+        auto s=base;s.minReducedArea=256;
+        Session session(source.view(),templ.view(),s);
+        Options o;o.refine=false;o.match.minScore=.8;o.match.maxTargets=4;o.match.maxOverlap=.2;o.match.toleranceAngle=180;
+        o.match.stopLayer=0;o.match.subpixel=true;
+        const std::vector<Truth> expected{{100,100,0},b};
+        truth(session.run(o),expected,"center scene baseline");
+        o.candidateDedupTopK=1;o.candidateDedupAngleSteps=1000;
+        truth(session.run(o),expected,"center convention");
+    }
+}
 }
 int main(int argc,char** argv) {
     try {
@@ -80,6 +106,8 @@ int main(int argc,char** argv) {
         for(int side=1;side<=48;++side) steps|=std::abs(d.angleWindowDeg-3*std::atan(2./side)*180/3.141592653589793)<1e-6;
         require(steps,"angle window is not 3 top-level coarse steps");
         truth(deduped,expected,"k=3");
+        if(metal && !full) require(deduped.fine[0].maps<baseline.fine[0].maps,"dedup did not reduce fine-search maps");
+        centerConvention(s);
         same(deduped,session.run(on),"dedup output must repeat exactly");
         if(full) {
             const auto& g=deduped.fullGpu;
