@@ -1,0 +1,557 @@
+{
+  "stage": 42,
+  "date": "2026-10-24",
+  "adopt_full_gpu_parallel_as_full_gpu_research_best": true,
+  "adoption_rule": "protocol.json decision_rules.adopt_as_full_gpu_research_best",
+  "adoption_conditions": {
+    "no_semantic_gate_failures_formal_or_holdout": true,
+    "primary_target_both_cases": true,
+    "no_time_or_rss_budget_failure_vs_mode1": true
+  },
+  "defaults_changed": false,
+  "default_note": "GUI, core and hybrid defaults unchanged; full_gpu_peak_mode=2 stays an explicit opt-in research option.",
+  "formal_comparisons": {
+    "many128_pose": {
+      "full_gpu_parallel_b1_vs_mode1_static": {
+        "delta_percent": -20.32315902805477,
+        "faster": "full_gpu_parallel_b1",
+        "consistent_direction": true,
+        "baseline_median_ms": 807.810667,
+        "candidate_median_ms": 643.6380205,
+        "candidate_faster_blocks": 6,
+        "blocks": 6
+      },
+      "full_gpu_parallel_vs_mode1_static": {
+        "delta_percent": -27.306965977462138,
+        "faster": "full_gpu_parallel",
+        "consistent_direction": true,
+        "baseline_median_ms": 807.810667,
+        "candidate_median_ms": 587.222083,
+        "candidate_faster_blocks": 6,
+        "blocks": 6,
+        "primary_target_met": true
+      },
+      "batch_vs_b1_static": {
+        "delta_percent": -8.765165466169044,
+        "faster": "full_gpu_parallel",
+        "consistent_direction": true,
+        "baseline_median_ms": 643.6380205,
+        "candidate_median_ms": 587.222083,
+        "candidate_faster_blocks": 6,
+        "blocks": 6
+      },
+      "vs_hybrid_frames_frame_wall": {
+        "delta_percent": -31.409108932722962,
+        "faster": "full_gpu_parallel",
+        "consistent_direction": true,
+        "baseline_median_ms": 857.7160835,
+        "candidate_median_ms": 588.3151045,
+        "candidate_faster_blocks": 6,
+        "blocks": 6
+      },
+      "vs_hybrid_frames_run_only": {
+        "delta_percent": -31.34567389375117,
+        "faster": "full_gpu_parallel",
+        "consistent_direction": true,
+        "baseline_median_ms": 855.9484585,
+        "candidate_median_ms": 587.6456459999999,
+        "candidate_faster_blocks": 6,
+        "blocks": 6
+      },
+      "vs_hybrid_static_run_only": {
+        "delta_percent": -28.988383818649055,
+        "faster": "full_gpu_parallel",
+        "consistent_direction": true,
+        "baseline_median_ms": 826.9380625,
+        "candidate_median_ms": 587.222083,
+        "candidate_faster_blocks": 6,
+        "blocks": 6
+      },
+      "mode1_vs_hybrid_static_run_only": {
+        "delta_percent": -2.313038468948214,
+        "faster": "full_gpu_simd",
+        "consistent_direction": true,
+        "baseline_median_ms": 826.9380625,
+        "candidate_median_ms": 807.810667,
+        "candidate_faster_blocks": 6,
+        "blocks": 6
+      }
+    },
+    "many512_pose": {
+      "full_gpu_parallel_b1_vs_mode1_static": {
+        "delta_percent": -28.669070765915084,
+        "faster": "full_gpu_parallel_b1",
+        "consistent_direction": true,
+        "baseline_median_ms": 2868.420125,
+        "candidate_median_ms": 2046.0707295000002,
+        "candidate_faster_blocks": 6,
+        "blocks": 6
+      },
+      "full_gpu_parallel_vs_mode1_static": {
+        "delta_percent": -34.41185023410753,
+        "faster": "full_gpu_parallel",
+        "consistent_direction": true,
+        "baseline_median_ms": 2868.420125,
+        "candidate_median_ms": 1881.3436875,
+        "candidate_faster_blocks": 6,
+        "blocks": 6,
+        "primary_target_met": true
+      },
+      "batch_vs_b1_static": {
+        "delta_percent": -8.050896756646075,
+        "faster": "full_gpu_parallel",
+        "consistent_direction": true,
+        "baseline_median_ms": 2046.0707295000002,
+        "candidate_median_ms": 1881.3436875,
+        "candidate_faster_blocks": 6,
+        "blocks": 6
+      },
+      "vs_hybrid_frames_frame_wall": {
+        "delta_percent": -22.72545965076259,
+        "faster": "full_gpu_parallel",
+        "consistent_direction": true,
+        "baseline_median_ms": 2433.4667285,
+        "candidate_median_ms": 1880.450229,
+        "candidate_faster_blocks": 6,
+        "blocks": 6
+      },
+      "vs_hybrid_frames_run_only": {
+        "delta_percent": -22.673277282766367,
+        "faster": "full_gpu_parallel",
+        "consistent_direction": true,
+        "baseline_median_ms": 2430.0155624999998,
+        "candidate_median_ms": 1879.0513959999998,
+        "candidate_faster_blocks": 6,
+        "blocks": 6
+      },
+      "vs_hybrid_static_run_only": {
+        "delta_percent": -20.921298055311354,
+        "faster": "full_gpu_parallel",
+        "consistent_direction": true,
+        "baseline_median_ms": 2379.077604,
+        "candidate_median_ms": 1881.3436875,
+        "candidate_faster_blocks": 6,
+        "blocks": 6
+      },
+      "mode1_vs_hybrid_static_run_only": {
+        "delta_percent": 20.568581713234437,
+        "faster": "hybrid_best",
+        "consistent_direction": true,
+        "baseline_median_ms": 2379.077604,
+        "candidate_median_ms": 2868.420125,
+        "candidate_faster_blocks": 0,
+        "blocks": 6
+      }
+    },
+    "controlled6": {
+      "full_gpu_parallel_b1_vs_mode1_static": {
+        "delta_percent": 1.1303035594783184,
+        "faster": "full_gpu_simd",
+        "consistent_direction": true,
+        "baseline_median_ms": 70.624479,
+        "candidate_median_ms": 71.42275000000001,
+        "candidate_faster_blocks": 0,
+        "blocks": 6
+      },
+      "full_gpu_parallel_vs_mode1_static": {
+        "delta_percent": -10.520431591431622,
+        "faster": "full_gpu_parallel",
+        "consistent_direction": true,
+        "baseline_median_ms": 70.624479,
+        "candidate_median_ms": 63.194479,
+        "candidate_faster_blocks": 6,
+        "blocks": 6
+      },
+      "batch_vs_b1_static": {
+        "delta_percent": -11.520518322243268,
+        "faster": "full_gpu_parallel",
+        "consistent_direction": true,
+        "baseline_median_ms": 71.42275000000001,
+        "candidate_median_ms": 63.194479,
+        "candidate_faster_blocks": 6,
+        "blocks": 6
+      },
+      "vs_hybrid_frames_frame_wall": {
+        "delta_percent": 1.5021877874970668,
+        "faster": "hybrid_best",
+        "consistent_direction": true,
+        "baseline_median_ms": 62.840312499999996,
+        "candidate_median_ms": 63.78429199999999,
+        "candidate_faster_blocks": 0,
+        "blocks": 6
+      },
+      "vs_hybrid_frames_run_only": {
+        "delta_percent": 1.9107444756488734,
+        "faster": "hybrid_best",
+        "consistent_direction": true,
+        "baseline_median_ms": 62.535624999999996,
+        "candidate_median_ms": 63.730520999999996,
+        "candidate_faster_blocks": 0,
+        "blocks": 6
+      },
+      "vs_hybrid_static_run_only": {
+        "delta_percent": 6.414099362203918,
+        "faster": "hybrid_best",
+        "consistent_direction": true,
+        "baseline_median_ms": 59.385438,
+        "candidate_median_ms": 63.194479,
+        "candidate_faster_blocks": 0,
+        "blocks": 6
+      },
+      "mode1_vs_hybrid_static_run_only": {
+        "delta_percent": 18.92558408005678,
+        "faster": "hybrid_best",
+        "consistent_direction": true,
+        "baseline_median_ms": 59.385438,
+        "candidate_median_ms": 70.624479,
+        "candidate_faster_blocks": 0,
+        "blocks": 6
+      }
+    },
+    "8k_t256_angle180_3scales": {
+      "full_gpu_parallel_b1_vs_mode1_static": {
+        "delta_percent": -2.509570497056013,
+        "faster": null,
+        "consistent_direction": false,
+        "baseline_median_ms": 61.1957505,
+        "candidate_median_ms": 59.66,
+        "candidate_faster_blocks": 5,
+        "blocks": 6
+      },
+      "full_gpu_parallel_vs_mode1_static": {
+        "delta_percent": -22.878699722785502,
+        "faster": "full_gpu_parallel",
+        "consistent_direction": true,
+        "baseline_median_ms": 61.1957505,
+        "candidate_median_ms": 47.1949585,
+        "candidate_faster_blocks": 6,
+        "blocks": 6
+      },
+      "batch_vs_b1_static": {
+        "delta_percent": -20.893465471002347,
+        "faster": "full_gpu_parallel",
+        "consistent_direction": true,
+        "baseline_median_ms": 59.66,
+        "candidate_median_ms": 47.1949585,
+        "candidate_faster_blocks": 6,
+        "blocks": 6
+      },
+      "vs_hybrid_frames_frame_wall": {
+        "delta_percent": -80.12025627231581,
+        "faster": "full_gpu_parallel",
+        "consistent_direction": true,
+        "baseline_median_ms": 254.86537550000003,
+        "candidate_median_ms": 50.6665835,
+        "candidate_faster_blocks": 6,
+        "blocks": 6
+      },
+      "vs_hybrid_frames_run_only": {
+        "delta_percent": -81.14474604887812,
+        "faster": "full_gpu_parallel",
+        "consistent_direction": true,
+        "baseline_median_ms": 253.398979,
+        "candidate_median_ms": 47.779021,
+        "candidate_faster_blocks": 6,
+        "blocks": 6
+      },
+      "vs_hybrid_static_run_only": {
+        "delta_percent": -80.69271261639147,
+        "faster": "full_gpu_parallel",
+        "consistent_direction": true,
+        "baseline_median_ms": 244.4411665,
+        "candidate_median_ms": 47.1949585,
+        "candidate_faster_blocks": 6,
+        "blocks": 6
+      },
+      "mode1_vs_hybrid_static_run_only": {
+        "delta_percent": -74.9650390823184,
+        "faster": "full_gpu_simd",
+        "consistent_direction": true,
+        "baseline_median_ms": 244.4411665,
+        "candidate_median_ms": 61.1957505,
+        "candidate_faster_blocks": 6,
+        "blocks": 6
+      }
+    }
+  },
+  "hybrid_per_new_frame": {
+    "many128_pose": {
+      "delta_percent": -31.409108932722962,
+      "faster": "full_gpu_parallel"
+    },
+    "many512_pose": {
+      "delta_percent": -22.72545965076259,
+      "faster": "full_gpu_parallel"
+    },
+    "controlled6": {
+      "delta_percent": 1.5021877874970668,
+      "faster": "hybrid_best"
+    },
+    "8k_t256_angle180_3scales": {
+      "delta_percent": -80.12025627231581,
+      "faster": "full_gpu_parallel"
+    }
+  },
+  "all_failed_gates": {
+    "pilot": [],
+    "formal": [],
+    "profile": [],
+    "holdout": []
+  },
+  "failure_counts": {
+    "pilot": 0,
+    "formal": 0,
+    "profile": 0,
+    "holdout": 0
+  },
+  "note": "Every failed gate of every phase is retained above; the pilot is screening only and the profile is diagnostic only.",
+  "host_disclosures": [
+    {
+      "source": "parent session message",
+      "activity": "find /Users/Ayueh -maxdepth 6 -name 'timing-lock-*' (one process, disk I/O and some CPU)",
+      "window_utc": [
+        "2026-10-24T13:30:27Z",
+        "about 2026-10-24T13:33Z"
+      ],
+      "workers_started_in_window": [
+        {
+          "case": "many128_pose",
+          "arm": "hybrid_best_static",
+          "block": 0,
+          "start_utc": "2026-10-24T13:30:22.924755+00:00"
+        },
+        {
+          "case": "many128_pose",
+          "arm": "full_gpu_simd_static",
+          "block": 0,
+          "start_utc": "2026-10-24T13:30:28.371708+00:00"
+        },
+        {
+          "case": "many128_pose",
+          "arm": "full_gpu_parallel_b1_static",
+          "block": 0,
+          "start_utc": "2026-10-24T13:30:33.467072+00:00"
+        },
+        {
+          "case": "many128_pose",
+          "arm": "full_gpu_parallel_static",
+          "block": 0,
+          "start_utc": "2026-10-24T13:30:37.585899+00:00"
+        },
+        {
+          "case": "many128_pose",
+          "arm": "hybrid_best_frames",
+          "block": 0,
+          "start_utc": "2026-10-24T13:30:41.370244+00:00"
+        },
+        {
+          "case": "many128_pose",
+          "arm": "full_gpu_parallel_frames",
+          "block": 0,
+          "start_utc": "2026-10-24T13:30:47.332518+00:00"
+        },
+        {
+          "case": "many128_pose",
+          "arm": "full_gpu_parallel_frames",
+          "block": 1,
+          "start_utc": "2026-10-24T13:30:51.548290+00:00"
+        },
+        {
+          "case": "many128_pose",
+          "arm": "hybrid_best_frames",
+          "block": 1,
+          "start_utc": "2026-10-24T13:30:55.739958+00:00"
+        },
+        {
+          "case": "many128_pose",
+          "arm": "full_gpu_parallel_static",
+          "block": 1,
+          "start_utc": "2026-10-24T13:31:01.565087+00:00"
+        },
+        {
+          "case": "many128_pose",
+          "arm": "full_gpu_parallel_b1_static",
+          "block": 1,
+          "start_utc": "2026-10-24T13:31:05.379351+00:00"
+        },
+        {
+          "case": "many128_pose",
+          "arm": "full_gpu_simd_static",
+          "block": 1,
+          "start_utc": "2026-10-24T13:31:09.517912+00:00"
+        },
+        {
+          "case": "many128_pose",
+          "arm": "hybrid_best_static",
+          "block": 1,
+          "start_utc": "2026-10-24T13:31:14.620946+00:00"
+        },
+        {
+          "case": "many128_pose",
+          "arm": "hybrid_best_static",
+          "block": 2,
+          "start_utc": "2026-10-24T13:31:19.854451+00:00"
+        },
+        {
+          "case": "many128_pose",
+          "arm": "full_gpu_simd_static",
+          "block": 2,
+          "start_utc": "2026-10-24T13:31:25.101065+00:00"
+        },
+        {
+          "case": "many128_pose",
+          "arm": "full_gpu_parallel_b1_static",
+          "block": 2,
+          "start_utc": "2026-10-24T13:31:30.197751+00:00"
+        },
+        {
+          "case": "many128_pose",
+          "arm": "full_gpu_parallel_static",
+          "block": 2,
+          "start_utc": "2026-10-24T13:31:34.311119+00:00"
+        },
+        {
+          "case": "many128_pose",
+          "arm": "hybrid_best_frames",
+          "block": 2,
+          "start_utc": "2026-10-24T13:31:38.095291+00:00"
+        },
+        {
+          "case": "many128_pose",
+          "arm": "full_gpu_parallel_frames",
+          "block": 2,
+          "start_utc": "2026-10-24T13:31:43.819780+00:00"
+        },
+        {
+          "case": "many128_pose",
+          "arm": "full_gpu_parallel_frames",
+          "block": 3,
+          "start_utc": "2026-10-24T13:31:47.947112+00:00"
+        },
+        {
+          "case": "many128_pose",
+          "arm": "hybrid_best_frames",
+          "block": 3,
+          "start_utc": "2026-10-24T13:31:52.089783+00:00"
+        },
+        {
+          "case": "many128_pose",
+          "arm": "full_gpu_parallel_static",
+          "block": 3,
+          "start_utc": "2026-10-24T13:31:57.812584+00:00"
+        },
+        {
+          "case": "many128_pose",
+          "arm": "full_gpu_parallel_b1_static",
+          "block": 3,
+          "start_utc": "2026-10-24T13:32:01.612664+00:00"
+        },
+        {
+          "case": "many128_pose",
+          "arm": "full_gpu_simd_static",
+          "block": 3,
+          "start_utc": "2026-10-24T13:32:05.728289+00:00"
+        },
+        {
+          "case": "many128_pose",
+          "arm": "hybrid_best_static",
+          "block": 3,
+          "start_utc": "2026-10-24T13:32:10.802513+00:00"
+        },
+        {
+          "case": "many128_pose",
+          "arm": "hybrid_best_static",
+          "block": 4,
+          "start_utc": "2026-10-24T13:32:16.066874+00:00"
+        },
+        {
+          "case": "many128_pose",
+          "arm": "full_gpu_simd_static",
+          "block": 4,
+          "start_utc": "2026-10-24T13:32:21.317439+00:00"
+        },
+        {
+          "case": "many128_pose",
+          "arm": "full_gpu_parallel_b1_static",
+          "block": 4,
+          "start_utc": "2026-10-24T13:32:26.458188+00:00"
+        },
+        {
+          "case": "many128_pose",
+          "arm": "full_gpu_parallel_static",
+          "block": 4,
+          "start_utc": "2026-10-24T13:32:30.582422+00:00"
+        },
+        {
+          "case": "many128_pose",
+          "arm": "hybrid_best_frames",
+          "block": 4,
+          "start_utc": "2026-10-24T13:32:34.382639+00:00"
+        },
+        {
+          "case": "many128_pose",
+          "arm": "full_gpu_parallel_frames",
+          "block": 4,
+          "start_utc": "2026-10-24T13:32:40.280954+00:00"
+        },
+        {
+          "case": "many128_pose",
+          "arm": "full_gpu_parallel_frames",
+          "block": 5,
+          "start_utc": "2026-10-24T13:32:44.431592+00:00"
+        },
+        {
+          "case": "many128_pose",
+          "arm": "hybrid_best_frames",
+          "block": 5,
+          "start_utc": "2026-10-24T13:32:48.603985+00:00"
+        },
+        {
+          "case": "many128_pose",
+          "arm": "full_gpu_parallel_static",
+          "block": 5,
+          "start_utc": "2026-10-24T13:32:54.416059+00:00"
+        },
+        {
+          "case": "many128_pose",
+          "arm": "full_gpu_parallel_b1_static",
+          "block": 5,
+          "start_utc": "2026-10-24T13:32:58.221056+00:00"
+        },
+        {
+          "case": "many128_pose",
+          "arm": "full_gpu_simd_static",
+          "block": 5,
+          "start_utc": "2026-10-24T13:33:02.528583+00:00"
+        },
+        {
+          "case": "many128_pose",
+          "arm": "hybrid_best_static",
+          "block": 5,
+          "start_utc": "2026-10-24T13:33:07.616407+00:00"
+        },
+        {
+          "case": "many512_pose",
+          "arm": "hybrid_best_static",
+          "block": 0,
+          "start_utc": "2026-10-24T13:33:12.920073+00:00"
+        },
+        {
+          "case": "many512_pose",
+          "arm": "full_gpu_simd_static",
+          "block": 0,
+          "start_utc": "2026-10-24T13:33:25.397860+00:00"
+        }
+      ],
+      "handling": "Not removed or rerun; every arm of each affected block shares the window (interleaved schedule). The pilot before the window and the profile and holdout phases after it are reported for comparison."
+    },
+    {
+      "source": "round-43 session message",
+      "activity": "~20 s tar|gzip size check ending about 13:28Z",
+      "window_utc": [
+        "before 2026-10-24T13:28Z"
+      ],
+      "handling": "At most the first seconds of the pilot (screening only)."
+    }
+  ]
+}

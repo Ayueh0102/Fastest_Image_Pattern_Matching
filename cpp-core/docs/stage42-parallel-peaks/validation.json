@@ -1,0 +1,363 @@
+{
+  "stage": 42,
+  "date": "2026-10-24",
+  "build": {
+    "directory": "build/stage42-release",
+    "type": "Release",
+    "options": [
+      "FPM_BUILD_GUI=ON",
+      "FPM_BUILD_EXPERIMENTS=ON",
+      "FPM_WITH_OPENCV=ON"
+    ],
+    "build_head": "4b0ad8f4b7dafb37fc91ec1899cdb92a96a08b34",
+    "configure_log": "validation/configure.log",
+    "build_log": "validation/build.log",
+    "fresh_directory": true,
+    "note": "Built from the frozen commit on a clean tree; the protocol commit adds only docs files."
+  },
+  "pre_measurement": {
+    "head": "4b0ad8f4b7dafb37fc91ec1899cdb92a96a08b34",
+    "clean": true,
+    "start": "2026-10-24T13:25:44Z",
+    "end": "2026-10-24T13:26:47Z",
+    "exits": {
+      "ctest": 0,
+      "harness": 0,
+      "color": 0
+    },
+    "ctest": {
+      "passed": 77,
+      "failed": 0,
+      "total": 77,
+      "log": "validation/pre-formal-ctest.log"
+    },
+    "python_harness": {
+      "ran": [
+        590
+      ],
+      "ok": true,
+      "log": "validation/pre-formal-python-harness.log"
+    },
+    "color_verify_metal": {
+      "ran": [
+        5
+      ],
+      "ok": true,
+      "log": "validation/pre-formal-color-verify.log"
+    },
+    "metal_validation": {
+      "passed": 21,
+      "failed": 0,
+      "total": 21,
+      "log": "validation/metal-validation.log",
+      "command": "MTL_SHADER_VALIDATION=1 MTL_DEBUG_LAYER=1 ctest -R 'experimental_full_gpu|native_runner'"
+    }
+  },
+  "sanitizers": {
+    "passed": 72,
+    "failed": 0,
+    "total": 72,
+    "log": "validation/sanitized-ctest.log",
+    "build": "build/stage42-sanitized: Debug, FPM_SANITIZERS=ON, FPM_DISABLE_SIMD=ON, FPM_BUILD_EXPERIMENTS=ON, no GUI",
+    "note": "ASan and UBSan; LeakSanitizer not enabled, so this is not a leak proof."
+  },
+  "kernel_mutants": {
+    "killed": 15,
+    "total": 16,
+    "restored": {
+      "fpm_full_gpu_parallel_peaks_test": {
+        "sha_matches_baseline": true,
+        "exit": 0
+      },
+      "fpm_full_gpu_test": {
+        "sha_matches_baseline": true,
+        "exit": 0
+      }
+    },
+    "log_dir": "validation/kernel-mutants",
+    "survivor": "M05_shortcut_ignores_rectangle: output-equivalent; a false covered result in the pick phase only delays acceptance",
+    "tree": "git archive of c36f101; compiled sources identical to the frozen 4b0ad8f"
+  },
+  "harness": {
+    "new_tests": 20,
+    "test_file": "cpp-core/tests/test_parallel_peaks_harness.py",
+    "mutants": {
+      "killed": 17,
+      "total": 17,
+      "restored": true,
+      "log": "validation/harness-mutants.json"
+    }
+  },
+  "datasets": {
+    "pilot": {
+      "fresh_processes": 24,
+      "cold_calls": 24,
+      "gt_checked_warmup_calls": 104,
+      "native_only_warmup_calls": 136,
+      "measured_calls": 48,
+      "gt_evaluated_calls": 176
+    },
+    "formal": {
+      "fresh_processes": 144,
+      "cold_calls": 144,
+      "gt_checked_warmup_calls": 624,
+      "native_only_warmup_calls": 805,
+      "measured_calls": 432,
+      "gt_evaluated_calls": 1200
+    },
+    "profile": {
+      "fresh_processes": 12,
+      "cold_calls": 12,
+      "gt_checked_warmup_calls": 0,
+      "native_only_warmup_calls": 112,
+      "measured_calls": 24,
+      "gt_evaluated_calls": 36
+    },
+    "holdout": {
+      "fresh_processes": 42,
+      "cold_calls": 42,
+      "gt_checked_warmup_calls": 0,
+      "native_only_warmup_calls": 62696,
+      "measured_calls": 84,
+      "gt_evaluated_calls": 126
+    }
+  },
+  "direct_gt_calls": 1538,
+  "all_zero_fp_fn": true,
+  "all_parallel_exact_mode1": true,
+  "all_routes_pass": true,
+  "failed_gates": {
+    "pilot": 0,
+    "formal": 0,
+    "profile": 0,
+    "holdout": 0
+  },
+  "embedded_summary_reproduced": {
+    "pilot": true,
+    "formal": true,
+    "profile": true,
+    "holdout": true
+  },
+  "host": {
+    "pilot": {
+      "started_utc": "2026-10-24T13:28:24.378447+00:00",
+      "finished_utc": "2026-10-24T13:30:19.696202+00:00",
+      "executions": 24,
+      "executions_with_competing_processes": 0,
+      "load_average_1min_range": [
+        2.3447265625,
+        3.35400390625
+      ],
+      "before": {
+        "utc": "2026-10-24T13:28:24.364338+00:00",
+        "load_average": [
+          2.646484375,
+          2.875,
+          2.98388671875
+        ],
+        "gpu_device_utilization_percent": [
+          67,
+          0,
+          0,
+          0,
+          0
+        ],
+        "competing_processes": []
+      },
+      "after": {
+        "utc": "2026-10-24T13:30:19.696165+00:00",
+        "load_average": [
+          2.75830078125,
+          2.87451171875,
+          2.9697265625
+        ],
+        "gpu_device_utilization_percent": [
+          84,
+          0,
+          0,
+          0,
+          0
+        ],
+        "competing_processes": []
+      }
+    },
+    "formal": {
+      "started_utc": "2026-10-24T13:30:22.834227+00:00",
+      "finished_utc": "2026-10-24T13:43:45.616376+00:00",
+      "executions": 144,
+      "executions_with_competing_processes": 0,
+      "load_average_1min_range": [
+        2.03173828125,
+        6.6201171875
+      ],
+      "before": {
+        "utc": "2026-10-24T13:30:22.821706+00:00",
+        "load_average": [
+          2.537109375,
+          2.82666015625,
+          2.9521484375
+        ],
+        "gpu_device_utilization_percent": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "competing_processes": []
+      },
+      "after": {
+        "utc": "2026-10-24T13:43:45.616344+00:00",
+        "load_average": [
+          4.0283203125,
+          3.34814453125,
+          3.2470703125
+        ],
+        "gpu_device_utilization_percent": [
+          29,
+          29,
+          28,
+          28,
+          28
+        ],
+        "competing_processes": []
+      }
+    },
+    "profile": {
+      "started_utc": "2026-10-24T13:43:51.229248+00:00",
+      "finished_utc": "2026-10-24T13:44:41.367430+00:00",
+      "executions": 12,
+      "executions_with_competing_processes": 0,
+      "load_average_1min_range": [
+        2.9931640625,
+        4.02587890625
+      ],
+      "before": {
+        "utc": "2026-10-24T13:43:51.212542+00:00",
+        "load_average": [
+          4.02587890625,
+          3.35888671875,
+          3.25146484375
+        ],
+        "gpu_device_utilization_percent": [
+          27,
+          29,
+          28,
+          29,
+          29
+        ],
+        "competing_processes": []
+      },
+      "after": {
+        "utc": "2026-10-24T13:44:41.367397+00:00",
+        "load_average": [
+          3.3798828125,
+          3.24853515625,
+          3.212890625
+        ],
+        "gpu_device_utilization_percent": [
+          95,
+          0,
+          6,
+          0,
+          0
+        ],
+        "competing_processes": []
+      }
+    },
+    "holdout": {
+      "started_utc": "2026-10-24T13:44:44.303305+00:00",
+      "finished_utc": "2026-10-24T13:46:40.377272+00:00",
+      "executions": 42,
+      "executions_with_competing_processes": 0,
+      "load_average_1min_range": [
+        1.9169921875,
+        3.10888671875
+      ],
+      "before": {
+        "utc": "2026-10-24T13:44:44.292037+00:00",
+        "load_average": [
+          3.10888671875,
+          3.1943359375,
+          3.19384765625
+        ],
+        "gpu_device_utilization_percent": [
+          0,
+          12,
+          13,
+          0,
+          0
+        ],
+        "competing_processes": []
+      },
+      "after": {
+        "utc": "2026-10-24T13:46:40.377210+00:00",
+        "load_average": [
+          1.93408203125,
+          2.74462890625,
+          3.01416015625
+        ],
+        "gpu_device_utilization_percent": [
+          99,
+          0,
+          0,
+          0,
+          11
+        ],
+        "competing_processes": []
+      }
+    }
+  },
+  "host_notes": "validation/host-notes.md",
+  "independent_audit": {
+    "file": "validation/independent-audit.json",
+    "script": "validation/independent_audit.py",
+    "harness_imported": false,
+    "gpu_launched": false,
+    "totals": {
+      "values_compared": 6296,
+      "mismatches": 0,
+      "check_failures": 0,
+      "all_pass": true
+    },
+    "self_test": "validation/audit_selftest.py: 13 in-memory tamperings, all detected"
+  },
+  "archive_replay": {
+    "file": "validation/replay-check.json",
+    "frozen_commit": "4b0ad8f4b7dafb37fc91ec1899cdb92a96a08b34",
+    "snapshot_files": 289,
+    "snapshot_hash_mismatches": [],
+    "all_identical": true
+  },
+  "final_gate": {
+    "head": "1e23ec555e0aa35f0321ecf8213f6647f7d1bbf7",
+    "clean": false,
+    "start": "2026-10-24T14:02:32Z",
+    "end": "2026-10-24T14:03:22Z",
+    "exits": {
+      "ctest": 0,
+      "harness": 0,
+      "color": 0
+    },
+    "ctest": {
+      "passed": 77,
+      "failed": 0,
+      "total": 77,
+      "log": "validation/final-ctest.log"
+    },
+    "python_harness": {
+      "ran": [
+        590
+      ],
+      "ok": true,
+      "log": "validation/final-python-harness.log"
+    },
+    "color_verify_metal": {
+      "ran": [
+        5
+      ],
+      "ok": true,
+      "log": "validation/final-color-verify.log"
+    }
+  }
+}

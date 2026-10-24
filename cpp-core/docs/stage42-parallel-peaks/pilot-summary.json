@@ -1,0 +1,2569 @@
+{
+  "phase": "pilot",
+  "formal_decision_eligible": false,
+  "profiling": false,
+  "cases": [
+    {
+      "name": "many128_pose",
+      "truth_count": 128,
+      "refine": true,
+      "frame_warmup_calls": 2,
+      "arms": {
+        "hybrid_best_static": {
+          "method": "hybrid_best",
+          "mode": "static",
+          "total_ms": {
+            "median": 817.989458,
+            "min": 815.915166,
+            "max": 820.06375,
+            "values": [
+              815.915166,
+              820.06375
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "total_median_ms": 817.989458,
+              "first_total_ms": 882.493292,
+              "warmup_calls": 2,
+              "construct_ms": 27.242667,
+              "peak_rss_bytes": 239697920
+            }
+          ],
+          "peak_rss_bytes": 239697920,
+          "static_route_valid": true,
+          "cold_calls": 1,
+          "warmup_calls": 2,
+          "measured_calls": 2,
+          "frame_gpu_bytes": [
+            45054114
+          ],
+          "pose_gpu_bytes": [
+            67969984
+          ],
+          "gpu_scope": "frame coarse+fine buffers; pose context buffers listed separately; other owners excluded",
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              128,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.10597630053137005,
+            "angle_deg": 0.09061128803688234,
+            "relative_scale": 0.0027015188679357927
+          },
+          "route_valid": true,
+          "requested_algorithm_executed": true,
+          "repeat_exact": true,
+          "proposal_counts": [
+            332
+          ],
+          "gt_evaluated_calls": 3
+        },
+        "full_gpu_simd_static": {
+          "method": "full_gpu_simd",
+          "mode": "static",
+          "total_ms": {
+            "median": 806.9879585,
+            "min": 806.151167,
+            "max": 807.82475,
+            "values": [
+              807.82475,
+              806.151167
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "total_median_ms": 806.9879585,
+              "first_total_ms": 810.939084,
+              "warmup_calls": 2,
+              "construct_ms": 26.335666,
+              "peak_rss_bytes": 94846976
+            }
+          ],
+          "peak_rss_bytes": 94846976,
+          "static_route_valid": true,
+          "cold_calls": 1,
+          "warmup_calls": 2,
+          "measured_calls": 2,
+          "named_gpu_bytes": [
+            122131456
+          ],
+          "coarse_score_bytes": [
+            1954560
+          ],
+          "peak_scratch_bytes": [
+            3917312
+          ],
+          "peak_batch_maps": [
+            1
+          ],
+          "gpu_scope": "full_gpu.gpu_bytes: all named full-GPU Metal buffers; coarse_score_bytes and peak_scratch_bytes are parts of it",
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              128,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.10597630053137005,
+            "angle_deg": 0.09033662983375734,
+            "relative_scale": 0.0027012430347326255
+          },
+          "route_valid": true,
+          "requested_algorithm_executed": true,
+          "repeat_exact": true,
+          "proposal_counts": [
+            332
+          ],
+          "gt_evaluated_calls": 3,
+          "device_ms": {
+            "median": 805.4834166687215,
+            "min": 804.4183333404362,
+            "max": 806.5484999970067,
+            "values": [
+              806.5484999970067,
+              804.4183333404362
+            ]
+          }
+        },
+        "full_gpu_parallel_b1_static": {
+          "method": "full_gpu_parallel_b1",
+          "mode": "static",
+          "total_ms": {
+            "median": 644.7347705,
+            "min": 641.651875,
+            "max": 647.817666,
+            "values": [
+              641.651875,
+              647.817666
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "total_median_ms": 644.7347705,
+              "first_total_ms": 647.212708,
+              "warmup_calls": 2,
+              "construct_ms": 29.248875,
+              "peak_rss_bytes": 95207424
+            }
+          ],
+          "peak_rss_bytes": 95207424,
+          "static_route_valid": true,
+          "cold_calls": 1,
+          "warmup_calls": 2,
+          "measured_calls": 2,
+          "named_gpu_bytes": [
+            120042496
+          ],
+          "coarse_score_bytes": [
+            1954560
+          ],
+          "peak_scratch_bytes": [
+            1828352
+          ],
+          "peak_batch_maps": [
+            1
+          ],
+          "gpu_scope": "full_gpu.gpu_bytes: all named full-GPU Metal buffers; coarse_score_bytes and peak_scratch_bytes are parts of it",
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              128,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.10597630053137005,
+            "angle_deg": 0.09033662983375734,
+            "relative_scale": 0.0027012430347326255
+          },
+          "route_valid": true,
+          "requested_algorithm_executed": true,
+          "repeat_exact": true,
+          "proposal_counts": [
+            332
+          ],
+          "gt_evaluated_calls": 3,
+          "device_ms": {
+            "median": 643.7504583300324,
+            "min": 640.8107916649897,
+            "max": 646.6901249950752,
+            "values": [
+              640.8107916649897,
+              646.6901249950752
+            ]
+          },
+          "ordered_matches_equal_mode1": true,
+          "ordered_proposals_equal_mode1": true
+        },
+        "full_gpu_parallel_static": {
+          "method": "full_gpu_parallel",
+          "mode": "static",
+          "total_ms": {
+            "median": 591.298667,
+            "min": 588.320917,
+            "max": 594.276417,
+            "values": [
+              588.320917,
+              594.276417
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "total_median_ms": 591.298667,
+              "first_total_ms": 592.29,
+              "warmup_calls": 2,
+              "construct_ms": 26.324084,
+              "peak_rss_bytes": 94502912
+            }
+          ],
+          "peak_rss_bytes": 94502912,
+          "static_route_valid": true,
+          "cold_calls": 1,
+          "warmup_calls": 2,
+          "measured_calls": 2,
+          "named_gpu_bytes": [
+            146519552
+          ],
+          "coarse_score_bytes": [
+            15636480
+          ],
+          "peak_scratch_bytes": [
+            14623488
+          ],
+          "peak_batch_maps": [
+            8
+          ],
+          "gpu_scope": "full_gpu.gpu_bytes: all named full-GPU Metal buffers; coarse_score_bytes and peak_scratch_bytes are parts of it",
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              128,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.10597630053137005,
+            "angle_deg": 0.09033662983375734,
+            "relative_scale": 0.0027012430347326255
+          },
+          "route_valid": true,
+          "requested_algorithm_executed": true,
+          "repeat_exact": true,
+          "proposal_counts": [
+            332
+          ],
+          "gt_evaluated_calls": 3,
+          "device_ms": {
+            "median": 590.1245624991134,
+            "min": 587.1601249964442,
+            "max": 593.0890000017826,
+            "values": [
+              587.1601249964442,
+              593.0890000017826
+            ]
+          },
+          "ordered_matches_equal_mode1": true,
+          "ordered_proposals_equal_mode1": true
+        },
+        "hybrid_best_frames": {
+          "method": "hybrid_best",
+          "mode": "frames",
+          "frame_wall_ms": {
+            "median": 888.877812,
+            "min": 856.795541,
+            "max": 920.960083,
+            "values": [
+              920.960083,
+              856.795541
+            ]
+          },
+          "total_ms": {
+            "median": 887.4425625,
+            "min": 855.29225,
+            "max": 919.592875,
+            "values": [
+              919.592875,
+              855.29225
+            ]
+          },
+          "source_update_ms": {
+            "median": 1.4336665,
+            "min": 1.3655,
+            "max": 1.501833,
+            "values": [
+              1.3655,
+              1.501833
+            ]
+          },
+          "pose_create_ms": {
+            "median": 20.481458500000002,
+            "min": 20.169167,
+            "max": 20.79375,
+            "values": [
+              20.79375,
+              20.169167
+            ]
+          },
+          "source_decode_ms": {
+            "median": 68.0099165,
+            "min": 67.119291,
+            "max": 68.900542,
+            "values": [
+              67.119291,
+              68.900542
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "frame_wall_median_ms": 888.877812,
+              "total_median_ms": 887.4425625,
+              "warmup_calls": 2,
+              "warmup_wall_ms": 1896.0282079999997,
+              "cold_total_ms": 867.935458,
+              "peak_rss_bytes": 275677184
+            }
+          ],
+          "peak_rss_bytes": 275677184,
+          "sequence_route_valid": true,
+          "cold_calls": 1,
+          "warmup_calls": 2,
+          "measured_calls": 2,
+          "frame_gpu_bytes": [
+            45054114
+          ],
+          "pose_gpu_bytes": [
+            67969984
+          ],
+          "gpu_scope": "frame coarse+fine buffers; pose context buffers listed separately; other owners excluded",
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              128,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.10597630053137005,
+            "angle_deg": 0.09061128803688234,
+            "relative_scale": 0.0027015188679357927
+          },
+          "route_valid": true,
+          "requested_algorithm_executed": true,
+          "repeat_exact": true,
+          "proposal_counts": [
+            332
+          ],
+          "gt_evaluated_calls": 5,
+          "same_method_output_parity": true
+        },
+        "full_gpu_parallel_frames": {
+          "method": "full_gpu_parallel",
+          "mode": "frames",
+          "frame_wall_ms": {
+            "median": 589.4775,
+            "min": 589.38125,
+            "max": 589.57375,
+            "values": [
+              589.38125,
+              589.57375
+            ]
+          },
+          "total_ms": {
+            "median": 588.8204375,
+            "min": 588.7195,
+            "max": 588.921375,
+            "values": [
+              588.7195,
+              588.921375
+            ]
+          },
+          "source_update_ms": {
+            "median": 0.637375,
+            "min": 0.63125,
+            "max": 0.6435,
+            "values": [
+              0.6435,
+              0.63125
+            ]
+          },
+          "pose_create_ms": {
+            "median": 0.0,
+            "min": 0,
+            "max": 0,
+            "values": [
+              0,
+              0
+            ]
+          },
+          "source_decode_ms": {
+            "median": 66.5556455,
+            "min": 66.377291,
+            "max": 66.734,
+            "values": [
+              66.377291,
+              66.734
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "frame_wall_median_ms": 589.4775,
+              "total_median_ms": 588.8204375,
+              "warmup_calls": 2,
+              "warmup_wall_ms": 1313.044625,
+              "cold_total_ms": 595.003791,
+              "peak_rss_bytes": 129417216
+            }
+          ],
+          "peak_rss_bytes": 129417216,
+          "sequence_route_valid": true,
+          "cold_calls": 1,
+          "warmup_calls": 2,
+          "measured_calls": 2,
+          "named_gpu_bytes": [
+            146519552
+          ],
+          "coarse_score_bytes": [
+            15636480
+          ],
+          "peak_scratch_bytes": [
+            14623488
+          ],
+          "peak_batch_maps": [
+            8
+          ],
+          "gpu_scope": "full_gpu.gpu_bytes: all named full-GPU Metal buffers; coarse_score_bytes and peak_scratch_bytes are parts of it",
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              128,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.10597630053137005,
+            "angle_deg": 0.09033662983375734,
+            "relative_scale": 0.0027012430347326255
+          },
+          "route_valid": true,
+          "requested_algorithm_executed": true,
+          "repeat_exact": true,
+          "proposal_counts": [
+            332
+          ],
+          "gt_evaluated_calls": 5,
+          "same_method_output_parity": true,
+          "ordered_matches_equal_mode1": true,
+          "ordered_proposals_equal_mode1": true
+        }
+      },
+      "comparisons": {
+        "full_gpu_parallel_b1_vs_mode1_static": {
+          "baseline": "full_gpu_simd",
+          "candidate": "full_gpu_parallel_b1",
+          "metric": "total_ms",
+          "baseline_median_ms": 806.9879585,
+          "candidate_median_ms": 644.7347705,
+          "delta_ms": -162.25318800000002,
+          "delta_percent": -20.106023428353303,
+          "paired": [
+            {
+              "block": 0,
+              "baseline_ms": 806.9879585,
+              "candidate_ms": 644.7347705,
+              "delta_ms": -162.25318800000002,
+              "delta_percent": -20.106023428353303,
+              "within_regression_budget": true
+            }
+          ],
+          "candidate_faster_blocks": 1,
+          "blocks": 1,
+          "consistent_direction": true,
+          "faster": "full_gpu_parallel_b1"
+        },
+        "full_gpu_parallel_vs_mode1_static": {
+          "baseline": "full_gpu_simd",
+          "candidate": "full_gpu_parallel",
+          "metric": "total_ms",
+          "baseline_median_ms": 806.9879585,
+          "candidate_median_ms": 591.298667,
+          "delta_ms": -215.68929149999997,
+          "delta_percent": -26.72769639598036,
+          "paired": [
+            {
+              "block": 0,
+              "baseline_ms": 806.9879585,
+              "candidate_ms": 591.298667,
+              "delta_ms": -215.68929149999997,
+              "delta_percent": -26.72769639598036,
+              "within_regression_budget": true
+            }
+          ],
+          "candidate_faster_blocks": 1,
+          "blocks": 1,
+          "consistent_direction": true,
+          "faster": "full_gpu_parallel",
+          "primary_target_percent": -10.0,
+          "primary_target_met": true
+        },
+        "batch_vs_b1_static": {
+          "baseline": "full_gpu_parallel_b1",
+          "candidate": "full_gpu_parallel",
+          "metric": "total_ms",
+          "baseline_median_ms": 644.7347705,
+          "candidate_median_ms": 591.298667,
+          "delta_ms": -53.436103499999945,
+          "delta_percent": -8.288075336554224,
+          "paired": [
+            {
+              "block": 0,
+              "baseline_ms": 644.7347705,
+              "candidate_ms": 591.298667,
+              "delta_ms": -53.436103499999945,
+              "delta_percent": -8.288075336554224,
+              "within_regression_budget": true
+            }
+          ],
+          "candidate_faster_blocks": 1,
+          "blocks": 1,
+          "consistent_direction": true,
+          "faster": "full_gpu_parallel"
+        },
+        "vs_hybrid_frames_frame_wall": {
+          "baseline": "hybrid_best",
+          "candidate": "full_gpu_parallel",
+          "metric": "frame_wall_ms",
+          "baseline_median_ms": 888.877812,
+          "candidate_median_ms": 589.4775,
+          "delta_ms": -299.400312,
+          "delta_percent": -33.68295484014175,
+          "paired": [
+            {
+              "block": 0,
+              "baseline_ms": 888.877812,
+              "candidate_ms": 589.4775,
+              "delta_ms": -299.400312,
+              "delta_percent": -33.68295484014175,
+              "within_regression_budget": true
+            }
+          ],
+          "candidate_faster_blocks": 1,
+          "blocks": 1,
+          "consistent_direction": true,
+          "faster": "full_gpu_parallel"
+        },
+        "vs_hybrid_frames_run_only": {
+          "baseline": "hybrid_best",
+          "candidate": "full_gpu_parallel",
+          "metric": "total_ms",
+          "baseline_median_ms": 887.4425625,
+          "candidate_median_ms": 588.8204375,
+          "delta_ms": -298.622125,
+          "delta_percent": -33.64974113465512,
+          "paired": [
+            {
+              "block": 0,
+              "baseline_ms": 887.4425625,
+              "candidate_ms": 588.8204375,
+              "delta_ms": -298.622125,
+              "delta_percent": -33.64974113465512,
+              "within_regression_budget": true
+            }
+          ],
+          "candidate_faster_blocks": 1,
+          "blocks": 1,
+          "consistent_direction": true,
+          "faster": "full_gpu_parallel"
+        },
+        "vs_hybrid_static_run_only": {
+          "baseline": "hybrid_best",
+          "candidate": "full_gpu_parallel",
+          "metric": "total_ms",
+          "baseline_median_ms": 817.989458,
+          "candidate_median_ms": 591.298667,
+          "delta_ms": -226.690791,
+          "delta_percent": -27.713167789993697,
+          "paired": [
+            {
+              "block": 0,
+              "baseline_ms": 817.989458,
+              "candidate_ms": 591.298667,
+              "delta_ms": -226.690791,
+              "delta_percent": -27.713167789993697,
+              "within_regression_budget": true
+            }
+          ],
+          "candidate_faster_blocks": 1,
+          "blocks": 1,
+          "consistent_direction": true,
+          "faster": "full_gpu_parallel"
+        },
+        "mode1_vs_hybrid_static_run_only": {
+          "baseline": "hybrid_best",
+          "candidate": "full_gpu_simd",
+          "metric": "total_ms",
+          "baseline_median_ms": 817.989458,
+          "candidate_median_ms": 806.9879585,
+          "delta_ms": -11.001499500000023,
+          "delta_percent": -1.3449439222479542,
+          "paired": [
+            {
+              "block": 0,
+              "baseline_ms": 817.989458,
+              "candidate_ms": 806.9879585,
+              "delta_ms": -11.001499500000023,
+              "delta_percent": -1.3449439222479542,
+              "within_regression_budget": true
+            }
+          ],
+          "candidate_faster_blocks": 1,
+          "blocks": 1,
+          "consistent_direction": true,
+          "faster": "full_gpu_simd"
+        }
+      }
+    },
+    {
+      "name": "many512_pose",
+      "truth_count": 512,
+      "refine": true,
+      "frame_warmup_calls": 1,
+      "arms": {
+        "hybrid_best_static": {
+          "method": "hybrid_best",
+          "mode": "static",
+          "total_ms": {
+            "median": 2362.5097705,
+            "min": 2350.879875,
+            "max": 2374.139666,
+            "values": [
+              2374.139666,
+              2350.879875
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "total_median_ms": 2362.5097705,
+              "first_total_ms": 2565.246375,
+              "warmup_calls": 1,
+              "construct_ms": 28.719791,
+              "peak_rss_bytes": 462209024
+            }
+          ],
+          "peak_rss_bytes": 462209024,
+          "static_route_valid": true,
+          "cold_calls": 1,
+          "warmup_calls": 1,
+          "measured_calls": 2,
+          "frame_gpu_bytes": [
+            67630166
+          ],
+          "pose_gpu_bytes": [
+            137396944
+          ],
+          "gpu_scope": "frame coarse+fine buffers; pose context buffers listed separately; other owners excluded",
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              512,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.12809542327516896,
+            "angle_deg": 0.09951369303348656,
+            "relative_scale": 0.0027443297876431627
+          },
+          "route_valid": true,
+          "requested_algorithm_executed": true,
+          "repeat_exact": true,
+          "proposal_counts": [
+            1301
+          ],
+          "gt_evaluated_calls": 3
+        },
+        "full_gpu_simd_static": {
+          "method": "full_gpu_simd",
+          "mode": "static",
+          "total_ms": {
+            "median": 2893.383771,
+            "min": 2874.013667,
+            "max": 2912.753875,
+            "values": [
+              2874.013667,
+              2912.753875
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "total_median_ms": 2893.383771,
+              "first_total_ms": 2906.073083,
+              "warmup_calls": 1,
+              "construct_ms": 27.289209,
+              "peak_rss_bytes": 170131456
+            }
+          ],
+          "peak_rss_bytes": 170131456,
+          "static_route_valid": true,
+          "cold_calls": 1,
+          "warmup_calls": 1,
+          "measured_calls": 2,
+          "named_gpu_bytes": [
+            247774208
+          ],
+          "coarse_score_bytes": [
+            4501504
+          ],
+          "peak_scratch_bytes": [
+            9020672
+          ],
+          "peak_batch_maps": [
+            1
+          ],
+          "gpu_scope": "full_gpu.gpu_bytes: all named full-GPU Metal buffers; coarse_score_bytes and peak_scratch_bytes are parts of it",
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              512,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.1283358605470548,
+            "angle_deg": 0.09951369303348656,
+            "relative_scale": 0.002744110964467583
+          },
+          "route_valid": true,
+          "requested_algorithm_executed": true,
+          "repeat_exact": true,
+          "proposal_counts": [
+            1301
+          ],
+          "gt_evaluated_calls": 3,
+          "device_ms": {
+            "median": 2891.137812490342,
+            "min": 2871.7312499939,
+            "max": 2910.5443749867845,
+            "values": [
+              2871.7312499939,
+              2910.5443749867845
+            ]
+          }
+        },
+        "full_gpu_parallel_b1_static": {
+          "method": "full_gpu_parallel_b1",
+          "mode": "static",
+          "total_ms": {
+            "median": 2051.7823335000003,
+            "min": 2042.535667,
+            "max": 2061.029,
+            "values": [
+              2061.029,
+              2042.535667
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "total_median_ms": 2051.7823335000003,
+              "first_total_ms": 2074.946958,
+              "warmup_calls": 1,
+              "construct_ms": 31.23775,
+              "peak_rss_bytes": 169885696
+            }
+          ],
+          "peak_rss_bytes": 169885696,
+          "static_route_valid": true,
+          "cold_calls": 1,
+          "warmup_calls": 1,
+          "measured_calls": 2,
+          "named_gpu_bytes": [
+            241937920
+          ],
+          "coarse_score_bytes": [
+            4501504
+          ],
+          "peak_scratch_bytes": [
+            3184384
+          ],
+          "peak_batch_maps": [
+            1
+          ],
+          "gpu_scope": "full_gpu.gpu_bytes: all named full-GPU Metal buffers; coarse_score_bytes and peak_scratch_bytes are parts of it",
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              512,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.1283358605470548,
+            "angle_deg": 0.09951369303348656,
+            "relative_scale": 0.002744110964467583
+          },
+          "route_valid": true,
+          "requested_algorithm_executed": true,
+          "repeat_exact": true,
+          "proposal_counts": [
+            1301
+          ],
+          "gt_evaluated_calls": 3,
+          "device_ms": {
+            "median": 2049.7127499984344,
+            "min": 2040.4273750027642,
+            "max": 2058.9981249941047,
+            "values": [
+              2058.9981249941047,
+              2040.4273750027642
+            ]
+          },
+          "ordered_matches_equal_mode1": true,
+          "ordered_proposals_equal_mode1": true
+        },
+        "full_gpu_parallel_static": {
+          "method": "full_gpu_parallel",
+          "mode": "static",
+          "total_ms": {
+            "median": 1907.3078329999998,
+            "min": 1896.624,
+            "max": 1917.991666,
+            "values": [
+              1896.624,
+              1917.991666
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "total_median_ms": 1907.3078329999998,
+              "first_total_ms": 1888.3585,
+              "warmup_calls": 1,
+              "construct_ms": 30.856792,
+              "peak_rss_bytes": 169984000
+            }
+          ],
+          "peak_rss_bytes": 169984000,
+          "static_route_valid": true,
+          "cold_calls": 1,
+          "warmup_calls": 1,
+          "measured_calls": 2,
+          "named_gpu_bytes": [
+            295736576
+          ],
+          "coarse_score_bytes": [
+            36012032
+          ],
+          "peak_scratch_bytes": [
+            25472512
+          ],
+          "peak_batch_maps": [
+            8
+          ],
+          "gpu_scope": "full_gpu.gpu_bytes: all named full-GPU Metal buffers; coarse_score_bytes and peak_scratch_bytes are parts of it",
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              512,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.1283358605470548,
+            "angle_deg": 0.09951369303348656,
+            "relative_scale": 0.002744110964467583
+          },
+          "route_valid": true,
+          "requested_algorithm_executed": true,
+          "repeat_exact": true,
+          "proposal_counts": [
+            1301
+          ],
+          "gt_evaluated_calls": 3,
+          "device_ms": {
+            "median": 1905.0667708361289,
+            "min": 1893.8980833336245,
+            "max": 1916.2354583386332,
+            "values": [
+              1893.8980833336245,
+              1916.2354583386332
+            ]
+          },
+          "ordered_matches_equal_mode1": true,
+          "ordered_proposals_equal_mode1": true
+        },
+        "hybrid_best_frames": {
+          "method": "hybrid_best",
+          "mode": "frames",
+          "frame_wall_ms": {
+            "median": 2526.241896,
+            "min": 2430.283542,
+            "max": 2622.20025,
+            "values": [
+              2622.20025,
+              2430.283542
+            ]
+          },
+          "total_ms": {
+            "median": 2523.85275,
+            "min": 2427.941209,
+            "max": 2619.764291,
+            "values": [
+              2619.764291,
+              2427.941209
+            ]
+          },
+          "source_update_ms": {
+            "median": 2.3873125,
+            "min": 2.340375,
+            "max": 2.43425,
+            "values": [
+              2.43425,
+              2.340375
+            ]
+          },
+          "pose_create_ms": {
+            "median": 40.0510415,
+            "min": 39.196375,
+            "max": 40.905708,
+            "values": [
+              39.196375,
+              40.905708
+            ]
+          },
+          "source_decode_ms": {
+            "median": 132.38685400000003,
+            "min": 131.966583,
+            "max": 132.807125,
+            "values": [
+              131.966583,
+              132.807125
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "frame_wall_median_ms": 2526.241896,
+              "total_median_ms": 2523.85275,
+              "warmup_calls": 1,
+              "warmup_wall_ms": 2705.1722919999997,
+              "cold_total_ms": 2501.255459,
+              "peak_rss_bytes": 524894208
+            }
+          ],
+          "peak_rss_bytes": 524894208,
+          "sequence_route_valid": true,
+          "cold_calls": 1,
+          "warmup_calls": 1,
+          "measured_calls": 2,
+          "frame_gpu_bytes": [
+            67630166
+          ],
+          "pose_gpu_bytes": [
+            137396944
+          ],
+          "gpu_scope": "frame coarse+fine buffers; pose context buffers listed separately; other owners excluded",
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              512,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.12809542327516896,
+            "angle_deg": 0.09951369303348656,
+            "relative_scale": 0.0027443297876431627
+          },
+          "route_valid": true,
+          "requested_algorithm_executed": true,
+          "repeat_exact": true,
+          "proposal_counts": [
+            1301
+          ],
+          "gt_evaluated_calls": 4,
+          "same_method_output_parity": true
+        },
+        "full_gpu_parallel_frames": {
+          "method": "full_gpu_parallel",
+          "mode": "frames",
+          "frame_wall_ms": {
+            "median": 1872.813958,
+            "min": 1870.434333,
+            "max": 1875.193583,
+            "values": [
+              1875.193583,
+              1870.434333
+            ]
+          },
+          "total_ms": {
+            "median": 1871.4599585,
+            "min": 1869.075292,
+            "max": 1873.844625,
+            "values": [
+              1873.844625,
+              1869.075292
+            ]
+          },
+          "source_update_ms": {
+            "median": 1.340979,
+            "min": 1.335208,
+            "max": 1.34675,
+            "values": [
+              1.335208,
+              1.34675
+            ]
+          },
+          "pose_create_ms": {
+            "median": 0.0,
+            "min": 0,
+            "max": 0,
+            "values": [
+              0,
+              0
+            ]
+          },
+          "source_decode_ms": {
+            "median": 133.3465,
+            "min": 130.926958,
+            "max": 135.766042,
+            "values": [
+              130.926958,
+              135.766042
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "frame_wall_median_ms": 1872.813958,
+              "total_median_ms": 1871.4599585,
+              "warmup_calls": 1,
+              "warmup_wall_ms": 2016.1381669999998,
+              "cold_total_ms": 1881.507333,
+              "peak_rss_bytes": 239697920
+            }
+          ],
+          "peak_rss_bytes": 239697920,
+          "sequence_route_valid": true,
+          "cold_calls": 1,
+          "warmup_calls": 1,
+          "measured_calls": 2,
+          "named_gpu_bytes": [
+            295736576
+          ],
+          "coarse_score_bytes": [
+            36012032
+          ],
+          "peak_scratch_bytes": [
+            25472512
+          ],
+          "peak_batch_maps": [
+            8
+          ],
+          "gpu_scope": "full_gpu.gpu_bytes: all named full-GPU Metal buffers; coarse_score_bytes and peak_scratch_bytes are parts of it",
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              512,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.1283358605470548,
+            "angle_deg": 0.09951369303348656,
+            "relative_scale": 0.002744110964467583
+          },
+          "route_valid": true,
+          "requested_algorithm_executed": true,
+          "repeat_exact": true,
+          "proposal_counts": [
+            1301
+          ],
+          "gt_evaluated_calls": 4,
+          "same_method_output_parity": true,
+          "ordered_matches_equal_mode1": true,
+          "ordered_proposals_equal_mode1": true
+        }
+      },
+      "comparisons": {
+        "full_gpu_parallel_b1_vs_mode1_static": {
+          "baseline": "full_gpu_simd",
+          "candidate": "full_gpu_parallel_b1",
+          "metric": "total_ms",
+          "baseline_median_ms": 2893.383771,
+          "candidate_median_ms": 2051.7823335000003,
+          "delta_ms": -841.6014374999995,
+          "delta_percent": -29.08710022967774,
+          "paired": [
+            {
+              "block": 0,
+              "baseline_ms": 2893.383771,
+              "candidate_ms": 2051.7823335000003,
+              "delta_ms": -841.6014374999995,
+              "delta_percent": -29.08710022967774,
+              "within_regression_budget": true
+            }
+          ],
+          "candidate_faster_blocks": 1,
+          "blocks": 1,
+          "consistent_direction": true,
+          "faster": "full_gpu_parallel_b1"
+        },
+        "full_gpu_parallel_vs_mode1_static": {
+          "baseline": "full_gpu_simd",
+          "candidate": "full_gpu_parallel",
+          "metric": "total_ms",
+          "baseline_median_ms": 2893.383771,
+          "candidate_median_ms": 1907.3078329999998,
+          "delta_ms": -986.075938,
+          "delta_percent": -34.08037149732116,
+          "paired": [
+            {
+              "block": 0,
+              "baseline_ms": 2893.383771,
+              "candidate_ms": 1907.3078329999998,
+              "delta_ms": -986.075938,
+              "delta_percent": -34.08037149732116,
+              "within_regression_budget": true
+            }
+          ],
+          "candidate_faster_blocks": 1,
+          "blocks": 1,
+          "consistent_direction": true,
+          "faster": "full_gpu_parallel",
+          "primary_target_percent": -10.0,
+          "primary_target_met": true
+        },
+        "batch_vs_b1_static": {
+          "baseline": "full_gpu_parallel_b1",
+          "candidate": "full_gpu_parallel",
+          "metric": "total_ms",
+          "baseline_median_ms": 2051.7823335000003,
+          "candidate_median_ms": 1907.3078329999998,
+          "delta_ms": -144.47450050000043,
+          "delta_percent": -7.041414585803107,
+          "paired": [
+            {
+              "block": 0,
+              "baseline_ms": 2051.7823335000003,
+              "candidate_ms": 1907.3078329999998,
+              "delta_ms": -144.47450050000043,
+              "delta_percent": -7.041414585803107,
+              "within_regression_budget": true
+            }
+          ],
+          "candidate_faster_blocks": 1,
+          "blocks": 1,
+          "consistent_direction": true,
+          "faster": "full_gpu_parallel"
+        },
+        "vs_hybrid_frames_frame_wall": {
+          "baseline": "hybrid_best",
+          "candidate": "full_gpu_parallel",
+          "metric": "frame_wall_ms",
+          "baseline_median_ms": 2526.241896,
+          "candidate_median_ms": 1872.813958,
+          "delta_ms": -653.427938,
+          "delta_percent": -25.8656124353976,
+          "paired": [
+            {
+              "block": 0,
+              "baseline_ms": 2526.241896,
+              "candidate_ms": 1872.813958,
+              "delta_ms": -653.427938,
+              "delta_percent": -25.8656124353976,
+              "within_regression_budget": true
+            }
+          ],
+          "candidate_faster_blocks": 1,
+          "blocks": 1,
+          "consistent_direction": true,
+          "faster": "full_gpu_parallel"
+        },
+        "vs_hybrid_frames_run_only": {
+          "baseline": "hybrid_best",
+          "candidate": "full_gpu_parallel",
+          "metric": "total_ms",
+          "baseline_median_ms": 2523.85275,
+          "candidate_median_ms": 1871.4599585,
+          "delta_ms": -652.3927914999999,
+          "delta_percent": -25.849082974432637,
+          "paired": [
+            {
+              "block": 0,
+              "baseline_ms": 2523.85275,
+              "candidate_ms": 1871.4599585,
+              "delta_ms": -652.3927914999999,
+              "delta_percent": -25.849082974432637,
+              "within_regression_budget": true
+            }
+          ],
+          "candidate_faster_blocks": 1,
+          "blocks": 1,
+          "consistent_direction": true,
+          "faster": "full_gpu_parallel"
+        },
+        "vs_hybrid_static_run_only": {
+          "baseline": "hybrid_best",
+          "candidate": "full_gpu_parallel",
+          "metric": "total_ms",
+          "baseline_median_ms": 2362.5097705,
+          "candidate_median_ms": 1907.3078329999998,
+          "delta_ms": -455.2019375,
+          "delta_percent": -19.267727193511732,
+          "paired": [
+            {
+              "block": 0,
+              "baseline_ms": 2362.5097705,
+              "candidate_ms": 1907.3078329999998,
+              "delta_ms": -455.2019375,
+              "delta_percent": -19.267727193511732,
+              "within_regression_budget": true
+            }
+          ],
+          "candidate_faster_blocks": 1,
+          "blocks": 1,
+          "consistent_direction": true,
+          "faster": "full_gpu_parallel"
+        },
+        "mode1_vs_hybrid_static_run_only": {
+          "baseline": "hybrid_best",
+          "candidate": "full_gpu_simd",
+          "metric": "total_ms",
+          "baseline_median_ms": 2362.5097705,
+          "candidate_median_ms": 2893.383771,
+          "delta_ms": 530.8740005,
+          "delta_percent": 22.470764232549456,
+          "paired": [
+            {
+              "block": 0,
+              "baseline_ms": 2362.5097705,
+              "candidate_ms": 2893.383771,
+              "delta_ms": 530.8740005,
+              "delta_percent": 22.470764232549456,
+              "within_regression_budget": false
+            }
+          ],
+          "candidate_faster_blocks": 0,
+          "blocks": 1,
+          "consistent_direction": true,
+          "faster": "hybrid_best"
+        }
+      }
+    },
+    {
+      "name": "controlled6",
+      "truth_count": 6,
+      "refine": true,
+      "frame_warmup_calls": 26,
+      "arms": {
+        "hybrid_best_static": {
+          "method": "hybrid_best",
+          "mode": "static",
+          "total_ms": {
+            "median": 59.50125,
+            "min": 59.358333,
+            "max": 59.644167,
+            "values": [
+              59.358333,
+              59.644167
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "total_median_ms": 59.50125,
+              "first_total_ms": 70.280333,
+              "warmup_calls": 17,
+              "construct_ms": 24.412,
+              "peak_rss_bytes": 39485440
+            }
+          ],
+          "peak_rss_bytes": 39485440,
+          "static_route_valid": true,
+          "cold_calls": 1,
+          "warmup_calls": 17,
+          "measured_calls": 2,
+          "frame_gpu_bytes": [
+            6251337
+          ],
+          "pose_gpu_bytes": [
+            3479808
+          ],
+          "gpu_scope": "frame coarse+fine buffers; pose context buffers listed separately; other owners excluded",
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              6,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.022762758554983418,
+            "angle_deg": 0.0270538330078125,
+            "relative_scale": 0.0019094709532277987
+          },
+          "route_valid": true,
+          "requested_algorithm_executed": true,
+          "repeat_exact": true,
+          "proposal_counts": [
+            15
+          ],
+          "gt_evaluated_calls": 3
+        },
+        "full_gpu_simd_static": {
+          "method": "full_gpu_simd",
+          "mode": "static",
+          "total_ms": {
+            "median": 69.818,
+            "min": 69.392584,
+            "max": 70.243416,
+            "values": [
+              69.392584,
+              70.243416
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "total_median_ms": 69.818,
+              "first_total_ms": 80.572917,
+              "warmup_calls": 15,
+              "construct_ms": 25.164417,
+              "peak_rss_bytes": 28213248
+            }
+          ],
+          "peak_rss_bytes": 28213248,
+          "static_route_valid": true,
+          "cold_calls": 1,
+          "warmup_calls": 15,
+          "measured_calls": 2,
+          "named_gpu_bytes": [
+            6451456
+          ],
+          "coarse_score_bytes": [
+            78592
+          ],
+          "peak_scratch_bytes": [
+            158208
+          ],
+          "peak_batch_maps": [
+            1
+          ],
+          "gpu_scope": "full_gpu.gpu_bytes: all named full-GPU Metal buffers; coarse_score_bytes and peak_scratch_bytes are parts of it",
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              6,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.023096650932816373,
+            "angle_deg": 0.02813720703125,
+            "relative_scale": 0.0019029776255289343
+          },
+          "route_valid": true,
+          "requested_algorithm_executed": true,
+          "repeat_exact": true,
+          "proposal_counts": [
+            15
+          ],
+          "gt_evaluated_calls": 3,
+          "device_ms": {
+            "median": 69.2129791714251,
+            "min": 68.7890833360143,
+            "max": 69.63687500683591,
+            "values": [
+              68.7890833360143,
+              69.63687500683591
+            ]
+          }
+        },
+        "full_gpu_parallel_b1_static": {
+          "method": "full_gpu_parallel_b1",
+          "mode": "static",
+          "total_ms": {
+            "median": 70.9754165,
+            "min": 70.8935,
+            "max": 71.057333,
+            "values": [
+              71.057333,
+              70.8935
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "total_median_ms": 70.9754165,
+              "first_total_ms": 73.401625,
+              "warmup_calls": 15,
+              "construct_ms": 26.850042,
+              "peak_rss_bytes": 28229632
+            }
+          ],
+          "peak_rss_bytes": 28229632,
+          "static_route_valid": true,
+          "cold_calls": 1,
+          "warmup_calls": 15,
+          "measured_calls": 2,
+          "named_gpu_bytes": [
+            7122432
+          ],
+          "coarse_score_bytes": [
+            78592
+          ],
+          "peak_scratch_bytes": [
+            829184
+          ],
+          "peak_batch_maps": [
+            1
+          ],
+          "gpu_scope": "full_gpu.gpu_bytes: all named full-GPU Metal buffers; coarse_score_bytes and peak_scratch_bytes are parts of it",
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              6,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.023096650932816373,
+            "angle_deg": 0.02813720703125,
+            "relative_scale": 0.0019029776255289343
+          },
+          "route_valid": true,
+          "requested_algorithm_executed": true,
+          "repeat_exact": true,
+          "proposal_counts": [
+            15
+          ],
+          "gt_evaluated_calls": 3,
+          "device_ms": {
+            "median": 70.36202082235832,
+            "min": 70.28854166856036,
+            "max": 70.43549997615628,
+            "values": [
+              70.43549997615628,
+              70.28854166856036
+            ]
+          },
+          "ordered_matches_equal_mode1": true,
+          "ordered_proposals_equal_mode1": true
+        },
+        "full_gpu_parallel_static": {
+          "method": "full_gpu_parallel",
+          "mode": "static",
+          "total_ms": {
+            "median": 62.820499999999996,
+            "min": 62.667625,
+            "max": 62.973375,
+            "values": [
+              62.973375,
+              62.667625
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "total_median_ms": 62.820499999999996,
+              "first_total_ms": 65.029042,
+              "warmup_calls": 16,
+              "construct_ms": 25.805542,
+              "peak_rss_bytes": 28164096
+            }
+          ],
+          "peak_rss_bytes": 28164096,
+          "static_route_valid": true,
+          "cold_calls": 1,
+          "warmup_calls": 16,
+          "measured_calls": 2,
+          "named_gpu_bytes": [
+            13473792
+          ],
+          "coarse_score_bytes": [
+            628736
+          ],
+          "peak_scratch_bytes": [
+            6630400
+          ],
+          "peak_batch_maps": [
+            8
+          ],
+          "gpu_scope": "full_gpu.gpu_bytes: all named full-GPU Metal buffers; coarse_score_bytes and peak_scratch_bytes are parts of it",
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              6,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.023096650932816373,
+            "angle_deg": 0.02813720703125,
+            "relative_scale": 0.0019029776255289343
+          },
+          "route_valid": true,
+          "requested_algorithm_executed": true,
+          "repeat_exact": true,
+          "proposal_counts": [
+            15
+          ],
+          "gt_evaluated_calls": 3,
+          "device_ms": {
+            "median": 62.32083334180061,
+            "min": 62.187125004129484,
+            "max": 62.45454167947173,
+            "values": [
+              62.45454167947173,
+              62.187125004129484
+            ]
+          },
+          "ordered_matches_equal_mode1": true,
+          "ordered_proposals_equal_mode1": true
+        },
+        "hybrid_best_frames": {
+          "method": "hybrid_best",
+          "mode": "frames",
+          "frame_wall_ms": {
+            "median": 62.3754585,
+            "min": 61.894917,
+            "max": 62.856,
+            "values": [
+              62.856,
+              61.894917
+            ]
+          },
+          "total_ms": {
+            "median": 62.052042,
+            "min": 61.670375,
+            "max": 62.433709,
+            "values": [
+              62.433709,
+              61.670375
+            ]
+          },
+          "source_update_ms": {
+            "median": 0.322708,
+            "min": 0.223916,
+            "max": 0.4215,
+            "values": [
+              0.4215,
+              0.223916
+            ]
+          },
+          "pose_create_ms": {
+            "median": 1.6253125,
+            "min": 1.601875,
+            "max": 1.64875,
+            "values": [
+              1.601875,
+              1.64875
+            ]
+          },
+          "source_decode_ms": {
+            "median": 3.955083,
+            "min": 3.932541,
+            "max": 3.977625,
+            "values": [
+              3.932541,
+              3.977625
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "frame_wall_median_ms": 62.3754585,
+              "total_median_ms": 62.052042,
+              "warmup_calls": 26,
+              "warmup_wall_ms": 1744.91175,
+              "cold_total_ms": 67.161542,
+              "peak_rss_bytes": 43368448
+            }
+          ],
+          "peak_rss_bytes": 43368448,
+          "sequence_route_valid": true,
+          "cold_calls": 1,
+          "warmup_calls": 26,
+          "measured_calls": 2,
+          "frame_gpu_bytes": [
+            6251337
+          ],
+          "pose_gpu_bytes": [
+            3479808
+          ],
+          "gpu_scope": "frame coarse+fine buffers; pose context buffers listed separately; other owners excluded",
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              6,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.022762758554983418,
+            "angle_deg": 0.0270538330078125,
+            "relative_scale": 0.0019094709532277987
+          },
+          "route_valid": true,
+          "requested_algorithm_executed": true,
+          "repeat_exact": true,
+          "proposal_counts": [
+            15
+          ],
+          "gt_evaluated_calls": 29,
+          "same_method_output_parity": true
+        },
+        "full_gpu_parallel_frames": {
+          "method": "full_gpu_parallel",
+          "mode": "frames",
+          "frame_wall_ms": {
+            "median": 63.344333500000005,
+            "min": 62.9165,
+            "max": 63.772167,
+            "values": [
+              62.9165,
+              63.772167
+            ]
+          },
+          "total_ms": {
+            "median": 63.2931665,
+            "min": 62.86475,
+            "max": 63.721583,
+            "values": [
+              62.86475,
+              63.721583
+            ]
+          },
+          "source_update_ms": {
+            "median": 0.041000499999999995,
+            "min": 0.038834,
+            "max": 0.043167,
+            "values": [
+              0.043167,
+              0.038834
+            ]
+          },
+          "pose_create_ms": {
+            "median": 0.0,
+            "min": 0,
+            "max": 0,
+            "values": [
+              0,
+              0
+            ]
+          },
+          "source_decode_ms": {
+            "median": 4.010790999999999,
+            "min": 4.010541,
+            "max": 4.011041,
+            "values": [
+              4.011041,
+              4.010541
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "frame_wall_median_ms": 63.344333500000005,
+              "total_median_ms": 63.2931665,
+              "warmup_calls": 26,
+              "warmup_wall_ms": 1753.922708,
+              "cold_total_ms": 68.847959,
+              "peak_rss_bytes": 33587200
+            }
+          ],
+          "peak_rss_bytes": 33587200,
+          "sequence_route_valid": true,
+          "cold_calls": 1,
+          "warmup_calls": 26,
+          "measured_calls": 2,
+          "named_gpu_bytes": [
+            13473792
+          ],
+          "coarse_score_bytes": [
+            628736
+          ],
+          "peak_scratch_bytes": [
+            6630400
+          ],
+          "peak_batch_maps": [
+            8
+          ],
+          "gpu_scope": "full_gpu.gpu_bytes: all named full-GPU Metal buffers; coarse_score_bytes and peak_scratch_bytes are parts of it",
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              6,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.023096650932816373,
+            "angle_deg": 0.02813720703125,
+            "relative_scale": 0.0019029776255289343
+          },
+          "route_valid": true,
+          "requested_algorithm_executed": true,
+          "repeat_exact": true,
+          "proposal_counts": [
+            15
+          ],
+          "gt_evaluated_calls": 29,
+          "same_method_output_parity": true,
+          "ordered_matches_equal_mode1": true,
+          "ordered_proposals_equal_mode1": true
+        }
+      },
+      "comparisons": {
+        "full_gpu_parallel_b1_vs_mode1_static": {
+          "baseline": "full_gpu_simd",
+          "candidate": "full_gpu_parallel_b1",
+          "metric": "total_ms",
+          "baseline_median_ms": 69.818,
+          "candidate_median_ms": 70.9754165,
+          "delta_ms": 1.1574164999999965,
+          "delta_percent": 1.6577623249018902,
+          "paired": [
+            {
+              "block": 0,
+              "baseline_ms": 69.818,
+              "candidate_ms": 70.9754165,
+              "delta_ms": 1.1574164999999965,
+              "delta_percent": 1.6577623249018902,
+              "within_regression_budget": true
+            }
+          ],
+          "candidate_faster_blocks": 0,
+          "blocks": 1,
+          "consistent_direction": true,
+          "faster": "full_gpu_simd"
+        },
+        "full_gpu_parallel_vs_mode1_static": {
+          "baseline": "full_gpu_simd",
+          "candidate": "full_gpu_parallel",
+          "metric": "total_ms",
+          "baseline_median_ms": 69.818,
+          "candidate_median_ms": 62.820499999999996,
+          "delta_ms": -6.997500000000002,
+          "delta_percent": -10.022487037726668,
+          "paired": [
+            {
+              "block": 0,
+              "baseline_ms": 69.818,
+              "candidate_ms": 62.820499999999996,
+              "delta_ms": -6.997500000000002,
+              "delta_percent": -10.022487037726668,
+              "within_regression_budget": true
+            }
+          ],
+          "candidate_faster_blocks": 1,
+          "blocks": 1,
+          "consistent_direction": true,
+          "faster": "full_gpu_parallel"
+        },
+        "batch_vs_b1_static": {
+          "baseline": "full_gpu_parallel_b1",
+          "candidate": "full_gpu_parallel",
+          "metric": "total_ms",
+          "baseline_median_ms": 70.9754165,
+          "candidate_median_ms": 62.820499999999996,
+          "delta_ms": -8.154916499999999,
+          "delta_percent": -11.48977618186996,
+          "paired": [
+            {
+              "block": 0,
+              "baseline_ms": 70.9754165,
+              "candidate_ms": 62.820499999999996,
+              "delta_ms": -8.154916499999999,
+              "delta_percent": -11.48977618186996,
+              "within_regression_budget": true
+            }
+          ],
+          "candidate_faster_blocks": 1,
+          "blocks": 1,
+          "consistent_direction": true,
+          "faster": "full_gpu_parallel"
+        },
+        "vs_hybrid_frames_frame_wall": {
+          "baseline": "hybrid_best",
+          "candidate": "full_gpu_parallel",
+          "metric": "frame_wall_ms",
+          "baseline_median_ms": 62.3754585,
+          "candidate_median_ms": 63.344333500000005,
+          "delta_ms": 0.9688750000000041,
+          "delta_percent": 1.5532951954172924,
+          "paired": [
+            {
+              "block": 0,
+              "baseline_ms": 62.3754585,
+              "candidate_ms": 63.344333500000005,
+              "delta_ms": 0.9688750000000041,
+              "delta_percent": 1.5532951954172924,
+              "within_regression_budget": true
+            }
+          ],
+          "candidate_faster_blocks": 0,
+          "blocks": 1,
+          "consistent_direction": true,
+          "faster": "hybrid_best"
+        },
+        "vs_hybrid_frames_run_only": {
+          "baseline": "hybrid_best",
+          "candidate": "full_gpu_parallel",
+          "metric": "total_ms",
+          "baseline_median_ms": 62.052042,
+          "candidate_median_ms": 63.2931665,
+          "delta_ms": 1.241124499999998,
+          "delta_percent": 2.000134822315758,
+          "paired": [
+            {
+              "block": 0,
+              "baseline_ms": 62.052042,
+              "candidate_ms": 63.2931665,
+              "delta_ms": 1.241124499999998,
+              "delta_percent": 2.000134822315758,
+              "within_regression_budget": true
+            }
+          ],
+          "candidate_faster_blocks": 0,
+          "blocks": 1,
+          "consistent_direction": true,
+          "faster": "hybrid_best"
+        },
+        "vs_hybrid_static_run_only": {
+          "baseline": "hybrid_best",
+          "candidate": "full_gpu_parallel",
+          "metric": "total_ms",
+          "baseline_median_ms": 59.50125,
+          "candidate_median_ms": 62.820499999999996,
+          "delta_ms": 3.3192499999999967,
+          "delta_percent": 5.578454234154728,
+          "paired": [
+            {
+              "block": 0,
+              "baseline_ms": 59.50125,
+              "candidate_ms": 62.820499999999996,
+              "delta_ms": 3.3192499999999967,
+              "delta_percent": 5.578454234154728,
+              "within_regression_budget": true
+            }
+          ],
+          "candidate_faster_blocks": 0,
+          "blocks": 1,
+          "consistent_direction": true,
+          "faster": "hybrid_best"
+        },
+        "mode1_vs_hybrid_static_run_only": {
+          "baseline": "hybrid_best",
+          "candidate": "full_gpu_simd",
+          "metric": "total_ms",
+          "baseline_median_ms": 59.50125,
+          "candidate_median_ms": 69.818,
+          "delta_ms": 10.316749999999999,
+          "delta_percent": 17.33871137160985,
+          "paired": [
+            {
+              "block": 0,
+              "baseline_ms": 59.50125,
+              "candidate_ms": 69.818,
+              "delta_ms": 10.316749999999999,
+              "delta_percent": 17.33871137160985,
+              "within_regression_budget": false
+            }
+          ],
+          "candidate_faster_blocks": 0,
+          "blocks": 1,
+          "consistent_direction": true,
+          "faster": "hybrid_best"
+        }
+      }
+    },
+    {
+      "name": "8k_t256_angle180_3scales",
+      "truth_count": 6,
+      "refine": false,
+      "frame_warmup_calls": 23,
+      "arms": {
+        "hybrid_best_static": {
+          "method": "hybrid_best",
+          "mode": "static",
+          "total_ms": {
+            "median": 252.169896,
+            "min": 250.559875,
+            "max": 253.779917,
+            "values": [
+              250.559875,
+              253.779917
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "total_median_ms": 252.169896,
+              "first_total_ms": 257.951959,
+              "warmup_calls": 4,
+              "construct_ms": 26.185375,
+              "peak_rss_bytes": 389021696
+            }
+          ],
+          "peak_rss_bytes": 389021696,
+          "static_route_valid": true,
+          "cold_calls": 1,
+          "warmup_calls": 4,
+          "measured_calls": 2,
+          "frame_gpu_bytes": [
+            109460724
+          ],
+          "pose_gpu_bytes": [
+            0
+          ],
+          "gpu_scope": "frame coarse+fine buffers; pose context buffers listed separately; other owners excluded",
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              6,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.0,
+            "angle_deg": 0.0,
+            "relative_scale": 0.0
+          },
+          "route_valid": true,
+          "requested_algorithm_executed": true,
+          "repeat_exact": true,
+          "proposal_counts": [
+            6
+          ],
+          "gt_evaluated_calls": 3
+        },
+        "full_gpu_simd_static": {
+          "method": "full_gpu_simd",
+          "mode": "static",
+          "total_ms": {
+            "median": 60.2617295,
+            "min": 60.064125,
+            "max": 60.459334,
+            "values": [
+              60.064125,
+              60.459334
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "total_median_ms": 60.2617295,
+              "first_total_ms": 77.765541,
+              "warmup_calls": 17,
+              "construct_ms": 30.440791,
+              "peak_rss_bytes": 293421056
+            }
+          ],
+          "peak_rss_bytes": 293421056,
+          "static_route_valid": true,
+          "cold_calls": 1,
+          "warmup_calls": 17,
+          "measured_calls": 2,
+          "named_gpu_bytes": [
+            169342976
+          ],
+          "coarse_score_bytes": [
+            1965824
+          ],
+          "peak_scratch_bytes": [
+            3939840
+          ],
+          "peak_batch_maps": [
+            1
+          ],
+          "gpu_scope": "full_gpu.gpu_bytes: all named full-GPU Metal buffers; coarse_score_bytes and peak_scratch_bytes are parts of it",
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              6,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.0,
+            "angle_deg": 0.0,
+            "relative_scale": 0.0
+          },
+          "route_valid": true,
+          "requested_algorithm_executed": true,
+          "repeat_exact": true,
+          "proposal_counts": [
+            6
+          ],
+          "gt_evaluated_calls": 3,
+          "device_ms": {
+            "median": 58.23675001738593,
+            "min": 57.96412500785664,
+            "max": 58.50937502691522,
+            "values": [
+              57.96412500785664,
+              58.50937502691522
+            ]
+          }
+        },
+        "full_gpu_parallel_b1_static": {
+          "method": "full_gpu_parallel_b1",
+          "mode": "static",
+          "total_ms": {
+            "median": 59.003229000000005,
+            "min": 58.992375,
+            "max": 59.014083,
+            "values": [
+              59.014083,
+              58.992375
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "total_median_ms": 59.003229000000005,
+              "first_total_ms": 66.04475,
+              "warmup_calls": 18,
+              "construct_ms": 34.009667,
+              "peak_rss_bytes": 293486592
+            }
+          ],
+          "peak_rss_bytes": 293486592,
+          "static_route_valid": true,
+          "cold_calls": 1,
+          "warmup_calls": 18,
+          "measured_calls": 2,
+          "named_gpu_bytes": [
+            167234304
+          ],
+          "coarse_score_bytes": [
+            1965824
+          ],
+          "peak_scratch_bytes": [
+            1831168
+          ],
+          "peak_batch_maps": [
+            1
+          ],
+          "gpu_scope": "full_gpu.gpu_bytes: all named full-GPU Metal buffers; coarse_score_bytes and peak_scratch_bytes are parts of it",
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              6,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.0,
+            "angle_deg": 0.0,
+            "relative_scale": 0.0
+          },
+          "route_valid": true,
+          "requested_algorithm_executed": true,
+          "repeat_exact": true,
+          "proposal_counts": [
+            6
+          ],
+          "gt_evaluated_calls": 3,
+          "device_ms": {
+            "median": 56.65281250549015,
+            "min": 56.49712501326576,
+            "max": 56.808499997714534,
+            "values": [
+              56.808499997714534,
+              56.49712501326576
+            ]
+          },
+          "ordered_matches_equal_mode1": true,
+          "ordered_proposals_equal_mode1": true
+        },
+        "full_gpu_parallel_static": {
+          "method": "full_gpu_parallel",
+          "mode": "static",
+          "total_ms": {
+            "median": 45.8536875,
+            "min": 45.753667,
+            "max": 45.953708,
+            "values": [
+              45.953708,
+              45.753667
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "total_median_ms": 45.8536875,
+              "first_total_ms": 54.445917,
+              "warmup_calls": 22,
+              "construct_ms": 31.995584,
+              "peak_rss_bytes": 293273600
+            }
+          ],
+          "peak_rss_bytes": 293273600,
+          "static_route_valid": true,
+          "cold_calls": 1,
+          "warmup_calls": 22,
+          "measured_calls": 2,
+          "named_gpu_bytes": [
+            193811456
+          ],
+          "coarse_score_bytes": [
+            15726592
+          ],
+          "peak_scratch_bytes": [
+            14647552
+          ],
+          "peak_batch_maps": [
+            8
+          ],
+          "gpu_scope": "full_gpu.gpu_bytes: all named full-GPU Metal buffers; coarse_score_bytes and peak_scratch_bytes are parts of it",
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              6,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.0,
+            "angle_deg": 0.0,
+            "relative_scale": 0.0
+          },
+          "route_valid": true,
+          "requested_algorithm_executed": true,
+          "repeat_exact": true,
+          "proposal_counts": [
+            6
+          ],
+          "gt_evaluated_calls": 3,
+          "device_ms": {
+            "median": 44.41524999856483,
+            "min": 44.34024999500252,
+            "max": 44.49025000212714,
+            "values": [
+              44.49025000212714,
+              44.34024999500252
+            ]
+          },
+          "ordered_matches_equal_mode1": true,
+          "ordered_proposals_equal_mode1": true
+        },
+        "hybrid_best_frames": {
+          "method": "hybrid_best",
+          "mode": "frames",
+          "frame_wall_ms": {
+            "median": 257.4076875,
+            "min": 256.197792,
+            "max": 258.617583,
+            "values": [
+              258.617583,
+              256.197792
+            ]
+          },
+          "total_ms": {
+            "median": 256.0441665,
+            "min": 254.837208,
+            "max": 257.251125,
+            "values": [
+              257.251125,
+              254.837208
+            ]
+          },
+          "source_update_ms": {
+            "median": 1.3626455000000002,
+            "min": 1.359833,
+            "max": 1.365458,
+            "values": [
+              1.365458,
+              1.359833
+            ]
+          },
+          "pose_create_ms": {
+            "median": 0.0,
+            "min": 0,
+            "max": 0,
+            "values": [
+              0,
+              0
+            ]
+          },
+          "source_decode_ms": {
+            "median": 139.96141699999998,
+            "min": 139.612667,
+            "max": 140.310167,
+            "values": [
+              140.310167,
+              139.612667
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "frame_wall_median_ms": 257.4076875,
+              "total_median_ms": 256.0441665,
+              "warmup_calls": 23,
+              "warmup_wall_ms": 9106.299958,
+              "cold_total_ms": 259.494375,
+              "peak_rss_bytes": 524075008
+            }
+          ],
+          "peak_rss_bytes": 524075008,
+          "sequence_route_valid": true,
+          "cold_calls": 1,
+          "warmup_calls": 23,
+          "measured_calls": 2,
+          "frame_gpu_bytes": [
+            109460724
+          ],
+          "pose_gpu_bytes": [
+            0
+          ],
+          "gpu_scope": "frame coarse+fine buffers; pose context buffers listed separately; other owners excluded",
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              6,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.0,
+            "angle_deg": 0.0,
+            "relative_scale": 0.0
+          },
+          "route_valid": true,
+          "requested_algorithm_executed": true,
+          "repeat_exact": true,
+          "proposal_counts": [
+            6
+          ],
+          "gt_evaluated_calls": 26,
+          "same_method_output_parity": true
+        },
+        "full_gpu_parallel_frames": {
+          "method": "full_gpu_parallel",
+          "mode": "frames",
+          "frame_wall_ms": {
+            "median": 48.725271,
+            "min": 48.677042,
+            "max": 48.7735,
+            "values": [
+              48.7735,
+              48.677042
+            ]
+          },
+          "total_ms": {
+            "median": 46.0075,
+            "min": 45.951375,
+            "max": 46.063625,
+            "values": [
+              46.063625,
+              45.951375
+            ]
+          },
+          "source_update_ms": {
+            "median": 2.705146,
+            "min": 2.694083,
+            "max": 2.716209,
+            "values": [
+              2.694083,
+              2.716209
+            ]
+          },
+          "pose_create_ms": {
+            "median": 0.0,
+            "min": 0,
+            "max": 0,
+            "values": [
+              0,
+              0
+            ]
+          },
+          "source_decode_ms": {
+            "median": 104.295062,
+            "min": 97.198208,
+            "max": 111.391916,
+            "values": [
+              97.198208,
+              111.391916
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "frame_wall_median_ms": 48.725271,
+              "total_median_ms": 46.0075,
+              "warmup_calls": 23,
+              "warmup_wall_ms": 3788.657875,
+              "cold_total_ms": 66.290291,
+              "peak_rss_bytes": 428425216
+            }
+          ],
+          "peak_rss_bytes": 428425216,
+          "sequence_route_valid": true,
+          "cold_calls": 1,
+          "warmup_calls": 23,
+          "measured_calls": 2,
+          "named_gpu_bytes": [
+            193811456
+          ],
+          "coarse_score_bytes": [
+            15726592
+          ],
+          "peak_scratch_bytes": [
+            14647552
+          ],
+          "peak_batch_maps": [
+            8
+          ],
+          "gpu_scope": "full_gpu.gpu_bytes: all named full-GPU Metal buffers; coarse_score_bytes and peak_scratch_bytes are parts of it",
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              6,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.0,
+            "angle_deg": 0.0,
+            "relative_scale": 0.0
+          },
+          "route_valid": true,
+          "requested_algorithm_executed": true,
+          "repeat_exact": true,
+          "proposal_counts": [
+            6
+          ],
+          "gt_evaluated_calls": 26,
+          "same_method_output_parity": true,
+          "ordered_matches_equal_mode1": true,
+          "ordered_proposals_equal_mode1": true
+        }
+      },
+      "comparisons": {
+        "full_gpu_parallel_b1_vs_mode1_static": {
+          "baseline": "full_gpu_simd",
+          "candidate": "full_gpu_parallel_b1",
+          "metric": "total_ms",
+          "baseline_median_ms": 60.2617295,
+          "candidate_median_ms": 59.003229000000005,
+          "delta_ms": -1.2585004999999967,
+          "delta_percent": -2.08839094138511,
+          "paired": [
+            {
+              "block": 0,
+              "baseline_ms": 60.2617295,
+              "candidate_ms": 59.003229000000005,
+              "delta_ms": -1.2585004999999967,
+              "delta_percent": -2.08839094138511,
+              "within_regression_budget": true
+            }
+          ],
+          "candidate_faster_blocks": 1,
+          "blocks": 1,
+          "consistent_direction": true,
+          "faster": "full_gpu_parallel_b1"
+        },
+        "full_gpu_parallel_vs_mode1_static": {
+          "baseline": "full_gpu_simd",
+          "candidate": "full_gpu_parallel",
+          "metric": "total_ms",
+          "baseline_median_ms": 60.2617295,
+          "candidate_median_ms": 45.8536875,
+          "delta_ms": -14.408042000000002,
+          "delta_percent": -23.909108018547663,
+          "paired": [
+            {
+              "block": 0,
+              "baseline_ms": 60.2617295,
+              "candidate_ms": 45.8536875,
+              "delta_ms": -14.408042000000002,
+              "delta_percent": -23.909108018547663,
+              "within_regression_budget": true
+            }
+          ],
+          "candidate_faster_blocks": 1,
+          "blocks": 1,
+          "consistent_direction": true,
+          "faster": "full_gpu_parallel"
+        },
+        "batch_vs_b1_static": {
+          "baseline": "full_gpu_parallel_b1",
+          "candidate": "full_gpu_parallel",
+          "metric": "total_ms",
+          "baseline_median_ms": 59.003229000000005,
+          "candidate_median_ms": 45.8536875,
+          "delta_ms": -13.149541500000005,
+          "delta_percent": -22.286138780641995,
+          "paired": [
+            {
+              "block": 0,
+              "baseline_ms": 59.003229000000005,
+              "candidate_ms": 45.8536875,
+              "delta_ms": -13.149541500000005,
+              "delta_percent": -22.286138780641995,
+              "within_regression_budget": true
+            }
+          ],
+          "candidate_faster_blocks": 1,
+          "blocks": 1,
+          "consistent_direction": true,
+          "faster": "full_gpu_parallel"
+        },
+        "vs_hybrid_frames_frame_wall": {
+          "baseline": "hybrid_best",
+          "candidate": "full_gpu_parallel",
+          "metric": "frame_wall_ms",
+          "baseline_median_ms": 257.4076875,
+          "candidate_median_ms": 48.725271,
+          "delta_ms": -208.68241650000002,
+          "delta_percent": -81.0707786262211,
+          "paired": [
+            {
+              "block": 0,
+              "baseline_ms": 257.4076875,
+              "candidate_ms": 48.725271,
+              "delta_ms": -208.68241650000002,
+              "delta_percent": -81.0707786262211,
+              "within_regression_budget": true
+            }
+          ],
+          "candidate_faster_blocks": 1,
+          "blocks": 1,
+          "consistent_direction": true,
+          "faster": "full_gpu_parallel"
+        },
+        "vs_hybrid_frames_run_only": {
+          "baseline": "hybrid_best",
+          "candidate": "full_gpu_parallel",
+          "metric": "total_ms",
+          "baseline_median_ms": 256.0441665,
+          "candidate_median_ms": 46.0075,
+          "delta_ms": -210.03666650000002,
+          "delta_percent": -82.03142034872332,
+          "paired": [
+            {
+              "block": 0,
+              "baseline_ms": 256.0441665,
+              "candidate_ms": 46.0075,
+              "delta_ms": -210.03666650000002,
+              "delta_percent": -82.03142034872332,
+              "within_regression_budget": true
+            }
+          ],
+          "candidate_faster_blocks": 1,
+          "blocks": 1,
+          "consistent_direction": true,
+          "faster": "full_gpu_parallel"
+        },
+        "vs_hybrid_static_run_only": {
+          "baseline": "hybrid_best",
+          "candidate": "full_gpu_parallel",
+          "metric": "total_ms",
+          "baseline_median_ms": 252.169896,
+          "candidate_median_ms": 45.8536875,
+          "delta_ms": -206.3162085,
+          "delta_percent": -81.8163515045428,
+          "paired": [
+            {
+              "block": 0,
+              "baseline_ms": 252.169896,
+              "candidate_ms": 45.8536875,
+              "delta_ms": -206.3162085,
+              "delta_percent": -81.8163515045428,
+              "within_regression_budget": true
+            }
+          ],
+          "candidate_faster_blocks": 1,
+          "blocks": 1,
+          "consistent_direction": true,
+          "faster": "full_gpu_parallel"
+        },
+        "mode1_vs_hybrid_static_run_only": {
+          "baseline": "hybrid_best",
+          "candidate": "full_gpu_simd",
+          "metric": "total_ms",
+          "baseline_median_ms": 252.169896,
+          "candidate_median_ms": 60.2617295,
+          "delta_ms": -191.9081665,
+          "delta_percent": -76.10272659191642,
+          "paired": [
+            {
+              "block": 0,
+              "baseline_ms": 252.169896,
+              "candidate_ms": 60.2617295,
+              "delta_ms": -191.9081665,
+              "delta_percent": -76.10272659191642,
+              "within_regression_budget": true
+            }
+          ],
+          "candidate_faster_blocks": 1,
+          "blocks": 1,
+          "consistent_direction": true,
+          "faster": "full_gpu_simd"
+        }
+      }
+    }
+  ],
+  "failed_gates": [],
+  "all_accuracy_pass": true,
+  "all_routes_pass": true,
+  "all_repeat_exact": true,
+  "all_parallel_exact_mode1": true,
+  "primary_target_met": null,
+  "counts": {
+    "fresh_processes": 24,
+    "cold_calls": 24,
+    "gt_checked_warmup_calls": 104,
+    "native_only_warmup_calls": 136,
+    "measured_calls": 48,
+    "gt_evaluated_calls": 176
+  },
+  "accuracy_thresholds": {
+    "position_px": 2.0,
+    "angle_deg": 1.0,
+    "relative_scale": 0.02
+  },
+  "timing_note": "Static total_ms is the round-40 scope (run only, after a first call and a 1 s warm-up). Frames frame_wall_ms is the round-41 scope: Session::updateSource plus run, excluding decode, comparison and JSON. A faster method is named only when every paired block agrees with the pooled medians. Profile runs carry encoder timestamps and never enter time gates.",
+  "memory_note": "Peak process RSS, named Metal buffer lengths and hybrid pose-context buffers are separate scopes and are never added. coarse_score_bytes (score map or ring) and peak_scratch_bytes are parts of the named Metal total.",
+  "parity_note": "Independent strict GT is evaluated on every first, warm-up (frames) and measured call. Exact ordered matches AND proposals of every peak-mode-2 call against the peak-mode-1 static first call are a separate check."
+}

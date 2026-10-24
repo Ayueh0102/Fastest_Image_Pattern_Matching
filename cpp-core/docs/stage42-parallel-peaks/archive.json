@@ -1,0 +1,89 @@
+{
+  "stage": 42,
+  "date": "2026-10-24",
+  "path_base": "cpp-core/docs/stage42-parallel-peaks",
+  "all_archives_fully_read": true,
+  "source_files": 289,
+  "source_commit": "4b0ad8f4b7dafb37fc91ec1899cdb92a96a08b34",
+  "unique_input_files": 16,
+  "input_bytes_archived_in": "cpp-core/docs/stage40-ncc-closure/fixtures.tar.gz",
+  "artifacts": [
+    {
+      "path": "decision-and-failures.json",
+      "bytes": 17952,
+      "sha256": "cda6e78ffe1655392b4158847217c4d2a1ed35ced91058aae57ab19d15db261d"
+    },
+    {
+      "path": "formal-summary.json",
+      "bytes": 177662,
+      "sha256": "05faf38272e6fa832676dbeaef8fca74fc8a22608204f3d1058540e7185f03d0"
+    },
+    {
+      "path": "holdout-summary.json",
+      "bytes": 76249,
+      "sha256": "68f81a78b4589fff55b014e4fc9aff9765019851c8be5d75c275ea5145c9f6aa"
+    },
+    {
+      "path": "input-sha256.json",
+      "bytes": 2010,
+      "sha256": "917aba4ac5ffab796c767e52ad295a808ade14dd85632a9a9222df0c609e3ac1"
+    },
+    {
+      "path": "pilot-summary.json",
+      "bytes": 77015,
+      "sha256": "80207436a5833ea0074031ec344a926517857f1473024f28254816e4684e144b"
+    },
+    {
+      "path": "profile-summary.json",
+      "bytes": 81202,
+      "sha256": "30a81fe4493c81d3c60f70dad5ca1f3ef35fc38c56159a19d2d6d05363a41f43"
+    },
+    {
+      "path": "protocol.json",
+      "bytes": 12782,
+      "sha256": "3a55e9263ebb3121130c06c1d19d5c7f28b995e38727bb549819dc99c0521fc4"
+    },
+    {
+      "path": "raw-results-formal.tar.gz",
+      "bytes": 76674050,
+      "sha256": "de269de0e05efeb0e79fd22af5c39d49383bdb3c90b31bfcb7755401da502f77",
+      "regular_files": 577,
+      "uncompressed_bytes": 344498987,
+      "all_members_read_and_safe_paths": true
+    },
+    {
+      "path": "raw-results-other.tar.gz",
+      "bytes": 22259700,
+      "sha256": "7675efb120cc7cced6917ed885c2fed12f8f07aa018122d362cbc7fe08e9ada3",
+      "regular_files": 315,
+      "uncompressed_bytes": 103816265,
+      "all_members_read_and_safe_paths": true
+    },
+    {
+      "path": "source-sha256.json",
+      "bytes": 33331,
+      "sha256": "f0f53ea8a958ee8e493ad9dc33275f1d057c4f3c17e8d3af741fd8d5710b5598"
+    },
+    {
+      "path": "source-snapshot.tar.gz",
+      "bytes": 861848,
+      "sha256": "88730f3614035fcbabe784f5d65a7e2b11af36ea6d48219ab8d3effbdd3ec9a1",
+      "regular_files": 290,
+      "uncompressed_bytes": 3606011,
+      "all_members_read_and_safe_paths": true
+    },
+    {
+      "path": "validation-logs.tar.gz",
+      "bytes": 3640161,
+      "sha256": "38a37f3cfaa2d47805e0f2f855c8b77e94af24387551ac817698d48661d3c272",
+      "regular_files": 95,
+      "uncompressed_bytes": 11997449,
+      "all_members_read_and_safe_paths": true
+    },
+    {
+      "path": "validation.json",
+      "bytes": 8995,
+      "sha256": "363b405effb194484133aedf05444e9c16e785c3fe103bc3d38566ac2d5ae86d"
+    }
+  ]
+}
