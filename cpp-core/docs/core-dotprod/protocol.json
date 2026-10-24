@@ -1,0 +1,27 @@
+{
+  "registered_before_timing": "2026-10-24T12:57:31Z",
+  "question": "Does the compile-time UDOT dot-product kernel speed up the stable core's fixed-scale match, with bit-identical outputs?",
+  "builds": {
+    "before": {
+      "dir": "build/dotprod-base",
+      "source": "git archive of HEAD 4a78498 (frozen copy)",
+      "kernel": "widening NEON (UMULL + UADALP)"
+    },
+    "after": {
+      "dir": "build/dotprod-new",
+      "source": "worktree with the UDOT change",
+      "kernel": "UDOT, one accumulator, masked 16-byte tail (candidate 2)"
+    }
+  },
+  "toolchain": "Apple clang 21.0.0, CMAKE_BUILD_TYPE=Release, FPM_WITH_OPENCV=ON, default target-cpu apple-m1 for both builds",
+  "benchmark_modes": "cpp-core/tools/benchmark_modes.py --repeats 9 (one warm-up + 9 measured per mode, fresh process each); sessions interleaved before,after,before,after,before,after; the before sessions run the frozen base copy of the script so source hashes describe the base source",
+  "control": "legacy_cpp mode is the same macos-cli/match_core.cpp source in both builds; its medians track environment drift",
+  "fixture_ab": "cpp-core/tools/benchmark_backend_ab.py --rounds 8 (round 0 warm-up discarded), order alternates per round, 17 compare_versions cases",
+  "metric": "fpm_cli match_ms (excludes image decoding and learning); medians per session; no runs dropped or rerun",
+  "acceptance": "speed is reported, not gated; identity is gated separately by check_backend_identity.py and compare_versions.py",
+  "environment_note": "other Claude sessions may be active on this machine; load averages are recorded per session",
+  "history": "Candidate 1 (two UDOT accumulators + masked tail) was timed first under this same protocol. Its fixture A/B showed Src4 +9.9% (0/7 rounds faster). A pilot of six kernel variants on nine fixtures (selection only, not formal) chose one accumulator + masked tail. Candidate 1's formal results and the pilot are kept; this run is the formal measurement of candidate 2.",
+  "after_binary_sha256": "9dccb46971c7386b6aaeef05ee451ad16110521f552a07009d55e257670974f2",
+  "before_binary_sha256": "e9d84366251fd8c714de471db24c6f006c5eca6255ba08205f4164118bba83c9",
+  "after_ncc_cpp_sha256": "7347afb39a5308c0d10e835db76dbcf9f886fbf8a215be9ff719be7186796702"
+}

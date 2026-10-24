@@ -241,6 +241,8 @@ Python 的 `coarse_step/fine_step/scale/topk_per_level` 接受參數但不參與
 
 目前新 C++ 在這些樣本比舊 macOS C++ 慢，因此本次成果是完整源碼、正確性基準與模組化，**沒有宣稱更快或達到舊版速度**。之後可在保留 scalar 參考路徑下，追加 DOTPROD 的安全分派、FFT 或 pyramid SIMD 最佳化，並用同一份數據驗證。
 
+> 2026-10-24更新：穩定核心已加入編譯期選擇的 UDOT 點積，輸出與原 NEON／scalar 逐位元相同；同一設定下 Src7 為舊版 65.38ms、新版 122.43ms（改之前 138.10ms）。見[DOTPROD點積報告](CORE_DOTPROD_zh-TW.md)。本稽核的表格與文字保留當時原狀。
+
 Python 在 Src2、Src4、Src6、Src10 未通過同一組版本對照門檻；除 Src6 的數量差異外，有些是相同數量但選中不同位置／角度。含對稱或多個高分物件時，不同選擇不必然都屬於誤檢，因此逐筆結果保留於 JSON，不把差異數字直接當成精確率。
 
 重跑方式見 `../README_zh-TW.md`；`tools/compare_versions.py` 遇到缺圖或程式錯誤會失敗，不會悄悄跳過；超出版本對照容許值會以非零 exit code 結束。

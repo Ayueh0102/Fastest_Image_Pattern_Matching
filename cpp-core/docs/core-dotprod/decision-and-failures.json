@@ -1,0 +1,149 @@
+{
+  "adopted": "candidate 2: one UDOT accumulator per 4096-byte chunk + masked 16-byte tail; compile-time __ARM_FEATURE_DOTPROD && __aarch64__",
+  "rejected": [
+    {
+      "variant": "candidate 1: two UDOT accumulators + masked tail",
+      "reason": "formal fixture A/B: Src4 (single level, template width 33) slower in 7/7 rounds",
+      "src4_change_percent": 9.895730202339536,
+      "note": "faster than candidate 2 on Src7 large-template modes (simd -16.6% vs -13.7%); kept in candidate1/"
+    },
+    {
+      "variant": "pilot v2/v3/v5/v6 (scalar tail or tail mask only for >= 4 / >= 8 bytes)",
+      "reason": "pilot only: no gain on Src1 (v2) or Src4 regressions of +19.5..+27.6% (v3, v5, v6); see pilot/"
+    }
+  ],
+  "failures_and_caveats": [
+    "candidate 1 Src4 regression (+9.9%, 0/7 rounds faster) is the reason for the second candidate",
+    "candidate 1 session 2 legacy control median 322.6 ms vs 188.6..199.6 ms elsewhere: environment disturbance, kept",
+    "candidate 2 Src5 eight rotations: -1.9..+0.6%, 3..6/7 rounds faster; no measurable change, not claimed as a speedup",
+    "pilot numbers are selection-only; the kernel was changed after seeing candidate 1 formal results, disclosed in protocol.json history",
+    "other Claude sessions were active on the machine; load averages recorded per session",
+    "only one Apple M4 Pro; Linux/Jetson/Windows-on-ARM and x86 not run"
+  ],
+  "formal_benchmark_modes": {
+    "legacy_cpp": {
+      "before_session_medians_ms": [
+        188.37775,
+        185.892417,
+        185.538875
+      ],
+      "after_session_medians_ms": [
+        189.614333,
+        190.162291,
+        185.053959
+      ],
+      "before_pooled_median_ms": 186.295417,
+      "after_pooled_median_ms": 188.820333,
+      "pooled_change_percent": 1.3553291007690316,
+      "paired_session_change_percent": [
+        0.6564379285770139,
+        2.296959751725658,
+        -0.26135547065271325
+      ],
+      "matches_identical_across_sessions_and_builds": true,
+      "backends": [
+        "legacy build"
+      ]
+    },
+    "portable_scalar": {
+      "before_session_medians_ms": [
+        780.596458,
+        785.827958,
+        783.879875
+      ],
+      "after_session_medians_ms": [
+        782.722167,
+        772.219333,
+        774.288666
+      ],
+      "before_pooled_median_ms": 783.369375,
+      "after_pooled_median_ms": 775.4445,
+      "pooled_change_percent": -1.011639624027938,
+      "paired_session_change_percent": [
+        0.2723185556652963,
+        -1.731756278388863,
+        -1.223555968955059
+      ],
+      "matches_identical_across_sessions_and_builds": true,
+      "backends": [
+        "scalar"
+      ]
+    },
+    "portable_simd": {
+      "before_session_medians_ms": [
+        357.26425,
+        359.342334,
+        359.635958
+      ],
+      "after_session_medians_ms": [
+        311.125291,
+        308.432959,
+        309.59525
+      ],
+      "before_pooled_median_ms": 359.101292,
+      "after_pooled_median_ms": 309.839625,
+      "pooled_change_percent": -13.718042262014475,
+      "paired_session_change_percent": [
+        -12.914518875034375,
+        -14.167374724070225,
+        -13.914267160126403
+      ],
+      "matches_identical_across_sessions_and_builds": true,
+      "backends": [
+        "NEON",
+        "NEON+DOTPROD"
+      ]
+    },
+    "portable_fast": {
+      "before_session_medians_ms": [
+        137.879916,
+        137.178917,
+        137.649417
+      ],
+      "after_session_medians_ms": [
+        122.698875,
+        121.962417,
+        122.819375
+      ],
+      "before_pooled_median_ms": 137.649417,
+      "after_pooled_median_ms": 122.698875,
+      "pooled_change_percent": -10.861318795124287,
+      "paired_session_change_percent": [
+        -11.010335254338276,
+        -11.092447974348719,
+        -10.773777559842479
+      ],
+      "matches_identical_across_sessions_and_builds": true,
+      "backends": [
+        "NEON",
+        "NEON+DOTPROD"
+      ]
+    },
+    "portable_subpixel": {
+      "before_session_medians_ms": [
+        3288.31475,
+        3293.810459,
+        3296.452792
+      ],
+      "after_session_medians_ms": [
+        2780.056083,
+        2763.562333,
+        2762.995
+      ],
+      "before_pooled_median_ms": 3296.231833,
+      "after_pooled_median_ms": 2764.807458,
+      "pooled_change_percent": -16.122178351646287,
+      "paired_session_change_percent": [
+        -15.45650905224325,
+        -16.098319335623923,
+        -16.18278269583059
+      ],
+      "matches_identical_across_sessions_and_builds": true,
+      "backends": [
+        "NEON",
+        "NEON+DOTPROD"
+      ]
+    }
+  },
+  "formal_fixtures_ab_geomean_ratio": 0.9298390344774271
+}

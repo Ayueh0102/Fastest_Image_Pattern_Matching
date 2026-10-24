@@ -1,0 +1,102 @@
+{
+  "date": "2026-10-24",
+  "head_before_change": "4a78498f8ffd7d7eb9d79bb5f85c9fe435b3400e",
+  "gate_log_sha256": "8c2d7db6a735a9e90f94b9ff496854a48365b32f1228cdd64a2af65f98314d09",
+  "final_kernel": {
+    "ncc_cpp_sha256": "7347afb39a5308c0d10e835db76dbcf9f886fbf8a215be9ff719be7186796702",
+    "core_test_sha256": "888571081809d1b2d1686432e4170a6c8b3a41e90a6974b27ed9c5c8aa7a521a",
+    "release_ctest": "3/3 (portable_core, c_abi, opencv_stage_comparison)",
+    "fallback_ctest_march_armv8_a": "3/3, compiledBackend NEON, no UDOT in libfpm_core.a",
+    "asan_ubsan_scalar_ctest": "2/2 (Debug, FPM_SANITIZERS=ON, FPM_DISABLE_SIMD=ON)",
+    "asan_ubsan_udot_ctest": "2/2 (Debug, FPM_SANITIZERS=ON, SIMD on; UDOT present)",
+    "research_ctest": "73/73 (Release, GUI + experiments + OpenCV)",
+    "python_harness": "570 tests OK (unittest discover -p 'test_*.py', FPM_FINE_* builds = research build)",
+    "identity": {
+      "runs": 408,
+      "different_runs": 0,
+      "libraries": [
+        "before_neon",
+        "after_udot",
+        "after_fallback_neon"
+      ],
+      "reference": "before_neon/scalar",
+      "cases": 68,
+      "matches_compared": 724
+    },
+    "compare_versions": {
+      "base": {
+        "outside_tolerance": [],
+        "cases": 17
+      },
+      "new": {
+        "outside_tolerance": [],
+        "cases": 17
+      }
+    },
+    "compare_versions_portable_matches_identical_base_vs_new": 17,
+    "compiled_mutants": {
+      "M0_unmutated": {
+        "exit": 0,
+        "expected_outcome": true
+      },
+      "M1_mask_off_by_one": {
+        "exit": 1,
+        "expected_outcome": true
+      },
+      "M2_one_lane_only": {
+        "exit": 1,
+        "expected_outcome": true
+      },
+      "M3_unmasked_tail": {
+        "exit": 1,
+        "expected_outcome": true
+      },
+      "M4_no_chunk_bound": {
+        "exit": 1,
+        "expected_outcome": true
+      },
+      "M5_tail_counted_twice": {
+        "exit": 1,
+        "expected_outcome": true
+      }
+    }
+  },
+  "candidate1": {
+    "identity": {
+      "runs": 408,
+      "different_runs": 0
+    },
+    "compiled_mutants": {
+      "M0_unmutated": {
+        "exit": 0,
+        "expected_outcome": true
+      },
+      "M1_mask_off_by_one": {
+        "exit": 1,
+        "expected_outcome": true
+      },
+      "M2_drop_odd_accumulator": {
+        "exit": 1,
+        "expected_outcome": true
+      },
+      "M3_unmasked_tail": {
+        "exit": 1,
+        "expected_outcome": true
+      },
+      "M4_no_chunk_bound": {
+        "exit": 1,
+        "expected_outcome": true
+      },
+      "M5_skip_last_block": {
+        "exit": 1,
+        "expected_outcome": true
+      }
+    },
+    "release_ctest": "3/3",
+    "fallback_ctest": "3/3",
+    "asan_ubsan_scalar": "2/2",
+    "asan_ubsan_udot": "2/2",
+    "research_ctest": "73/73",
+    "python_harness": "570 OK"
+  }
+}
