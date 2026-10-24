@@ -311,6 +311,12 @@ int main(int argc,char** argv) {
             auto bankTurn=refine;bankTurn.match.toleranceAngle=180;
             const auto bankBatched=continuous.run(bankTurn);one(bankBatched,66,52);
             auto bankTiled=bankTurn;bankTiled.fullGpuPeakMode=1;same(bankBatched,continuous.run(bankTiled));
+            // The quarter-turn object lies in a later batch of a full turn, so
+            // every batch must use its own maps' configurations.
+            auto quarterTurn=options;quarterTurn.match.toleranceAngle=180;
+            const auto quarterBatched=rotation.run(quarterTurn);one(quarterBatched,48.5,40.5,90.);
+            require(quarterBatched.fullGpu.peakBatchMaps==FG_PEAK_PARALLEL_DEFAULT_MAPS,"Quarter-turn search did not fill the score ring");
+            auto quarterTiled=quarterTurn;quarterTiled.fullGpuPeakMode=1;same(quarterBatched,rotation.run(quarterTiled));
             auto manyTiled=manyLevelOptions;manyTiled.fullGpuPeakMode=1;
             same(manyLevels.run(manyLevelOptions),manyLevels.run(manyTiled));
         }
