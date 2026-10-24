@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: BSD-2-Clause
 #include "research_pipeline.hpp"
+#include "full_gpu_peaks_types.h"
 #include <algorithm>
 #include <cmath>
 #include <iostream>
@@ -77,9 +78,10 @@ void same(const Result& first,const Result& second) {
 }
 int main(int argc,char** argv) {
     try {
-        bool tiled=false,profile=false;int fineMode=0;
+        bool tiled=false,parallel=false,profile=false;int fineMode=0;
         for(int i=1;i<argc;++i) {
             if(std::string(argv[i])=="--tiled") tiled=true;
+            else if(std::string(argv[i])=="--parallel-peaks") parallel=true;
             else if(std::string(argv[i])=="--fine-tiled") fineMode=1;
             else if(std::string(argv[i])=="--fine-mode" && i+1<argc) fineMode=std::stoi(argv[++i]);
             else if(std::string(argv[i])=="--profile") profile=true;
@@ -95,13 +97,15 @@ int main(int argc,char** argv) {
         settings.minReducedArea=256;settings.scales={1.};settings.poseInputMode=1;settings.poseStorageMode=1;
         Session session({padded.data(),source.width(),source.height(),stride},templ.view(),settings);
         Options options;options.refine=false;options.nccMode=2;options.fineNccMode=2;
-        options.fullGpuPeakMode=tiled?1:0;options.fullGpuProfiling=profile;
+        options.fullGpuPeakMode=parallel?2:tiled?1:0;options.fullGpuProfiling=profile;
         options.fullGpuFineMode=fineMode;
         options.fineFused=true;options.fineAngleReuse=true;
         options.match.minScore=.9;options.match.maxTargets=4;options.match.maxOverlap=.2;
         options.match.toleranceAngle=0;options.match.stopLayer=0;
         const auto first=session.run(options);one(first,66,52);
         require(first.fullGpu.peakMode==options.fullGpuPeakMode,"Peak strategy reporting mismatch");
+        require(first.fullGpu.peakBatchMaps==1 && first.fullGpu.coarseScoreBytes>0 &&
+            (first.fullGpu.peakScratchBytes>0)==(parallel||tiled),"Peak batch/score storage reporting mismatch");
         require(first.fullGpu.fineMode==options.fullGpuFineMode,"Fine strategy reporting mismatch");
         require(first.fullGpu.fineEffectiveMode==(fineMode==4 && first.fullGpu.fineSimdWidth!=32 ? 2 : fineMode),
             "Effective fine strategy reporting mismatch");
@@ -274,8 +278,12 @@ int main(int argc,char** argv) {
         invalid([&]{session.run(unsupported);},"full GPU accepted zero target limit");
         unsupported=options;unsupported.match.angleRanges={{30.,20.}};
         invalid([&]{session.run(unsupported);},"full GPU accepted inverted angle range");
-        unsupported=options;unsupported.fullGpuPeakMode=2;
+        unsupported=options;unsupported.fullGpuPeakMode=3;
         invalid([&]{session.run(unsupported);},"full GPU accepted unknown peak mode");
+        unsupported=options;unsupported.fullGpuPeakMode=2;unsupported.fullGpuPeakBatch=17;
+        invalid([&]{session.run(unsupported);},"full GPU accepted a peak batch above 16");
+        unsupported=options;unsupported.fullGpuPeakMode=1;unsupported.fullGpuPeakBatch=4;
+        invalid([&]{session.run(unsupported);},"full GPU accepted a peak batch outside peak mode 2");
         unsupported=options;unsupported.fullGpuFineMode=5;
         invalid([&]{session.run(unsupported);},"full GPU accepted unknown fine mode");
         auto hybridSettings=settings;hybridSettings.fullGpu=false;
@@ -286,6 +294,26 @@ int main(int argc,char** argv) {
         invalid([&]{hybrid.run(unsupported);},"hybrid silently accepted full GPU fine mode");
         unsupported=options;unsupported.fullGpuPeakMode=0;unsupported.fullGpuFineMode=0;unsupported.fullGpuProfiling=true;
         invalid([&]{hybrid.run(unsupported);},"hybrid silently accepted full GPU profiling");
+        if(parallel) {
+            // Batched selection: a full turn needs several ring batches per
+            // model and the bank three models; outputs equal the tiled mode.
+            auto tiledOptions=options;tiledOptions.fullGpuPeakMode=1;
+            same(after,session.run(tiledOptions));
+            auto turnAll=options;turnAll.match.toleranceAngle=180;
+            const auto batched=session.run(turnAll);one(batched,116,92);
+            require(batched.fullGpu.peakBatchMaps==FG_PEAK_PARALLEL_DEFAULT_MAPS,"Full turn did not fill the score ring");
+            auto turnTiled=turnAll;turnTiled.fullGpuPeakMode=1;same(batched,session.run(turnTiled));
+            for(int maps:{1,3,16}) {
+                auto turnBatch=turnAll;turnBatch.fullGpuPeakBatch=maps;
+                const auto result=session.run(turnBatch);same(batched,result);
+                require(result.fullGpu.peakBatchMaps==uint64_t(maps),"Peak batch size not applied");
+            }
+            auto bankTurn=refine;bankTurn.match.toleranceAngle=180;
+            const auto bankBatched=continuous.run(bankTurn);one(bankBatched,66,52);
+            auto bankTiled=bankTurn;bankTiled.fullGpuPeakMode=1;same(bankBatched,continuous.run(bankTiled));
+            auto manyTiled=manyLevelOptions;manyTiled.fullGpuPeakMode=1;
+            same(manyLevels.run(manyLevelOptions),manyLevels.run(manyTiled));
+        }
         same(after,session.run(options));
         std::cout<<"Full Metal pipeline: independent upright/quarter-turn/edge truth, multiscale refinement, empty image, snapshots, updates, residency and invalid options passed\n";
         return 0;

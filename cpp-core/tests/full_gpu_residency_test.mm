@@ -211,7 +211,7 @@ int main() {
                 require(result.matches.size()==objects,label+": unexpected match count");
                 return result;
             };
-            for(bool refine:{false,true}) for(int peak:{0,1}) for(int fine:{0,1,2,3,4}) for(bool profile:{false,true}) {
+            for(bool refine:{false,true}) for(int peak:{0,1,2}) for(int fine:{0,1,2,3,4}) for(bool profile:{false,true}) {
                 auto options=base;options.refine=refine;options.fullGpuPeakMode=peak;options.fullGpuFineMode=fine;options.fullGpuProfiling=profile;
                 run(session,options,"refine"+std::to_string(refine)+"/peak"+std::to_string(peak)+"/fine"+std::to_string(fine)+
                     "/profile"+std::to_string(profile),1);
@@ -230,6 +230,12 @@ int main() {
             for(int fine:{0,4}) for(bool profile:{false,true}) {
                 auto options=tiled;options.match.subpixel=true;options.fullGpuFineMode=fine;options.fullGpuProfiling=profile;
                 run(continuous,options,"scale bank/fine"+std::to_string(fine)+"/profile"+std::to_string(profile),1);
+            }
+            // Peak mode 2 over a full turn: several batched selection dispatches per model.
+            for(int batch:{0,1,16}) for(bool profile:{false,true}) {
+                auto options=tiled;options.fullGpuPeakMode=2;options.fullGpuPeakBatch=batch;options.fullGpuProfiling=profile;
+                options.match.toleranceAngle=180;
+                run(continuous,options,"scale bank/full turn/peak2 batch"+std::to_string(batch)+"/profile"+std::to_string(profile),1);
             }
             [device release];
             std::cout<<"Full Metal residency: interception self-test plus "<<calls<<" pipeline calls with one command buffer, one commit, "
