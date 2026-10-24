@@ -46,6 +46,7 @@
 | 39 | 細搜尋分列快取、實際路徑計數、主假說失敗與stop0補充 | [stage39-fine-tiles](stage39-fine-tiles/)、[報告](GPU_FINE_TILES_zh-TW.md) |
 | 40 | 精確u32／SIMD NCC、負面統計重用、七組保留場景、跨版本與大階段結案 | [stage40-ncc-closure](stage40-ncc-closure/)、[報告](GPU_NCC_CLOSURE_zh-TW.md) |
 | 41 | 每換一張影格的成本：updateSource序列模式、同建置靜態對照與封存估算驗證 | [stage41-new-frame-cost](stage41-new-frame-cost/)、[報告](NEW_FRAME_COST_zh-TW.md) |
+| 43 | 細搜尋前的粗候選去重（改變語意）：全部GT家族、敏感度與消融負控制、兩路徑計時 | [stage43-candidate-dedup](stage43-candidate-dedup/)、[報告](CANDIDATE_DEDUP_zh-TW.md) |
 
 新一輪正式結果由[實驗總索引](EXPERIMENT_REVIEW_zh-TW.md)連接，重新產生機器索引即可列出新增資料。沒有階段對照的目錄保留 `stage: null`，不猜測輪次或把它算成通過項目。
 
@@ -114,3 +115,5 @@ for member in index["members"]:
 第39輪formal／profile保留原設定，stop0-formal／stop0-profile是診斷後新增的單一參數補充，8k-profile說明原8K的分列適用性。主假說的兩項改善失敗與共14個相對混合的速度block失敗均保留；不能把stop0收益算成原128／512加速。完整來源、96組細搜尋差分、計數審查、乾淨重建、離線重播與圖表程式分開封存。
 
 第41輪的protocol與凍結源碼在任何計時前提交；pilot與formal分開保存，pilot只供篩選。每影格arm的冷呼叫、暖機與正式呼叫都在同一份runner輸出內，摘要依protocol的暖機次數切分，沒有另存刪減後的資料。13筆每影格time_budget失敗（含pilot 1筆）保留在摘要與判定檔。輸入檔與第40輪fixtures逐位相同，因此只保存雜湊；獨立稽核腳本、封存重播與最終測試log在validation-logs.tar.gz。
+
+第43輪的protocol與凍結源碼在任何量測前提交，量測前看過的smoke與控制場景迭代寫在protocol的事前揭露中。GT階段（不作計時宣稱）與pilot／formal／profile分成兩個raw封存：raw-results-gt.tar.gz、raw-results-timing.tar.gz，各在100 MB以內。80筆GT退步全部來自k1敏感度與兩個消融負控制arm，正式只有1筆8K混合time_budget失敗，都保留在decision-and-failures.json。突變log、獨立稽核腳本與結果、封存重播與最終測試log在validation-logs.tar.gz。

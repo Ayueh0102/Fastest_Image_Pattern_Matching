@@ -26,45 +26,45 @@
     "metadata": "Filesystem sidecar metadata",
     "other": "No recognized role; inspect manually"
   },
-  "artifact_count": 514,
-  "artifact_bytes": 1641299224,
+  "artifact_count": 529,
+  "artifact_bytes": 1772734621,
   "artifact_role_counts": {
-    "archive": 82,
+    "archive": 86,
     "calibration": 4,
-    "failure_review": 12,
+    "failure_review": 13,
     "false_gate": 52,
-    "formal": 11,
+    "formal": 12,
     "input": 21,
     "other": 43,
-    "pilot": 2,
-    "protocol": 38,
-    "provenance": 47,
-    "raw": 52,
-    "report": 65,
-    "source": 9,
-    "summary": 117,
-    "validation": 74,
+    "pilot": 3,
+    "protocol": 39,
+    "provenance": 50,
+    "raw": 54,
+    "report": 66,
+    "source": 10,
+    "summary": 123,
+    "validation": 76,
     "visual": 68
   },
-  "archive_member_count": 27915,
+  "archive_member_count": 38654,
   "archive_member_role_counts": {
     "archive": 26,
     "binary": 47,
     "calibration": 1,
     "failure_review": 19,
-    "formal": 15145,
-    "input": 583,
-    "metadata": 1292,
-    "other": 1396,
-    "pilot": 3765,
+    "formal": 19029,
+    "input": 590,
+    "metadata": 6526,
+    "other": 2555,
+    "pilot": 3831,
     "protocol": 109,
-    "provenance": 98,
-    "raw": 6098,
-    "report": 77,
-    "source": 9995,
-    "summary": 918,
-    "validation": 662,
-    "visual": 872
+    "provenance": 102,
+    "raw": 8766,
+    "report": 78,
+    "source": 10282,
+    "summary": 938,
+    "validation": 817,
+    "visual": 876
   },
   "artifacts": [
     {
@@ -83,6 +83,16 @@
       "stage": null,
       "bytes": 20514,
       "sha256": "8a837d61c2bf7598a5ea1823fce25f20331555f6e5c2a465f5f963cab625a5b2",
+      "roles": [
+        "report"
+      ]
+    },
+    {
+      "path": "CANDIDATE_DEDUP_zh-TW.md",
+      "group": "root",
+      "stage": null,
+      "bytes": 20653,
+      "sha256": "c5525865d07d5f4a77a4830cad47a281e4b47b7b773beb594aa0c0818dc5621a",
       "roles": [
         "report"
       ]
@@ -141,8 +151,8 @@
       "path": "CURRENT_BEST_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 8760,
-      "sha256": "af26838ae8cb0fee42bbf13a58b762b98f58a7eca00e9cc981178f91b770eef7",
+      "bytes": 9210,
+      "sha256": "0379fe89e9fd6eb0ec04c39a2b78d3798dd61f2a3ea2c263add653a1bd5dea3f",
       "roles": [
         "report"
       ]
@@ -182,8 +192,8 @@
       "path": "EXPERIMENT_REVIEW_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 72324,
-      "sha256": "6682d2378fdee83c7f200f570349672288f16d91d671c53495c6e708c0cd8ce7",
+      "bytes": 75026,
+      "sha256": "e30cb8040cce09ccb635175ada0862dbf4267538ada231260478f217ee54fc1e",
       "roles": [
         "report"
       ]
@@ -322,8 +332,8 @@
       "path": "LOG_CATALOG_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 11596,
-      "sha256": "e71ce11ceb415e7d68b25246419a8cbd44f37a87d37be13887197bfab9e5e6a2",
+      "bytes": 12359,
+      "sha256": "fec4586ba4b7da16790d0a08e36993946ca423413e08c3c24c6babc49e14108c",
       "roles": [
         "report"
       ]
@@ -493,8 +503,8 @@
       "path": "PROJECT_STATUS_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 7396,
-      "sha256": "6434d428f98dcb26963dec182dd65f66c1444e43342fc24453f1b3e41849606b",
+      "bytes": 7965,
+      "sha256": "3a06b23ace70c7b4819b963a49de02dc7e7913ccbb697de0a7b7c154f3c49810",
       "roles": [
         "report"
       ]
@@ -6904,6 +6914,192 @@
       ]
     },
     {
+      "path": "stage43-candidate-dedup/archive.json",
+      "group": "stage43-candidate-dedup",
+      "stage": "43",
+      "bytes": 2489,
+      "sha256": "95875faffb47b1f10c7e808fe564e7f8ecd028922ff6bce9e0f0e0abbac37966",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage43-candidate-dedup/decision-and-failures.json",
+      "group": "stage43-candidate-dedup",
+      "stage": "43",
+      "bytes": 20854,
+      "sha256": "1e76e3ff0bcaf32e2b4084386d44b3188d2acb81af7d0111d19eba90a3751daa",
+      "roles": [
+        "failure_review"
+      ]
+    },
+    {
+      "path": "stage43-candidate-dedup/formal-summary.json",
+      "group": "stage43-candidate-dedup",
+      "stage": "43",
+      "bytes": 42843,
+      "sha256": "744c93fea12e05622d49f43b6e64c4faae842908f4e959a680a1b27c4ec99c44",
+      "roles": [
+        "formal",
+        "summary"
+      ]
+    },
+    {
+      "path": "stage43-candidate-dedup/gt-summary.json",
+      "group": "stage43-candidate-dedup",
+      "stage": "43",
+      "bytes": 1516785,
+      "sha256": "e4552703e09effd5434ae6be573e54e647240aac3f064ba136421be6beebfac3",
+      "roles": [
+        "summary"
+      ]
+    },
+    {
+      "path": "stage43-candidate-dedup/input-sha256.json",
+      "group": "stage43-candidate-dedup",
+      "stage": "43",
+      "bytes": 16663,
+      "sha256": "c45214785c6bf4de0569aaca0aef46b6bd156020d691a0b004c2f816cf715004",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage43-candidate-dedup/pilot-summary.json",
+      "group": "stage43-candidate-dedup",
+      "stage": "43",
+      "bytes": 21276,
+      "sha256": "f775b9f12862a053efd464f05000a1317f80f46dca165987526b7f3810de7cf4",
+      "roles": [
+        "pilot",
+        "summary"
+      ]
+    },
+    {
+      "path": "stage43-candidate-dedup/profile-summary.json",
+      "group": "stage43-candidate-dedup",
+      "stage": "43",
+      "bytes": 8709,
+      "sha256": "f36e0d8e8971408d08f31366c1b494983317df29a366d824f14dfa612378bc9f",
+      "roles": [
+        "summary"
+      ]
+    },
+    {
+      "path": "stage43-candidate-dedup/protocol.json",
+      "group": "stage43-candidate-dedup",
+      "stage": "43",
+      "bytes": 9735,
+      "sha256": "7a5e6d76597aeee7cbaa1b22348eddb6c11c53fab15c470e81c3b392896438f0",
+      "roles": [
+        "protocol"
+      ]
+    },
+    {
+      "path": "stage43-candidate-dedup/raw-results-gt.tar.gz",
+      "group": "stage43-candidate-dedup",
+      "stage": "43",
+      "bytes": 68909825,
+      "sha256": "a605946e61a04ac66b61f408ff99b99a1ce675411874d94d81dc7427d5d1275f",
+      "roles": [
+        "archive",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 9186,
+      "archive_role_counts": {
+        "formal": 3438,
+        "input": 6,
+        "metadata": 4595,
+        "other": 1146,
+        "provenance": 1,
+        "raw": 2292,
+        "visual": 4
+      }
+    },
+    {
+      "path": "stage43-candidate-dedup/raw-results-timing.tar.gz",
+      "group": "stage43-candidate-dedup",
+      "stage": "43",
+      "bytes": 59899680,
+      "sha256": "099c673394efe0fe2033d1e7c63f204e19d253059622b5d2762a11214f340fdc",
+      "roles": [
+        "archive",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 943,
+      "archive_role_counts": {
+        "formal": 445,
+        "metadata": 476,
+        "other": 4,
+        "pilot": 65,
+        "provenance": 3,
+        "raw": 232
+      }
+    },
+    {
+      "path": "stage43-candidate-dedup/source-sha256.json",
+      "group": "stage43-candidate-dedup",
+      "stage": "43",
+      "bytes": 33312,
+      "sha256": "2f4b7bbcca14861926955a3eb8edcbfbe2906d08b1e03467cca12c3a0fe326ff",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage43-candidate-dedup/source-snapshot.tar.gz",
+      "group": "stage43-candidate-dedup",
+      "stage": "43",
+      "bytes": 853275,
+      "sha256": "6f0ff138c1a09864e74bb74ad6dd9e7a36bbac3126bac741b9a4c78dd7ef7458",
+      "roles": [
+        "archive",
+        "source"
+      ],
+      "archive_file_count": 294,
+      "archive_role_counts": {
+        "input": 1,
+        "other": 9,
+        "report": 1,
+        "source": 283,
+        "summary": 18,
+        "validation": 2
+      }
+    },
+    {
+      "path": "stage43-candidate-dedup/validation-logs.tar.gz",
+      "group": "stage43-candidate-dedup",
+      "stage": "43",
+      "bytes": 69462,
+      "sha256": "7e6a83b5db0055d2b5958cfdb3ae6bbfc23e4abe74440454a8f478a18400629a",
+      "roles": [
+        "archive",
+        "validation"
+      ],
+      "archive_file_count": 316,
+      "archive_role_counts": {
+        "formal": 1,
+        "metadata": 163,
+        "pilot": 1,
+        "raw": 144,
+        "source": 4,
+        "summary": 2,
+        "validation": 153
+      }
+    },
+    {
+      "path": "stage43-candidate-dedup/validation.json",
+      "group": "stage43-candidate-dedup",
+      "stage": "43",
+      "bytes": 5352,
+      "sha256": "366515eb61b9bc3b8924a918b364dfcca68e502e8d9917733a3ec73012105ae1",
+      "roles": [
+        "validation"
+      ]
+    },
+    {
       "path": "validation-after-refinement.json",
       "group": "root",
       "stage": null,
@@ -6924,5 +7120,5 @@
       ]
     }
   ],
-  "archive_member_index_sha256": "f6339242a9ab18d23382c82ec8f886a35efadcaf61f272d62122d590fdce144f"
+  "archive_member_index_sha256": "d6546ca9451989484b33d891d7e46c29d34883b6fa44f0cd41aeda0cc7b4f6e2"
 }

@@ -1,0 +1,808 @@
+{
+  "phase": "pilot",
+  "cases": [
+    {
+      "case": "many128_pose",
+      "paths": {
+        "hybrid": {
+          "arms": {
+            "off": {
+              "total_ms": {
+                "median": 835.452083,
+                "min": 827.309625,
+                "max": 874.324708,
+                "values": [
+                  827.309625,
+                  835.452083,
+                  874.324708
+                ]
+              },
+              "block_medians": [
+                835.452083
+              ],
+              "peak_rss_bytes": [
+                238501888
+              ],
+              "gpu_bytes": [
+                null
+              ],
+              "dedup_kept": [
+                42458
+              ],
+              "dedup_input": [
+                42458
+              ],
+              "stages": {
+                "proposal_ms": 765.568416,
+                "refine_ms": 69.794625,
+                "nms_ms": 0.0735
+              },
+              "first_ms": {
+                "median": 891.927667,
+                "min": 891.927667,
+                "max": 891.927667,
+                "values": [
+                  891.927667
+                ]
+              }
+            },
+            "k3": {
+              "total_ms": {
+                "median": 591.879667,
+                "min": 581.866625,
+                "max": 611.659875,
+                "values": [
+                  581.866625,
+                  591.879667,
+                  611.659875
+                ]
+              },
+              "block_medians": [
+                591.879667
+              ],
+              "peak_rss_bytes": [
+                243990528
+              ],
+              "gpu_bytes": [
+                null
+              ],
+              "dedup_kept": [
+                20188
+              ],
+              "dedup_input": [
+                42458
+              ],
+              "stages": {
+                "proposal_ms": 523.892875,
+                "refine_ms": 67.9005,
+                "nms_ms": 0.082542
+              },
+              "first_ms": {
+                "median": 667.642958,
+                "min": 667.642958,
+                "max": 667.642958,
+                "values": [
+                  667.642958
+                ]
+              }
+            }
+          },
+          "k3_versus_off": {
+            "delta_percent": -29.154564451543774,
+            "paired": [
+              {
+                "block": 0,
+                "off_ms": 835.452083,
+                "k3_ms": 591.879667,
+                "delta_percent": -29.154564451543774
+              }
+            ],
+            "consistent_direction": true,
+            "k3_faster_blocks": 1,
+            "blocks": 1
+          }
+        },
+        "full_gpu": {
+          "arms": {
+            "off": {
+              "total_ms": {
+                "median": 804.409666,
+                "min": 802.828167,
+                "max": 804.419166,
+                "values": [
+                  804.409666,
+                  804.419166,
+                  802.828167
+                ]
+              },
+              "block_medians": [
+                804.409666
+              ],
+              "peak_rss_bytes": [
+                95272960
+              ],
+              "gpu_bytes": [
+                122131456
+              ],
+              "dedup_kept": [
+                null
+              ],
+              "dedup_input": [
+                null
+              ],
+              "stages": {
+                "wait_ms": 803.419333,
+                "encode_ms": 0.369875
+              },
+              "first_ms": {
+                "median": 812.442875,
+                "min": 812.442875,
+                "max": 812.442875,
+                "values": [
+                  812.442875
+                ]
+              }
+            },
+            "k3": {
+              "total_ms": {
+                "median": 593.959125,
+                "min": 591.361667,
+                "max": 597.264542,
+                "values": [
+                  597.264542,
+                  591.361667,
+                  593.959125
+                ]
+              },
+              "block_medians": [
+                593.959125
+              ],
+              "peak_rss_bytes": [
+                95256576
+              ],
+              "gpu_bytes": [
+                122349824
+              ],
+              "dedup_kept": [
+                22863
+              ],
+              "dedup_input": [
+                42460
+              ],
+              "stages": {
+                "wait_ms": 592.8145,
+                "encode_ms": 0.684875
+              },
+              "first_ms": {
+                "median": 597.802875,
+                "min": 597.802875,
+                "max": 597.802875,
+                "values": [
+                  597.802875
+                ]
+              }
+            }
+          },
+          "k3_versus_off": {
+            "delta_percent": -26.16210991676473,
+            "paired": [
+              {
+                "block": 0,
+                "off_ms": 804.409666,
+                "k3_ms": 593.959125,
+                "delta_percent": -26.16210991676473
+              }
+            ],
+            "consistent_direction": true,
+            "k3_faster_blocks": 1,
+            "blocks": 1
+          }
+        }
+      }
+    },
+    {
+      "case": "many512_pose",
+      "paths": {
+        "hybrid": {
+          "arms": {
+            "off": {
+              "total_ms": {
+                "median": 2369.839917,
+                "min": 2366.399417,
+                "max": 2427.35425,
+                "values": [
+                  2366.399417,
+                  2427.35425,
+                  2369.839917
+                ]
+              },
+              "block_medians": [
+                2369.839917
+              ],
+              "peak_rss_bytes": [
+                461012992
+              ],
+              "gpu_bytes": [
+                null
+              ],
+              "dedup_kept": [
+                108220
+              ],
+              "dedup_input": [
+                108220
+              ],
+              "stages": {
+                "proposal_ms": 2163.251417,
+                "refine_ms": 205.8895,
+                "nms_ms": 0.597375
+              },
+              "first_ms": {
+                "median": 2670.600459,
+                "min": 2670.600459,
+                "max": 2670.600459,
+                "values": [
+                  2670.600459
+                ]
+              }
+            },
+            "k3": {
+              "total_ms": {
+                "median": 1512.165792,
+                "min": 1501.200875,
+                "max": 1521.09125,
+                "values": [
+                  1512.165792,
+                  1501.200875,
+                  1521.09125
+                ]
+              },
+              "block_medians": [
+                1512.165792
+              ],
+              "peak_rss_bytes": [
+                458850304
+              ],
+              "gpu_bytes": [
+                null
+              ],
+              "dedup_kept": [
+                44795
+              ],
+              "dedup_input": [
+                108220
+              ],
+              "stages": {
+                "proposal_ms": 1305.946125,
+                "refine_ms": 198.266042,
+                "nms_ms": 0.63075
+              },
+              "first_ms": {
+                "median": 1626.841167,
+                "min": 1626.841167,
+                "max": 1626.841167,
+                "values": [
+                  1626.841167
+                ]
+              }
+            }
+          },
+          "k3_versus_off": {
+            "delta_percent": -36.191226202558724,
+            "paired": [
+              {
+                "block": 0,
+                "off_ms": 2369.839917,
+                "k3_ms": 1512.165792,
+                "delta_percent": -36.191226202558724
+              }
+            ],
+            "consistent_direction": true,
+            "k3_faster_blocks": 1,
+            "blocks": 1
+          }
+        },
+        "full_gpu": {
+          "arms": {
+            "off": {
+              "total_ms": {
+                "median": 2835.563583,
+                "min": 2831.864417,
+                "max": 2835.82725,
+                "values": [
+                  2835.563583,
+                  2835.82725,
+                  2831.864417
+                ]
+              },
+              "block_medians": [
+                2835.563583
+              ],
+              "peak_rss_bytes": [
+                172425216
+              ],
+              "gpu_bytes": [
+                247774208
+              ],
+              "dedup_kept": [
+                null
+              ],
+              "dedup_input": [
+                null
+              ],
+              "stages": {
+                "wait_ms": 2834.57525,
+                "encode_ms": 0.387708
+              },
+              "first_ms": {
+                "median": 2841.365083,
+                "min": 2841.365083,
+                "max": 2841.365083,
+                "values": [
+                  2841.365083
+                ]
+              }
+            },
+            "k3": {
+              "total_ms": {
+                "median": 2109.289041,
+                "min": 2103.583333,
+                "max": 2111.235917,
+                "values": [
+                  2109.289041,
+                  2103.583333,
+                  2111.235917
+                ]
+              },
+              "block_medians": [
+                2109.289041
+              ],
+              "peak_rss_bytes": [
+                172113920
+              ],
+              "gpu_bytes": [
+                248207616
+              ],
+              "dedup_kept": [
+                52576
+              ],
+              "dedup_input": [
+                108220
+              ],
+              "stages": {
+                "wait_ms": 2108.292917,
+                "encode_ms": 0.385667
+              },
+              "first_ms": {
+                "median": 2109.436291,
+                "min": 2109.436291,
+                "max": 2109.436291,
+                "values": [
+                  2109.436291
+                ]
+              }
+            }
+          },
+          "k3_versus_off": {
+            "delta_percent": -25.613057889240075,
+            "paired": [
+              {
+                "block": 0,
+                "off_ms": 2835.563583,
+                "k3_ms": 2109.289041,
+                "delta_percent": -25.613057889240075
+              }
+            ],
+            "consistent_direction": true,
+            "k3_faster_blocks": 1,
+            "blocks": 1
+          }
+        }
+      }
+    },
+    {
+      "case": "controlled6",
+      "paths": {
+        "hybrid": {
+          "arms": {
+            "off": {
+              "total_ms": {
+                "median": 58.49425,
+                "min": 57.462042,
+                "max": 58.726792,
+                "values": [
+                  58.49425,
+                  58.726792,
+                  57.462042
+                ]
+              },
+              "block_medians": [
+                58.49425
+              ],
+              "peak_rss_bytes": [
+                40828928
+              ],
+              "gpu_bytes": [
+                null
+              ],
+              "dedup_kept": [
+                2488
+              ],
+              "dedup_input": [
+                2488
+              ],
+              "stages": {
+                "proposal_ms": 42.897917,
+                "refine_ms": 15.417791,
+                "nms_ms": 0.003459
+              },
+              "first_ms": {
+                "median": 67.790667,
+                "min": 67.790667,
+                "max": 67.790667,
+                "values": [
+                  67.790667
+                ]
+              }
+            },
+            "k3": {
+              "total_ms": {
+                "median": 43.242125,
+                "min": 42.53925,
+                "max": 43.511917,
+                "values": [
+                  42.53925,
+                  43.511917,
+                  43.242125
+                ]
+              },
+              "block_medians": [
+                43.242125
+              ],
+              "peak_rss_bytes": [
+                39092224
+              ],
+              "gpu_bytes": [
+                null
+              ],
+              "dedup_kept": [
+                1382
+              ],
+              "dedup_input": [
+                2488
+              ],
+              "stages": {
+                "proposal_ms": 32.075875,
+                "refine_ms": 10.952209,
+                "nms_ms": 0.00525
+              },
+              "first_ms": {
+                "median": 56.353125,
+                "min": 56.353125,
+                "max": 56.353125,
+                "values": [
+                  56.353125
+                ]
+              }
+            }
+          },
+          "k3_versus_off": {
+            "delta_percent": -26.074571432234794,
+            "paired": [
+              {
+                "block": 0,
+                "off_ms": 58.49425,
+                "k3_ms": 43.242125,
+                "delta_percent": -26.074571432234794
+              }
+            ],
+            "consistent_direction": true,
+            "k3_faster_blocks": 1,
+            "blocks": 1
+          }
+        },
+        "full_gpu": {
+          "arms": {
+            "off": {
+              "total_ms": {
+                "median": 70.093459,
+                "min": 69.971667,
+                "max": 70.956459,
+                "values": [
+                  70.956459,
+                  69.971667,
+                  70.093459
+                ]
+              },
+              "block_medians": [
+                70.093459
+              ],
+              "peak_rss_bytes": [
+                28327936
+              ],
+              "gpu_bytes": [
+                6451456
+              ],
+              "dedup_kept": [
+                null
+              ],
+              "dedup_input": [
+                null
+              ],
+              "stages": {
+                "wait_ms": 69.698208,
+                "encode_ms": 0.3455
+              },
+              "first_ms": {
+                "median": 80.838583,
+                "min": 80.838583,
+                "max": 80.838583,
+                "values": [
+                  80.838583
+                ]
+              }
+            },
+            "k3": {
+              "total_ms": {
+                "median": 49.938583,
+                "min": 49.6635,
+                "max": 50.512875,
+                "values": [
+                  50.512875,
+                  49.938583,
+                  49.6635
+                ]
+              },
+              "block_medians": [
+                49.938583
+              ],
+              "peak_rss_bytes": [
+                28327936
+              ],
+              "gpu_bytes": [
+                6494208
+              ],
+              "dedup_kept": [
+                1501
+              ],
+              "dedup_input": [
+                2488
+              ],
+              "stages": {
+                "wait_ms": 48.847125,
+                "encode_ms": 1.0475
+              },
+              "first_ms": {
+                "median": 51.759291,
+                "min": 51.759291,
+                "max": 51.759291,
+                "values": [
+                  51.759291
+                ]
+              }
+            }
+          },
+          "k3_versus_off": {
+            "delta_percent": -28.7542893267687,
+            "paired": [
+              {
+                "block": 0,
+                "off_ms": 70.093459,
+                "k3_ms": 49.938583,
+                "delta_percent": -28.7542893267687
+              }
+            ],
+            "consistent_direction": true,
+            "k3_faster_blocks": 1,
+            "blocks": 1
+          }
+        }
+      }
+    },
+    {
+      "case": "8k_t256_angle180_3scales",
+      "paths": {
+        "hybrid": {
+          "arms": {
+            "off": {
+              "total_ms": {
+                "median": 250.881125,
+                "min": 246.725875,
+                "max": 253.032459,
+                "values": [
+                  246.725875,
+                  250.881125,
+                  253.032459
+                ]
+              },
+              "block_medians": [
+                250.881125
+              ],
+              "peak_rss_bytes": [
+                385400832
+              ],
+              "gpu_bytes": [
+                null
+              ],
+              "dedup_kept": [
+                531
+              ],
+              "dedup_input": [
+                531
+              ],
+              "stages": {
+                "proposal_ms": 250.878375,
+                "refine_ms": 0,
+                "nms_ms": 0.001375
+              },
+              "first_ms": {
+                "median": 270.153708,
+                "min": 270.153708,
+                "max": 270.153708,
+                "values": [
+                  270.153708
+                ]
+              }
+            },
+            "k3": {
+              "total_ms": {
+                "median": 248.501584,
+                "min": 247.272542,
+                "max": 248.940416,
+                "values": [
+                  248.501584,
+                  247.272542,
+                  248.940416
+                ]
+              },
+              "block_medians": [
+                248.501584
+              ],
+              "peak_rss_bytes": [
+                388251648
+              ],
+              "gpu_bytes": [
+                null
+              ],
+              "dedup_kept": [
+                402
+              ],
+              "dedup_input": [
+                531
+              ],
+              "stages": {
+                "proposal_ms": 248.499709,
+                "refine_ms": 0,
+                "nms_ms": 0.001542
+              },
+              "first_ms": {
+                "median": 272.496625,
+                "min": 272.496625,
+                "max": 272.496625,
+                "values": [
+                  272.496625
+                ]
+              }
+            }
+          },
+          "k3_versus_off": {
+            "delta_percent": -0.9484735051311644,
+            "paired": [
+              {
+                "block": 0,
+                "off_ms": 250.881125,
+                "k3_ms": 248.501584,
+                "delta_percent": -0.9484735051311644
+              }
+            ],
+            "consistent_direction": true,
+            "k3_faster_blocks": 1,
+            "blocks": 1
+          }
+        },
+        "full_gpu": {
+          "arms": {
+            "off": {
+              "total_ms": {
+                "median": 60.094417,
+                "min": 59.867833,
+                "max": 60.181625,
+                "values": [
+                  59.867833,
+                  60.181625,
+                  60.094417
+                ]
+              },
+              "block_medians": [
+                60.094417
+              ],
+              "peak_rss_bytes": [
+                293339136
+              ],
+              "gpu_bytes": [
+                169342976
+              ],
+              "dedup_kept": [
+                null
+              ],
+              "dedup_input": [
+                null
+              ],
+              "stages": {
+                "wait_ms": 58.748709,
+                "encode_ms": 0.305667
+              },
+              "first_ms": {
+                "median": 78.510417,
+                "min": 78.510417,
+                "max": 78.510417,
+                "values": [
+                  78.510417
+                ]
+              }
+            },
+            "k3": {
+              "total_ms": {
+                "median": 59.366334,
+                "min": 59.35275,
+                "max": 60.814792,
+                "values": [
+                  59.366334,
+                  59.35275,
+                  60.814792
+                ]
+              },
+              "block_medians": [
+                59.366334
+              ],
+              "peak_rss_bytes": [
+                293568512
+              ],
+              "gpu_bytes": [
+                169351936
+              ],
+              "dedup_kept": [
+                418
+              ],
+              "dedup_input": [
+                530
+              ],
+              "stages": {
+                "wait_ms": 57.988458,
+                "encode_ms": 0.331125
+              },
+              "first_ms": {
+                "median": 68.367208,
+                "min": 68.367208,
+                "max": 68.367208,
+                "values": [
+                  68.367208
+                ]
+              }
+            }
+          },
+          "k3_versus_off": {
+            "delta_percent": -1.2115651275891315,
+            "paired": [
+              {
+                "block": 0,
+                "off_ms": 60.094417,
+                "k3_ms": 59.366334,
+                "delta_percent": -1.2115651275891315
+              }
+            ],
+            "consistent_direction": true,
+            "k3_faster_blocks": 1,
+            "blocks": 1
+          }
+        }
+      }
+    }
+  ],
+  "failures": [],
+  "gates": {
+    "speed_target": "-10% pooled median with 6/6 block direction on many128_pose,many512_pose",
+    "time_budget": "each block k3 <= off + max(2 ms, 10%) on other cases",
+    "rss": "each block k3 <= off + max(8 MiB, 10%)"
+  },
+  "manifest_sha256": "06aaba0450a833eaf01f5fa6838e2901b187fa2e434ad4174b1289007ce8e1ff"
+}

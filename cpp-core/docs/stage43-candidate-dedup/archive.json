@@ -1,0 +1,72 @@
+{
+ "stage": 43,
+ "report": "../CANDIDATE_DEDUP_zh-TW.md",
+ "files": {
+  "decision-and-failures.json": {
+   "bytes": 20854,
+   "sha256": "1e76e3ff0bcaf32e2b4084386d44b3188d2acb81af7d0111d19eba90a3751daa",
+   "role": "decision and every failed gate"
+  },
+  "formal-summary.json": {
+   "bytes": 42843,
+   "sha256": "744c93fea12e05622d49f43b6e64c4faae842908f4e959a680a1b27c4ec99c44",
+   "role": "formal timing summary"
+  },
+  "gt-summary.json": {
+   "bytes": 1516785,
+   "sha256": "e4552703e09effd5434ae6be573e54e647240aac3f064ba136421be6beebfac3",
+   "role": "GT summary"
+  },
+  "input-sha256.json": {
+   "bytes": 16663,
+   "sha256": "c45214785c6bf4de0569aaca0aef46b6bd156020d691a0b004c2f816cf715004",
+   "role": "input image hashes"
+  },
+  "pilot-summary.json": {
+   "bytes": 21276,
+   "sha256": "f775b9f12862a053efd464f05000a1317f80f46dca165987526b7f3810de7cf4",
+   "role": "pilot summary (screening only)"
+  },
+  "profile-summary.json": {
+   "bytes": 8709,
+   "sha256": "f36e0d8e8971408d08f31366c1b494983317df29a366d824f14dfa612378bc9f",
+   "role": "GPU encoder profile summary"
+  },
+  "protocol.json": {
+   "bytes": 9735,
+   "sha256": "7a5e6d76597aeee7cbaa1b22348eddb6c11c53fab15c470e81c3b392896438f0",
+   "role": "pre-registered protocol"
+  },
+  "raw-results-gt.tar.gz": {
+   "bytes": 68909825,
+   "sha256": "a605946e61a04ac66b61f408ff99b99a1ce675411874d94d81dc7427d5d1275f",
+   "role": "GT phase manifest, jobs, stdout, results and control-scene inputs"
+  },
+  "raw-results-timing.tar.gz": {
+   "bytes": 59899680,
+   "sha256": "099c673394efe0fe2033d1e7c63f204e19d253059622b5d2762a11214f340fdc",
+   "role": "pilot, formal and profile manifests, jobs, stdout and results"
+  },
+  "source-sha256.json": {
+   "bytes": 33312,
+   "sha256": "2f4b7bbcca14861926955a3eb8edcbfbe2906d08b1e03467cca12c3a0fe326ff",
+   "role": "per-file hashes of the snapshot"
+  },
+  "source-snapshot.tar.gz": {
+   "bytes": 853275,
+   "sha256": "6f0ff138c1a09864e74bb74ad6dd9e7a36bbac3126bac741b9a4c78dd7ef7458",
+   "role": "frozen sources of 5d1d1ac"
+  },
+  "validation-logs.tar.gz": {
+   "bytes": 69462,
+   "sha256": "7e6a83b5db0055d2b5958cfdb3ae6bbfc23e4abe74440454a8f478a18400629a",
+   "role": "validation logs, mutant logs, audit script/result, replay log, run scripts"
+  },
+  "validation.json": {
+   "bytes": 5352,
+   "sha256": "366515eb61b9bc3b8924a918b364dfcca68e502e8d9917733a3ec73012105ae1",
+   "role": "builds, tests, mutants, audit and replay"
+  }
+ },
+ "limits": "Each file below 100 MB (GitHub limit)."
+}

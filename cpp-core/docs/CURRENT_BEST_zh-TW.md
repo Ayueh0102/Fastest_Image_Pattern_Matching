@@ -1,6 +1,6 @@
 # 目前建議使用的方案
 
-更新：2026-10-19，Apple M4 Pro／48 GiB。這是依已測場景選型的指南，不是通用最快或完整實拍驗收證明。第一次閱讀請先看[專案導覽](../../docs/PROJECT_GUIDE_zh-TW.md)。第1–34輪詳細數字已移至[歷史建議](CURRENT_BEST_HISTORY_zh-TW.md)，避免把當年的「下一步」誤認成現在的待辦。
+更新：2026-10-24，Apple M4 Pro／48 GiB。這是依已測場景選型的指南，不是通用最快或完整實拍驗收證明。第一次閱讀請先看[專案導覽](../../docs/PROJECT_GUIDE_zh-TW.md)。第1–34輪詳細數字已移至[歷史建議](CURRENT_BEST_HISTORY_zh-TW.md)，避免把當年的「下一步」誤認成現在的待辦。
 
 ## 依使用場景選擇
 
@@ -15,6 +15,7 @@
 | 定位後找顏色不同的物件 | RGB NCC與線性色度為研究選項 | RGB NCC不保證異色可分；色度會受白平衡影響，實拍漏搜也無法由後段修復 |
 | 粗搜尋正規化與選峰留在GPU | `coarse_peak_mode=2`僅供研究，維持`1`為建議值 | 第36輪8K少物件快26.4%，128／512物件耗時約6／11倍；完整源碼與失敗保留 |
 | 完整灰階搜尋留在GPU | 研究設定選`full_gpu=true, full_gpu_peak_mode=1, full_gpu_fine_mode=4` | [第40輪](GPU_NCC_CLOSURE_zh-TW.md)：128／512對本輪GPU基線再少16.3%／15.4%；128接近混合，512仍比混合多17.3%時間，8K少物件GPU有明顯優勢；不含RGB與稀疏路徑 |
+| 大量相同物件、可接受輸出不逐位相同 | 研究選項`candidate_dedup_top_k=3`（radius 0.5、angle_steps 3），混合或完整GPU皆可 | [第43輪](CANDIDATE_DEDUP_zh-TW.md)：本輪112／79個GT案例變體零GT退步，128／512物件混合少30.4%／37.0%、完整GPU少26.1%／25.7%；會改變語意，matches不保證與基線相同。k1會失去物件；對稱週期小於3個粗角度步的模板未驗證。預設仍為0 |
 | 同模板持續輸入新影格 | `Session::updateSource` | 保留模板與frame容量，每個Session同時只供一位呼叫者；不是直接重用舊影格金字塔。混合每次換影格會重建pose context（[第41輪](NEW_FRAME_COST_zh-TW.md)128約20ms、512約40ms） |
 
 > 2026-10-19更正：上表完整GPU對混合的比較中，混合正式呼叫重用首次建立的pose context；加回後fine4在128約快4%，512仍以混合較快。8K是常數背景上6個0°、尺度1的完全複本，屬精度鑑別力低的速度負載。見[第40輪報告文末更正](GPU_NCC_CLOSURE_zh-TW.md)。

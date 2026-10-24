@@ -1,0 +1,1019 @@
+{
+ "stage": 43,
+ "primary": "k3 (top_k 3, radius 0.5, angle_steps 3)",
+ "semantics": "Semantics-changing research option; outputs are not claimed equal to the baseline. Defaults stay top_k=0.",
+ "gt_neutral": {
+  "hybrid": true,
+  "full_gpu": true
+ },
+ "speed_target_met": {
+  "hybrid": true,
+  "full_gpu": true
+ },
+ "suitable_for_tested_scenarios": {
+  "hybrid": true,
+  "full_gpu": true
+ },
+ "scope": "Suitable means: GT-neutral on all 112 hybrid / 79 full-GPU case variants of this round and the pre-registered speed target on many128/many512. It is not a default and not a claim for untested scenes (e.g. templates with symmetry periods under three coarse angle steps).",
+ "default_change": false,
+ "formal": {
+  "many128_pose": {
+   "hybrid": {
+    "off_ms": 835.6102295000001,
+    "k3_ms": 581.673167,
+    "delta_percent": -30.389415248296693,
+    "k3_faster_blocks": 6,
+    "blocks": 6,
+    "consistent_direction": true
+   },
+   "full_gpu": {
+    "off_ms": 802.4249374999999,
+    "k3_ms": 593.3237294999999,
+    "delta_percent": -26.058662714479762,
+    "k3_faster_blocks": 6,
+    "blocks": 6,
+    "consistent_direction": true
+   }
+  },
+  "many512_pose": {
+   "hybrid": {
+    "off_ms": 2407.5067295,
+    "k3_ms": 1516.6544165,
+    "delta_percent": -37.00310790761592,
+    "k3_faster_blocks": 6,
+    "blocks": 6,
+    "consistent_direction": true
+   },
+   "full_gpu": {
+    "off_ms": 2835.042375,
+    "k3_ms": 2105.871125,
+    "delta_percent": -25.719941840375483,
+    "k3_faster_blocks": 6,
+    "blocks": 6,
+    "consistent_direction": true
+   }
+  },
+  "controlled6": {
+   "hybrid": {
+    "off_ms": 58.842312,
+    "k3_ms": 43.6414165,
+    "delta_percent": -25.83327368238012,
+    "k3_faster_blocks": 6,
+    "blocks": 6,
+    "consistent_direction": true
+   },
+   "full_gpu": {
+    "off_ms": 70.1340215,
+    "k3_ms": 48.987333500000005,
+    "delta_percent": -30.15182581537834,
+    "k3_faster_blocks": 6,
+    "blocks": 6,
+    "consistent_direction": true
+   }
+  },
+  "8k_t256_angle180_3scales": {
+   "hybrid": {
+    "off_ms": 251.7456875,
+    "k3_ms": 251.5135,
+    "delta_percent": -0.0922309741651528,
+    "k3_faster_blocks": 3,
+    "blocks": 6,
+    "consistent_direction": false
+   },
+   "full_gpu": {
+    "off_ms": 59.866125,
+    "k3_ms": 59.357792,
+    "delta_percent": -0.8491162573157962,
+    "k3_faster_blocks": 5,
+    "blocks": 6,
+    "consistent_direction": false
+   }
+  }
+ },
+ "sensitivity": {
+  "k3": {
+   "hybrid": {
+    "regressions": 0,
+    "tp_delta": 0,
+    "fp_delta": 0,
+    "kept_fraction": 0.46742293163016085
+   },
+   "full_gpu": {
+    "regressions": 0,
+    "tp_delta": 0,
+    "fp_delta": 0,
+    "kept_fraction": 0.5309289964389816
+   }
+  },
+  "k2": {
+   "hybrid": {
+    "regressions": 0,
+    "tp_delta": 0,
+    "fp_delta": 0,
+    "kept_fraction": 0.3020771323500776
+   },
+   "full_gpu": {
+    "regressions": 0,
+    "tp_delta": 0,
+    "fp_delta": 0,
+    "kept_fraction": 0.30879258378595914
+   }
+  },
+  "k1": {
+   "hybrid": {
+    "regressions": 6,
+    "tp_delta": -6,
+    "fp_delta": 5,
+    "kept_fraction": 0.14703215146069668
+   },
+   "full_gpu": {
+    "regressions": 4,
+    "tp_delta": -4,
+    "fp_delta": 3,
+    "kept_fraction": 0.14760584216738912
+   }
+  },
+  "k1_position_only": {
+   "hybrid": {
+    "regressions": 20,
+    "tp_delta": -44,
+    "fp_delta": 27,
+    "kept_fraction": 0.08370006064213906
+   },
+   "full_gpu": {
+    "regressions": 18,
+    "tp_delta": -42,
+    "fp_delta": 25,
+    "kept_fraction": 0.08068051869286677
+   }
+  },
+  "k1_wide_radius": {
+   "hybrid": {
+    "regressions": 17,
+    "tp_delta": -53,
+    "fp_delta": 8,
+    "kept_fraction": 0.04431187862670591
+   },
+   "full_gpu": {
+    "regressions": 15,
+    "tp_delta": -51,
+    "fp_delta": 6,
+    "kept_fraction": 0.043520094318099695
+   }
+  }
+ },
+ "negative_controls": {
+  "k1_position_only": {
+   "hybrid": {
+    "case": "sym_marker12",
+    "demonstrated": true
+   },
+   "full_gpu": {
+    "case": "sym_marker12",
+    "demonstrated": true
+   }
+  },
+  "k1_wide_radius": {
+   "hybrid": {
+    "case": "adjacent_grid16",
+    "demonstrated": true
+   },
+   "full_gpu": {
+    "case": "adjacent_grid16",
+    "demonstrated": true
+   }
+  }
+ },
+ "output_identity": {
+  "hybrid": {
+   "matches_identical": 97,
+   "proposals_identical": 74,
+   "cases": 112
+  },
+  "full_gpu": {
+   "matches_identical": 67,
+   "proposals_identical": 44,
+   "cases": 79
+  }
+ },
+ "failures": {
+  "gt": [
+   {
+    "gate": "gt_regression",
+    "case": "many128_pose",
+    "path": "hybrid",
+    "arm": "k1_position_only",
+    "role": "pass",
+    "tp": -1,
+    "fp": 1,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "many128_pose",
+    "path": "full_gpu",
+    "arm": "k1_position_only",
+    "role": "pass",
+    "tp": -1,
+    "fp": 1,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "many512_pose",
+    "path": "hybrid",
+    "arm": "k1_position_only",
+    "role": "pass",
+    "tp": -4,
+    "fp": 4,
+    "fn": 4
+   },
+   {
+    "gate": "gt_regression",
+    "case": "many512_pose",
+    "path": "full_gpu",
+    "arm": "k1_position_only",
+    "role": "pass",
+    "tp": -4,
+    "fp": 4,
+    "fn": 4
+   },
+   {
+    "gate": "gt_regression",
+    "case": "many128_holdout",
+    "path": "hybrid",
+    "arm": "k1",
+    "role": "pass",
+    "tp": -1,
+    "fp": 1,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "many128_holdout",
+    "path": "hybrid",
+    "arm": "k1_position_only",
+    "role": "pass",
+    "tp": -1,
+    "fp": 1,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "many128_holdout",
+    "path": "hybrid",
+    "arm": "k1_wide_radius",
+    "role": "pass",
+    "tp": -1,
+    "fp": 1,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "many128_holdout",
+    "path": "full_gpu",
+    "arm": "k1",
+    "role": "pass",
+    "tp": -1,
+    "fp": 1,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "many128_holdout",
+    "path": "full_gpu",
+    "arm": "k1_position_only",
+    "role": "pass",
+    "tp": -1,
+    "fp": 1,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "many128_holdout",
+    "path": "full_gpu",
+    "arm": "k1_wide_radius",
+    "role": "pass",
+    "tp": -1,
+    "fp": 1,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "many512_holdout",
+    "path": "hybrid",
+    "arm": "k1_position_only",
+    "role": "pass",
+    "tp": -3,
+    "fp": 3,
+    "fn": 3
+   },
+   {
+    "gate": "gt_regression",
+    "case": "many512_holdout",
+    "path": "full_gpu",
+    "arm": "k1_position_only",
+    "role": "pass",
+    "tp": -3,
+    "fp": 3,
+    "fn": 3
+   },
+   {
+    "gate": "gt_regression",
+    "case": "many128_pose_stop0",
+    "path": "hybrid",
+    "arm": "k1_position_only",
+    "role": "pass",
+    "tp": -1,
+    "fp": 1,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "many128_pose_stop0",
+    "path": "full_gpu",
+    "arm": "k1_position_only",
+    "role": "pass",
+    "tp": -1,
+    "fp": 1,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "many512_pose_stop0",
+    "path": "hybrid",
+    "arm": "k1_position_only",
+    "role": "pass",
+    "tp": -4,
+    "fp": 4,
+    "fn": 4
+   },
+   {
+    "gate": "gt_regression",
+    "case": "many512_pose_stop0",
+    "path": "full_gpu",
+    "arm": "k1_position_only",
+    "role": "pass",
+    "tp": -4,
+    "fp": 4,
+    "fn": 4
+   },
+   {
+    "gate": "gt_regression",
+    "case": "development_occlusion",
+    "path": "hybrid",
+    "arm": "k1_position_only",
+    "role": "known_failure",
+    "tp": -1,
+    "fp": 1,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "development_occlusion",
+    "path": "full_gpu",
+    "arm": "k1_position_only",
+    "role": "known_failure",
+    "tp": -1,
+    "fp": 1,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "development_contact",
+    "path": "hybrid",
+    "arm": "k1_wide_radius",
+    "role": "adjacent",
+    "tp": -2,
+    "fp": 1,
+    "fn": 2
+   },
+   {
+    "gate": "gt_regression",
+    "case": "development_contact",
+    "path": "full_gpu",
+    "arm": "k1_wide_radius",
+    "role": "adjacent",
+    "tp": -2,
+    "fp": 1,
+    "fn": 2
+   },
+   {
+    "gate": "gt_regression",
+    "case": "heldout_contact",
+    "path": "hybrid",
+    "arm": "k1_position_only",
+    "role": "adjacent",
+    "tp": -2,
+    "fp": 2,
+    "fn": 2
+   },
+   {
+    "gate": "gt_regression",
+    "case": "heldout_contact",
+    "path": "hybrid",
+    "arm": "k1_wide_radius",
+    "role": "adjacent",
+    "tp": -2,
+    "fp": 1,
+    "fn": 2
+   },
+   {
+    "gate": "gt_regression",
+    "case": "heldout_contact",
+    "path": "full_gpu",
+    "arm": "k1_position_only",
+    "role": "adjacent",
+    "tp": -2,
+    "fp": 2,
+    "fn": 2
+   },
+   {
+    "gate": "gt_regression",
+    "case": "heldout_contact",
+    "path": "full_gpu",
+    "arm": "k1_wide_radius",
+    "role": "adjacent",
+    "tp": -2,
+    "fp": 1,
+    "fn": 2
+   },
+   {
+    "gate": "gt_regression",
+    "case": "blender_changed_light",
+    "path": "hybrid",
+    "arm": "k1_position_only",
+    "role": "pass",
+    "tp": -1,
+    "fp": 1,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "blender_changed_light",
+    "path": "full_gpu",
+    "arm": "k1_position_only",
+    "role": "pass",
+    "tp": -1,
+    "fp": 1,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "many512_pose_fullres_subpixel",
+    "path": "hybrid",
+    "arm": "k1_position_only",
+    "role": "pass",
+    "tp": -4,
+    "fp": 4,
+    "fn": 4
+   },
+   {
+    "gate": "gt_regression",
+    "case": "many512_pose_fullres_subpixel",
+    "path": "full_gpu",
+    "arm": "k1_position_only",
+    "role": "pass",
+    "tp": -4,
+    "fp": 4,
+    "fn": 4
+   },
+   {
+    "gate": "gt_regression",
+    "case": "degraded12",
+    "path": "hybrid",
+    "arm": "k1_position_only",
+    "role": "known_failure",
+    "tp": -3,
+    "fp": 2,
+    "fn": 3
+   },
+   {
+    "gate": "gt_regression",
+    "case": "degraded12",
+    "path": "full_gpu",
+    "arm": "k1_position_only",
+    "role": "known_failure",
+    "tp": -3,
+    "fp": 2,
+    "fn": 3
+   },
+   {
+    "gate": "gt_regression",
+    "case": "s34_Dst10-2026101701-0-legacy_linear",
+    "path": "hybrid",
+    "arm": "k1",
+    "role": "small_template",
+    "tp": -1,
+    "fp": 1,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "s34_Dst10-2026101701-0-legacy_linear",
+    "path": "hybrid",
+    "arm": "k1_position_only",
+    "role": "small_template",
+    "tp": -1,
+    "fp": 1,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "s34_Dst10-2026101701-0-legacy_linear",
+    "path": "hybrid",
+    "arm": "k1_wide_radius",
+    "role": "small_template",
+    "tp": -1,
+    "fp": 1,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "s34_Dst10-2026101701-0-legacy_linear",
+    "path": "full_gpu",
+    "arm": "k1",
+    "role": "small_template",
+    "tp": -1,
+    "fp": 1,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "s34_Dst10-2026101701-0-legacy_linear",
+    "path": "full_gpu",
+    "arm": "k1_position_only",
+    "role": "small_template",
+    "tp": -1,
+    "fp": 1,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "s34_Dst10-2026101701-0-legacy_linear",
+    "path": "full_gpu",
+    "arm": "k1_wide_radius",
+    "role": "small_template",
+    "tp": -1,
+    "fp": 1,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "s34_Dst10-2026101701-0-legacy_linear+support",
+    "path": "hybrid",
+    "arm": "k1",
+    "role": "small_template",
+    "tp": -1,
+    "fp": 1,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "s34_Dst10-2026101701-0-legacy_linear+support",
+    "path": "hybrid",
+    "arm": "k1_position_only",
+    "role": "small_template",
+    "tp": -1,
+    "fp": 1,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "s34_Dst10-2026101701-0-legacy_linear+support",
+    "path": "hybrid",
+    "arm": "k1_wide_radius",
+    "role": "small_template",
+    "tp": -1,
+    "fp": 1,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "s34_Dst10-2026101701-0-area4",
+    "path": "hybrid",
+    "arm": "k1",
+    "role": "small_template",
+    "tp": -1,
+    "fp": 1,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "s34_Dst10-2026101701-0-area4",
+    "path": "hybrid",
+    "arm": "k1_position_only",
+    "role": "small_template",
+    "tp": -1,
+    "fp": 1,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "s34_Dst10-2026101701-0-area4",
+    "path": "hybrid",
+    "arm": "k1_wide_radius",
+    "role": "small_template",
+    "tp": -1,
+    "fp": 1,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "s34_Dst10-2026101701-0-area4",
+    "path": "full_gpu",
+    "arm": "k1",
+    "role": "small_template",
+    "tp": -1,
+    "fp": 1,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "s34_Dst10-2026101701-0-area4",
+    "path": "full_gpu",
+    "arm": "k1_position_only",
+    "role": "small_template",
+    "tp": -1,
+    "fp": 1,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "s34_Dst10-2026101701-0-area4",
+    "path": "full_gpu",
+    "arm": "k1_wide_radius",
+    "role": "small_template",
+    "tp": -1,
+    "fp": 1,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "s34_Dst10-2026101701-0-area4+support",
+    "path": "hybrid",
+    "arm": "k1",
+    "role": "small_template",
+    "tp": -1,
+    "fp": 1,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "s34_Dst10-2026101701-0-area4+support",
+    "path": "hybrid",
+    "arm": "k1_position_only",
+    "role": "small_template",
+    "tp": -1,
+    "fp": 1,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "s34_Dst10-2026101701-0-area4+support",
+    "path": "hybrid",
+    "arm": "k1_wide_radius",
+    "role": "small_template",
+    "tp": -1,
+    "fp": 1,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "r35_development_clean",
+    "path": "hybrid",
+    "arm": "k1_wide_radius",
+    "role": "pass",
+    "tp": -1,
+    "fp": 0,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "r35_development_clean",
+    "path": "full_gpu",
+    "arm": "k1_wide_radius",
+    "role": "pass",
+    "tp": -1,
+    "fp": 0,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "r35_development_clean+original",
+    "path": "hybrid",
+    "arm": "k1_wide_radius",
+    "role": "known_failure",
+    "tp": -4,
+    "fp": 0,
+    "fn": 4
+   },
+   {
+    "gate": "gt_regression",
+    "case": "r35_development_clean+original",
+    "path": "full_gpu",
+    "arm": "k1_wide_radius",
+    "role": "known_failure",
+    "tp": -4,
+    "fp": 0,
+    "fn": 4
+   },
+   {
+    "gate": "gt_regression",
+    "case": "r35_development_one_offset",
+    "path": "hybrid",
+    "arm": "k1_wide_radius",
+    "role": "pass",
+    "tp": -1,
+    "fp": 0,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "r35_development_one_offset",
+    "path": "full_gpu",
+    "arm": "k1_wide_radius",
+    "role": "pass",
+    "tp": -1,
+    "fp": 0,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "r35_development_one_offset+original",
+    "path": "hybrid",
+    "arm": "k1_wide_radius",
+    "role": "known_failure",
+    "tp": -4,
+    "fp": 0,
+    "fn": 4
+   },
+   {
+    "gate": "gt_regression",
+    "case": "r35_development_one_offset+original",
+    "path": "full_gpu",
+    "arm": "k1_wide_radius",
+    "role": "known_failure",
+    "tp": -4,
+    "fp": 0,
+    "fn": 4
+   },
+   {
+    "gate": "gt_regression",
+    "case": "r35_development_exposure",
+    "path": "hybrid",
+    "arm": "k1_wide_radius",
+    "role": "pass",
+    "tp": -1,
+    "fp": 0,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "r35_development_exposure",
+    "path": "full_gpu",
+    "arm": "k1_wide_radius",
+    "role": "pass",
+    "tp": -1,
+    "fp": 0,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "r35_development_exposure+original",
+    "path": "hybrid",
+    "arm": "k1_wide_radius",
+    "role": "known_failure",
+    "tp": -13,
+    "fp": 0,
+    "fn": 13
+   },
+   {
+    "gate": "gt_regression",
+    "case": "r35_development_exposure+original",
+    "path": "full_gpu",
+    "arm": "k1_wide_radius",
+    "role": "known_failure",
+    "tp": -13,
+    "fp": 0,
+    "fn": 13
+   },
+   {
+    "gate": "gt_regression",
+    "case": "r35_development_white_balance",
+    "path": "hybrid",
+    "arm": "k1_wide_radius",
+    "role": "pass",
+    "tp": -1,
+    "fp": 0,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "r35_development_white_balance",
+    "path": "full_gpu",
+    "arm": "k1_wide_radius",
+    "role": "pass",
+    "tp": -1,
+    "fp": 0,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "r35_development_white_balance+original",
+    "path": "hybrid",
+    "arm": "k1_wide_radius",
+    "role": "known_failure",
+    "tp": -8,
+    "fp": 0,
+    "fn": 8
+   },
+   {
+    "gate": "gt_regression",
+    "case": "r35_development_white_balance+original",
+    "path": "full_gpu",
+    "arm": "k1_wide_radius",
+    "role": "known_failure",
+    "tp": -8,
+    "fp": 0,
+    "fn": 8
+   },
+   {
+    "gate": "gt_regression",
+    "case": "r35_heldout_clean+original",
+    "path": "hybrid",
+    "arm": "k1_position_only",
+    "role": "pass",
+    "tp": -2,
+    "fp": 0,
+    "fn": 2
+   },
+   {
+    "gate": "gt_regression",
+    "case": "r35_heldout_clean+original",
+    "path": "full_gpu",
+    "arm": "k1_position_only",
+    "role": "pass",
+    "tp": -2,
+    "fp": 0,
+    "fn": 2
+   },
+   {
+    "gate": "gt_regression",
+    "case": "r35_heldout_one_offset+original",
+    "path": "hybrid",
+    "arm": "k1_position_only",
+    "role": "pass",
+    "tp": -2,
+    "fp": 0,
+    "fn": 2
+   },
+   {
+    "gate": "gt_regression",
+    "case": "r35_heldout_one_offset+original",
+    "path": "full_gpu",
+    "arm": "k1_position_only",
+    "role": "pass",
+    "tp": -2,
+    "fp": 0,
+    "fn": 2
+   },
+   {
+    "gate": "gt_regression",
+    "case": "r35_heldout_exposure+original",
+    "path": "hybrid",
+    "arm": "k1_position_only",
+    "role": "pass",
+    "tp": -2,
+    "fp": 0,
+    "fn": 2
+   },
+   {
+    "gate": "gt_regression",
+    "case": "r35_heldout_exposure+original",
+    "path": "full_gpu",
+    "arm": "k1_position_only",
+    "role": "pass",
+    "tp": -2,
+    "fp": 0,
+    "fn": 2
+   },
+   {
+    "gate": "gt_regression",
+    "case": "r35_heldout_white_balance+original",
+    "path": "hybrid",
+    "arm": "k1_position_only",
+    "role": "pass",
+    "tp": -2,
+    "fp": 0,
+    "fn": 2
+   },
+   {
+    "gate": "gt_regression",
+    "case": "r35_heldout_white_balance+original",
+    "path": "full_gpu",
+    "arm": "k1_position_only",
+    "role": "pass",
+    "tp": -2,
+    "fp": 0,
+    "fn": 2
+   },
+   {
+    "gate": "gt_regression",
+    "case": "sym_marker12",
+    "path": "hybrid",
+    "arm": "k1",
+    "role": "control",
+    "tp": -1,
+    "fp": 0,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "sym_marker12",
+    "path": "hybrid",
+    "arm": "k1_position_only",
+    "role": "control",
+    "tp": -7,
+    "fp": 0,
+    "fn": 7
+   },
+   {
+    "gate": "gt_regression",
+    "case": "sym_marker12",
+    "path": "hybrid",
+    "arm": "k1_wide_radius",
+    "role": "control",
+    "tp": -1,
+    "fp": 0,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "sym_marker12",
+    "path": "full_gpu",
+    "arm": "k1",
+    "role": "control",
+    "tp": -1,
+    "fp": 0,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "sym_marker12",
+    "path": "full_gpu",
+    "arm": "k1_position_only",
+    "role": "control",
+    "tp": -7,
+    "fp": 0,
+    "fn": 7
+   },
+   {
+    "gate": "gt_regression",
+    "case": "sym_marker12",
+    "path": "full_gpu",
+    "arm": "k1_wide_radius",
+    "role": "control",
+    "tp": -1,
+    "fp": 0,
+    "fn": 1
+   },
+   {
+    "gate": "gt_regression",
+    "case": "adjacent_grid16",
+    "path": "hybrid",
+    "arm": "k1_wide_radius",
+    "role": "control",
+    "tp": -10,
+    "fp": 1,
+    "fn": 10
+   },
+   {
+    "gate": "gt_regression",
+    "case": "adjacent_grid16",
+    "path": "full_gpu",
+    "arm": "k1_wide_radius",
+    "role": "control",
+    "tp": -10,
+    "fp": 1,
+    "fn": 10
+   }
+  ],
+  "pilot": [],
+  "formal": [
+   {
+    "gate": "time_budget",
+    "case": "8k_t256_angle180_3scales",
+    "path": "hybrid",
+    "block": 0,
+    "delta_percent": 11.536049157146921
+   }
+  ],
+  "note": "All 80 GT failures are gt_regression entries of the k1 sensitivity arm and the two negative-control ablations; the primary k3 and k2 have none. The formal failure is one 8K hybrid time_budget block (+11.5%). All retained."
+ },
+ "disclosures": [
+  "2 formal workers had warm-up algorithm totals slightly below 1000 ms while the runner wall-clock warm-up was >= 1 s.",
+  "159 GT-phase workers ran while mutant-test cmake builds (this and another session) were active; the GT phase makes no timing claim.",
+  "Hybrid and full-GPU kept counts differ because their coarse candidates differ (FP32 rotation/normalization); the Metal kernels equal dedupKeep on identical FP32 inputs."
+ ]
+}
