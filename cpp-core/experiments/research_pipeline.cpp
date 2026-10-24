@@ -85,6 +85,9 @@ void validateOptions(const Options& o,int backend) {
        o.coarsePeakMode<0 || o.coarsePeakMode>2 || (o.coarsePeakMode==2 && (backend==0 || o.overlap)) ||
        (backend==0 && (o.nccMode || o.fineNccMode || o.fineProfiling || o.fineAngleReuse || o.fineFused || o.overlap)))
         throw std::invalid_argument("Invalid matching options or GPU option selected for CPU");
+    if(o.candidateDedupTopK<0 || o.candidateDedupTopK>65536 || !std::isfinite(o.candidateDedupRadius) || o.candidateDedupRadius<0 ||
+       o.candidateDedupRadius>4 || !std::isfinite(o.candidateDedupAngleSteps) || o.candidateDedupAngleSteps<0 || o.candidateDedupAngleSteps>1000)
+        throw std::invalid_argument("Candidate dedup requires top_k 0..65536, radius 0..4 and angle steps 0..1000");
     if(c.coarseNccPruning) throw std::invalid_argument("Research frame does not support coarse pruning");
     for(auto r:c.angleRanges) if(!std::isfinite(r.min) || !std::isfinite(r.max) || r.min>r.max || r.min< -180 || r.max>180)
         throw std::invalid_argument("Angle range must be ordered within -180..180");
@@ -201,6 +204,7 @@ Result Session::run(const Options& o) {
     if(o.fullGpuPeakMode || o.fullGpuFineMode || o.fullGpuProfiling)
         throw std::invalid_argument("Full GPU peak/fine selection/profiling requires full_gpu=true");
     r.scaleSupportEnabled=o.scaleSupportRefine;
+    r.candidateDedupTopK=o.candidateDedupTopK;
     r.refinementMode=s.settings.residentMode;
     r.configuredRefinementBackend=s.refinementBackend();r.sourceGeneration=s.sourceGeneration;
     r.poseStorage.mode=s.settings.poseStorageMode;
@@ -211,6 +215,7 @@ Result Session::run(const Options& o) {
         // confidence. Keep all raw proposals visible for recall auditing.
         if(!o.refine || o.match.stopLayer!=0 || o.nccMode || o.fineNccMode || o.fineProfiling || o.fineAngleReuse || o.fineFused || o.overlap || o.coarsePeakMode==2)
             throw std::invalid_argument("Sparse orientation requires full NCC refinement, stopLayer=0, nccMode=0, fineNccMode=0 and overlap scheduling off");
+        if(o.candidateDedupTopK) throw std::invalid_argument("Candidate dedup applies to pyramid coarse candidates, not sparse orientation");
         auto result=s.sparse->search(s.source.view(),o.match);
         r.sparseEnabled=true;r.sparse=result.metrics;
         r.proposals=std::move(result.proposals);
@@ -230,6 +235,8 @@ Result Session::run(const Options& o) {
             check(fpm_frame_set_fine_fused(s.frame.get(),o.fineFused,error,sizeof(error)),error);
             check(fpm_frame_set_fine_search_options(s.frame.get(),o.fineProfiling,o.fineAngleReuse,error,sizeof(error)),error);
         }
+        FpmCandidateDedupConfigV1 dedup{1,sizeof(dedup),o.candidateDedupTopK,0,o.candidateDedupRadius,o.candidateDedupAngleSteps};
+        check(fpm_frame_set_candidate_dedup(s.frame.get(),&dedup,sizeof(dedup),error,sizeof(error)),error);
         std::vector<fpm_coarse_handle*> models;for(auto& p:s.patterns) models.push_back(p.get());
         const auto prepare=Clock::now();
         check(fpm_frame_prepare(s.frame.get(),view(s.source.view()),models.data(),models.size(),o.match.invertSource,&r.frame,error,sizeof(error)),error);
@@ -252,6 +259,10 @@ Result Session::run(const Options& o) {
             FpmFineFusionMetricsV1 fusion{};
             check(fpm_frame_get_fine_fusion_metrics(s.frame.get(),&fusion,sizeof(fusion),error,sizeof(error)),error);
             r.fineFusion.push_back(fusion);
+            FpmCandidateDedupMetricsV1 dedupMetrics{};
+            check(fpm_frame_get_candidate_dedup_metrics(s.frame.get(),&dedupMetrics,sizeof(dedupMetrics),error,sizeof(error)),error);
+            r.candidateDedup.push_back({dedupMetrics.input_candidates,dedupMetrics.kept_candidates,
+                dedupMetrics.radius_px,dedupMetrics.angle_window_deg,dedupMetrics.filter_ms});
             r.coarse.push_back(coarse);r.fine.push_back(fine);r.overlapMetrics.push_back(overlapMetrics);
             for(size_t j=0;j<count;++j) {
                 const auto& m=output[j];double scale=s.settings.scales[i];

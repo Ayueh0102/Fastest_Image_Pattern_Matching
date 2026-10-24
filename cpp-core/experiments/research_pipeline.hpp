@@ -40,6 +40,17 @@ struct Options {
     bool refine = true;
     bool scaleSupportRefine = false; // Experimental small-template interior-support scale correction.
     double proposalScore = .5; // capped at final minScore; ignored without refine
+    // Experimental, SEMANTICS-CHANGING (round 43): 0 refines every coarse
+    // candidate. k>0 drops a candidate before fine search when at least k
+    // higher-ranked candidates of the same scale model have centers within
+    // radius*(1-maxOverlap)*min(model template width,height) source pixels and
+    // search angles within angleSteps top-level coarse angle steps. Never a default.
+    int candidateDedupTopK = 0;
+    double candidateDedupRadius = .5, candidateDedupAngleSteps = 3;
+};
+struct CandidateDedupMetrics {
+    uint64_t input = 0, kept = 0; // Coarse candidates before/after the filter.
+    double radiusPx = 0, angleWindowDeg = 0, filterMs = 0; // filterMs: host wall; 0 on the full GPU path.
 };
 struct SourceUpdate {
     double updateMs = 0; // Validation, source snapshot copy and pose teardown; excludes next run.
@@ -113,6 +124,8 @@ struct Result {
     std::vector<FpmFineSearchMetricsV1> fineSearch;
     std::vector<FpmFineFusionMetricsV1> fineFusion;
     std::vector<FpmCoarseOverlapMetricsV1> overlapMetrics;
+    int candidateDedupTopK = 0; // Option as run; 0 means every candidate was refined.
+    std::vector<CandidateDedupMetrics> candidateDedup; // One per scale model.
 };
 // Public for cross-language parity checks; zero extension, width/2 center,
 // ties-to-even dimensions and floor(value+.5) gray8 rounding. No antialiasing.
