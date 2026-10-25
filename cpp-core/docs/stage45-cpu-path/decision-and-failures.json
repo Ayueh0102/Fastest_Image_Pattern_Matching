@@ -476,6 +476,8 @@
   "amendment-2.json: formal run 1 interrupted at 140/144 by an application restart; kept, unused for decisions; complete run 2 used"
  ],
  "notes": [
-  "CPU outputs are not bit-identical to the round-43 Metal hybrid (binary64 against FP32 coarse scores) except on 8K; per GT case variant the CPU strict counts equal the Metal hybrid exactly."
+  "CPU outputs are not bit-identical to the round-43 Metal hybrid (binary64 against FP32 coarse scores) except on 8K; per GT case variant the CPU strict counts equal the Metal hybrid exactly.",
+  "Host load (raised by the third-party recount, confirmed by the author): formal run 2 started right after an application restart; the 1-minute load average at worker start had medians 4.5/5.2/7.0/11.2 by case (peak 23.3), against about 1.5-2.8 in the pilot, run 1 and round 44. Against run 1, CPU arms are 1.7-6.1% slower and the 8K hybrid 5.2-7.0% slower in run 2; full-GPU arms are within 0.5%. Absolute CPU and 8K hybrid values may be a few percent high; no direction or fastest-arm decision changes. Run 2 is kept and not re-run (evidence rules).",
+  "Block counts N/6 in the report are blocks where the candidate (k3, or the right-hand path) was faster, as in rounds 43-44."
  ]
 }

@@ -13,8 +13,8 @@
    "role": "interrupted formal run 1 kept and unused; complete run 2 decides"
   },
   "decision-and-failures.json": {
-   "bytes": 14960,
-   "sha256": "520abb42f55ec694b03e7c8c2933c15863742565033e697191ad75d8f623d955",
+   "bytes": 15643,
+   "sha256": "ca4022f7b2e6d9babf3333e6f2577b84f4d979779fa2cf80fce92c59ff0f1399",
    "role": "decision and every failed gate"
   },
   "formal-summary.json": {

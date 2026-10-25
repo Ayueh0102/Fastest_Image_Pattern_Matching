@@ -27,7 +27,7 @@
     "other": "No recognized role; inspect manually"
   },
   "artifact_count": 618,
-  "artifact_bytes": 2384309051,
+  "artifact_bytes": 2384311749,
   "artifact_role_counts": {
     "archive": 108,
     "calibration": 4,
@@ -151,8 +151,8 @@
       "path": "CPU_PATH_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 10473,
-      "sha256": "661d93d45add4dbd159f84d64c643e1a78c46b18d6e6c434cd3a1d1249b4938b",
+      "bytes": 11916,
+      "sha256": "f67ea3f055eb0161d1366d0f4bf207de5912aa078bf065af32cd5bb9783b8066",
       "roles": [
         "report"
       ]
@@ -171,8 +171,8 @@
       "path": "CURRENT_BEST_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 12134,
-      "sha256": "72c5f91131cdfcf6c752edbbf7912af5b8f1dc03e466cdeed23baa6755c78f72",
+      "bytes": 12229,
+      "sha256": "df320830ae7470dc4be0ce9c83a1bab624402f5bde961e26f032da260e2392c8",
       "roles": [
         "report"
       ]
@@ -181,8 +181,8 @@
       "path": "DEDUP_PEAK2_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 12531,
-      "sha256": "1c1d852f2bf12c419c4fbcef1bfc360fbdd0560e6fdf3193d649c9e9cb1293eb",
+      "bytes": 12795,
+      "sha256": "78b70f788d1a87c2bb5191b3e50eb366adc1ca78e138393a0e2d8eecca33bdf4",
       "roles": [
         "report"
       ]
@@ -222,8 +222,8 @@
       "path": "EXPERIMENT_REVIEW_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 82607,
-      "sha256": "cf5c5fee41ae5f7b12a25ea4589adf031b5fbbaaa438b92ea9c9eb6586229b24",
+      "bytes": 82820,
+      "sha256": "4e046d7bddabaf4c13874786a185a8794a77936d957947a69cc83baee120f6ec",
       "roles": [
         "report"
       ]
@@ -7915,7 +7915,7 @@
       "group": "stage45-cpu-path",
       "stage": "45",
       "bytes": 4221,
-      "sha256": "bb99fff27331608b72210b39193e90ff451b8359fe7149680402819bcc2e3df3",
+      "sha256": "9a05f52e3d74e6b5434f74886b05baee109cf43fa924db9ade2019163324f029",
       "roles": [
         "provenance"
       ]
@@ -7924,8 +7924,8 @@
       "path": "stage45-cpu-path/decision-and-failures.json",
       "group": "stage45-cpu-path",
       "stage": "45",
-      "bytes": 14960,
-      "sha256": "520abb42f55ec694b03e7c8c2933c15863742565033e697191ad75d8f623d955",
+      "bytes": 15643,
+      "sha256": "ca4022f7b2e6d9babf3333e6f2577b84f4d979779fa2cf80fce92c59ff0f1399",
       "roles": [
         "failure_review"
       ]
