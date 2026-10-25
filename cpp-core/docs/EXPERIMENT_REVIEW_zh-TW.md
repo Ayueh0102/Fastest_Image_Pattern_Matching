@@ -1,6 +1,6 @@
 # Template Matching 研究總索引與人工審查指南
 
-更新：2026-10-25。此頁按第1–44輪列出問題、證據與採用決定。數字是各輪的證據快照，不是同一套輸入的連續加速曲線；不同輪次倍率不能相乘。最新輪次見頁末，第一次閱讀先看[外部導覽](../../docs/PROJECT_GUIDE_zh-TW.md)。
+更新：2026-10-25。此頁按第1–46輪列出問題、證據與採用決定。數字是各輪的證據快照，不是同一套輸入的連續加速曲線；不同輪次倍率不能相乘。最新輪次見頁末，第一次閱讀先看[外部導覽](../../docs/PROJECT_GUIDE_zh-TW.md)。
 
 ## 目前推薦方案
 
@@ -484,3 +484,13 @@ Release 54/54、相關ASan／UBSan 2/2及Python工具75項通過。正式／有�
 - 驗證：工具19項負控制、10個工具突變全殺；不匯入harness的獨立稽核17,117項檢查零不符；封存重播四份摘要逐位相同；量測後Release 82／82、Python 635／635、color 5／5、ASan／UBSan 77／77。
 - 決定：完整GPU peak2＋k3適用於大量相同物件、可接受輸出不逐位相同的研究設定；每換新影格時在128／512／六物件是本輪最快組合。不改GUI、核心或任何預設。下一個瓶頸仍是細搜尋與initial_refine。
 - 證據：[完整報告](DEDUP_PEAK2_zh-TW.md)、[GT摘要](stage44-dedup-peak2/gt-summary.json)、[正式摘要](stage44-dedup-peak2/formal-summary.json)、[判定與失敗](stage44-dedup-peak2/decision-and-failures.json)、[驗證](stage44-dedup-peak2/validation.json)、[封存](stage44-dedup-peak2/archive.json)。
+
+### 46. 物件內白參考的照明正規化同色驗證（2026-10-25，研究選項）
+
+- 問題／實作：測試樣本集 v1 中，既有色度驗證在白平衡偏移、局部暖光、過曝與 JPEG 下同色接受率掉到 0–5%，GT 對齊的探針顯示物件自己的米白面板可校正白平衡。新增預設關閉的 runner 方法 `chroma_vk`：把模板參考遮罩經位姿映到來源，取每通道最近像素中位數估計光源，以 von Kries 對角增益轉進模板的光，再只在色彩遮罩內算色度距離（逐像素平均與區域加總兩種）。裁切的參考棄權（rank 政策），drop／none 為消融；也可改用固定來源矩形（參考卡）。既有 `chroma`／`rgb_ncc`／`gray_ncc` 源碼不變，輸出與改動前 runner 逐位相同。
+- 事前登錄：校準＝neutral、exposure_dark、wb_cool、shading、Blender white；保留＝wb_warm、exposure_bright、spot_warm、noise_jpeg、Blender warm3200、mixed。單類別第 95 百分位門檻（每模板群組），主方法 `vk_region`；H1 合成三種保留照明的同色接受 ≥0.90、ΔE≥4 異色拒絕 ≥0.95、isogray ≥0.95；H2 Blender 4/4 與 7/7；H3 AUC 不低於遮罩色度與未校正區域色度。lightness+ 與 ΔE 2 只報告。
+- 結果：19 場景定位與 v1 相同，所有方法同一份偵測，241 個 worker 完整性全過。主方法在 376 個異色物件（含 134 個 isogray、ΔE 2 與 lightness+）中誤收 0，既有遮罩色度在保留照明誤收 63/192（isogray 19/68）。但保留照明同色只接受 31/88：wb_warm 18/20 通過，spot_warm 4/20、noise_jpeg 4/20、Blender 3/4、2/4 未通過；過曝全部棄權（事前預測）。H3 在 spot_warm 因棄權記為 +∞ 而未通過。
+- 事後診斷（非證據）：未棄權格子中最近的 ΔE≥4 異色是同色最大距離的 4.7–81 倍，但 p95 門檻只有 0.00039／0.00137／0.00094，JPEG、物件內光梯度與 Blender 混合光的殘差都超過門檻。spot_warm 距光斑中心 1.24σ 內全部因面板裁切棄權。drop 在紅色 wb_warm 同色 0/10；棄權改用未校正距離的後備政策在過曝下誤收 8/22、11/22。18% 灰參考卡在均勻照明保留集 57/80、0 誤收，局部暖光 0/20。
+- 驗證：不匯入 harness 的獨立重算 4,550 項零不符（負控制被抓到）；摘要重播逐位相同；源碼快照重建後 165 個 job 輸出全同；16 個編譯突變、20 個工具突變全殺（T9 首次存活後補測試）。
+- 決定：依事前規則**不推薦**；`chroma_vk` 保留為研究選項，不改任何預設。下一步需要事前登錄有餘裕的門檻規則與物件內光梯度模型。
+- 證據：[完整報告](ILLUMINANT_CHROMA_zh-TW.md)、[protocol](stage46-illuminant-chroma/protocol.json)、[摘要](stage46-illuminant-chroma/summary.json)、[判定與失敗](stage46-illuminant-chroma/decision-and-failures.json)、[驗證](stage46-illuminant-chroma/validation.json)、[封存](stage46-illuminant-chroma/archive.json)。
