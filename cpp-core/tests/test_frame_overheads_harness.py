@@ -70,7 +70,8 @@ def record(case, method, condition, call, warmup, profile=False):
     mode, gap = bench.CONDITIONS[condition]
     reused = mode == 'reuse' and call > 0
     if gpu:
-        device = GPU_BASE[method]+(GPU_GAP[condition] if call else 20.)
+        # Warm-up calls run 2 ms slower so a diagnostic that also counts them shows it.
+        device = GPU_BASE[method]+(GPU_GAP[condition] if call else 20.)+(2. if warming else 0.)
         total, update, pose = device+1., (1. if reused else 0.), 0.
         stages = dict(prepare_ms=0., proposal_ms=0., refine_ms=0., nms_ms=0.)
         work, refdev = [], 0.
@@ -453,6 +454,7 @@ class FrameOverheadsHarness(unittest.TestCase):
         self.assertFalse(g1['monotone_nondecreasing'])
 
     def test_profile_phase_reports_stages(self):
+        # Measured calls only, as the protocol states: cold and warm-up stage times must not enter.
         summary = self.summary(phase='profile', blocks=2)
         stages = self.case(summary, C8K)['arms'][f'{G1}__static_sleep']['profile_stages']
         self.assertEqual(stages['coarse']['median'], (GPU_BASE[G1]+5.)/2-1.)

@@ -1,0 +1,582 @@
+{
+  "stage": 48,
+  "date": "2026-10-26",
+  "build": {
+    "directory": "build/stage48-release",
+    "type": "Release",
+    "options": [
+      "FPM_BUILD_GUI=ON",
+      "FPM_BUILD_EXPERIMENTS=ON",
+      "FPM_WITH_OPENCV=ON"
+    ],
+    "configure_log": "validation/red-configure.log",
+    "build_logs": [
+      "validation/red-build.log",
+      "validation/green-build.log"
+    ],
+    "note": "Built from the working tree that became 9fcc44b; later commits change Python only (harness and host check), so the runner binary is the frozen source."
+  },
+  "runner_tests": {
+    "red": "native_runner_job_keys and native_runner_sequence_gaps failed before the runner change (feature missing)",
+    "green": "both passed after it",
+    "compiled_mutants": {
+      "mutants": {
+        "static_updates_source": {
+          "tests": {
+            "--sequence-gaps": 1,
+            "--job-keys": 0
+          },
+          "killed": true
+        },
+        "sleep_skipped": {
+          "tests": {
+            "--sequence-gaps": 1,
+            "--job-keys": 0
+          },
+          "killed": true
+        },
+        "none_still_decodes": {
+          "tests": {
+            "--sequence-gaps": 1,
+            "--job-keys": 0
+          },
+          "killed": true
+        },
+        "gap_ms_is_decode": {
+          "tests": {
+            "--sequence-gaps": 1,
+            "--job-keys": 0
+          },
+          "killed": true
+        },
+        "static_many_frames": {
+          "tests": {
+            "--sequence-gaps": 1,
+            "--job-keys": 0
+          },
+          "killed": true
+        },
+        "zero_sleep_allowed": {
+          "tests": {
+            "--sequence-gaps": 1,
+            "--job-keys": 0
+          },
+          "killed": true
+        },
+        "numeric_gap_accepted": {
+          "tests": {
+            "--sequence-gaps": 1,
+            "--job-keys": 0
+          },
+          "killed": true
+        },
+        "gap_key_unlisted": {
+          "tests": {
+            "--sequence-gaps": 1,
+            "--job-keys": 1
+          },
+          "killed": true
+        }
+      },
+      "killed": 8,
+      "total": 8,
+      "restored_rebuilt": true,
+      "restored_tests": {
+        "--sequence-gaps": 0,
+        "--job-keys": 0
+      },
+      "restored_pass": true
+    },
+    "compiled_mutants_log": "validation/runner-mutants.log",
+    "first_attempt": "validation/runner-mutants-attempt1.txt"
+  },
+  "pre_measurement": {
+    "ctest": {
+      "passed": 83,
+      "failed": 0,
+      "total": 83,
+      "log": "validation/pre-formal-ctest.log"
+    },
+    "python_harness": {
+      "ran": [
+        670
+      ],
+      "ok_lines": 1,
+      "log": "validation/pre-formal-python-harness.log"
+    },
+    "color_verify_metal": {
+      "ran": [
+        5
+      ],
+      "ok_lines": 1,
+      "log": "validation/pre-formal-color-verify.log"
+    },
+    "note": "Run before the host-check revision; that revision changed Python only and its tests ran again in the final gate."
+  },
+  "post_revision_gate": "pending: run_post_revision_gate.sh after the round is committed",
+  "final_gate": {
+    "log": "validation/final-gate.log",
+    "ctest": {
+      "passed": 83,
+      "failed": 0,
+      "total": 83,
+      "log": "validation/final-gate.log"
+    },
+    "unittest": {
+      "ran": [
+        671,
+        5
+      ],
+      "ok_lines": 2,
+      "log": "validation/final-gate.log"
+    },
+    "scope": "After all four phases and before analysis revision 1, on the existing build/stage48-release; the worktree then held only the untracked phase summaries",
+    "exits": {
+      "build": 0,
+      "ctest": 0,
+      "harness": 0,
+      "color": 0
+    },
+    "head": "1da20c681dd652f91e9db1ad8a80224bc70b6aa0"
+  },
+  "harness": {
+    "tests": 18,
+    "test_file": "cpp-core/tests/test_frame_overheads_harness.py",
+    "mutants": {
+      "mutants": {
+        "direction_pooled_only": "killed",
+        "h1_sleep_decode_swapped": "killed",
+        "h2_ignores_gaps": "killed",
+        "static_update_unchecked": "killed",
+        "pose_rule_any": "killed",
+        "generation_unchecked": "killed",
+        "oversleep_allowed": "killed",
+        "no_gap_unbounded": "killed",
+        "decode_gap_unchecked": "killed",
+        "no_cross_arm_parity": "killed",
+        "no_peak2_check": "killed",
+        "no_warmup_gate": "killed",
+        "timed_includes_warmup": "killed",
+        "job_keeps_reuse_for_static": "killed",
+        "peak_mode_unchecked": "killed",
+        "no_host_gate": "killed",
+        "no_load_gate": "killed",
+        "gt_measured_only": "killed",
+        "python_case_sensitive": "killed",
+        "no_cpu_rule": "killed",
+        "own_pid_counted": "killed",
+        "sleep_rounding": "killed"
+      },
+      "killed": 22,
+      "total": 22,
+      "restored": true
+    },
+    "mutants_log": "validation/mutants.log"
+  },
+  "datasets": {
+    "pilot": {
+      "fresh_processes": 35,
+      "cold_calls": 35,
+      "warmup_calls": 375,
+      "measured_calls": 105,
+      "gt_evaluated_calls": 515
+    },
+    "formal": {
+      "fresh_processes": 210,
+      "cold_calls": 210,
+      "warmup_calls": 2250,
+      "measured_calls": 630,
+      "gt_evaluated_calls": 3090
+    },
+    "dose": {
+      "fresh_processes": 45,
+      "cold_calls": 45,
+      "warmup_calls": 705,
+      "measured_calls": 135,
+      "gt_evaluated_calls": 885
+    },
+    "profile": {
+      "fresh_processes": 10,
+      "cold_calls": 10,
+      "warmup_calls": 230,
+      "measured_calls": 30,
+      "gt_evaluated_calls": 270
+    }
+  },
+  "direct_gt_calls": 4760,
+  "all_zero_fp_fn": true,
+  "all_routes_pass": true,
+  "all_repeat_exact": true,
+  "embedded_summary_reproduced": {
+    "pilot": true,
+    "formal": true,
+    "dose": true,
+    "profile": true
+  },
+  "embedded_summary_note": "Manifest-embedded summaries come from the frozen driver. The published profile summary comes from the revised driver (analysis revision 1); the frozen one is kept as profile-summary-frozen-driver.json.",
+  "analysis_revision": {
+    "file": "analysis-revision.json",
+    "red_green_log": "validation/analysis-revision-red-green.log",
+    "revised_test_failed_on_frozen_driver": true,
+    "revised_test_passed_on_revised_driver": true,
+    "audit_cross_check": {
+      "compared_values": 110,
+      "mismatches": 0,
+      "rule": "revised medians equal the audit measured_only recomputation; frozen medians equal its all_rows recomputation"
+    },
+    "largest_change": {
+      "case": "8k_t256_angle180_3scales",
+      "arm": "full_gpu_simd__reuse_none",
+      "stage": "template_pyramid",
+      "all_calls_median_ms": 4.10821,
+      "all_calls_count": 54,
+      "measured_median_ms": 2.2868770000000005,
+      "measured_count": 6,
+      "change_ms": -1.8213329999999992
+    },
+    "changed_files": [
+      {
+        "path": "cpp-core/tests/test_frame_overheads_harness.py",
+        "measured_sha256": "09f70244afe04213f15ed3ec6de08f809edb18bcbcf5bf10ed633407539f1848",
+        "final_sha256": "d4c60451b08f902f3eda2fee6fe01d62d85a3c8a8a1b7b4df5639cb29a43c3ff"
+      },
+      {
+        "path": "cpp-core/tools/benchmark_frame_overheads.py",
+        "measured_sha256": "b1d1df7dce97341498886643b1e32ddfd6bf4f60d8f1ef5fe3080af040b6b75d",
+        "final_sha256": "e5db8370ca493a6f84c9e75c69832dd4430bc57e28d8b5f40567b0820edcad38"
+      }
+    ]
+  },
+  "host_gate_sensitivity": {
+    "file": "validation/host-gate-sensitivity.json",
+    "flagged_workers": [
+      {
+        "case": "many128_pose",
+        "arm": "full_gpu_simd__static_sleep",
+        "block": 3,
+        "gate": "host_busy"
+      },
+      {
+        "case": "8k_t256_angle180_3scales",
+        "arm": "hybrid_best__static_decode",
+        "block": 4,
+        "gate": "host_load_high"
+      }
+    ],
+    "recomputed_effects": 110,
+    "verdicts_unchanged": true,
+    "direction_changes": [
+      {
+        "case": "many128_pose",
+        "method": "full_gpu_simd",
+        "contrast": "gap_on_update",
+        "metric": "total_ms",
+        "published_direction": null,
+        "sensitivity_direction": "down"
+      },
+      {
+        "case": "many128_pose",
+        "method": "full_gpu_simd",
+        "contrast": "gap_on_update",
+        "metric": "frame_wall_ms",
+        "published_direction": null,
+        "sensitivity_direction": "down"
+      },
+      {
+        "case": "many128_pose",
+        "method": "full_gpu_simd",
+        "contrast": "gap_on_update",
+        "metric": "wait_ms",
+        "published_direction": null,
+        "sensitivity_direction": "down"
+      }
+    ],
+    "scope": "Diagnostic only; the published formal summary keeps every worker. Removing a block from one case and method drops it from every arm there, so contrasts stay paired by block."
+  },
+  "host": {
+    "pilot": {
+      "before": {
+        "utc": "2026-10-25T16:22:31.524045+00:00",
+        "load_average": [
+          1.96630859375,
+          2.9873046875,
+          3.2138671875
+        ],
+        "gpu_device_utilization_percent": [
+          25,
+          30,
+          29,
+          30,
+          31
+        ],
+        "competing_processes": []
+      },
+      "after": {
+        "utc": "2026-10-25T16:27:26.473907+00:00",
+        "load_average": [
+          3.240234375,
+          3.5341796875,
+          3.41650390625
+        ],
+        "gpu_device_utilization_percent": [
+          85,
+          15,
+          31,
+          30,
+          30
+        ],
+        "competing_processes": []
+      },
+      "executions": 35,
+      "executions_with_competing_processes": 15,
+      "load_average_1min_range": [
+        1.57275390625,
+        6.32275390625
+      ],
+      "started_utc": "2026-10-25T16:22:31.535084+00:00",
+      "finished_utc": "2026-10-25T16:27:26.474458+00:00"
+    },
+    "formal": {
+      "before": {
+        "utc": "2026-10-25T16:27:29.883104+00:00",
+        "load_average": [
+          3.140625,
+          3.50830078125,
+          3.408203125
+        ],
+        "gpu_device_utilization_percent": [
+          28,
+          30,
+          30,
+          30,
+          30
+        ],
+        "competing_processes": []
+      },
+      "after": {
+        "utc": "2026-10-25T16:56:00.563756+00:00",
+        "load_average": [
+          2.56396484375,
+          2.669921875,
+          2.52001953125
+        ],
+        "gpu_device_utilization_percent": [
+          0,
+          30,
+          33,
+          30,
+          30
+        ],
+        "competing_processes": []
+      },
+      "executions": 210,
+      "executions_with_competing_processes": 1,
+      "load_average_1min_range": [
+        1.2568359375,
+        4.08642578125
+      ],
+      "started_utc": "2026-10-25T16:27:29.896610+00:00",
+      "finished_utc": "2026-10-25T16:56:00.564267+00:00"
+    },
+    "dose": {
+      "before": {
+        "utc": "2026-10-25T16:56:08.201433+00:00",
+        "load_average": [
+          2.3232421875,
+          2.61474609375,
+          2.50146484375
+        ],
+        "gpu_device_utilization_percent": [
+          28,
+          30,
+          30,
+          30,
+          30
+        ],
+        "competing_processes": []
+      },
+      "after": {
+        "utc": "2026-10-25T17:01:33.500428+00:00",
+        "load_average": [
+          1.50146484375,
+          1.98388671875,
+          2.248046875
+        ],
+        "gpu_device_utilization_percent": [
+          79,
+          22,
+          31,
+          30,
+          31
+        ],
+        "competing_processes": []
+      },
+      "executions": 45,
+      "executions_with_competing_processes": 1,
+      "load_average_1min_range": [
+        0.958984375,
+        2.525390625
+      ],
+      "started_utc": "2026-10-25T16:56:08.216325+00:00",
+      "finished_utc": "2026-10-25T17:01:33.500923+00:00"
+    },
+    "profile": {
+      "before": {
+        "utc": "2026-10-25T17:01:37.076297+00:00",
+        "load_average": [
+          1.50146484375,
+          1.98388671875,
+          2.248046875
+        ],
+        "gpu_device_utilization_percent": [
+          29,
+          31,
+          29,
+          31,
+          30
+        ],
+        "competing_processes": []
+      },
+      "after": {
+        "utc": "2026-10-25T17:02:21.084242+00:00",
+        "load_average": [
+          2.28466796875,
+          2.14794921875,
+          2.29541015625
+        ],
+        "gpu_device_utilization_percent": [
+          97,
+          0,
+          28,
+          30,
+          30
+        ],
+        "competing_processes": []
+      },
+      "executions": 10,
+      "executions_with_competing_processes": 1,
+      "load_average_1min_range": [
+        1.50146484375,
+        2.6337890625
+      ],
+      "started_utc": "2026-10-25T17:01:37.088232+00:00",
+      "finished_utc": "2026-10-25T17:02:21.084726+00:00"
+    }
+  },
+  "refused_starts": [
+    "pilot-attempt1-refused.log"
+  ],
+  "independent_audit": {
+    "file": "validation/independent-audit.json",
+    "independent": true,
+    "harness_imported": false,
+    "gpu_launched": false,
+    "native_runner_launched": false,
+    "stdlib_only": true,
+    "numbers_and_fields_compared": 32966,
+    "protocol_mismatches": 0,
+    "inferred_definition_mismatches": 0,
+    "evidence_checks_pass": true,
+    "all_checks_pass": false,
+    "all_failures": [
+      "worktree file cpp-core/tools/build_log_catalog.py differs from the measured hash without a later commit (uncommitted edit, mtime 2026-10-25T17:07:38.539097+00:00; frozen-commit and HEAD bytes equal the manifest)"
+    ],
+    "failure_note": "The only failure is the then-uncommitted log-catalog mapping (build_log_catalog.py, edited after the last phase, not used by any measurement); it is committed with this round.",
+    "observations": [
+      {
+        "topic": "profile stage scope",
+        "status": "fixed by analysis revision 1"
+      },
+      {
+        "topic": "host gates in formal have no stated consequence",
+        "status": "disclosed; see host_gate_sensitivity"
+      }
+    ]
+  },
+  "archive_replay": {
+    "raw_archives": [
+      "raw-results-formal-full-gpu.tar.gz",
+      "raw-results-formal-hybrid-best.tar.gz",
+      "raw-results-other.tar.gz"
+    ],
+    "stdout_stderr_members_read_not_written": 600,
+    "snapshot_files": 310,
+    "snapshot_hash_mismatches": [],
+    "frozen_commit": "06467f230fcaf8476d871944aba5056b5b42bfeb",
+    "source_changes_since_freeze_in_worktree": [
+      "cpp-core/tests/test_frame_overheads_harness.py",
+      "cpp-core/tools/benchmark_frame_overheads.py",
+      "cpp-core/tools/build_log_catalog.py"
+    ],
+    "frozen_tool": {
+      "tool_sha256": "b1d1df7dce97341498886643b1e32ddfd6bf4f60d8f1ef5fe3080af040b6b75d",
+      "summaries": {
+        "pilot": {
+          "returncode": 0,
+          "stderr": "",
+          "compared_with": "pilot-summary.json",
+          "bytes_equal": true
+        },
+        "formal": {
+          "returncode": 0,
+          "stderr": "",
+          "compared_with": "formal-summary.json",
+          "bytes_equal": true
+        },
+        "dose": {
+          "returncode": 0,
+          "stderr": "",
+          "compared_with": "dose-summary.json",
+          "bytes_equal": true
+        },
+        "profile": {
+          "returncode": 0,
+          "stderr": "",
+          "compared_with": "profile-summary-frozen-driver.json",
+          "bytes_equal": true
+        }
+      }
+    },
+    "revised_tool": {
+      "tool_sha256": "e5db8370ca493a6f84c9e75c69832dd4430bc57e28d8b5f40567b0820edcad38",
+      "summaries": {
+        "pilot": {
+          "returncode": 0,
+          "stderr": "",
+          "compared_with": "pilot-summary.json",
+          "bytes_equal": true
+        },
+        "formal": {
+          "returncode": 0,
+          "stderr": "",
+          "compared_with": "formal-summary.json",
+          "bytes_equal": true
+        },
+        "dose": {
+          "returncode": 0,
+          "stderr": "",
+          "compared_with": "dose-summary.json",
+          "bytes_equal": true
+        },
+        "profile": {
+          "returncode": 0,
+          "stderr": "",
+          "compared_with": "profile-summary.json",
+          "bytes_equal": true
+        }
+      }
+    },
+    "revised_tool_listed_in_analysis_revision": true,
+    "frozen_tool_listed_in_analysis_revision": true,
+    "all_pass": true,
+    "scope": "Summaries only, from the extracted archives. No GPU measurement rerun."
+  },
+  "limitations": [
+    "Single Apple M4 Pro on macOS 27.0.1; round 41 ran on macOS 26",
+    "Repeated identical frame",
+    "Timing inference only: no GPU frequency readout or hardware counters",
+    "Log catalog regenerated after packing",
+    "No ASan/UBSan run: the only C++ change is the native runner, which the sanitized configuration (no GUI) does not build",
+    "The 22 tool mutants ran on the frozen driver, before analysis revision 1"
+  ]
+}

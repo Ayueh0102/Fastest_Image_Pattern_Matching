@@ -1,6 +1,6 @@
 # Template Matching 研究總索引與人工審查指南
 
-更新：2026-10-25。此頁按第1–45輪列出問題、證據與採用決定。數字是各輪的證據快照，不是同一套輸入的連續加速曲線；不同輪次倍率不能相乘。最新輪次見頁末，第一次閱讀先看[外部導覽](../../docs/PROJECT_GUIDE_zh-TW.md)。
+更新：2026-10-26。此頁按第1–45輪與第48輪列出問題、證據與採用決定（第46、47輪在其他分支，合併後補入）。數字是各輪的證據快照，不是同一套輸入的連續加速曲線；不同輪次倍率不能相乘。最新輪次見頁末，第一次閱讀先看[外部導覽](../../docs/PROJECT_GUIDE_zh-TW.md)。
 
 ## 目前推薦方案
 
@@ -9,7 +9,7 @@
 | 主題 | 閱讀入口 |
 |---|---|
 | 核心、GUI與語言移植 | 第1輪；[建置](../README_zh-TW.md)、[移植契約](PORTING_zh-TW.md) |
-| GPU並行、同步與記憶體 | 第5–14、19–25、28–34、36–45輪；依工作量看CPU／Metal對照 |
+| GPU並行、同步與記憶體 | 第5–14、19–25、28–34、36–45、48輪；依工作量看CPU／Metal對照 |
 | 固定尺度與稀疏前段 | 第15–21輪；與金字塔路徑分開比較 |
 | 原始NCC與旋轉細搜尋 | 第26–30輪；保留未加速與記憶體失敗 |
 | 新場景、Blender、新影格與穩定性 | [第34輪](STAGE34_CLOSURE_zh-TW.md) |
@@ -495,3 +495,13 @@ Release 54/54、相關ASan／UBSan 2/2及Python工具75項通過。正式／有�
 - 驗證：工具18項負控制、10個工具突變全殺；獨立稽核29,922項檢查零不符；封存重播三份摘要逐位相同；量測後Release 82／82、Python 653／653、color 5／5、ASan／UBSan 77／77。
 - 決定：全CPU路徑在本輪所有場景都最慢；完整GPU peak2＋k3維持最快的研究設定。不改GUI、核心或任何預設；沒有Metal的平台仍走CPU。
 - 證據：[完整報告](CPU_PATH_zh-TW.md)、[GT摘要](stage45-cpu-path/gt-summary.json)、[正式摘要](stage45-cpu-path/formal-summary.json)、[判定與失敗](stage45-cpu-path/decision-and-failures.json)、[驗證](stage45-cpu-path/validation.json)、[封存](stage45-cpu-path/archive.json)。
+
+### 48. 每換一張影格的額外成本從哪裡來（2026-10-26，診斷輪）
+
+- 問題：第41輪每次換影格前runner都先解碼（65–131ms、GPU閒置），靜態對照則連續執行；混合多出的候選搜尋時間與8K fine4的GPU時間增加，無法分辨來自換來源還是空檔。runner新增預設關閉的`sequence_mode:"static"`與`sequence_gap`（decode／none／sleep），每個方法量{static, reuse}×{none, sleep, decode}五個條件；方法為第41輪的混合與fine4，8K另加peak2。macOS 27.0.1（第41輪為macOS 26）。
+- 換來源：混合每影格多的時間＝pose重建（128 20.22ms、512 39.81ms）加精修+1.24／+0.85ms（↑）；候選搜尋−1.34／−4.43ms，第41輪的+6／+30ms沒有重現。完整GPU換來源無可確立影響（8K peak2 +0.57ms為唯一6/6）。
+- 空檔：解碼空檔只在8K混合成立（+9.19ms，幾乎都在影像準備）；閒置空檔使混合慢33.03／31.58／42.26ms（128／512／8K），完整GPU在512與8K慢5.6–6.9ms（多出的是主機端上傳，GPU時間不變），各6/6。劑量：512混合total在0→300ms閒置時單調增加2378.85→2435.56ms；8K上傳在10–30ms以上的空檔由1.0ms跳到約6ms。profile各GPU階段不受空檔影響。
+- 判定（事前規則）：重現第41輪否（8K GPU時間沒有增加）；H1「空檔拖慢第一段GPU工作」mixed；H2「新pose buffer讓精修變慢」成立（512 GPU精修+0.80ms）；H3否定；H4與S1兩者皆非。閒置後CPU端變慢是與資料一致的事後解釋，沒有頻率讀數。
+- 驗證：正式210程序、四個phase共4760次直接GT零FP／FN；同方法跨條件輸出完全相同、8K peak2與peak1相同。主機gate：正式2筆（一次系統Spotlight、一次負載4.09），pilot 25筆（另一個session的build／ctest），全部保留；第一次開始因另一個session的Metal runner被driver拒絕。runner契約測試與8個編譯突變、量測工具18項負控制與22個突變全殺；不匯入harness的獨立稽核比對32,966個數值零不符。稽核發現profile分段把冷呼叫與暖機也算進去，量測後修正為只算正式呼叫（分析修訂1，原摘要保留；pilot、正式、劑量摘要與判定不變）；封存重播時凍結與修正後的driver各自重算的摘要都逐位相同。量測後Release（修訂前）83／83、Python 671／671、color 5／5，修訂後的全新建置見驗證檔。
+- 決定：診斷輪，不改任何預設；runner新鍵預設關閉。第41輪多出時間的原因在本作業系統上無法重現、仍未知。
+- 證據：[完整報告](FRAME_OVERHEADS_zh-TW.md)、[正式摘要](stage48-frame-overheads/formal-summary.json)、[劑量](stage48-frame-overheads/dose-summary.json)、[判定與失敗](stage48-frame-overheads/decision-and-failures.json)、[分析修訂](stage48-frame-overheads/analysis-revision.json)、[驗證](stage48-frame-overheads/validation.json)、[封存](stage48-frame-overheads/archive.json)。

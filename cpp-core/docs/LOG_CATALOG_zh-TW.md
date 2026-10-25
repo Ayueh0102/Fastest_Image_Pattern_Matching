@@ -50,6 +50,7 @@
 | 43 | 細搜尋前的粗候選去重（改變語意）：全部GT家族、敏感度與消融負控制、兩路徑計時 | [stage43-candidate-dedup](stage43-candidate-dedup/)、[報告](CANDIDATE_DEDUP_zh-TW.md) |
 | 44 | 去重疊在平行選峰上的實際速度（量測輪）：靜態與每換新影格8個arm、GT階段與第43輪封存逐位比對 | [stage44-dedup-peak2](stage44-dedup-peak2/)、[報告](DEDUP_PEAK2_zh-TW.md) |
 | 45 | 全CPU研究路徑對混合與完整GPU（量測輪）：每換新影格6個arm、CPU GT階段、中止的第一次正式保留 | [stage45-cpu-path](stage45-cpu-path/)、[報告](CPU_PATH_zh-TW.md) |
+| 48 | 每影格額外成本的來源（診斷輪）：靜態／換來源×無／閒置／解碼空檔、劑量、profile；runner序列空檔選項 | [stage48-frame-overheads](stage48-frame-overheads/)、[報告](FRAME_OVERHEADS_zh-TW.md) |
 
 新一輪正式結果由[實驗總索引](EXPERIMENT_REVIEW_zh-TW.md)連接，重新產生機器索引即可列出新增資料。沒有階段對照的目錄保留 `stage: null`，不猜測輪次或把它算成通過項目。
 
@@ -126,3 +127,5 @@ for member in index["members"]:
 第44輪的protocol與凍結源碼在任何量測前提交，事前揭露包含先前的整合重播與128物件每影格smoke。GT階段（不作計時宣稱）、pilot與profile、正式靜態、正式每影格混合、正式每影格完整GPU分成五個raw封存，各在100 MB以內。4筆`job_equals_round43`失敗（控制場景路徑不同、內容相同）保留在decision-and-failures.json；工具突變、獨立稽核、摘要重播與最終測試log在validation-logs.tar.gz。
 
 第45輪的protocol與凍結源碼在任何量測前提交，之後的兩次修訂各有獨立紀錄檔：修訂1只改GT摘要程式（輸入雜湊改以路徑查），修訂2處理被應用程式更新中止的第一次正式計時。raw封存為GT、pilot、第二次正式（依方法分三包）與中止的第一次正式（依方法分三包），各在100 MB以內；第一次只作描述性對照（run1-comparison.json），不用於判定。
+
+第48輪的protocol與凍結源碼在任何計時前提交，計時前的修訂1（主機偵測補強）寫在protocol的revisions。四個phase分別保存：pilot（篩選，期間另一個session在建置與測試，25筆主機gate保留）、formal、dose與profile；第一次開始被driver拒絕的log與runner突變第一次中止的紀錄也在validation-logs.tar.gz。原始結果分成raw-results-formal-hybrid-best.tar.gz、raw-results-formal-full-gpu.tar.gz（正式依方法分兩包，manifest在後者）與raw-results-other.tar.gz（pilot、劑量、profile），各在100 MB以內；輸入與第40輪fixtures逐位相同，只保存雜湊。量測後的分析修訂1（profile分段只算正式呼叫）寫在analysis-revision.json，凍結driver的原profile摘要保留為profile-summary-frozen-driver.json；獨立稽核、主機gate敏感度與封存重播也在validation-logs.tar.gz。

@@ -293,6 +293,9 @@ def arm_summary(case, item, workers, warmup, profile, gate):
     if any(row[name] is None for row in timed for name in names):
         gate('device_timestamp_unavailable')
     profiles = [result[2] for result, row in zip(routes, calls) if result[2] is not None]
+    # Stage times keep the protocol's metric scope: measured calls only, not cold or warm-up calls.
+    measured = [index > warmup for _, _, rows, _, _ in checked for index in range(len(rows))]
+    timed_profiles = [result[2] for result, use in zip(routes, measured) if use and result[2] is not None]
     reference = calls[0]
     row = dict(spec=item, blocks=blocks,
                metrics={name: distribution([value[name] for value in timed if value[name] is not None]) if any(value[name] is not None for value in timed) else None
@@ -310,8 +313,8 @@ def arm_summary(case, item, workers, warmup, profile, gate):
                    all((call['matches'], call['proposals']) == (reference['matches'], reference['proposals']) for call in calls),
                cold_calls=len(checked), warmup_calls=len(checked)*warmup, measured_calls=len(timed), gt_evaluated_calls=len(calls))
     if profile:
-        stages = sorted({name for record in profiles for name in record['stages']})
-        row['profile_stages'] = {name: distribution([record['stages'][name]['gpu_ms'] for record in profiles if name in record['stages']]) for name in stages}
+        stages = sorted({name for record in timed_profiles for name in record['stages']})
+        row['profile_stages'] = {name: distribution([record['stages'][name]['gpu_ms'] for record in timed_profiles if name in record['stages']]) for name in stages}
         row['profile_available_calls'] = len(profiles)
     return row, calls
 

@@ -35,6 +35,7 @@ STAGES = {
     "stage43-candidate-dedup": "43",
     "stage44-dedup-peak2": "44",
     "stage45-cpu-path": "45",
+    "stage48-frame-overheads": "48",
 }
 ROLE_DESCRIPTIONS = {
     "protocol": "Settings, workload definition, budgets and acceptance gates",
