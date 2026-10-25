@@ -152,7 +152,7 @@ build/portable/fpm_cli --src "Test Images/Src7.bmp" \
 
 這些是同機、同圖、同參數的模式比較，數量相同不等於精度相同。原始結果和各次時間保留於 `docs/mode-benchmark.json`。一般模式有加速，但尚未追平舊 C++；FastMode 不能拿來當作等精度勝過舊版的證據。GUI 的背景工作避免阻塞視窗，並不是讓核心自動多執行緒加速。
 
-已使用金字塔、縮小旋轉畫布、局部 ROI、NEON／SSE2、積分圖與依條件啟用的 BlockMax。ARM 編譯有 `__ARM_FEATURE_DOTPROD` 時改用 UDOT 點積（2026-10-24，見[報告](docs/CORE_DOTPROD_zh-TW.md)），clang＋aarch64 的旋轉以 NEON 精確重現 scalar 運算（2026-10-25，見[報告](docs/CORE_WARP_PYRDOWN_zh-TW.md)）；上表是之前的數字；核心尚未加入 FFT 相關後端或多核心候選搜尋，不能宣稱已用上所有最快路徑。
+已使用金字塔、縮小旋轉畫布、局部 ROI、NEON／SSE2、積分圖與依條件啟用的 BlockMax。ARM 編譯有 `__ARM_FEATURE_DOTPROD` 時改用 UDOT 點積（2026-10-24，見[報告](docs/CORE_DOTPROD_zh-TW.md)），clang＋aarch64 的旋轉以 NEON 精確重現 scalar 運算（2026-10-25，見[報告](docs/CORE_WARP_PYRDOWN_zh-TW.md)），窮舉 NCC 改用精確整數滑動和與 8 視窗點積（2026-10-25，見[報告](docs/CORE_EXHAUSTIVE_NCC_zh-TW.md)）；上表是之前的數字；核心尚未加入 FFT 相關後端或多核心候選搜尋，不能宣稱已用上所有最快路徑。
 
 Subpixel 在 GUI「次像素位置與角度精修」、CLI `--subpixel`、C++ `MatchConfig::subpixel`、C ABI `fpm_config.subpixel` 均已接通。旋轉模式使用 27 點三維二次曲面精修 x／y／角度，固定角度可用 2D fallback；QR 求解、負定 Hessian 與偏移界限檢查也都有源碼。FastMode 在半解析度結束，會跳過最細層 Subpixel，GUI 因此停用該選項。
 

@@ -1,0 +1,153 @@
+{
+  "adopted": [
+    "default exhaustive maps (finite source in binary64 integer range, no bounds, no screen, template height <= 65536) use exhaustiveNcc: uint32 column sums slid vertically and uint64 window sums slid horizontally replace the binary64 integral images",
+    "UDOT builds (Backend::Auto, template width <= 4096) compute products of eight adjacent windows per kernel call over a zero-padded template and a tight zero-tailed source copy; groups whose eight denominators are all zero are skipped like the original per-window skip",
+    "bounded and screened maps keep the original code path unchanged"
+  ],
+  "rejected_in_pilot": [
+    {
+      "variant": "pilot 1: four-row interleaved whole-window UDOT + uint64 integral images",
+      "reason": "Src7/Src6 only -11%: level-0 templates exceed L1, so every window re-streamed the template; the integral images still wrote 16 bytes per ROI pixel"
+    },
+    {
+      "variant": "single-accumulator whole-window UDOT (win1)",
+      "reason": "about 2x slower than row-by-row on wide templates (one long dependency chain)"
+    },
+    {
+      "variant": "eight-row interleave (win8)",
+      "reason": "no better than four rows"
+    }
+  ],
+  "failures_and_caveats": [
+    "two early profiling attempts were invalid (duplicated dot calls merged by the compiler; a patch that did not apply); both are disclosed in pilot/pilot-console-transcript.txt and superseded",
+    "pilot timings were printed to the console only; they are transcribed verbatim in pilot/pilot-console-transcript.txt; the window microbenchmark was rerun once to archive its output",
+    "the grouped kernel reads up to 22 bytes past a window inside a private zero-tailed copy; mutant N6 (no tail) is caught only by ASan",
+    "Backend::Scalar also changes how window sums are formed (exact integer sliding sums), so portable_scalar mode is faster (-11.6%); its dot product is unchanged",
+    "the integer code is platform independent; x86 was not run",
+    "other Claude/Codex processes were active; load averages recorded per session (1-minute 3.7-4.4)",
+    "only one Apple M4 Pro"
+  ],
+  "formal_benchmark_modes": {
+    "legacy_cpp": {
+      "before_session_medians_ms": [
+        184.148,
+        186.702166,
+        186.515792
+      ],
+      "after_session_medians_ms": [
+        187.05875,
+        186.04275,
+        184.8955
+      ],
+      "before_pooled_median_ms": 185.495708,
+      "after_pooled_median_ms": 186.21975,
+      "pooled_change_percent": 0.39032816867115017,
+      "paired_session_change_percent": [
+        1.5806579490409867,
+        -0.35319140325345,
+        -0.8687157171120452
+      ],
+      "matches_identical_across_sessions_and_builds": true,
+      "backends": [
+        "legacy build"
+      ]
+    },
+    "portable_scalar": {
+      "before_session_medians_ms": [
+        720.776334,
+        713.702667,
+        712.669209
+      ],
+      "after_session_medians_ms": [
+        635.924,
+        628.049042,
+        625.872542
+      ],
+      "before_pooled_median_ms": 714.652458,
+      "after_pooled_median_ms": 631.457958,
+      "pooled_change_percent": -11.641252901140941,
+      "paired_session_change_percent": [
+        -11.772352947426267,
+        -12.00130375861409,
+        -12.179095982242739
+      ],
+      "matches_identical_across_sessions_and_builds": true,
+      "backends": [
+        "scalar"
+      ]
+    },
+    "portable_simd": {
+      "before_session_medians_ms": [
+        245.308,
+        248.403667,
+        244.196792
+      ],
+      "after_session_medians_ms": [
+        154.530666,
+        152.988666,
+        152.203334
+      ],
+      "before_pooled_median_ms": 245.720083,
+      "after_pooled_median_ms": 153.220791,
+      "pooled_change_percent": -37.64417253595018,
+      "paired_session_change_percent": [
+        -37.00545192166582,
+        -38.41126910578176,
+        -37.67185360895322
+      ],
+      "matches_identical_across_sessions_and_builds": true,
+      "backends": [
+        "NEON+DOTPROD"
+      ]
+    },
+    "portable_fast": {
+      "before_session_medians_ms": [
+        92.950167,
+        90.274875,
+        91.337375
+      ],
+      "after_session_medians_ms": [
+        58.870083,
+        58.509959,
+        58.822916
+      ],
+      "before_pooled_median_ms": 91.571875,
+      "after_pooled_median_ms": 58.643292,
+      "pooled_change_percent": -35.95927570555916,
+      "paired_session_change_percent": [
+        -36.66489808458332,
+        -35.18688450136319,
+        -35.5981973425446
+      ],
+      "matches_identical_across_sessions_and_builds": true,
+      "backends": [
+        "NEON+DOTPROD"
+      ]
+    },
+    "portable_subpixel": {
+      "before_session_medians_ms": [
+        2261.178833,
+        2250.382291,
+        2255.194083
+      ],
+      "after_session_medians_ms": [
+        1398.745042,
+        1388.512708,
+        1395.947542
+      ],
+      "before_pooled_median_ms": 2255.194083,
+      "after_pooled_median_ms": 1392.684375,
+      "pooled_change_percent": -38.245475832955165,
+      "paired_session_change_percent": [
+        -38.140892635889976,
+        -38.298807560248434,
+        -38.1007802156423
+      ],
+      "matches_identical_across_sessions_and_builds": true,
+      "backends": [
+        "NEON+DOTPROD"
+      ]
+    }
+  },
+  "formal_fixtures_ab_geomean_ratio": 0.4392590695631534
+}

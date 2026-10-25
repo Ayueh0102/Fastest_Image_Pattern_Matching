@@ -3,6 +3,7 @@
 #include "internal.hpp"
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 #include <functional>
 #include <iostream>
 #include <random>
@@ -277,6 +278,87 @@ void exactRotationAndPyramid()
 			canvasAnchor, angle, border)), "rotation canvas must match the original loop");
 	}
 }
+// Verbatim exhaustive NCC of the original: binary64 integral images and a
+// row-by-row binary64 sum of exact row dot products.
+ScoreMap referenceNcc(ImageView src, const TemplateLevel& templ)
+{
+	const auto& t = templ.image;
+	const int width = src.width - t.width() + 1, height = src.height - t.height() + 1;
+	ScoreMap out{width, height, std::vector<double>(std::size_t(width) * height)};
+	const double area = double(t.width()) * t.height();
+	if (templ.norm * templ.norm / area < DBL_EPSILON) {
+		std::fill(out.values.begin(), out.values.end(), 1.0);
+		return out;
+	}
+	const std::size_t stride = std::size_t(src.width) + 1;
+	std::vector<double> sums(stride * (std::size_t(src.height) + 1), 0);
+	std::vector<double> squares(sums.size(), 0);
+	for (int y = 0; y < src.height; ++y) {
+		double sum = 0, square = 0;
+		for (int x = 0; x < src.width; ++x) {
+			const double v = src.data[std::size_t(y) * src.stride + x];
+			sum += v;
+			square += v * v;
+			const auto i = (std::size_t(y) + 1) * stride + x + 1;
+			sums[i] = sums[i - stride] + sum;
+			squares[i] = squares[i - stride] + square;
+		}
+	}
+	for (int y = 0; y < height; ++y)
+		for (int x = 0; x < width; ++x) {
+			const std::size_t a = std::size_t(y) * stride + x;
+			const std::size_t b = a + t.width(), c = a + std::size_t(t.height()) * stride, d = c + t.width();
+			const double sum = sums[d] - sums[b] - sums[c] + sums[a];
+			const double square = squares[d] - squares[b] - squares[c] + squares[a];
+			const double variance = std::max(0.0, square - sum * sum / area);
+			const double denominator = nccDenominator(variance, square, templ.norm);
+			if (denominator == 0) { out.at(x, y) = 0; continue; }
+			double product = 0;
+			for (int ty = 0; ty < t.height(); ++ty) {
+				std::uint64_t row = 0;
+				const auto* s = src.data + std::size_t(y + ty) * src.stride + x;
+				for (int tx = 0; tx < t.width(); ++tx) row += unsigned(t.row(ty)[tx]) * s[tx];
+				product += double(row);
+			}
+			out.at(x, y) = nccNormalizeProduct(product, sum, templ.mean, denominator);
+		}
+	return out;
+}
+void exactExhaustiveNcc()
+{
+	std::mt19937 rng(91);
+	auto check = [](ImageView src, const TemplateLevel& templ, const char* message) {
+		const auto expected = referenceNcc(src, templ);
+		for (Backend backend : {Backend::Scalar, Backend::Auto}) {
+			const auto actual = ncc(src, templ, backend);
+			require(actual.width == expected.width && actual.height == expected.height &&
+				std::memcmp(actual.values.data(), expected.values.data(), expected.values.size() * sizeof(double)) == 0, message);
+		}
+	};
+	for (int trial = 0; trial < 1500; ++trial) {
+		// Narrow, block-aligned, multi-block and odd widths; padded and tight
+		// strides so windows near the end use the row-by-row fallback.
+		const int tw = trial < 1200 ? 1 + int(rng() % 40) : 40 + int(rng() % 120);
+		const int th = trial < 1200 ? 1 + int(rng() % 12) : 1 + int(rng() % 75);
+		const int w = tw + int(rng() % 24), h = th + int(rng() % 10), pad = rng() % 3 ? 0 : int(rng() % 20);
+		std::vector<std::uint8_t> pixels(std::size_t(w + pad) * h);
+		const int mode = int(rng() % 4);
+		for (auto& v : pixels) v = mode == 0 ? std::uint8_t(250 + rng() % 6) : mode == 1 ? std::uint8_t(rng() % 4) : std::uint8_t(rng());
+		Image patch(tw, th);
+		for (int y = 0; y < th; ++y) for (int x = 0; x < tw; ++x)
+			patch.row(y)[x] = mode == 0 ? std::uint8_t(250 + rng() % 6) : std::uint8_t(rng());
+		check({pixels.data(), w, h, std::size_t(w + pad)}, learnLevel(patch), "exhaustive NCC must match the original binary64 path");
+	}
+	// Near-saturated wide rows: 4096 bytes uses the grouped kernel, 4097 does
+	// not. 4096x20 products exceed one uint32 sum, so the flushes must work.
+	for (int tw : {4096, 4097}) {
+		Image patch(tw, 20);
+		for (int y = 0; y < 20; ++y) for (int x = 0; x < tw; ++x) patch.row(y)[x] = std::uint8_t(x == y ? 0 : 255);
+		Image source(tw + 3, 24);
+		for (int y = 0; y < 24; ++y) for (int x = 0; x < tw + 3; ++x) source.row(y)[x] = std::uint8_t((x + 3 * y) % 11 ? 255 : 254);
+		check(source.view(), learnLevel(patch), "saturated wide NCC must match the original binary64 path");
+	}
+}
 void peakExtraction()
 {
 	ScoreMap map{100,30,std::vector<double>(3000,0)};
@@ -474,7 +556,7 @@ void fractionalPose()
 }
 int main()
 {
-	const std::pair<const char*,std::function<void()>> tests[]={{"image/pyramid",imageAndPyramid},{"NCC/reference/stride",nccReference},{"NCC/conservative-pruning",nccPruning},{"SIMD/overflow/tails",simdOverflow},{"rotation/pyramid/exact-reference",exactRotationAndPyramid},{"peaks/BlockMax",peakExtraction},{"geometry/NMS",geometry},{"match/six-rotated-copies",sixRotatedCopies},{"subpixel/fits",subpixel},{"match/validation/invert",matching},{"rotation/ranges/layer0",rotatedMatching},{"subpixel/known-fractional-pose",fractionalPose}};
+	const std::pair<const char*,std::function<void()>> tests[]={{"image/pyramid",imageAndPyramid},{"NCC/reference/stride",nccReference},{"NCC/conservative-pruning",nccPruning},{"SIMD/overflow/tails",simdOverflow},{"rotation/pyramid/exact-reference",exactRotationAndPyramid},{"NCC/exhaustive/exact-reference",exactExhaustiveNcc},{"peaks/BlockMax",peakExtraction},{"geometry/NMS",geometry},{"match/six-rotated-copies",sixRotatedCopies},{"subpixel/fits",subpixel},{"match/validation/invert",matching},{"rotation/ranges/layer0",rotatedMatching},{"subpixel/known-fractional-pose",fractionalPose}};
 	int failed=0;
 	for(const auto& test:tests) {
 		try { test.second(); std::cout<<"PASS "<<test.first<<'\n'; }
