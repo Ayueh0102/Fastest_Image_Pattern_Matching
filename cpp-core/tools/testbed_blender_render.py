@@ -3,6 +3,7 @@
 Run from the repository root after `testbed_generate.py textures`:
   /Applications/Blender.app/Contents/MacOS/Blender --background --factory-startup \
     --python cpp-core/tools/testbed_blender_render.py -- --textures DIR --output DIR [--only a,b]
+    [--seed N --rgb-order-seed N --rgb-layout-seed N]   (defaults: the test-bed v1 seeds)
 
 Cycles CPU with a fixed seed and thread count, Standard view transform, 8-bit PNG.
 Every object is a textured plane. Ground-truth corners and centres come from
@@ -26,6 +27,7 @@ from mathutils import Vector
 GRAY_W, GRAY_H = 140, 102   # Test Images/Dst3.bmp
 RGB_W, RGB_H = 128, 80      # testbed_generate.capsule_texture
 SAMPLES, SEED, THREADS = 48, 2026102410, 8
+RGB_ORDER_SEED, RGB_LAYOUT_SEED = 2026102416, 2026102417
 WARM, COOL = (1., .70, .42), (.75, .85, 1.)
 # Measured on a 768^2 smoke render: 500000 W per (512 px)^2 gave white -> 0.10 linear.
 # This gain maps a white Lambertian surface under the neutral light to about 0.9 linear.
@@ -173,7 +175,7 @@ def reference(output, name, texture, w, h, size, lights=('neutral',)):
              notes='Template source: upright, scale 1, centred; crop is the exact plane rectangle.')
 
 
-def build(textures, output, only):
+def build(textures, output, only, rgb_order_seed=RGB_ORDER_SEED, rgb_layout_seed=RGB_LAYOUT_SEED):
     meta = json.loads((textures / 'textures.json').read_text())
     gray, symmetric = textures / 'gray_dst3.png', textures / 'gray_dst3_symmetric180.png'
     jobs = {}
@@ -239,7 +241,7 @@ def build(textures, output, only):
     records = {r['name']: r for r in meta['textures']}
     rgb_mix = ['red_base'] * 4 + ['red_hue+_8', 'red_hue-_8', 'red_chroma-_8', 'red_isogray0_8',
                                   'red_isogray90_4', 'red_hue+_4', 'red_lightness+_8', 'red_chroma-_4']
-    rng = random.Random(2026102416); order = rgb_mix[:]; rng.shuffle(order)
+    rng = random.Random(rgb_order_seed); order = rgb_mix[:]; rng.shuffle(order)
 
     @job('bl_rgb_reference')
     def _():
@@ -248,7 +250,7 @@ def build(textures, output, only):
     def rgb_scene(name, lights):
         s = Scene(1024, 768, lights=lights)
         materials = {n: s.texture_material(textures / records[n]['file']) for n in set(order)}
-        for i, (pose, texture) in enumerate(zip(grid_poses(2026102417, 4, 3, 256, scale_range=(.9, 1.1)), order)):
+        for i, (pose, texture) in enumerate(zip(grid_poses(rgb_layout_seed, 4, 3, 256, scale_range=(.9, 1.1)), order)):
             r = records[texture]
             s.add_object(i, RGB_W, RGB_H, materials[texture], pose, identity='target', texture=texture,
                 same_colour=r['same_colour'], direction=r['direction'], delta_e00_target=r['delta_e00_target'],
@@ -276,17 +278,23 @@ def build(textures, output, only):
     record = output / 'blender_generation.json'
     previous = json.loads(record.read_text())['rendered'] if record.exists() else []
     save(record, dict(script_sha256=sha(__file__), textures_json_sha256=sha(textures / 'textures.json'),
-        blender_version=bpy.app.version_string, rendered=previous + selected, samples=SAMPLES, seed=SEED, threads=THREADS))
+        blender_version=bpy.app.version_string, rendered=previous + selected, samples=SAMPLES, seed=SEED, threads=THREADS,
+        rgb_order_seed=rgb_order_seed, rgb_layout_seed=rgb_layout_seed))
 
 
 def main():
+    global SEED
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--textures', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--only', default='')
+    parser.add_argument('--seed', type=int, default=SEED, help='Cycles sampling seed')
+    parser.add_argument('--rgb-order-seed', type=int, default=RGB_ORDER_SEED, help='bl_rgb texture order')
+    parser.add_argument('--rgb-layout-seed', type=int, default=RGB_LAYOUT_SEED, help='bl_rgb object poses')
     args = parser.parse_args(sys.argv[sys.argv.index('--') + 1:])
+    SEED = args.seed
     out = args.output.resolve(); out.mkdir(parents=True, exist_ok=True)
-    build(args.textures.resolve(), out, [n for n in args.only.split(',') if n])
+    build(args.textures.resolve(), out, [n for n in args.only.split(',') if n], args.rgb_order_seed, args.rgb_layout_seed)
 
 
 if __name__ == '__main__':

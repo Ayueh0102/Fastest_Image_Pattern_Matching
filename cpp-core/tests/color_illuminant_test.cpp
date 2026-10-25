@@ -13,6 +13,7 @@ using fpm::research::IlluminantChromaConfig;
 using fpm::research::IlluminantChromaVerifier;
 using fpm::research::IlluminantSource;
 using fpm::research::ReferenceClipPolicy;
+using fpm::research::ReferenceModel;
 void require(bool value,const char* message) {if(!value)throw std::runtime_error(message);}
 double linear(std::uint8_t byte)
 {
@@ -187,6 +188,64 @@ int main()
         require(cardResult.status==0 && cardResult.referenceEligible==12 && cardResult.meanDistance<.002,"Card correction failed");
         require(cardVerifier.templateReference()==std::array<double,3>{1,1,1},"Default template reference is neutral");
         require(cardVerifier.score({3,2,0,0}).gain==cardResult.gain,"Global reference must not depend on the pose");
+
+        // Linear reference model. Uniform light: zero slopes, same result as the constant model.
+        IlluminantChromaConfig line;line.model=ReferenceModel::Linear;
+        const auto flat=Fixture{}.object(line).score({0,0,0,0});
+        require(flat.status==0 && flat.regionDistance==0 && flat.meanDistance==0 && flat.gain==std::array<double,3>{1,1,1} &&
+            flat.referenceSlopeU==std::array<double,3>{} && flat.referenceSlopeV==std::array<double,3>{},"Linear model under uniform light");
+        const auto warmLine=warm.object(line).score({0,0,0,0});
+        require(warmLine.status==0 && warmLine.regionDistance<.001 && std::abs(warmLine.gain[0]*1.18-1)<.01,"Linear model under a uniform shift");
+        require(balanced.referenceSlopeU==std::array<double,3>{} && balanced.referenceSlopeV==std::array<double,3>{},
+            "Constant model reports slopes");
+        // A chromatic gradient along u (warmer to the left, where the colour field is):
+        // the constant panel median misses it, the two-ends slope extrapolates it.
+        Fixture ramp;
+        for(int y=0;y<ramp.th;++y)for(int x=0;x<ramp.tw;++x)for(int c=0;c<3;++c) {
+            const double gain=c==0?1+.05*(8-x):c==2?1-.04*(8-x):1;
+            ramp.at(x,y)[c]=encode(linear(ramp.templ[std::size_t(y)*ramp.ts+3*x+c])*gain);
+        }
+        const auto rampConstant=ramp.object().score({0,0,0,0}), rampLine=ramp.object(line).score({0,0,0,0});
+        require(rampConstant.status==0 && rampConstant.regionDistance>.02,"Gradient control is too weak");
+        require(rampLine.status==0 && rampLine.regionDistance<rampConstant.regionDistance/5,"Linear model did not remove an in-object gradient");
+        require(rampLine.referenceSlopeU[0]<0 && rampLine.referenceSlopeU[2]>0 && std::abs(rampLine.referenceSlopeV[0])<1e-3,
+            "Slope signs along u (right) and v (up)");
+        // Gradient along v only: same rows as the field, so only the v slope picks it up.
+        Fixture tilt;
+        for(int y=0;y<tilt.th;++y)for(int x=0;x<tilt.tw;++x)for(int c=0;c<3;++c)
+            tilt.at(x,y)[c]=encode(linear(tilt.templ[std::size_t(y)*tilt.ts+3*x+c])*(c==1?1-.05*y:1));
+        const auto tilted=tilt.object(line).score({0,0,0,0});
+        require(tilted.status==0 && tilted.referenceSlopeV[1]>0 && std::abs(tilted.referenceSlopeU[1])<1e-3 &&
+            tilted.meanDistance<tilt.object().score({0,0,0,0}).meanDistance,"v slope");
+        // The slope follows the pose: the same gradient at a quarter turn.
+        Fixture turnedRamp;std::fill(turnedRamp.source.begin(),turnedRamp.source.end(),30);
+        for(int y=0;y<ramp.th;++y)for(int x=0;x<ramp.tw;++x)for(int c=0;c<3;++c)
+            turnedRamp.source[std::size_t(12-x)*turnedRamp.ss+3*(8+y)+c]=ramp.source[std::size_t(y+5)*ramp.ss+3*(x+6)+c];
+        const auto rampQuarter=turnedRamp.object(line).score({.5f,.5f,90,0});
+        require(rampQuarter.status==0 && rampQuarter.regionDistance==rampLine.regionDistance &&
+            rampQuarter.referenceSlopeU==rampLine.referenceSlopeU,"Linear model not mapped through the pose");
+        // One clipped end abstains even though the whole reference is usable (8/24 clipped).
+        Fixture endClip;
+        for(int y=0;y<endClip.th;++y){endClip.at(8,y)[0]=255;if(y<2)endClip.at(7,y)[0]=255;}
+        require(endClip.object().score({0,0,0,0}).status==0,"Constant model should keep an 8/24 clipped reference");
+        const auto endResult=endClip.object(line).score({0,0,0,0});
+        require(endResult.status==3 && endResult.regionDistance==-1 && endResult.gain==std::array<double,3>{} &&
+            endResult.referenceSlopeU==std::array<double,3>{},"Clipped end must abstain");
+        // A steep gradient extrapolates to a non-positive illuminant over the colour field: abstain.
+        Fixture steep;
+        const std::uint8_t columns[4]{100,160,210,250};
+        for(int y=0;y<steep.th;++y)for(int x=5;x<steep.tw;++x)for(int c=0;c<3;++c)steep.at(x,y)[c]=columns[x-5];
+        require(steep.object().score({0,0,0,0}).status==0,"Steep control under the constant model");
+        const auto steepResult=steep.object(line).score({0,0,0,0});
+        require(steepResult.status==3 && steepResult.meanDistance==-1 && steepResult.gain==std::array<double,3>{},
+            "Non-positive extrapolated illuminant accepted");
+        IlluminantChromaConfig lineRect=global;lineRect.model=ReferenceModel::Linear;
+        require(throws([&]{IlluminantChromaVerifier(card.s(),card.t(),card.colour.data(),card.ms,nullptr,0,lineRect);}),
+            "Linear model with a source rectangle");
+        Fixture narrow;
+        std::fill(narrow.reference.begin(),narrow.reference.end(),0);
+        for(int y=0;y<narrow.th;++y)narrow.reference[y*narrow.ms+5]=1;
+        require(throws([&]{narrow.object(line);}),"Linear model on a one-column reference");
 
         // Invalid inputs.
         require(throws([&]{IlluminantChromaVerifier(exact.s(),exact.t(),exact.colour.data(),exact.ms,nullptr,0);}),"Missing reference mask");

@@ -209,6 +209,29 @@ class WorkerContract(unittest.TestCase):
         self.worker(dict(job, illuminant_reference="source_rect", reference_rect=[0, 0, 2.5, 2]), success=False)
         self.worker(dict(job, illuminant_reference="card", reference_mask=white), success=False)
 
+    def test_chroma_vk_linear_reference_model(self):
+        job = dict(self.illuminant_fixture(), method="chroma_vk", reference_mask=str(self.root / "white.pgm"))
+        constant = self.worker(job)
+        linear = self.worker(dict(job, reference_model="linear"))
+        self.assertEqual(constant["illuminant_config"]["reference_model"], "constant")
+        self.assertEqual(linear["illuminant_config"]["reference_model"], "linear")
+        for record in constant["first"]["scores"]:
+            self.assertNotIn("reference_slope_u", record)
+        same, warm, defect, bright = linear["first"]["scores"]
+        self.assertEqual((same["status"], same["region_distance"], same["reference_slope_u"], same["reference_slope_v"]),
+                         (0, 0, [0, 0, 0], [0, 0, 0]))
+        self.assertLess(warm["region_distance"], .003)
+        self.assertGreater(defect["region_distance"], .04)
+        self.assertEqual((bright["status"], bright["region_distance"]), (3, -1))
+        for a, b in zip(constant["first"]["scores"], linear["first"]["scores"]):
+            self.assertEqual(a["uncorrected_region_distance"], b["uncorrected_region_distance"])
+        self.worker(dict(job, reference_model="quadratic"), success=False)
+        self.worker(dict(job, reference_model=1), success=False)
+        self.worker(dict(job, method="chroma", reference_model="constant"), success=False)
+        rect = {key: value for key, value in job.items() if key != "reference_mask"}
+        self.worker(dict(rect, illuminant_reference="source_rect", reference_rect=[60, 0, 66, 3], reference_model="linear"),
+                    success=False)
+
     def test_metal_rgb_smoke(self):
         if not METAL:
             self.skipTest("pass --metal to exercise available Metal hardware")

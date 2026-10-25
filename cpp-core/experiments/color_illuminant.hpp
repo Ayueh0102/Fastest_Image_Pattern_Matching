@@ -22,11 +22,19 @@ enum class ReferenceClipPolicy {
     Drop, // ablation: discard samples with any clipped channel, then take medians
     None, // ablation: no saturation handling anywhere
 };
+// How the source illuminant varies over one object (Object source only).
+enum class ReferenceModel {
+    Constant, // one per-channel median for the whole reference (round 46)
+    Linear,   // the reference's outer thirds along template u and along v give two end pairs;
+              // their medians, placed at the median (u, v) behind them, fix a first-order
+              // illuminant that is extrapolated to each colour sample's position
+};
 
 struct IlluminantChromaConfig {
     ColorVerifyConfig chroma;                 // colour-region threshold, dark limit, support
     IlluminantSource source = IlluminantSource::Object;
     ReferenceClipPolicy clipPolicy = ReferenceClipPolicy::Rank;
+    ReferenceModel model = ReferenceModel::Constant;
     int saturationLevel = 255;                // an sRGB byte >= this is clipped
     double maxReferenceClipFraction = .45;    // a median is unaffected below .5 clipped
     double minReferenceFraction = .5;         // in-bounds (and, for Drop, unclipped) share
@@ -50,6 +58,9 @@ struct IlluminantChromaResult {
     double referenceFraction = 0;
     std::array<double, 3> referenceClipFraction{};
     std::array<double, 3> gain{};             // template / source reference, 0 if unusable
+    // Linear model: source linear RGB change per template pixel along u (right) and
+    // v (up); gain is taken at the reference centroid. Zero for Constant or unusable.
+    std::array<double, 3> referenceSlopeU{}, referenceSlopeV{};
 };
 
 // Illumination-normalized chroma verification for located candidates (opt-in
@@ -61,9 +72,11 @@ struct IlluminantChromaResult {
 // distance is computed over the colour mask only:
 //   gain_c = W_template,c / W_source,c,   d = ||c(gain*I) - c(T)|| / sqrt(2)
 // Under Rank/Drop, colour samples with any clipped bilinear neighbour are missing
-// support. A diagonal model cannot undo spatially varying light inside an
-// object, inter-reflections or non-neutral references. Thresholds still need
-// separate calibration data.
+// support. The Constant model cannot undo spatially varying light inside an
+// object; the Linear model fits a first-order variation from the reference's two
+// ends per axis (each end must be usable, and the extrapolated illuminant must stay
+// positive, or the result abstains). Neither handles inter-reflections or
+// non-neutral references. Thresholds still need separate calibration data.
 class IlluminantChromaVerifier {
 public:
     // colourMask may be null (whole template). referenceMask is required for
@@ -87,6 +100,10 @@ private:
     std::vector<std::uint8_t> source_;
     std::vector<Sample> samples_;
     std::vector<std::array<float, 2>> reference_;
+    // Linear model: bit k marks membership of end k (0 low u, 1 high u, 2 low v,
+    // 3 high v) by rank of the template coordinate; endEligible_ counts each end.
+    std::vector<std::uint8_t> ends_;
+    std::array<std::uint64_t, 4> endEligible_{};
     Reference global_;
 };
 } // namespace fpm::research

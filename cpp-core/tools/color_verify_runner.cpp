@@ -153,9 +153,20 @@ QJsonObject illuminantJson(const fpm::research::IlluminantChromaResult& result)
         {"reference_fraction",result.referenceFraction},{"reference_clip_fraction",triple(result.referenceClipFraction)},
         {"gain",triple(result.gain)}};
 }
+// Linear reference model only: the per-pixel slopes (absent for the constant model, whose
+// score records stay as in round 46).
+QJsonObject illuminantJson(const fpm::research::IlluminantChromaResult& result,bool linear)
+{
+    auto out=illuminantJson(result);
+    if(linear) {
+        out.insert("reference_slope_u",triple(result.referenceSlopeU));
+        out.insert("reference_slope_v",triple(result.referenceSlopeV));
+    }
+    return out;
+}
 // chroma_vk options; every key is rejected for the other methods.
 const QStringList illuminantKeys{"reference_mask","illuminant_reference","reference_rect","template_reference_rgb",
-    "reference_clip_policy","saturation_level","max_reference_clip_fraction","min_reference_fraction"};
+    "reference_clip_policy","saturation_level","max_reference_clip_fraction","min_reference_fraction","reference_model"};
 fpm::research::IlluminantChromaConfig illuminantConfig(const QJsonObject& job,const fpm::research::ColorVerifyConfig& chroma)
 {
     fpm::research::IlluminantChromaConfig config;
@@ -171,6 +182,13 @@ fpm::research::IlluminantChromaConfig illuminantConfig(const QJsonObject& job,co
     else if(policy=="drop") config.clipPolicy=fpm::research::ReferenceClipPolicy::Drop;
     else if(policy=="none") config.clipPolicy=fpm::research::ReferenceClipPolicy::None;
     else throw std::invalid_argument("reference_clip_policy must be rank, drop or none");
+    const auto model=job["reference_model"].toString("constant");
+    if(job.contains("reference_model") && !job["reference_model"].isString()) throw std::invalid_argument("Invalid reference_model");
+    if(model=="constant") config.model=fpm::research::ReferenceModel::Constant;
+    else if(model=="linear") config.model=fpm::research::ReferenceModel::Linear;
+    else throw std::invalid_argument("reference_model must be constant or linear");
+    if(config.model==fpm::research::ReferenceModel::Linear && config.source!=fpm::research::IlluminantSource::Object)
+        throw std::invalid_argument("reference_model linear requires the object reference");
     config.saturationLevel=integer(job,"saturation_level",255,1,255);
     config.maxReferenceClipFraction=number(job,"max_reference_clip_fraction",.45,0,.999999);
     config.minReferenceFraction=number(job,"min_reference_fraction",.5,1e-12,1);
@@ -338,7 +356,8 @@ int main(int argc,char** argv)
             QJsonArray out;
             if (method=="geometry_only") for(const auto& match:searchResult.matches)out.append(match.score);
             else if (verifier) for (const auto& color : colors) out.append(colorJson(color));
-            else if (illuminant) for (const auto& color : normalized) out.append(illuminantJson(color));
+            else if (illuminant) for (const auto& color : normalized)
+                out.append(illuminantJson(color,vkConfig.model==fpm::research::ReferenceModel::Linear));
             else for (auto score : scores) out.append(score);
             return QJsonObject{{"wall_ms",wallMs},{"pipeline_ms",wallMs},{"search_ms",searchMs},
                 {"search_algorithm_ms",searchResult.totalMs},{"verification_ms",verificationMs},
@@ -382,11 +401,14 @@ int main(int argc,char** argv)
             out.insert("illuminant_config",QJsonObject{
                 {"reference",job["illuminant_reference"].toString("object")},
                 {"clip_policy",job["reference_clip_policy"].toString("rank")},{"saturation_level",vkConfig.saturationLevel},
+                {"reference_model",job["reference_model"].toString("constant")},
                 {"max_reference_clip_fraction",vkConfig.maxReferenceClipFraction},
                 {"min_reference_fraction",vkConfig.minReferenceFraction},
                 {"reference_rect",job["reference_rect"]},{"template_reference",triple(illuminant->templateReference())}});
             out.insert("illuminant_definition","per-channel median of nearest source pixels under the reference (pose-mapped "
-                "template mask or fixed source rectangle); von Kries gain template/source applied before chroma; status 3 abstains");
+                "template mask or fixed source rectangle); von Kries gain template/source applied before chroma; status 3 abstains; "
+                "reference_model linear solves first-order slopes from the outer-third medians along template u and v, "
+                "each placed at the median (u, v) behind it, and extrapolates the illuminant to each colour sample");
         }
         std::cout<<QJsonDocument(out).toJson(QJsonDocument::Compact).constData()<<'\n';
         return exact?0:1;

@@ -92,6 +92,8 @@ IlluminantChromaVerifier::IlluminantChromaVerifier(Rgb8View source, Rgb8View tem
         !(config.minReferenceFraction > 0 && config.minReferenceFraction <= 1))
         throw std::invalid_argument("Invalid illuminant chroma configuration");
     validateMask(colourMask, colourMaskStride, templ, "colour mask");
+    if (config.model == ReferenceModel::Linear && config.source != IlluminantSource::Object)
+        throw std::invalid_argument("Linear reference model requires an object reference");
     if (config.source == IlluminantSource::Object) {
         if (!referenceMask) throw std::invalid_argument("Object illuminant requires a reference mask");
         validateMask(referenceMask, referenceMaskStride, templ, "reference mask");
@@ -130,6 +132,25 @@ IlluminantChromaVerifier::IlluminantChromaVerifier(Rgb8View source, Rgb8View tem
         const auto white = estimate(bytes, bytes.size());
         if (!white.usable) throw std::invalid_argument("Template reference is empty, clipped or dark");
         templateWhite_ = white.white;
+        if (config.model == ReferenceModel::Linear) {
+            // Outer thirds by rank of u (ends 0, 1) and v (ends 2, 3); ties keep raster order.
+            const std::size_t n = reference_.size(), third = n/3;
+            if (third == 0) throw std::invalid_argument("Linear reference model needs at least 3 reference pixels");
+            ends_.assign(n, 0);
+            std::vector<std::size_t> order(n);
+            for (int axis = 0; axis < 2; ++axis) {
+                for (std::size_t k = 0; k < n; ++k) order[k] = k;
+                std::stable_sort(order.begin(), order.end(),
+                    [&](std::size_t a, std::size_t b) { return reference_[a][axis] < reference_[b][axis]; });
+                for (std::size_t k = 0; k < third; ++k) {
+                    ends_[order[k]] |= std::uint8_t(1u << (2*axis));
+                    ends_[order[n-1-k]] |= std::uint8_t(2u << (2*axis));
+                }
+                if (reference_[order[third-1]][axis] == reference_[order[n-third]][axis])
+                    throw std::invalid_argument("Linear reference model needs a reference extended along both template axes");
+            }
+            for (int e = 0; e < 4; ++e) endEligible_[e] = third;
+        }
     } else {
         templateWhite_ = config.templateReference;
         bytes.clear();
@@ -154,10 +175,18 @@ IlluminantChromaResult IlluminantChromaVerifier::score(const std::array<float, 4
     out.eligiblePixels = samples_.size();
     if (samples_.empty()) return out;
     Reference reference = global_;
+    const bool linear = config_.model == ReferenceModel::Linear;
+    std::array<double, 3> slopeU{}, slopeV{};
+    double centreU = 0, centreV = 0;
     if (config_.source == IlluminantSource::Object) {
         std::vector<std::array<std::uint8_t, 3>> bytes;
+        std::array<std::vector<std::array<std::uint8_t, 3>>, 4> endBytes;
+        // Linear: template u and v of the samples that enter each median (ends and whole reference).
+        std::array<std::array<std::vector<double>, 2>, 4> endCoordinates;
+        std::array<std::vector<double>, 2> coordinates;
         bytes.reserve(reference_.size());
-        for (const auto& sample : reference_) {
+        for (std::size_t k = 0; k < reference_.size(); ++k) {
+            const auto& sample = reference_[k];
             const float sx = width_*.5f+pose[0]+cs*sample[0]-sn*sample[1];
             const float sy = height_*.5f-pose[1]-(sn*sample[0]+cs*sample[1]);
             // Nearest pixel: the bounds keep floor(s+.5) inside the image before
@@ -166,14 +195,50 @@ IlluminantChromaResult IlluminantChromaVerifier::score(const std::array<float, 4
             const int x = int(std::floor(double(sx)+.5)), y = int(std::floor(double(sy)+.5));
             const auto* p = source_.data()+(std::size_t(y)*width_+x)*3;
             bytes.push_back({p[0],p[1],p[2]});
+            if (!linear) continue;
+            bool kept = config_.clipPolicy != ReferenceClipPolicy::Drop; // estimate() drops samples with any clipped byte
+            if (!kept) kept = p[0] < config_.saturationLevel && p[1] < config_.saturationLevel && p[2] < config_.saturationLevel;
+            if (kept) for (int axis = 0; axis < 2; ++axis) coordinates[axis].push_back(sample[axis]);
+            for (int e = 0; e < 4; ++e) if (ends_[k] >> e & 1u) {
+                endBytes[e].push_back(bytes.back());
+                if (kept) for (int axis = 0; axis < 2; ++axis) endCoordinates[e][axis].push_back(sample[axis]);
+            }
         }
         reference = estimate(bytes, reference_.size());
+        if (linear && reference.usable) {
+            // Each end is estimated like the whole reference (same clip policy and limits) and
+            // placed at the median (u, v) of the samples behind its median. The two slopes solve
+            // both end pairs jointly, so an end pair that is unbalanced in the other coordinate
+            // (rank ties) does not leak that axis's gradient into its own slope.
+            std::array<Reference, 4> end;
+            for (int e = 0; e < 4; ++e) {
+                end[e] = estimate(endBytes[e], endEligible_[e]);
+                reference.usable = reference.usable && end[e].usable;
+            }
+            if (reference.usable) {
+                centreU = median(coordinates[0]);
+                centreV = median(coordinates[1]);
+                std::array<std::array<double, 2>, 4> at{};
+                for (int e = 0; e < 4; ++e) for (int axis = 0; axis < 2; ++axis) at[e][axis] = median(endCoordinates[e][axis]);
+                const double du1 = at[1][0]-at[0][0], dv1 = at[1][1]-at[0][1]; // u pair: low -> high u
+                const double du2 = at[3][0]-at[2][0], dv2 = at[3][1]-at[2][1]; // v pair: low -> high v
+                const double determinant = du1*dv2-dv1*du2;
+                reference.usable = du1 > 0 && dv2 > 0 && determinant > 0;
+                if (reference.usable) for (int c = 0; c < 3; ++c) {
+                    const double dw1 = end[1].white[c]-end[0].white[c], dw2 = end[3].white[c]-end[2].white[c];
+                    slopeU[c] = (dw1*dv2-dw2*dv1)/determinant;
+                    slopeV[c] = (du1*dw2-du2*dw1)/determinant;
+                }
+            }
+        }
     }
     out.referenceEligible = reference.eligible;
     out.referenceSamples = reference.samples;
     out.referenceFraction = reference.fraction;
     out.referenceClipFraction = reference.clip;
     if (reference.usable) for (int c = 0; c < 3; ++c) out.gain[c] = templateWhite_[c]/reference.white[c];
+    bool positive = true; // Linear: the extrapolated illuminant stays positive at every valid colour sample
+    std::array<double, 3> correctedSum{};
     const bool clipCheck = config_.clipPolicy != ReferenceClipPolicy::None;
     double total = 0, uncorrected = 0;
     std::array<double, 3> sourceSum{}, templateSum{};
@@ -210,11 +275,22 @@ IlluminantChromaResult IlluminantChromaVerifier::score(const std::array<float, 4
         for (int c = 0; c < 3; ++c) { sourceSum[c] += values[c]; templateSum[c] += sample.linear[c]; }
         if (!reference.usable) continue;
         std::array<double, 3> corrected{};
-        for (int c = 0; c < 3; ++c) corrected[c] = values[c]*out.gain[c];
-        const double correctedSum = corrected[0]+corrected[1]+corrected[2];
+        if (linear) {
+            std::array<double, 3> white{};
+            for (int c = 0; c < 3; ++c) {
+                white[c] = reference.white[c]+slopeU[c]*(double(sample.u)-centreU)+slopeV[c]*(double(sample.v)-centreV);
+                positive = positive && white[c] > 0;
+            }
+            if (!positive) continue;
+            for (int c = 0; c < 3; ++c) {
+                corrected[c] = values[c]*(templateWhite_[c]/white[c]);
+                correctedSum[c] += corrected[c];
+            }
+        } else for (int c = 0; c < 3; ++c) corrected[c] = values[c]*out.gain[c];
+        const double correctedTotal = corrected[0]+corrected[1]+corrected[2];
         squared = 0;
         for (int c = 0; c < 3; ++c) {
-            const double difference = corrected[c]/correctedSum-sample.chroma[c];
+            const double difference = corrected[c]/correctedTotal-sample.chroma[c];
             squared += difference*difference;
         }
         const double distance = std::sqrt(squared*.5);
@@ -227,13 +303,20 @@ IlluminantChromaResult IlluminantChromaVerifier::score(const std::array<float, 4
         out.uncorrectedMeanDistance = uncorrected/out.validPixels;
         out.uncorrectedRegionDistance = chromaDistance(sourceSum, templateSum);
     }
-    out.status = !support ? 2 : reference.usable ? 0 : 3;
+    if (!positive) out.gain = {};
+    out.status = !support ? 2 : reference.usable && positive ? 0 : 3;
     if (out.status == 0) {
         out.meanDistance = total/out.validPixels;
         out.changedFraction = double(out.changedPixels)/out.validPixels;
-        std::array<double, 3> corrected{};
-        for (int c = 0; c < 3; ++c) corrected[c] = sourceSum[c]*out.gain[c];
-        out.regionDistance = chromaDistance(corrected, templateSum);
+        if (linear) {
+            out.regionDistance = chromaDistance(correctedSum, templateSum);
+            out.referenceSlopeU = slopeU;
+            out.referenceSlopeV = slopeV;
+        } else {
+            std::array<double, 3> corrected{};
+            for (int c = 0; c < 3; ++c) corrected[c] = sourceSum[c]*out.gain[c];
+            out.regionDistance = chromaDistance(corrected, templateSum);
+        }
     }
     return out;
 }
@@ -241,6 +324,6 @@ IlluminantChromaResult IlluminantChromaVerifier::score(const std::array<float, 4
 std::size_t IlluminantChromaVerifier::retainedBytes() const
 {
     return sizeof(*this)+source_.capacity()*sizeof(std::uint8_t)+samples_.capacity()*sizeof(Sample)+
-        reference_.capacity()*sizeof(reference_[0]);
+        reference_.capacity()*sizeof(reference_[0])+ends_.capacity();
 }
 } // namespace fpm::research
