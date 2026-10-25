@@ -1,6 +1,6 @@
 # Template Matching 研究總索引與人工審查指南
 
-更新：2026-10-24。此頁按第1–43輪列出問題、證據與採用決定。數字是各輪的證據快照，不是同一套輸入的連續加速曲線；不同輪次倍率不能相乘。最新輪次見頁末，第一次閱讀先看[外部導覽](../../docs/PROJECT_GUIDE_zh-TW.md)。
+更新：2026-10-25。此頁按第1–44輪列出問題、證據與採用決定。數字是各輪的證據快照，不是同一套輸入的連續加速曲線；不同輪次倍率不能相乘。最新輪次見頁末，第一次閱讀先看[外部導覽](../../docs/PROJECT_GUIDE_zh-TW.md)。
 
 ## 目前推薦方案
 
@@ -9,7 +9,7 @@
 | 主題 | 閱讀入口 |
 |---|---|
 | 核心、GUI與語言移植 | 第1輪；[建置](../README_zh-TW.md)、[移植契約](PORTING_zh-TW.md) |
-| GPU並行、同步與記憶體 | 第5–14、19–25、28–34、36–43輪；依工作量看CPU／Metal對照 |
+| GPU並行、同步與記憶體 | 第5–14、19–25、28–34、36–44輪；依工作量看CPU／Metal對照 |
 | 固定尺度與稀疏前段 | 第15–21輪；與金字塔路徑分開比較 |
 | 原始NCC與旋轉細搜尋 | 第26–30輪；保留未加速與記憶體失敗 |
 | 新場景、Blender、新影格與穩定性 | [第34輪](STAGE34_CLOSURE_zh-TW.md) |
@@ -472,3 +472,15 @@ Release 54/54、相關ASan／UBSan 2/2及Python工具75項通過。正式／有�
 - 驗證：GT 1146程序、pilot 16、正式96、profile 4。不匯入harness的獨立稽核52,248項檢查零不符；封存重播摘要逐位相同；量測後Release 78／78、Python 585／585、Metal validation 22／22、ASan／UBSan 8／8。保留失敗：8K混合1個time_budget block（+11.5%），以及k1與消融arm的80筆GT退步。
 - 決定：k3在本輪全部場景GT中立，且達到兩條路徑的事前速度目標；保留為明確指定的研究選項，不改GUI或任何預設。對稱週期小於3個粗角度步的模板沒有驗證。
 - 證據：[完整報告](CANDIDATE_DEDUP_zh-TW.md)、[GT摘要](stage43-candidate-dedup/gt-summary.json)、[正式摘要](stage43-candidate-dedup/formal-summary.json)、[判定與失敗](stage43-candidate-dedup/decision-and-failures.json)、[驗證](stage43-candidate-dedup/validation.json)、[封存](stage43-candidate-dedup/archive.json)。
+
+### 44. 候選去重疊在平行選峰上的實際速度（2026-10-25，量測輪）
+
+- 問題：第43輪的k3在完整GPU上用peak1量（−26.1%／−25.7%），第42輪合併後完整GPU建議改為peak2；兩輪加速不能相乘，需要在同一建置上一起量，並重排每換新影格時四種組合的順序。不改任何演算法或預設，所有arm都是main（847e785）既有選項。
+- 方法：{靜態、每換新影格}×{混合、完整GPU peak2批次8 fine4}×{off、k3}共8個arm，4個正式場景×6 block，奇數block反轉順序；靜態job與第43輪正式job除peak鍵與重複次數外逐鍵相同，每次呼叫的輸出必須與第43輪同路徑同arm的封存相同。每影格暖機次數是第41輪的3倍（smoke中完整GPU k3每影格只要387ms），每個worker暖機仍需≥1秒。
+- 正式結果（靜態，k3對off）：完整GPU 128 580.66→374.57ms（−35.5%）、512 1870.81→1143.71ms（−38.9%）、六物件−34.4%，各6/6同向，達成事前10%目標；8K +0.1%（2/6，無方向）。混合重現第43輪方向（−29.9／−35.6／−26.3／+0.8%）。
+- 每換新影格：完整GPU k3在128（384.13ms）、512（1149.05ms）、六物件（41.91ms）對其他三組都6/6較快；對混合k3分別−39.0／−27.2／−11.4%。8K兩組完整GPU相同（−0.3%，3/6），都比混合快約80%，不點名最快者。關閉去重時六物件完整GPU對混合−0.5%（3/6，無方向）。
+- GT與輸出：79個完整GPU案例變體零GT退步（off與k3合計都是TP 3201／FP 31／FN 204）；GT 158程序與正式192程序的每次呼叫輸出都與第43輪peak1封存相同。保留4筆`job_equals_round43`失敗：兩個控制場景重新產生在本輪目錄、路徑不同，影像雜湊與輸出都相同。
+- 工作量與記憶體：profile中細搜尋415→213ms（128）、1331→629ms（512），仍占約54%，其次是initial_refine 20–22%；去重kernel 3.4／13.9ms。k3只多0.21／0.41MiB命名Metal配置，RSS門檻全過。
+- 驗證：工具19項負控制、10個工具突變全殺；不匯入harness的獨立稽核17,117項檢查零不符；封存重播四份摘要逐位相同。
+- 決定：完整GPU peak2＋k3適用於大量相同物件、可接受輸出不逐位相同的研究設定；每換新影格時在128／512／六物件是本輪最快組合。不改GUI、核心或任何預設。下一個瓶頸仍是細搜尋與initial_refine。
+- 證據：[完整報告](DEDUP_PEAK2_zh-TW.md)、[GT摘要](stage44-dedup-peak2/gt-summary.json)、[正式摘要](stage44-dedup-peak2/formal-summary.json)、[判定與失敗](stage44-dedup-peak2/decision-and-failures.json)、[驗證](stage44-dedup-peak2/validation.json)、[封存](stage44-dedup-peak2/archive.json)。

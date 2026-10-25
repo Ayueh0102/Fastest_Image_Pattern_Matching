@@ -1,0 +1,1022 @@
+{
+  "phase": "profile",
+  "formal_decision_eligible": false,
+  "profiling": true,
+  "reference": "raw-results-timing.tar.gz",
+  "reference_sha256": "099c673394efe0fe2033d1e7c63f204e19d253059622b5d2762a11214f340fdc",
+  "cases": [
+    {
+      "name": "many128_pose",
+      "truth_count": 128,
+      "refine": true,
+      "frame_warmup_calls": null,
+      "arms": {
+        "full_gpu_parallel_static_off": {
+          "method": "full_gpu_parallel",
+          "mode": "static",
+          "total_ms": {
+            "median": 583.1837295,
+            "min": 579.784792,
+            "max": 586.582667,
+            "values": [
+              586.582667,
+              579.784792
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "total_median_ms": 583.1837295,
+              "first_total_ms": 603.884583,
+              "warmup_calls": 2,
+              "construct_ms": 23.71575,
+              "peak_rss_bytes": 104038400
+            }
+          ],
+          "peak_rss_bytes": 104038400,
+          "static_route_valid": true,
+          "cold_calls": 1,
+          "warmup_calls": 2,
+          "measured_calls": 2,
+          "named_gpu_bytes": [
+            146520576
+          ],
+          "coarse_score_bytes": [
+            15636480
+          ],
+          "peak_scratch_bytes": [
+            14623488
+          ],
+          "peak_batch_maps": [
+            8
+          ],
+          "gpu_scope": "full_gpu.gpu_bytes: all named full-GPU Metal buffers; coarse_score_bytes and peak_scratch_bytes are parts of it",
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              128,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.10597630053137005,
+            "angle_deg": 0.09033662983375734,
+            "relative_scale": 0.0027012430347326255
+          },
+          "route_valid": true,
+          "requested_algorithm_executed": true,
+          "repeat_exact": true,
+          "proposal_counts": [
+            332
+          ],
+          "gt_evaluated_calls": 3,
+          "device_ms": {
+            "median": 580.7985833380371,
+            "min": 577.0087499986403,
+            "max": 584.588416677434,
+            "values": [
+              584.588416677434,
+              577.0087499986403
+            ]
+          },
+          "profile": {
+            "measured_available_calls": 2,
+            "measured_calls": 2,
+            "stages": {
+              "coarse_ncc": {
+                "median": 41.47393400000001,
+                "min": 41.18861700000006,
+                "max": 41.759250999999956,
+                "values": [
+                  41.759250999999956,
+                  41.18861700000006
+                ]
+              },
+              "coarse_peaks": {
+                "median": 12.1655625,
+                "min": 12.161415999999997,
+                "max": 12.169709000000001,
+                "values": [
+                  12.161415999999997,
+                  12.169709000000001
+                ]
+              },
+              "coarse_rotation": {
+                "median": 4.518271999999998,
+                "min": 4.499044999999998,
+                "max": 4.537498999999997,
+                "values": [
+                  4.537498999999997,
+                  4.499044999999998
+                ]
+              },
+              "final_nms": {
+                "median": 0.6717715,
+                "min": 0.670709,
+                "max": 0.6728339999999999,
+                "values": [
+                  0.670709,
+                  0.6728339999999999
+                ]
+              },
+              "final_output": {
+                "median": 0.0109375,
+                "min": 0.010875,
+                "max": 0.011000000000000001,
+                "values": [
+                  0.010875,
+                  0.011000000000000001
+                ]
+              },
+              "final_score": {
+                "median": 0.32210449999999996,
+                "min": 0.32091699999999995,
+                "max": 0.32329199999999997,
+                "values": [
+                  0.32329199999999997,
+                  0.32091699999999995
+                ]
+              },
+              "fine_search": {
+                "median": 415.3456255,
+                "min": 413.78666699999997,
+                "max": 416.904584,
+                "values": [
+                  416.904584,
+                  413.78666699999997
+                ]
+              },
+              "initial_refine": {
+                "median": 76.84997949999999,
+                "min": 74.769584,
+                "max": 78.930375,
+                "values": [
+                  78.930375,
+                  74.769584
+                ]
+              },
+              "initialization": {
+                "median": 0.030874999999999996,
+                "min": 0.029792,
+                "max": 0.03195799999999999,
+                "values": [
+                  0.029792,
+                  0.03195799999999999
+                ]
+              },
+              "model_nms": {
+                "median": 22.9224375,
+                "min": 22.846584,
+                "max": 22.998291,
+                "values": [
+                  22.998291,
+                  22.846584
+                ]
+              },
+              "pose_prepare": {
+                "median": 0.894749,
+                "min": 0.881458,
+                "max": 0.90804,
+                "values": [
+                  0.90804,
+                  0.881458
+                ]
+              },
+              "rescue": {
+                "median": 19.252916499999998,
+                "min": 19.198498999999998,
+                "max": 19.307333999999997,
+                "values": [
+                  19.198498999999998,
+                  19.307333999999997
+                ]
+              },
+              "source_pyramid": {
+                "median": 1.2254795,
+                "min": 1.2237500000000001,
+                "max": 1.227209,
+                "values": [
+                  1.2237500000000001,
+                  1.227209
+                ]
+              },
+              "template_pyramid": {
+                "median": 1.120397,
+                "min": 1.1146680000000002,
+                "max": 1.1261260000000002,
+                "values": [
+                  1.1146680000000002,
+                  1.1261260000000002
+                ]
+              }
+            },
+            "stage_sum_ms": {
+              "median": 596.8050415,
+              "min": 592.8390420000001,
+              "max": 600.771041,
+              "values": [
+                600.771041,
+                592.8390420000001
+              ]
+            },
+            "device_remainder_ms": {
+              "median": -16.006458161962883,
+              "min": -16.18262432256597,
+              "max": -15.830292001359794,
+              "values": [
+                -16.18262432256597,
+                -15.830292001359794
+              ]
+            },
+            "note": "Encoder-boundary timestamps; stages of overlapping encoders can double count and the signed remainder is kept."
+          },
+          "dedup": "off",
+          "dedup_input": null,
+          "dedup_kept": null,
+          "dedup_counts_constant": true,
+          "peak_mode2_route": true,
+          "exact_vs_round43_archive": true
+        },
+        "full_gpu_parallel_static_k3": {
+          "method": "full_gpu_parallel",
+          "mode": "static",
+          "total_ms": {
+            "median": 375.82956249999995,
+            "min": 375.725042,
+            "max": 375.934083,
+            "values": [
+              375.725042,
+              375.934083
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "total_median_ms": 375.82956249999995,
+              "first_total_ms": 398.493167,
+              "warmup_calls": 3,
+              "construct_ms": 27.427334,
+              "peak_rss_bytes": 104054784
+            }
+          ],
+          "peak_rss_bytes": 104054784,
+          "static_route_valid": true,
+          "cold_calls": 1,
+          "warmup_calls": 3,
+          "measured_calls": 2,
+          "named_gpu_bytes": [
+            146738944
+          ],
+          "coarse_score_bytes": [
+            15636480
+          ],
+          "peak_scratch_bytes": [
+            14623488
+          ],
+          "peak_batch_maps": [
+            8
+          ],
+          "gpu_scope": "full_gpu.gpu_bytes: all named full-GPU Metal buffers; coarse_score_bytes and peak_scratch_bytes are parts of it",
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              128,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.10597630053137005,
+            "angle_deg": 0.09033662983375734,
+            "relative_scale": 0.0027012430347326255
+          },
+          "route_valid": true,
+          "requested_algorithm_executed": true,
+          "repeat_exact": true,
+          "proposal_counts": [
+            323
+          ],
+          "gt_evaluated_calls": 3,
+          "device_ms": {
+            "median": 373.63762501627207,
+            "min": 373.63737501436844,
+            "max": 373.6378750181757,
+            "values": [
+              373.6378750181757,
+              373.63737501436844
+            ]
+          },
+          "profile": {
+            "measured_available_calls": 2,
+            "measured_calls": 2,
+            "stages": {
+              "candidate_dedup": {
+                "median": 3.3742709999999994,
+                "min": 3.3347919999999998,
+                "max": 3.4137499999999994,
+                "values": [
+                  3.3347919999999998,
+                  3.4137499999999994
+                ]
+              },
+              "coarse_ncc": {
+                "median": 41.473773499999965,
+                "min": 41.409128999999965,
+                "max": 41.538417999999965,
+                "values": [
+                  41.409128999999965,
+                  41.538417999999965
+                ]
+              },
+              "coarse_peaks": {
+                "median": 12.4631035,
+                "min": 12.397623000000001,
+                "max": 12.528584,
+                "values": [
+                  12.397623000000001,
+                  12.528584
+                ]
+              },
+              "coarse_rotation": {
+                "median": 4.362935499999999,
+                "min": 4.297535,
+                "max": 4.428335999999999,
+                "values": [
+                  4.428335999999999,
+                  4.297535
+                ]
+              },
+              "final_nms": {
+                "median": 0.666125,
+                "min": 0.6643749999999999,
+                "max": 0.667875,
+                "values": [
+                  0.6643749999999999,
+                  0.667875
+                ]
+              },
+              "final_output": {
+                "median": 0.0147505,
+                "min": 0.012957999999999999,
+                "max": 0.016543000000000002,
+                "values": [
+                  0.016543000000000002,
+                  0.012957999999999999
+                ]
+              },
+              "final_score": {
+                "median": 0.322187,
+                "min": 0.320749,
+                "max": 0.323625,
+                "values": [
+                  0.323625,
+                  0.320749
+                ]
+              },
+              "fine_search": {
+                "median": 212.7142715,
+                "min": 211.588417,
+                "max": 213.840126,
+                "values": [
+                  213.840126,
+                  211.588417
+                ]
+              },
+              "initial_refine": {
+                "median": 76.16791649999999,
+                "min": 75.50679199999999,
+                "max": 76.82904099999999,
+                "values": [
+                  75.50679199999999,
+                  76.82904099999999
+                ]
+              },
+              "initialization": {
+                "median": 0.022688,
+                "min": 0.017958,
+                "max": 0.027417999999999998,
+                "values": [
+                  0.017958,
+                  0.027417999999999998
+                ]
+              },
+              "model_nms": {
+                "median": 15.845105,
+                "min": 15.841876,
+                "max": 15.848334,
+                "values": [
+                  15.841876,
+                  15.848334
+                ]
+              },
+              "pose_prepare": {
+                "median": 0.8842295,
+                "min": 0.8804589999999999,
+                "max": 0.888,
+                "values": [
+                  0.888,
+                  0.8804589999999999
+                ]
+              },
+              "rescue": {
+                "median": 18.948437499999997,
+                "min": 18.638457999999996,
+                "max": 19.258416999999998,
+                "values": [
+                  18.638457999999996,
+                  19.258416999999998
+                ]
+              },
+              "source_pyramid": {
+                "median": 1.3276035,
+                "min": 1.2818739999999997,
+                "max": 1.3733330000000001,
+                "values": [
+                  1.2818739999999997,
+                  1.3733330000000001
+                ]
+              },
+              "template_pyramid": {
+                "median": 0.41541750000000005,
+                "min": 0.339087,
+                "max": 0.4917480000000001,
+                "values": [
+                  0.339087,
+                  0.4917480000000001
+                ]
+              }
+            },
+            "stage_sum_ms": {
+              "median": 389.00281499999994,
+              "min": 388.928594,
+              "max": 389.07703599999996,
+              "values": [
+                388.928594,
+                389.07703599999996
+              ]
+            },
+            "device_remainder_ms": {
+              "median": -15.365189983727902,
+              "min": -15.43966098563152,
+              "max": -15.290718981824284,
+              "values": [
+                -15.290718981824284,
+                -15.43966098563152
+              ]
+            },
+            "note": "Encoder-boundary timestamps; stages of overlapping encoders can double count and the signed remainder is kept."
+          },
+          "dedup": "k3",
+          "dedup_input": 42460,
+          "dedup_kept": 22863,
+          "dedup_counts_constant": true,
+          "peak_mode2_route": true,
+          "exact_vs_round43_archive": true
+        }
+      },
+      "comparisons": {
+        "full_gpu_parallel_static_k3_vs_off": {
+          "baseline": "full_gpu_parallel_static_off",
+          "candidate": "full_gpu_parallel_static_k3",
+          "metric": "total_ms",
+          "baseline_median_ms": 583.1837295,
+          "candidate_median_ms": 375.82956249999995,
+          "delta_ms": -207.35416700000007,
+          "delta_percent": -35.55554733630477,
+          "paired": [
+            {
+              "block": 0,
+              "baseline_ms": 583.1837295,
+              "candidate_ms": 375.82956249999995,
+              "delta_ms": -207.35416700000007,
+              "delta_percent": -35.55554733630477,
+              "within_regression_budget": true
+            }
+          ],
+          "candidate_faster_blocks": 1,
+          "blocks": 1,
+          "consistent_direction": true,
+          "faster": "full_gpu_parallel_static_k3"
+        }
+      }
+    },
+    {
+      "name": "many512_pose",
+      "truth_count": 512,
+      "refine": true,
+      "frame_warmup_calls": null,
+      "arms": {
+        "full_gpu_parallel_static_off": {
+          "method": "full_gpu_parallel",
+          "mode": "static",
+          "total_ms": {
+            "median": 1870.0720625,
+            "min": 1867.78675,
+            "max": 1872.357375,
+            "values": [
+              1867.78675,
+              1872.357375
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "total_median_ms": 1870.0720625,
+              "first_total_ms": 1892.688625,
+              "warmup_calls": 1,
+              "construct_ms": 29.289541,
+              "peak_rss_bytes": 179273728
+            }
+          ],
+          "peak_rss_bytes": 179273728,
+          "static_route_valid": true,
+          "cold_calls": 1,
+          "warmup_calls": 1,
+          "measured_calls": 2,
+          "named_gpu_bytes": [
+            295737600
+          ],
+          "coarse_score_bytes": [
+            36012032
+          ],
+          "peak_scratch_bytes": [
+            25472512
+          ],
+          "peak_batch_maps": [
+            8
+          ],
+          "gpu_scope": "full_gpu.gpu_bytes: all named full-GPU Metal buffers; coarse_score_bytes and peak_scratch_bytes are parts of it",
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              512,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.1283358605470548,
+            "angle_deg": 0.09951369303348656,
+            "relative_scale": 0.002744110964467583
+          },
+          "route_valid": true,
+          "requested_algorithm_executed": true,
+          "repeat_exact": true,
+          "proposal_counts": [
+            1301
+          ],
+          "gt_evaluated_calls": 3,
+          "device_ms": {
+            "median": 1867.705083321198,
+            "min": 1865.4123333108146,
+            "max": 1869.9978333315812,
+            "values": [
+              1865.4123333108146,
+              1869.9978333315812
+            ]
+          },
+          "profile": {
+            "measured_available_calls": 2,
+            "measured_calls": 2,
+            "stages": {
+              "coarse_ncc": {
+                "median": 93.573148,
+                "min": 93.00012099999998,
+                "max": 94.14617500000004,
+                "values": [
+                  94.14617500000004,
+                  93.00012099999998
+                ]
+              },
+              "coarse_peaks": {
+                "median": 33.549020999999996,
+                "min": 33.43904299999999,
+                "max": 33.658999,
+                "values": [
+                  33.43904299999999,
+                  33.658999
+                ]
+              },
+              "coarse_rotation": {
+                "median": 8.286192000000002,
+                "min": 7.5803780000000005,
+                "max": 8.992006000000002,
+                "values": [
+                  7.5803780000000005,
+                  8.992006000000002
+                ]
+              },
+              "final_nms": {
+                "median": 3.6060625,
+                "min": 3.605375,
+                "max": 3.60675,
+                "values": [
+                  3.60675,
+                  3.605375
+                ]
+              },
+              "final_output": {
+                "median": 0.011290999999999999,
+                "min": 0.011165,
+                "max": 0.011417,
+                "values": [
+                  0.011417,
+                  0.011165
+                ]
+              },
+              "final_score": {
+                "median": 1.199312,
+                "min": 1.159541,
+                "max": 1.239083,
+                "values": [
+                  1.159541,
+                  1.239083
+                ]
+              },
+              "fine_search": {
+                "median": 1331.448812,
+                "min": 1329.780291,
+                "max": 1333.117333,
+                "values": [
+                  1333.117333,
+                  1329.780291
+                ]
+              },
+              "initial_refine": {
+                "median": 272.5304165,
+                "min": 268.468625,
+                "max": 276.59220799999997,
+                "values": [
+                  268.468625,
+                  276.59220799999997
+                ]
+              },
+              "initialization": {
+                "median": 0.028876,
+                "min": 0.026625999999999997,
+                "max": 0.031125999999999997,
+                "values": [
+                  0.031125999999999997,
+                  0.026625999999999997
+                ]
+              },
+              "model_nms": {
+                "median": 148.3627915,
+                "min": 148.23499999999999,
+                "max": 148.490583,
+                "values": [
+                  148.490583,
+                  148.23499999999999
+                ]
+              },
+              "pose_prepare": {
+                "median": 2.5875624999999998,
+                "min": 2.545874,
+                "max": 2.6292509999999996,
+                "values": [
+                  2.545874,
+                  2.6292509999999996
+                ]
+              },
+              "rescue": {
+                "median": 7.325937,
+                "min": 7.205708,
+                "max": 7.446165999999999,
+                "values": [
+                  7.205708,
+                  7.446165999999999
+                ]
+              },
+              "source_pyramid": {
+                "median": 2.432354,
+                "min": 2.432166,
+                "max": 2.432542,
+                "values": [
+                  2.432542,
+                  2.432166
+                ]
+              },
+              "template_pyramid": {
+                "median": 2.0433759999999994,
+                "min": 2.0263299999999997,
+                "max": 2.060421999999999,
+                "values": [
+                  2.0263299999999997,
+                  2.060421999999999
+                ]
+              }
+            },
+            "stage_sum_ms": {
+              "median": 1906.985152,
+              "min": 1904.261425,
+              "max": 1909.708879,
+              "values": [
+                1904.261425,
+                1909.708879
+              ]
+            },
+            "device_remainder_ms": {
+              "median": -39.28006867880208,
+              "min": -39.71104566841882,
+              "max": -38.84909168918534,
+              "values": [
+                -38.84909168918534,
+                -39.71104566841882
+              ]
+            },
+            "note": "Encoder-boundary timestamps; stages of overlapping encoders can double count and the signed remainder is kept."
+          },
+          "dedup": "off",
+          "dedup_input": null,
+          "dedup_kept": null,
+          "dedup_counts_constant": true,
+          "peak_mode2_route": true,
+          "exact_vs_round43_archive": true
+        },
+        "full_gpu_parallel_static_k3": {
+          "method": "full_gpu_parallel",
+          "mode": "static",
+          "total_ms": {
+            "median": 1140.131937,
+            "min": 1133.640416,
+            "max": 1146.623458,
+            "values": [
+              1146.623458,
+              1133.640416
+            ]
+          },
+          "blocks": [
+            {
+              "block": 0,
+              "total_median_ms": 1140.131937,
+              "first_total_ms": 1139.789458,
+              "warmup_calls": 1,
+              "construct_ms": 28.725416,
+              "peak_rss_bytes": 179142656
+            }
+          ],
+          "peak_rss_bytes": 179142656,
+          "static_route_valid": true,
+          "cold_calls": 1,
+          "warmup_calls": 1,
+          "measured_calls": 2,
+          "named_gpu_bytes": [
+            296171008
+          ],
+          "coarse_score_bytes": [
+            36012032
+          ],
+          "peak_scratch_bytes": [
+            25472512
+          ],
+          "peak_batch_maps": [
+            8
+          ],
+          "gpu_scope": "full_gpu.gpu_bytes: all named full-GPU Metal buffers; coarse_score_bytes and peak_scratch_bytes are parts of it",
+          "all_gt_pass": true,
+          "accuracy_counts": [
+            [
+              512,
+              0,
+              0
+            ]
+          ],
+          "max_errors": {
+            "position_px": 0.1283358605470548,
+            "angle_deg": 0.09951369303348656,
+            "relative_scale": 0.002744110964467583
+          },
+          "route_valid": true,
+          "requested_algorithm_executed": true,
+          "repeat_exact": true,
+          "proposal_counts": [
+            1264
+          ],
+          "gt_evaluated_calls": 3,
+          "device_ms": {
+            "median": 1137.7205416647485,
+            "min": 1131.137291667983,
+            "max": 1144.303791661514,
+            "values": [
+              1144.303791661514,
+              1131.137291667983
+            ]
+          },
+          "profile": {
+            "measured_available_calls": 2,
+            "measured_calls": 2,
+            "stages": {
+              "candidate_dedup": {
+                "median": 13.910665999999999,
+                "min": 13.866581999999998,
+                "max": 13.954749999999999,
+                "values": [
+                  13.954749999999999,
+                  13.866581999999998
+                ]
+              },
+              "coarse_ncc": {
+                "median": 93.91531699999999,
+                "min": 93.56392799999999,
+                "max": 94.26670599999999,
+                "values": [
+                  94.26670599999999,
+                  93.56392799999999
+                ]
+              },
+              "coarse_peaks": {
+                "median": 33.48923,
+                "min": 33.408376999999994,
+                "max": 33.570083000000004,
+                "values": [
+                  33.570083000000004,
+                  33.408376999999994
+                ]
+              },
+              "coarse_rotation": {
+                "median": 8.313170500000002,
+                "min": 8.160121999999998,
+                "max": 8.466219000000004,
+                "values": [
+                  8.160121999999998,
+                  8.466219000000004
+                ]
+              },
+              "final_nms": {
+                "median": 3.6304169999999996,
+                "min": 3.627042,
+                "max": 3.6337919999999997,
+                "values": [
+                  3.627042,
+                  3.6337919999999997
+                ]
+              },
+              "final_output": {
+                "median": 0.013603499999999998,
+                "min": 0.013456999999999998,
+                "max": 0.013749999999999998,
+                "values": [
+                  0.013749999999999998,
+                  0.013456999999999998
+                ]
+              },
+              "final_score": {
+                "median": 1.1210209999999998,
+                "min": 1.119875,
+                "max": 1.122167,
+                "values": [
+                  1.119875,
+                  1.122167
+                ]
+              },
+              "fine_search": {
+                "median": 629.240354,
+                "min": 625.938,
+                "max": 632.5427080000001,
+                "values": [
+                  632.5427080000001,
+                  625.938
+                ]
+              },
+              "initial_refine": {
+                "median": 263.6562295,
+                "min": 260.927667,
+                "max": 266.384792,
+                "values": [
+                  266.384792,
+                  260.927667
+                ]
+              },
+              "initialization": {
+                "median": 0.029937500000000002,
+                "min": 0.029917,
+                "max": 0.029958000000000005,
+                "values": [
+                  0.029917,
+                  0.029958000000000005
+                ]
+              },
+              "model_nms": {
+                "median": 115.79620799999998,
+                "min": 115.59645799999998,
+                "max": 115.99595799999999,
+                "values": [
+                  115.99595799999999,
+                  115.59645799999998
+                ]
+              },
+              "pose_prepare": {
+                "median": 2.5522294999999997,
+                "min": 2.5270829999999997,
+                "max": 2.5773759999999997,
+                "values": [
+                  2.5773759999999997,
+                  2.5270829999999997
+                ]
+              },
+              "rescue": {
+                "median": 7.1048965,
+                "min": 6.901625999999999,
+                "max": 7.308167,
+                "values": [
+                  6.901625999999999,
+                  7.308167
+                ]
+              },
+              "source_pyramid": {
+                "median": 2.4651045,
+                "min": 2.439125,
+                "max": 2.491084,
+                "values": [
+                  2.491084,
+                  2.439125
+                ]
+              },
+              "template_pyramid": {
+                "median": 1.8976025000000005,
+                "min": 1.7380820000000001,
+                "max": 2.057123000000001,
+                "values": [
+                  2.057123000000001,
+                  1.7380820000000001
+                ]
+              }
+            },
+            "stage_sum_ms": {
+              "median": 1177.1359870000001,
+              "min": 1170.579062,
+              "max": 1183.692912,
+              "values": [
+                1183.692912,
+                1170.579062
+              ]
+            },
+            "device_remainder_ms": {
+              "median": -39.41544533525155,
+              "min": -39.441770332017086,
+              "max": -39.38912033848601,
+              "values": [
+                -39.38912033848601,
+                -39.441770332017086
+              ]
+            },
+            "note": "Encoder-boundary timestamps; stages of overlapping encoders can double count and the signed remainder is kept."
+          },
+          "dedup": "k3",
+          "dedup_input": 108220,
+          "dedup_kept": 52576,
+          "dedup_counts_constant": true,
+          "peak_mode2_route": true,
+          "exact_vs_round43_archive": true
+        }
+      },
+      "comparisons": {
+        "full_gpu_parallel_static_k3_vs_off": {
+          "baseline": "full_gpu_parallel_static_off",
+          "candidate": "full_gpu_parallel_static_k3",
+          "metric": "total_ms",
+          "baseline_median_ms": 1870.0720625,
+          "candidate_median_ms": 1140.131937,
+          "delta_ms": -729.9401254999998,
+          "delta_percent": -39.03272714123014,
+          "paired": [
+            {
+              "block": 0,
+              "baseline_ms": 1870.0720625,
+              "candidate_ms": 1140.131937,
+              "delta_ms": -729.9401254999998,
+              "delta_percent": -39.03272714123014,
+              "within_regression_budget": true
+            }
+          ],
+          "candidate_faster_blocks": 1,
+          "blocks": 1,
+          "consistent_direction": true,
+          "faster": "full_gpu_parallel_static_k3"
+        }
+      }
+    }
+  ],
+  "failed_gates": [],
+  "all_accuracy_pass": true,
+  "all_routes_pass": true,
+  "all_repeat_exact": true,
+  "all_exact_round43": true,
+  "primary_target_met": null,
+  "frames_fastest": {},
+  "counts": {
+    "fresh_processes": 4,
+    "cold_calls": 4,
+    "measured_calls": 8,
+    "gt_evaluated_calls": 12
+  },
+  "accuracy_thresholds": {
+    "position_px": 2.0,
+    "angle_deg": 1.0,
+    "relative_scale": 0.02
+  },
+  "timing_note": "Static total_ms is the round-40 scope (run only, after a first call and a 1 s warm-up); frames frame_wall_ms is the round-41 scope (Session::updateSource plus run). A faster arm is named only when every paired block agrees with the pooled medians. Speedups are same-build comparisons and are never multiplied with earlier rounds.",
+  "memory_note": "Peak process RSS, named Metal buffer lengths and hybrid pose-context buffers are separate scopes and are never added.",
+  "manifest_sha256": "596ee5630dd67c7dd27de7f288e4c26417de3b47f84eef917875580de79bd40f"
+}
