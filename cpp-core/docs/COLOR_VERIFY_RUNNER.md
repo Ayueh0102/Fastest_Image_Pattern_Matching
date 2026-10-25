@@ -178,6 +178,58 @@ This pixel threshold does not itself decide that an object is anomalous. Any
 object threshold must be calibrated using separate normal/training data and
 evaluated on held-out data. The default `.04` is only a research control value.
 
+## Illumination-normalized chroma (`chroma_vk`, round 46)
+
+`method: "chroma_vk"` is an opt-in variant implemented separately in
+`experiments/color_illuminant.{hpp,cpp}`; `chroma`, `rgb_ncc` and `gray_ncc` are
+unchanged. It estimates the source illuminant from a neutral reference, applies a
+von Kries diagonal gain that maps source linear RGB into the template's light, and
+then computes the chroma distance over `mask` (the colour region) only:
+
+```
+W_source,c   = median of nearest source pixels under the reference, linear RGB
+W_template,c = the same statistic on the template reference
+gain_c = W_template,c / W_source,c
+distance = ||c(gain * I) - c(T)|| / sqrt(2)
+```
+
+The reference is either `illuminant_reference: "object"` (default), with a
+template-size `reference_mask` mapped through every pose (for example a printed
+white panel inside the object), or `"source_rect"` with `reference_rect:
+[x0,y0,x1,y1)` in source pixels (a fixed calibration card; `template_reference_rgb`
+gives that reference's linear RGB under the template light, default `[1,1,1]`).
+Medians are per channel over nearest pixels, so clipped bytes can stay in the order
+statistic: a median is unchanged while fewer than half of the samples are clipped.
+
+`reference_clip_policy` controls saturation (`saturation_level`, default 255: a
+byte at or above it is clipped):
+
+- `rank` (default): clipped bytes stay in the median; the reference is unusable
+  when any channel's clipped share exceeds `max_reference_clip_fraction` (.45).
+  Colour samples with any clipped bilinear neighbour are missing support.
+- `drop`: ablation; reference samples with any clipped channel are discarded
+  before the median (a truncated sample biases the estimate low).
+- `none`: ablation; no saturation handling anywhere.
+
+The reference is also unusable when fewer than `min_reference_fraction` (.5) of its
+samples fall inside the source (for `drop`, after dropping) or its median is dark.
+Each score has `status` (0 valid, 1 no eligible template colour pixels, 2
+insufficient colour support, 3 reference unusable), `mean_distance` (per-pixel mean,
+as `chroma`), `region_distance` (chroma of the summed valid linear RGB against the
+template's sum over the same samples, so zero-mean noise adds no floor),
+`uncorrected_mean_distance` and `uncorrected_region_distance` (same samples, no
+gain), `changed_pixels`/`changed_fraction`, `clipped_pixels`, `reference_eligible`,
+`reference_samples`, `reference_fraction`, `reference_clip_fraction` (per channel)
+and `gain`. Status 3 is an abstention: corrected distances are `-1` and must never be
+read as acceptance. Its uncorrected distances remain for diagnostics. The output adds
+`illuminant_config`. Illuminant options are rejected for other methods, and
+`chroma_vk` supports one CPU thread.
+
+A diagonal gain cannot remove light that varies inside one object, colored
+inter-reflections, or a non-neutral reference, and a clipped reference cannot be
+recovered. Thresholds still need separate calibration data. Round 46
+([ILLUMINANT_CHROMA_zh-TW.md](ILLUMINANT_CHROMA_zh-TW.md)) evaluates it on test-bed v1.
+
 ## Outputs and measurement boundaries
 
 The JSON output has `first`, `warmups_ms`, and `runs`. Each first/run record has
