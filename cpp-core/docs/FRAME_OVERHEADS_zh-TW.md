@@ -99,7 +99,7 @@
 ## 量測方法與界線
 
 - 正式窗口2026-10-25 16:27–16:56 UTC（劑量16:56–17:01、profile 17:01–17:02）。driver在每個程序前記錄負載與競爭程序；本輪把偵測補強為ucomm名稱加完整參數行、不分大小寫（含Blender）、repo實驗腳本與任何佔滿一核的程序。正式210個程序只有一次系統Spotlight（corespotlightd 187%）與一次1分鐘負載4.09，各記為一筆`host_busy`／`host_load_high`；劑量與profile各有一次Spotlight。protocol只規定記錄主機gate、沒有規定後果，正式摘要保留這兩個程序（128 fine4 static_sleep block 3、8K混合static_decode block 4）。事後診斷：把這兩個block從同場景、同方法的每個arm移除後重算110個效果，六項判定不變，報告表中的方向也不變；只有128 fine4的gap_on_update（不在判定與表中）有3個指標變成↓。
-- 第一次開始（16:17 UTC）因另一個session的`fpm_color_verify`而被driver拒絕，沒有產生資料。pilot（16:22–16:27）期間另一個session執行cmake／clang／ld與含Metal測試的ctest，pilot的512與8K有25筆主機gate；pilot只作篩選。
+- 第一次開始（16:17 UTC）因另一個session的`fpm_color_verify`而被driver拒絕，沒有產生資料。pilot（16:22–16:27）期間另一個session執行cmake／clang／ld與含Metal測試的ctest，pilot的512與8K有25筆主機gate；pilot只作篩選。該session（第47輪）事後告知：16:23:54–16:26:57 UTC依序執行全新Release建置、含Metal測試的ctest、Python測試，以及中途停止的ASan建置與測試；最後一個程序早於正式manifest的開始時間（16:27:29）。
 - GT在父程序獨立評估：每個arm的冷、暖機與正式呼叫，pilot 515、正式3090、劑量885、profile 270次，全部零FP／FN（2px／1°／2%）。同arm、同方法各arm之間的有序matches／proposals完全相同，8K peak2與peak1相同；與GT分開驗收，全部通過。
 - 靜態與換來源的路徑檢查：static之後`source_generation`為0、不複製來源、pose只在第0次建立；reuse每次遞增並重建pose；解碼空檔確實解碼，閒置空檔在[ms, ms+50]內，無空檔≤1ms。全部通過。
 - 記憶體：峰值RSS因解碼而增加（512混合static_none 444.1MiB、static_decode 504.1MiB、reuse_decode 508.3MiB）；命名Metal配置不變（fine4 128／512／8K為116.47／236.30／161.50MiB，8K peak2 184.83MiB）。RSS與Metal配置不相加。
@@ -117,7 +117,7 @@
 | 獨立稽核 | 不匯入harness、只用stdlib、不啟動GPU或runner：四個phase 300個程序、4760列，比對32,966個數值零不符，重新推導的判定與發佈相同；GT 4760列TP 294850、FP 0、FN 0（最大誤差0.128px、0.0995°、尺度0.27%）。指出profile分段的範圍問題（已修正，見下列）與正式主機gate沒有規定後果（已揭露） |
 | 量測後分析修訂 | profile分段改為只算正式呼叫：先改負控制（暖機慢2ms），凍結driver失敗（32.5≠31.5）、修正後通過；修正後的分段中位數與稽核的「只算正式呼叫」重算逐項相同，原數值與稽核的「全部呼叫」重算逐項相同 |
 | 封存重播 | 從封存解出的源碼快照310個檔雜湊相符；凍結driver重算的pilot、正式、劑量摘要與原profile摘要，以及修正後driver重算的四份發佈摘要，全部逐位相同 |
-| 量測後Release | 量測後、分析修訂前（`1da20c6`）：ctest 83／83、Python harness 671／671、color verify `--metal` 5／5；修訂後在乾淨工作樹的全新建置見[validation.json](stage48-frame-overheads/validation.json) |
+| 量測後Release | 量測後、分析修訂前（`1da20c6`）：ctest 83／83、Python harness 671／671、color verify `--metal` 5／5。修訂後在`176b661`（乾淨工作樹，前後都檢查）全新Release研究建置86個編譯單元：ctest 83／83、Python harness 671／671（含本輪18項）、color verify `--metal` 5／5、其他Python 49／49，沒有skip。沒有跑ASan／UBSan：本輪唯一的C++改動在runner，sanitized組態（不含GUI）不建置它 |
 
 ## 封存
 

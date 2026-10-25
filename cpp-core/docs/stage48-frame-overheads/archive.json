@@ -95,16 +95,16 @@
     },
     {
       "path": "validation-logs.tar.gz",
-      "bytes": 158830,
-      "sha256": "dadfce6bd4dc739d5fb6ef0f450f2c2f5ee53e84ddd6a601b2069d73ee809040",
-      "regular_files": 36,
-      "uncompressed_bytes": 1126205,
+      "bytes": 162960,
+      "sha256": "d875a17c0c90dc32172292421fee51ede391108d1d61e6923bbac3e3e2e3c5a1",
+      "regular_files": 37,
+      "uncompressed_bytes": 1163557,
       "all_members_read_and_safe_paths": true
     },
     {
       "path": "validation.json",
-      "bytes": 16664,
-      "sha256": "ae7ced158318e91a8518956064fad4edd0b5b394f509792038277c2fa778f819"
+      "bytes": 18476,
+      "sha256": "ba1213428cf92d73210b1aaa6f8733810ec1afdea61419722a60cce222dbc209"
     }
   ]
 }

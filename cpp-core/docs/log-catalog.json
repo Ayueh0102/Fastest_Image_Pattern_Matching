@@ -27,7 +27,7 @@
     "other": "No recognized role; inspect manually"
   },
   "artifact_count": 636,
-  "artifact_bytes": 2607655041,
+  "artifact_bytes": 2607661644,
   "artifact_role_counts": {
     "archive": 113,
     "calibration": 4,
@@ -46,7 +46,7 @@
     "validation": 86,
     "visual": 68
   },
-  "archive_member_count": 45900,
+  "archive_member_count": 45901,
   "archive_member_role_counts": {
     "archive": 26,
     "binary": 47,
@@ -59,11 +59,11 @@
     "pilot": 4300,
     "protocol": 109,
     "provenance": 120,
-    "raw": 11797,
+    "raw": 11798,
     "report": 83,
     "source": 11481,
     "summary": 1015,
-    "validation": 1012,
+    "validation": 1013,
     "visual": 884
   },
   "artifacts": [
@@ -222,8 +222,8 @@
       "path": "EXPERIMENT_REVIEW_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 85890,
-      "sha256": "a660fe5044a7e33091b2df000182c6c0e64ecc03f3a2a12534e17aa76ffb410f",
+      "bytes": 86068,
+      "sha256": "70b880d53e509668b28b58da4b66d597eacb488db385727b9c346282a2350308",
       "roles": [
         "report"
       ]
@@ -292,8 +292,8 @@
       "path": "FRAME_OVERHEADS_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 15806,
-      "sha256": "4eb0413f8ebf242b3d9d111d584b91a8e011c458543e37d9836949e6a28a7b17",
+      "bytes": 16289,
+      "sha256": "54f73b625076d1a1122ddd99ff1e91258f6c69cbb943095eeaf5cd2fda42071e",
       "roles": [
         "report"
       ]
@@ -8223,7 +8223,7 @@
       "group": "stage48-frame-overheads",
       "stage": "48",
       "bytes": 3769,
-      "sha256": "0a648c6fcd1fc6da054d44c83489de35892c1d3f3f30fd6f9666fe6f0e07ba9a",
+      "sha256": "712fd0a130392b29446bcc4dd069c4d6f1aa1362f0e6d0cdb538618ac333542f",
       "roles": [
         "provenance"
       ]
@@ -8400,29 +8400,29 @@
       "path": "stage48-frame-overheads/validation-logs.tar.gz",
       "group": "stage48-frame-overheads",
       "stage": "48",
-      "bytes": 158830,
-      "sha256": "dadfce6bd4dc739d5fb6ef0f450f2c2f5ee53e84ddd6a601b2069d73ee809040",
+      "bytes": 162960,
+      "sha256": "d875a17c0c90dc32172292421fee51ede391108d1d61e6923bbac3e3e2e3c5a1",
       "roles": [
         "archive",
         "validation"
       ],
-      "archive_file_count": 36,
+      "archive_file_count": 37,
       "archive_role_counts": {
         "failure_review": 3,
         "formal": 1,
         "pilot": 2,
-        "raw": 19,
+        "raw": 20,
         "source": 10,
         "summary": 2,
-        "validation": 36
+        "validation": 37
       }
     },
     {
       "path": "stage48-frame-overheads/validation.json",
       "group": "stage48-frame-overheads",
       "stage": "48",
-      "bytes": 16664,
-      "sha256": "ae7ced158318e91a8518956064fad4edd0b5b394f509792038277c2fa778f819",
+      "bytes": 18476,
+      "sha256": "ba1213428cf92d73210b1aaa6f8733810ec1afdea61419722a60cce222dbc209",
       "roles": [
         "false_gate",
         "validation"
@@ -8452,5 +8452,5 @@
       ]
     }
   ],
-  "archive_member_index_sha256": "162d0a70a6518519fb51751a119b8da1ca3bfa67a92bf3737112799d4640de0c"
+  "archive_member_index_sha256": "9282efbd416d3b0b666fccbbc9a5569585dbc9ae2fc7099d484d6215dae12e23"
 }

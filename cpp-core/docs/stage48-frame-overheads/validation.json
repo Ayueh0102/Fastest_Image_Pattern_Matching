@@ -113,7 +113,60 @@
     },
     "note": "Run before the host-check revision; that revision changed Python only and its tests ran again in the final gate."
   },
-  "post_revision_gate": "pending: run_post_revision_gate.sh after the round is committed",
+  "post_revision_gate": {
+    "log": "validation/post-revision-gate.log",
+    "head_before": "176b66159876de1dad0e50ffe220df505c18265c",
+    "head_after": "176b66159876de1dad0e50ffe220df505c18265c",
+    "dirty_before": [],
+    "dirty_after": [],
+    "steps": {
+      "configure": {
+        "start": "2026-10-25T17:48:37Z",
+        "exit": 0,
+        "end": "2026-10-25T17:48:39Z"
+      },
+      "build": {
+        "start": "2026-10-25T17:48:39Z",
+        "exit": 0,
+        "end": "2026-10-25T17:48:49Z"
+      },
+      "ctest": {
+        "start": "2026-10-25T17:48:49Z",
+        "exit": 0,
+        "end": "2026-10-25T17:49:44Z"
+      },
+      "harness": {
+        "start": "2026-10-25T17:49:44Z",
+        "exit": 0,
+        "end": "2026-10-25T17:50:14Z"
+      },
+      "color": {
+        "start": "2026-10-25T17:50:14Z",
+        "exit": 0,
+        "end": "2026-10-25T17:50:15Z"
+      },
+      "other_py": {
+        "start": "2026-10-25T17:50:15Z",
+        "exit": 0,
+        "end": "2026-10-25T17:50:17Z"
+      }
+    },
+    "ctest": {
+      "passed": 83,
+      "failed": 0,
+      "total": 83,
+      "log": "validation/post-revision-gate.log"
+    },
+    "unittest_ran": [
+      671,
+      5,
+      6,
+      17,
+      26
+    ],
+    "skipped": [],
+    "build_directory": "build/stage48-final (fresh)"
+  },
   "final_gate": {
     "log": "validation/final-gate.log",
     "ctest": {
@@ -466,6 +519,21 @@
   "refused_starts": [
     "pilot-attempt1-refused.log"
   ],
+  "pilot_overlap_reported": {
+    "source": "message from the round-47 session after the window",
+    "interval_utc": [
+      "2026-10-25T16:23:54+00:00",
+      "2026-10-25T16:26:57+00:00"
+    ],
+    "activity": "fresh Release build, ctest with Metal tests, Python harness, color verify and other Python tests, then an ASan Debug build and ctest stopped about 16:26:50Z",
+    "pilot_utc": [
+      "2026-10-25T16:22:31.535084+00:00",
+      "2026-10-25T16:27:26.474458+00:00"
+    ],
+    "formal_started_utc": "2026-10-25T16:27:29.896610+00:00",
+    "inside_pilot": true,
+    "before_formal": true
+  },
   "independent_audit": {
     "file": "validation/independent-audit.json",
     "independent": true,
