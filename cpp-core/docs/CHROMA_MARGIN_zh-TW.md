@@ -19,7 +19,7 @@
 - **線性光源模型（`reference_model: "linear"`）不推薦**，兩個條件都沒達到：
   - 藍綠的校準可行性 F1 未通過：校準最大殘差 0.00911，超過 τ/2 = 0.00735。
   - 在局部暖光與 Blender 混合光下，殘差比常數模型大的有 9/13 對（符號檢定 p = 0.954）。
-  - 外插會放大面板雜訊；而光梯度大的物件，正是面板被裁切而棄權的那些。
+  - 事後診斷（非證據）：外插會放大面板雜訊；而光梯度大的物件，正是面板被裁切而棄權的那些。
 - **完整性全部通過**：412 個 worker，每個場景的定位都是 32/0/0 或 12/0/0。既有方法與第46輪的 `chroma_vk` 輸出都和改動前的 runner 逐位相同；v1 校準場景的輸出與第46輪封存 62/62 相同。job 裡沒有 GT。
 
 ## 方法
@@ -60,7 +60,7 @@ d_catch = min( (a) 原稿色在固定 L* 的 ΔE00=4 圓上（每 1°、在色�
 - **新保留集**：`benchmark_chroma_margin.py holdout` 以從未用過的種子重新產生：
   - 合成場景：layout 47000001／47000002、noise 47001000、background 47002000；
   - Blender：Cycles 47003000、紋理順序 47003001、位姿 47003002。
-  - 標籤原稿的種子不變，25 個紋理檔與 v1 逐位元組相同。
+  - 標籤原稿的種子不變，48 個紋理 PNG 與 textures.json 都與 v1 逐位元組相同。
   - 合成 16 張（2 色系 × 8 種照明），Blender 3 張（white、warm3200、mixed）。
 - **切分**：保留＝新集的 wb_warm、exposure_bright、spot_warm、noise_jpeg、warm3200、mixed（10 張）。新集的校準照明 9 張只報告，不校準也不判定。
 - **模板與遮罩**：模板一律用 v1 的（模板是已學好的模型），遮罩與第46輪逐位元組相同。定位設定與第46輪相同。
@@ -177,6 +177,7 @@ wb_warm 20/20、noise_jpeg 20/20、Blender 4/4、4/4，spot_warm **9/20**（11 �
   - 第一次（`172f86a`）有 3 個存活：R4 是 runner 允許 `chroma` 帶 `reference_model`，原測試同時帶了會被另外拒絕的 `reference_mask`；T13／T20 是判定與配對只用照明名稱篩選，在實際切分下等價。
   - `190973e` 補強測試後重跑，20 個編譯突變與 32 個工具突變全部被殺。量測 commit 後又在 HEAD 的暫存複本上重跑一次，結果記錄在 [validation.json](stage47-chroma-margin/validation.json)。
 - 最終測試門檻（全新 Release 建置、ctest、Python harness、color runner `--metal`、其他 Python、ASan／UBSan）的指令與 log 雜湊也在 validation.json。
+  - 第一次在 `28f09f7` 跑門檻時，沒有先重新檢查鎖檔，結果落在第48輪 session 的正式計時窗口內（16:23:54–16:26:50 UTC）：前五項通過，ASan 在中途被停止。這次紀錄保留在 validation-logs 的 `gates-28f09f7-interrupted/`，不當作門檻結果；已把確切時段告知該 session，完整門檻在鎖解除後重跑。
 
 ## 重現
 
