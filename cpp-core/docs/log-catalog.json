@@ -26,10 +26,10 @@
     "metadata": "Filesystem sidecar metadata",
     "other": "No recognized role; inspect manually"
   },
-  "artifact_count": 592,
-  "artifact_bytes": 2053535105,
+  "artifact_count": 595,
+  "artifact_bytes": 2053566641,
   "artifact_role_counts": {
-    "archive": 97,
+    "archive": 98,
     "calibration": 4,
     "failure_review": 16,
     "false_gate": 52,
@@ -38,15 +38,15 @@
     "other": 50,
     "pilot": 10,
     "protocol": 43,
-    "provenance": 56,
+    "provenance": 57,
     "raw": 65,
     "report": 70,
     "source": 16,
     "summary": 140,
-    "validation": 80,
+    "validation": 82,
     "visual": 68
   },
-  "archive_member_count": 41854,
+  "archive_member_count": 41877,
   "archive_member_role_counts": {
     "archive": 26,
     "binary": 47,
@@ -56,14 +56,14 @@
     "input": 598,
     "metadata": 6526,
     "other": 2797,
-    "pilot": 4058,
+    "pilot": 4059,
     "protocol": 109,
     "provenance": 111,
-    "raw": 10088,
+    "raw": 10100,
     "report": 81,
-    "source": 10869,
+    "source": 10872,
     "summary": 977,
-    "validation": 924,
+    "validation": 947,
     "visual": 880
   },
   "artifacts": [
@@ -171,8 +171,8 @@
       "path": "DEDUP_PEAK2_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 12292,
-      "sha256": "b523f96169385564b4f52c21a6573a1b129be982b11862aee22c4965f5d67088",
+      "bytes": 12531,
+      "sha256": "1c1d852f2bf12c419c4fbcef1bfc360fbdd0560e6fdf3193d649c9e9cb1293eb",
       "roles": [
         "report"
       ]
@@ -212,8 +212,8 @@
       "path": "EXPERIMENT_REVIEW_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 80065,
-      "sha256": "92f637fe3e3ad5e54f8caf73b9d3b43d9f9c581cb78b76ec2635eab3a4520cd0",
+      "bytes": 80148,
+      "sha256": "34e2718a82c4158c5d5aaef2aaac2a30fb9e8d36ca6f20afbe7ec799ca04fe51",
       "roles": [
         "report"
       ]
@@ -7647,6 +7647,16 @@
       ]
     },
     {
+      "path": "stage44-dedup-peak2/archive.json",
+      "group": "stage44-dedup-peak2",
+      "stage": "44",
+      "bytes": 3130,
+      "sha256": "45b4ad9a1638f14a420ec3f874a979bac0a58a1e84473bddec0b71e9ae627e40",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
       "path": "stage44-dedup-peak2/decision-and-failures.json",
       "group": "stage44-dedup-peak2",
       "stage": "44",
@@ -7843,6 +7853,34 @@
       }
     },
     {
+      "path": "stage44-dedup-peak2/validation-logs.tar.gz",
+      "group": "stage44-dedup-peak2",
+      "stage": "44",
+      "bytes": 20976,
+      "sha256": "56ed49d627c7de389fbce4899d46fea1bf4ae239d1a204c82c9813c7e4a2dccf",
+      "roles": [
+        "archive",
+        "validation"
+      ],
+      "archive_file_count": 23,
+      "archive_role_counts": {
+        "pilot": 1,
+        "raw": 12,
+        "source": 3,
+        "validation": 23
+      }
+    },
+    {
+      "path": "stage44-dedup-peak2/validation.json",
+      "group": "stage44-dedup-peak2",
+      "stage": "44",
+      "bytes": 7108,
+      "sha256": "5e0b1417ec3543aca8aac2c4b00d7351f485d9c3640866102bf5b1d188e89ca7",
+      "roles": [
+        "validation"
+      ]
+    },
+    {
       "path": "validation-after-refinement.json",
       "group": "root",
       "stage": null,
@@ -7863,5 +7901,5 @@
       ]
     }
   ],
-  "archive_member_index_sha256": "d19ed9176d3b3e5a80d0f124d75b416a3206577b70d562cee22ebf9ffd7b0c7e"
+  "archive_member_index_sha256": "96d819d21841f4cf54f536bc87daf6bd6e39ae169b4abfa008b45003f0bd0e85"
 }

@@ -99,7 +99,7 @@ k3只多出`dedup-flags`與`dedup-counts`（512為0.41 MiB）。RSS門檻（k3�
 - 量測工具`tools/benchmark_dedup_peak2.py`有19項負控制測試（`tests/test_dedup_peak2_harness.py`）：多一個誤判、peak mode 1、去重計數契約、第43輪封存差1e-7、第43輪job差一個鍵、只快5%、一個block反向、六物件time_budget、RSS、最快者需每個block都贏、每影格輸出需等於靜態、證據被改、少一個worker、GT少一個物件、GT封存去重計數差1、GT的peak mode 1、GT worker失敗。10個工具突變全部被抓到（其中「每影格與靜態一致性檢查被略過」第一次存活，補上測試後被抓到）。
 - 不匯入harness的獨立稽核（自寫的最大二分配對嚴格GT、自讀第43輪封存）從本輪封存重算全部中位數、k3對off與跨路徑差、block方向、速度目標、最快者規則與GT計數：17,117項檢查零不符。把摘要中一個中位數改0.01ms的負控制會被抓到。
 - 用封存重新產生四份摘要，與提交的摘要逐位相同。
-- 測試與建置結果見[validation.json](stage44-dedup-peak2/validation.json)。
+- 量測後在e4263ed（乾淨工作樹，前後都檢查）全新Release研究建置：ctest 82／82、Python harness 635／635（含本輪19項）、color `--metal` 5／5、其他Python 49／49、ASan／UBSan（scalar＋experiments）77／77，沒有skip。詳見[validation.json](stage44-dedup-peak2/validation.json)。
 
 ## 量測方法與界線
 

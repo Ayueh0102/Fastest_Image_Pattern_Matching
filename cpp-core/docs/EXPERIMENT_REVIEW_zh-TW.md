@@ -481,6 +481,6 @@ Release 54/54、相關ASan／UBSan 2/2及Python工具75項通過。正式／有�
 - 每換新影格：完整GPU k3在128（384.13ms）、512（1149.05ms）、六物件（41.91ms）對其他三組都6/6較快；對混合k3分別−39.0／−27.2／−11.4%。8K兩組完整GPU相同（−0.3%，3/6），都比混合快約80%，不點名最快者。關閉去重時六物件完整GPU對混合−0.5%（3/6，無方向）。
 - GT與輸出：79個完整GPU案例變體零GT退步（off與k3合計都是TP 3201／FP 31／FN 204）；GT 158程序與正式192程序的每次呼叫輸出都與第43輪peak1封存相同。保留4筆`job_equals_round43`失敗：兩個控制場景重新產生在本輪目錄、路徑不同，影像雜湊與輸出都相同。
 - 工作量與記憶體：profile中細搜尋415→213ms（128）、1331→629ms（512），仍占約54%，其次是initial_refine 20–22%；去重kernel 3.4／13.9ms。k3只多0.21／0.41MiB命名Metal配置，RSS門檻全過。
-- 驗證：工具19項負控制、10個工具突變全殺；不匯入harness的獨立稽核17,117項檢查零不符；封存重播四份摘要逐位相同。
+- 驗證：工具19項負控制、10個工具突變全殺；不匯入harness的獨立稽核17,117項檢查零不符；封存重播四份摘要逐位相同；量測後Release 82／82、Python 635／635、color 5／5、ASan／UBSan 77／77。
 - 決定：完整GPU peak2＋k3適用於大量相同物件、可接受輸出不逐位相同的研究設定；每換新影格時在128／512／六物件是本輪最快組合。不改GUI、核心或任何預設。下一個瓶頸仍是細搜尋與initial_refine。
 - 證據：[完整報告](DEDUP_PEAK2_zh-TW.md)、[GT摘要](stage44-dedup-peak2/gt-summary.json)、[正式摘要](stage44-dedup-peak2/formal-summary.json)、[判定與失敗](stage44-dedup-peak2/decision-and-failures.json)、[驗證](stage44-dedup-peak2/validation.json)、[封存](stage44-dedup-peak2/archive.json)。
