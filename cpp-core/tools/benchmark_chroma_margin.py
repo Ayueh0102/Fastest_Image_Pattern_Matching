@@ -573,6 +573,25 @@ def holdout_failures(manifest, protocol):
     return failures
 
 
+def catch_failures(protocol, catch):
+    """The catch thresholds recomputed from the artwork must equal the protocol's frozen values."""
+    frozen = {group: value['tau'] for group, value in protocol['thresholds']['catch_tau'].items()}
+    if set(frozen) != set(GROUPS) or any(abs(catch[g]['tau'] - frozen[g]) > 1e-12 for g in GROUPS):
+        return [dict(gate='catch_threshold_differs_from_protocol', computed={g: catch[g]['tau'] for g in GROUPS}, protocol=frozen)]
+    return []
+
+
+def mask_failures(protocol, masks):
+    return [dict(gate='mask_differs_from_stage46', file=name) for name, digest in protocol['masks']['files'].items()
+            if not (Path(masks) / name).exists() or sha(Path(masks) / name) != digest]
+
+
+def verdict(integrity_passed, evaluation):
+    return dict(recommended=integrity_passed and evaluation['primary_passed'],
+                gradient_preferred=integrity_passed and evaluation['gradient_checks_passed']
+                and evaluation['gradient_better_on_gradients'])
+
+
 def evaluate_rows(rows, catch, false_positives=()):
     tables = {rule: thresholds(rows, rule, catch) for rule in RULES}
     conditions = lambda group: dict.fromkeys((r['split'], r['condition']) for r in rows if r['group'] == group)
@@ -610,14 +629,7 @@ def summarize(manifest, root, protocol_path):
     results, failures = integrity(manifest, root, scene_list)
     failures += holdout_failures(manifest, protocol)
     catch = catch_thresholds()
-    frozen = {group: value['tau'] for group, value in protocol['thresholds']['catch_tau'].items()}
-    if set(frozen) != set(GROUPS) or any(abs(catch[g]['tau'] - frozen[g]) > 1e-12 for g in GROUPS):
-        failures.append(dict(gate='catch_threshold_differs_from_protocol', computed={g: catch[g]['tau'] for g in GROUPS},
-                             protocol=frozen))
-    masks = Path(manifest['masks'])
-    for name, digest in protocol['masks']['files'].items():
-        if not (masks / name).exists() or sha(masks / name) != digest:
-            failures.append(dict(gate='mask_differs_from_stage46', file=name))
+    failures += catch_failures(protocol, catch) + mask_failures(protocol, manifest['masks'])
     rows, localization, false_positives = [], {}, []
     for scene in scene_list:
         if len(results[scene['key']]) != len(methods_for(scene)):
@@ -638,9 +650,7 @@ def summarize(manifest, root, protocol_path):
                 targets=TARGETS, min_decided=MIN_DECIDED, primary=PRIMARY, gradient=GRADIENT, arms=ARMS, localization=localization,
                 localization_all_found=all(v['all_found_no_fp'] for v in localization.values()),
                 integrity_failures=failures, integrity_passed=integrity_passed, rows=rows, **evaluation,
-                recommended=integrity_passed and evaluation['primary_passed'],
-                gradient_preferred=integrity_passed and evaluation['gradient_checks_passed'] and evaluation['gradient_better_on_gradients'],
-                defaults='unchanged: chroma_vk and reference_model are opt-in runner options; GUI, core and research defaults untouched')
+                **verdict(integrity_passed, evaluation), defaults='unchanged: chroma_vk and reference_model are opt-in runner options; GUI, core and research defaults untouched')
 
 
 def main():

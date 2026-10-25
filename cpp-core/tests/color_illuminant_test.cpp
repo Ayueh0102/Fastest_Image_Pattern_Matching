@@ -231,6 +231,12 @@ int main()
         const auto endResult=endClip.object(line).score({0,0,0,0});
         require(endResult.status==3 && endResult.regionDistance==-1 && endResult.gain==std::array<double,3>{} &&
             endResult.referenceSlopeU==std::array<double,3>{},"Clipped end must abstain");
+        // The ends are outer thirds: 5 clipped bytes in the outer column are 5/8 of the high-u third
+        // (> .45, abstain) but would be 5/12 of a half (usable).
+        Fixture thirds;
+        for(int y=0;y<5;++y)thirds.at(8,y)[2]=255;
+        require(thirds.object().score({0,0,0,0}).status==0 && thirds.object(line).score({0,0,0,0}).status==3,
+            "Linear ends must be the outer thirds");
         // A steep gradient extrapolates to a non-positive illuminant over the colour field: abstain.
         Fixture steep;
         const std::uint8_t columns[4]{100,160,210,250};

@@ -409,6 +409,39 @@ class Holdout(unittest.TestCase):
         self.assertEqual(self.gates(), ['holdout_record_changed'])
 
 
+class Verdict(unittest.TestCase):
+    def test_verdicts_need_integrity_and_every_check(self):
+        good = dict(primary_passed=True, gradient_checks_passed=True, gradient_better_on_gradients=True)
+        self.assertEqual(stage47.verdict(True, good), dict(recommended=True, gradient_preferred=True))
+        self.assertEqual(stage47.verdict(False, good), dict(recommended=False, gradient_preferred=False))
+        self.assertEqual(stage47.verdict(True, dict(good, primary_passed=False)), dict(recommended=False, gradient_preferred=True))
+        self.assertFalse(stage47.verdict(True, dict(good, gradient_checks_passed=False))['gradient_preferred'])
+        self.assertFalse(stage47.verdict(True, dict(good, gradient_better_on_gradients=False))['gradient_preferred'])
+
+    def test_catch_thresholds_must_equal_the_protocol(self):
+        catch = {g: dict(tau=v) for g, v in CATCH.items()}
+        protocol = dict(thresholds=dict(catch_tau={g: dict(tau=v) for g, v in CATCH.items()}))
+        self.assertEqual(stage47.catch_failures(protocol, catch), [])
+        protocol['thresholds']['catch_tau']['syn_teal']['tau'] += 1e-9
+        self.assertEqual([f['gate'] for f in stage47.catch_failures(protocol, catch)], ['catch_threshold_differs_from_protocol'])
+        del protocol['thresholds']['catch_tau']['syn_teal']
+        self.assertEqual(len(stage47.catch_failures(protocol, catch)), 1)
+        frozen = json.loads((Path(__file__).resolve().parents[1] / 'docs/stage47-chroma-margin/protocol.json').read_text()) \
+            if (Path(__file__).resolve().parents[1] / 'docs/stage47-chroma-margin/protocol.json').exists() else None
+        if frozen:
+            self.assertEqual(stage47.catch_failures(frozen, stage47.catch_thresholds()), [])
+
+    def test_masks_must_equal_stage46(self):
+        with tempfile.TemporaryDirectory() as directory:
+            (Path(directory) / 'red_colour.png').write_bytes(b'm')
+            protocol = dict(masks=dict(files={'red_colour.png': stage47.sha(Path(directory) / 'red_colour.png')}))
+            self.assertEqual(stage47.mask_failures(protocol, directory), [])
+            (Path(directory) / 'red_colour.png').write_bytes(b'n')
+            self.assertEqual([f['gate'] for f in stage47.mask_failures(protocol, directory)], ['mask_differs_from_stage46'])
+            protocol['masks']['files']['teal_colour.png'] = '0' * 64
+            self.assertEqual(len(stage47.mask_failures(protocol, directory)), 2)
+
+
 class Plan(unittest.TestCase):
     def test_scenes_and_splits(self):
         scene_list = stage47.scenes('/v1', '/r47')
