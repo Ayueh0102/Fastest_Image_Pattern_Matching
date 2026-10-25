@@ -26,10 +26,10 @@
     "metadata": "Filesystem sidecar metadata",
     "other": "No recognized role; inspect manually"
   },
-  "artifact_count": 640,
-  "artifact_bytes": 2398370110,
+  "artifact_count": 643,
+  "artifact_bytes": 2398451795,
   "artifact_role_counts": {
-    "archive": 114,
+    "archive": 115,
     "calibration": 4,
     "failure_review": 22,
     "false_gate": 56,
@@ -38,32 +38,32 @@
     "other": 53,
     "pilot": 12,
     "protocol": 46,
-    "provenance": 67,
+    "provenance": 68,
     "raw": 75,
     "report": 73,
     "source": 19,
     "summary": 155,
-    "validation": 86,
+    "validation": 88,
     "visual": 68
   },
-  "archive_member_count": 47005,
+  "archive_member_count": 47056,
   "archive_member_role_counts": {
     "archive": 26,
     "binary": 47,
     "calibration": 1,
-    "failure_review": 19,
+    "failure_review": 31,
     "formal": 24381,
     "input": 607,
     "metadata": 6526,
     "other": 3726,
     "pilot": 4157,
-    "protocol": 109,
+    "protocol": 113,
     "provenance": 118,
-    "raw": 11844,
-    "report": 85,
-    "source": 11786,
+    "raw": 11864,
+    "report": 86,
+    "source": 11797,
     "summary": 1031,
-    "validation": 1011,
+    "validation": 1062,
     "visual": 892
   },
   "artifacts": [
@@ -101,8 +101,8 @@
       "path": "CHROMA_MARGIN_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 19217,
-      "sha256": "1522703b380fa80b1465a42d027f9e76cb1069f47b5a9f52e4021ae661c9a5f7",
+      "bytes": 19643,
+      "sha256": "f32976d42e352bebd830f1c096dd89d77f78ab8aba87b4235ad179f97153a06d",
       "roles": [
         "report"
       ]
@@ -8381,6 +8381,16 @@
       ]
     },
     {
+      "path": "stage47-chroma-margin/archive.json",
+      "group": "stage47-chroma-margin",
+      "stage": "47",
+      "bytes": 2232,
+      "sha256": "be979cb9a21a4988560212e495236bc6c454c8c2604e83e949b6c70fccea55f4",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
       "path": "stage47-chroma-margin/decision-and-failures.json",
       "group": "stage47-chroma-margin",
       "stage": "47",
@@ -8533,6 +8543,36 @@
       ]
     },
     {
+      "path": "stage47-chroma-margin/validation-logs.tar.gz",
+      "group": "stage47-chroma-margin",
+      "stage": "47",
+      "bytes": 44205,
+      "sha256": "cd29cf929bec0e51684526935ec5bcf6601fafa437aaba7b6c114a6c8b0823bb",
+      "roles": [
+        "archive",
+        "validation"
+      ],
+      "archive_file_count": 51,
+      "archive_role_counts": {
+        "failure_review": 12,
+        "protocol": 4,
+        "raw": 20,
+        "report": 1,
+        "source": 11,
+        "validation": 51
+      }
+    },
+    {
+      "path": "stage47-chroma-margin/validation.json",
+      "group": "stage47-chroma-margin",
+      "stage": "47",
+      "bytes": 34822,
+      "sha256": "a800f47256af4894b3862eaf8686e060808835d88ad75c6031edd2b4e7689345",
+      "roles": [
+        "validation"
+      ]
+    },
+    {
       "path": "validation-after-refinement.json",
       "group": "root",
       "stage": null,
@@ -8553,5 +8593,5 @@
       ]
     }
   ],
-  "archive_member_index_sha256": "e32079fa93d061df3a1e7acbac34d64ac5a135b6ec7d2418efa7b9a3a1e62a78"
+  "archive_member_index_sha256": "54987e5f6c7c213d6ca434171963b205da244aa92aaad4b7aa4cfe6ad114715b"
 }
