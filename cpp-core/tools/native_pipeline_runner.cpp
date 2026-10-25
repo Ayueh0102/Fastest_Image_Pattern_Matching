@@ -16,6 +16,8 @@
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include <thread>
+#include <vector>
 #include <sys/resource.h>
 #ifdef __APPLE__
 #include <mach/mach.h>
@@ -208,7 +210,8 @@ const char* const jobKeys[]={"angle","backend","candidate_dedup_angle_steps","ca
     "fine_ncc_mode","fine_profiling","full_gpu","full_gpu_fine_mode","full_gpu_peak_batch","full_gpu_peak_mode","full_gpu_profiling",
     "gray_load_mode","invert_source","limit","min_area","ncc_mode","overlap","overlap_enabled","pose_input_mode",
     "pose_resident_mode","pose_storage_mode","proposal_method","proposal_score","refine","refinement_backend",
-    "repeats","run_resource_diagnostics","scale_support_refine","scales","score","sequence_mode","soak_seconds",
+    "repeats","run_resource_diagnostics","scale_support_refine","scales","score","sequence_gap",
+    "sequence_gap_sleep_ms","sequence_mode","soak_seconds",
     "source","source_frames","sparse_angle_step","sparse_candidate_limit","sparse_cpu_gradient_mode",
     "sparse_features","sparse_metal_submission_mode","sparse_min_gradient","sparse_response_mode",
     "sparse_search_backend","sparse_spread","sparse_stride","sparse_threshold","stop_layer","stream_path",
@@ -316,7 +319,19 @@ int main(int argc,char** argv) {
         if(resourceDiagnostics && (warm>0 || soak>0)) throw std::invalid_argument("Run resource diagnostics require first/repeat mode without warmup or soak");
         if(!sourceFrames.isEmpty()) {
             const auto mode=j["sequence_mode"].toString("reuse");
-            if(mode!="reuse" && mode!="fresh") throw std::invalid_argument("sequence_mode must be reuse or fresh");
+            if(mode!="reuse" && mode!="fresh" && mode!="static") throw std::invalid_argument("sequence_mode must be reuse, fresh or static");
+            // Between calls the runner decodes the next frame (default), does
+            // nothing, or sleeps; the last two decode every frame before call 0.
+            if(j.contains("sequence_gap") && !j["sequence_gap"].isString()) throw std::invalid_argument("sequence_gap must be decode, none or sleep");
+            const auto gap=j["sequence_gap"].toString("decode");
+            if(gap!="decode" && gap!="none" && gap!="sleep") throw std::invalid_argument("sequence_gap must be decode, none or sleep");
+            if(j.contains("sequence_gap_sleep_ms")!=(gap=="sleep"))
+                throw std::invalid_argument("sequence_gap_sleep_ms is required with, and only with, sequence_gap sleep");
+            const double sleepMs=j["sequence_gap_sleep_ms"].toDouble(-1);
+            if(gap=="sleep" && (!j["sequence_gap_sleep_ms"].isDouble() || !std::isfinite(sleepMs) || sleepMs<=0 || sleepMs>10000))
+                throw std::invalid_argument("sequence_gap_sleep_ms must be a number in (0, 10000]");
+            // Static keeps the Session's source and pose context from call 0.
+            if(mode=="static" && sourceFrames.size()!=1) throw std::invalid_argument("Static sequences repeat exactly one source frame");
             if(warm>0 || resourceDiagnostics) throw std::invalid_argument("Source sequences require warmup_seconds=0 and resource diagnostics disabled");
             QFile stream;
             if(soak>0) {
@@ -325,18 +340,29 @@ int main(int argc,char** argv) {
             }
             std::unique_ptr<Session> session;
             std::vector<Result> reference(size_t(sourceFrames.size()));
+            std::vector<fpm::Image> decoded;
+            if(gap!="decode") {
+                decoded.push_back(std::move(src)); // src is not read again without a decode gap
+                for(int index=1;index<sourceFrames.size();++index) decoded.push_back(fpm::io::readGrayImage(sourceFrames[index].toString(),loadMode));
+            }
             QJsonArray rows;bool exact=true,drained=true;int calls=0,cycle=0;
             const auto sequenceStart=Clock::now();
             do {
                 for(int index=0;index<sourceFrames.size();++index) {
-                    double decode=0;
-                    if(calls) {const auto t=Clock::now();src=fpm::io::readGrayImage(sourceFrames[index].toString(),loadMode);decode=ms(t);}
+                    double decode=0,gapMs=0;
+                    if(calls) {
+                        const auto t=Clock::now();
+                        if(gap=="decode") {src=fpm::io::readGrayImage(sourceFrames[index].toString(),loadMode);decode=ms(t);}
+                        else if(gap=="sleep") std::this_thread::sleep_for(std::chrono::duration<double,std::milli>(sleepMs));
+                        gapMs=ms(t);
+                    }
+                    const fpm::Image& frame=gap=="decode" ? src:decoded[size_t(index)];
                     const auto frameStart=Clock::now();
                     double release=0,construct=0;SourceUpdate update;const bool create=mode=="fresh" || !session;
                     if(create) {
                         const auto t=Clock::now();session.reset();release=ms(t);
-                        const auto c=Clock::now();session=std::make_unique<Session>(src.view(),tmp.view(),settings);construct=ms(c);
-                    } else update=session->updateSource(src.view());
+                        const auto c=Clock::now();session=std::make_unique<Session>(frame.view(),tmp.view(),settings);construct=ms(c);
+                    } else if(mode=="reuse") update=session->updateSource(frame.view());
                     auto result=session->run(o);const double frameWall=ms(frameStart);
                     bool valid=true;
                     if(cycle==0) reference[size_t(index)]=result;
@@ -345,8 +371,9 @@ int main(int argc,char** argv) {
                     for(auto m:result.overlapMetrics) drained&=m.submitted_batches==m.completed_batches;
                     auto row=record(result,soak<=0);
                     row["source_index"]=index;row["sequence_cycle"]=cycle;row["call"]=calls;
-                    row["source_path"]=sourceFrames[index];row["source_width"]=src.width();row["source_height"]=src.height();
-                    row["source_decode_ms"]=decode;row["release_ms"]=release;row["construct_ms"]=construct;
+                    row["source_path"]=sourceFrames[index];row["source_width"]=frame.width();row["source_height"]=frame.height();
+                    row["source_decode_ms"]=decode;row["sequence_gap"]=gap;row["gap_ms"]=gapMs;
+                    row["release_ms"]=release;row["construct_ms"]=construct;
                     row["source_update_ms"]=update.updateMs;row["source_copy_bytes"]=double(update.copiedBytes);
                     row["retained_template_models"]=double(update.retainedModels);row["pose_invalidated"]=update.poseInvalidated;
                     row["source_dimensions_changed"]=update.dimensionsChanged;row["frame_wall_ms"]=frameWall;
@@ -360,7 +387,9 @@ int main(int argc,char** argv) {
                 }
                 ++cycle;
             } while(cycle<repeats || (soak>0 && ms(sequenceStart)<soak*1000));
-            QJsonObject out{{"sequence_mode",mode},{"source_frames",sourceFrames},{"cycles",cycle},{"calls",calls},
+            QJsonObject out{{"sequence_mode",mode},{"sequence_gap",gap},
+                {"sequence_gap_sleep_ms",gap=="sleep" ? QJsonValue(sleepMs):QJsonValue(QJsonValue::Null)},
+                {"source_frames",sourceFrames},{"cycles",cycle},{"calls",calls},
                 {"duration_ms",ms(sequenceStart)},{"runs",rows},{"exact_sequence_repeat",exact},{"drained",drained},
                 {"load",load},{"after_load_memory",afterLoadMemory},{"final_memory",memory()},
                 {"comparison_reference","first cycle per frame index; independent fresh/reuse comparison belongs to parent harness"},

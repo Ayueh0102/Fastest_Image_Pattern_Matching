@@ -37,6 +37,7 @@ STAGES = {
     "stage45-cpu-path": "45",
     "stage46-illuminant-chroma": "46",
     "stage47-chroma-margin": "47",
+    "stage48-frame-overheads": "48",
 }
 ROLE_DESCRIPTIONS = {
     "protocol": "Settings, workload definition, budgets and acceptance gates",

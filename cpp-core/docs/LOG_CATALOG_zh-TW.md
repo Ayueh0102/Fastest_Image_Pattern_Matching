@@ -52,6 +52,7 @@
 | 45 | 全CPU研究路徑對混合與完整GPU（量測輪）：每換新影格6個arm、CPU GT階段、中止的第一次正式保留 | [stage45-cpu-path](stage45-cpu-path/)、[報告](CPU_PATH_zh-TW.md) |
 | 46 | 物件內白參考的照明正規化同色驗證（`chroma_vk`）：測試樣本集 v1 的19場景×9方法、校準／保留照明切分、既有方法與改動前runner逐位比對 | [stage46-illuminant-chroma](stage46-illuminant-chroma/)、[報告](ILLUMINANT_CHROMA_zh-TW.md) |
 | 47 | `chroma_vk`的原稿決定門檻與線性光源模型：v1校準9場景＋全新種子保留集19場景×8方法、改動前runner逐位比對、保留集依種子重建 | [stage47-chroma-margin](stage47-chroma-margin/)、[報告](CHROMA_MARGIN_zh-TW.md) |
+| 48 | 每影格額外成本的來源（診斷輪）：靜態／換來源×無／閒置／解碼空檔、劑量、profile；runner序列空檔選項 | [stage48-frame-overheads](stage48-frame-overheads/)、[報告](FRAME_OVERHEADS_zh-TW.md) |
 
 新一輪正式結果由[實驗總索引](EXPERIMENT_REVIEW_zh-TW.md)連接，重新產生機器索引即可列出新增資料。沒有階段對照的目錄保留 `stage: null`，不猜測輪次或把它算成通過項目。
 
@@ -132,3 +133,5 @@ for member in index["members"]:
 第46輪的protocol與凍結源碼在任何評估前提交，事前揭露包含測試樣本集 v1 探針、產生器照明參數與只看管線的換種子smoke。241個worker（含既有四方法在改動前runner的對照）、遮罩與run manifest放在單一raw-results.tar.gz，每個成員的SHA-256在raw-files-sha256.json；不作時間宣稱。H1a、H2a、H3共8項未通過的檢查、6項預測的對照與事後診斷保留在decision-and-failures.json；獨立重算、摘要與job重播、事後診斷、編譯與工具突變及最終測試log在validation-logs.tar.gz。
 
 第47輪的protocol與凍結源碼在產生保留集之前提交，門檻數值也凍結在protocol裡；保留集影像不封存（可依種子重建，SHA-256在input-sha256.json），種子紀錄、GT與Blender中繼資料在holdout-metadata.tar.gz。412個worker（含改動前runner對照）、遮罩與run manifest在raw-results.tar.gz，每個成員的SHA-256在raw-files-sha256.json；不作時間宣稱。線性模型的F1失敗與符號檢定、端到端覆蓋率、次要規則的失敗與9項預測對照保留在decision-and-failures.json；獨立重算、摘要與job重播、保留集重建、第46輪一致、事後診斷、兩次編譯與工具突變及最終測試log在validation-logs.tar.gz。
+
+第48輪的protocol與凍結源碼在任何計時前提交，計時前的修訂1（主機偵測補強）寫在protocol的revisions。四個phase分別保存：pilot（篩選，期間另一個session在建置與測試，25筆主機gate保留）、formal、dose與profile；第一次開始被driver拒絕的log與runner突變第一次中止的紀錄也在validation-logs.tar.gz。原始結果分成raw-results-formal-hybrid-best.tar.gz、raw-results-formal-full-gpu.tar.gz（正式依方法分兩包，manifest在後者）與raw-results-other.tar.gz（pilot、劑量、profile），各在100 MB以內；輸入與第40輪fixtures逐位相同，只保存雜湊。量測後的分析修訂1（profile分段只算正式呼叫）寫在analysis-revision.json，凍結driver的原profile摘要保留為profile-summary-frozen-driver.json；獨立稽核、主機gate敏感度與封存重播也在validation-logs.tar.gz。
