@@ -203,6 +203,16 @@ class Decisions(unittest.TestCase):
         before = stage47.thresholds(fixture(), 'rayleigh', CATCH)
         self.assertEqual(stage47.thresholds(rows, 'rayleigh', CATCH), before)
 
+    def test_gates_read_the_split_label(self):
+        # A row's split decides; a gated condition name in another split is never gated (defensive: split()
+        # never produces such rows).
+        rows = fixture()
+        extra = [dict(copy.deepcopy(r), split='fresh_calibration', scene='r47x/' + r['scene']) for r in rows
+                 if r['split'] == 'holdout' and r['condition'] in ('wb_warm', 'mixed')]
+        for r in extra:
+            r['values'][stage47.PRIMARY] = 0. if not r['same_colour'] else 1.
+        self.assertEqual(failed(evaluate(rows + extra)), [])
+
     def test_ungated_cells(self):
         rows = fixture()
         set_values(rows, stage47.PRIMARY, 0., direction='lightness+')
@@ -248,6 +258,15 @@ class Gradient(unittest.TestCase):
         self.assertEqual((result['n'], result['wins'], result['losses'], result['ties']), (20 + 4 - 2, 21, 0, 1))
         self.assertEqual(result['p_one_sided'], 1 / 2 ** 21)
         self.assertEqual(result['median_ratio'], .5)
+
+    def test_paired_reads_the_split_label(self):
+        rows = fixture()
+        set_values(rows, stage47.GRADIENT, .0005, split='holdout', condition='spot_warm', same_colour=True)
+        extra = [dict(copy.deepcopy(r), split='calibration') for r in rows if r['split'] == 'holdout' and r['condition'] == 'spot_warm']
+        before = stage47.paired(rows, stage47.GRADIENT_CONDITIONS)
+        self.assertEqual(stage47.paired(rows + extra, stage47.GRADIENT_CONDITIONS), before)
+        extra = [dict(r, split='fresh_calibration') for r in extra]
+        self.assertEqual(stage47.paired(rows + extra, stage47.GRADIENT_CONDITIONS), before)
 
     def test_gradient_preference_needs_its_own_checks(self):
         rows = fixture()

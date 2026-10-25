@@ -227,7 +227,9 @@ class WorkerContract(unittest.TestCase):
             self.assertEqual(a["uncorrected_region_distance"], b["uncorrected_region_distance"])
         self.worker(dict(job, reference_model="quadratic"), success=False)
         self.worker(dict(job, reference_model=1), success=False)
-        self.worker(dict(job, method="chroma", reference_model="constant"), success=False)
+        plain = dict(self.illuminant_fixture(), method="chroma")  # no other illuminant key: only reference_model is wrong
+        self.worker(plain)
+        self.worker(dict(plain, reference_model="constant"), success=False)
         rect = {key: value for key, value in job.items() if key != "reference_mask"}
         self.worker(dict(rect, illuminant_reference="source_rect", reference_rect=[60, 0, 66, 3], reference_model="linear"),
                     success=False)
