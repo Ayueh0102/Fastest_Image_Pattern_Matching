@@ -26,45 +26,45 @@
     "metadata": "Filesystem sidecar metadata",
     "other": "No recognized role; inspect manually"
   },
-  "artifact_count": 618,
-  "artifact_bytes": 2384311749,
+  "artifact_count": 630,
+  "artifact_bytes": 2389734686,
   "artifact_role_counts": {
-    "archive": 108,
+    "archive": 111,
     "calibration": 4,
-    "failure_review": 20,
-    "false_gate": 52,
+    "failure_review": 21,
+    "false_gate": 54,
     "formal": 25,
     "input": 21,
     "other": 53,
     "pilot": 12,
-    "protocol": 44,
-    "provenance": 60,
-    "raw": 73,
-    "report": 71,
-    "source": 17,
-    "summary": 151,
-    "validation": 84,
+    "protocol": 45,
+    "provenance": 64,
+    "raw": 74,
+    "report": 72,
+    "source": 18,
+    "summary": 153,
+    "validation": 86,
     "visual": 68
   },
-  "archive_member_count": 44349,
+  "archive_member_count": 45423,
   "archive_member_role_counts": {
     "archive": 26,
     "binary": 47,
     "calibration": 1,
     "failure_review": 19,
-    "formal": 23075,
-    "input": 605,
+    "formal": 23557,
+    "input": 606,
     "metadata": 6526,
-    "other": 3030,
+    "other": 3281,
     "pilot": 4157,
     "protocol": 109,
-    "provenance": 115,
-    "raw": 11178,
-    "report": 82,
-    "source": 11172,
-    "summary": 995,
-    "validation": 974,
-    "visual": 884
+    "provenance": 116,
+    "raw": 11431,
+    "report": 84,
+    "source": 11482,
+    "summary": 1013,
+    "validation": 1009,
+    "visual": 888
   },
   "artifacts": [
     {
@@ -131,8 +131,8 @@
       "path": "COLOR_VERIFY_RUNNER.md",
       "group": "root",
       "stage": null,
-      "bytes": 10700,
-      "sha256": "83743aacc2c72dbb5bdfe625e5127476985ba03e85b8ebdcefadfbdfcd2d33f3",
+      "bytes": 13808,
+      "sha256": "a393ef3e4f746a0c7c793ddfcd99537192f29ed140501a8ada05b07260086a9a",
       "roles": [
         "report"
       ]
@@ -171,8 +171,8 @@
       "path": "CURRENT_BEST_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 12229,
-      "sha256": "df320830ae7470dc4be0ce9c83a1bab624402f5bde961e26f032da260e2392c8",
+      "bytes": 13722,
+      "sha256": "09d5e6ccb0d50df93e5c152a5cca118ecfb8c3ea3baaf469d02835099c931031",
       "roles": [
         "report"
       ]
@@ -222,8 +222,8 @@
       "path": "EXPERIMENT_REVIEW_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 82820,
-      "sha256": "4e046d7bddabaf4c13874786a185a8794a77936d957947a69cc83baee120f6ec",
+      "bytes": 85842,
+      "sha256": "fbba67c36c514c3d883328f2bdd4a8e4bb8f20b97b27236520a85b9c3a9851c4",
       "roles": [
         "report"
       ]
@@ -369,11 +369,21 @@
       ]
     },
     {
+      "path": "ILLUMINANT_CHROMA_zh-TW.md",
+      "group": "root",
+      "stage": null,
+      "bytes": 18919,
+      "sha256": "603034dd25f4ef33ff209baedbdafe4a5fedb647f84d608600186d53c5451b1e",
+      "roles": [
+        "report"
+      ]
+    },
+    {
       "path": "LOG_CATALOG_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 14490,
-      "sha256": "95d20e3a0a65941309910da10d74f79323f9d2e3dec069cc11838533c3588ff2",
+      "bytes": 15366,
+      "sha256": "3b629df54caf2015b5092e4d5be664e0cb649b903544281ee7b06bbc64da751f",
       "roles": [
         "report"
       ]
@@ -543,8 +553,8 @@
       "path": "PROJECT_STATUS_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 10303,
-      "sha256": "624999dbacc0ce96fbc706c65b960dddaea25fe00d1cfecce1e748b235f09fb9",
+      "bytes": 11333,
+      "sha256": "eec3794bcceeb60c8343059c086728f3e5c2e087ab9cb0c04cafa4958ac5e155",
       "roles": [
         "report"
       ]
@@ -735,8 +745,8 @@
       "path": "TESTBED_V1_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 9334,
-      "sha256": "4a182fbbd70740f39f6fdd3c7b1fa6ecc1805f9cc98663cf75e9a974b5c4e322",
+      "bytes": 9456,
+      "sha256": "f20ca6e9f0c2ad87216db5449ba1e6beb2bb773abade2de043efc27c3426c5c4",
       "roles": [
         "report"
       ]
@@ -8199,6 +8209,168 @@
       ]
     },
     {
+      "path": "stage46-illuminant-chroma/archive.json",
+      "group": "stage46-illuminant-chroma",
+      "stage": "46",
+      "bytes": 1902,
+      "sha256": "201a2147ab2d62b79cb4fff4f8803614bdc222fec0f06bc93743ee2e01b87753",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage46-illuminant-chroma/decision-and-failures.json",
+      "group": "stage46-illuminant-chroma",
+      "stage": "46",
+      "bytes": 14074,
+      "sha256": "32efa28ef208408a4ef21a63b3206a6d0f61899d5ba3b1aa83c6b47a1dc02440",
+      "roles": [
+        "failure_review",
+        "false_gate"
+      ],
+      "explicit_false_gates": [
+        "/hypotheses/2/passed",
+        "/hypotheses/4/passed",
+        "/hypotheses/7/passed",
+        "/hypotheses/9/passed",
+        "/hypotheses/13/passed",
+        "/hypotheses/14/passed",
+        "/hypotheses/19/passed",
+        "/hypotheses/20/passed",
+        "/hypotheses_passed"
+      ]
+    },
+    {
+      "path": "stage46-illuminant-chroma/input-sha256.json",
+      "group": "stage46-illuminant-chroma",
+      "stage": "46",
+      "bytes": 4773,
+      "sha256": "7bf8c91cd2fa24dd0bf4d8a8d56dfd4c4a34aa0884773c384bd92e2adb37a778",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage46-illuminant-chroma/protocol.json",
+      "group": "stage46-illuminant-chroma",
+      "stage": "46",
+      "bytes": 13798,
+      "sha256": "5e95613754f7672fe70becb3cc4eeaf08d7d0a602789036fa119e93ffce96e95",
+      "roles": [
+        "protocol"
+      ]
+    },
+    {
+      "path": "stage46-illuminant-chroma/raw-files-sha256.json",
+      "group": "stage46-illuminant-chroma",
+      "stage": "46",
+      "bytes": 101614,
+      "sha256": "ae344e3b7909e9a8d7e748c8103cf38b72a56892d21c46b07f2ed0cc8523b7ef",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage46-illuminant-chroma/raw-results.tar.gz",
+      "group": "stage46-illuminant-chroma",
+      "stage": "46",
+      "bytes": 1837001,
+      "sha256": "d87f20f49585eb37352bb74bc1be03c3892b122171bdc224e7cccdaa2d9928e0",
+      "roles": [
+        "archive",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 730,
+      "archive_role_counts": {
+        "formal": 482,
+        "other": 242,
+        "provenance": 1,
+        "raw": 242,
+        "visual": 4
+      }
+    },
+    {
+      "path": "stage46-illuminant-chroma/source-sha256.json",
+      "group": "stage46-illuminant-chroma",
+      "stage": "46",
+      "bytes": 35263,
+      "sha256": "77d8ae2c504a20a50445f26136d2448fa63fc353420aeb4abf18ed74f611c684",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage46-illuminant-chroma/source-snapshot.tar.gz",
+      "group": "stage46-illuminant-chroma",
+      "stage": "46",
+      "bytes": 930950,
+      "sha256": "6b7e8906a02cdcfe2148fc41b6458287b35143266a0a80878eb83bd677321d8d",
+      "roles": [
+        "archive",
+        "source"
+      ],
+      "archive_file_count": 311,
+      "archive_role_counts": {
+        "input": 1,
+        "other": 9,
+        "report": 1,
+        "source": 300,
+        "summary": 18,
+        "validation": 2
+      }
+    },
+    {
+      "path": "stage46-illuminant-chroma/summary.json",
+      "group": "stage46-illuminant-chroma",
+      "stage": "46",
+      "bytes": 2406996,
+      "sha256": "ddb3df33e32ece82f69b3fdeb02b8072ca80489585c835cd49558c4ca6504cff",
+      "roles": [
+        "false_gate",
+        "summary"
+      ],
+      "explicit_false_gates": [
+        "/hypotheses/2/passed",
+        "/hypotheses/4/passed",
+        "/hypotheses/7/passed",
+        "/hypotheses/9/passed",
+        "/hypotheses/13/passed",
+        "/hypotheses/14/passed",
+        "/hypotheses/19/passed",
+        "/hypotheses/20/passed",
+        "/hypotheses_passed"
+      ]
+    },
+    {
+      "path": "stage46-illuminant-chroma/validation-logs.tar.gz",
+      "group": "stage46-illuminant-chroma",
+      "stage": "46",
+      "bytes": 34677,
+      "sha256": "b2d2908a201aefc798615a4925435a9f17e6d1ab6445291b811d785cea359273",
+      "roles": [
+        "archive",
+        "validation"
+      ],
+      "archive_file_count": 33,
+      "archive_role_counts": {
+        "raw": 11,
+        "report": 1,
+        "source": 10,
+        "validation": 33
+      }
+    },
+    {
+      "path": "stage46-illuminant-chroma/validation.json",
+      "group": "stage46-illuminant-chroma",
+      "stage": "46",
+      "bytes": 13319,
+      "sha256": "ded3d8e41bd4399013d08e65bf19677c4812749acc0c4ad6a49c6aebc78ac3ce",
+      "roles": [
+        "validation"
+      ]
+    },
+    {
       "path": "validation-after-refinement.json",
       "group": "root",
       "stage": null,
@@ -8219,5 +8391,5 @@
       ]
     }
   ],
-  "archive_member_index_sha256": "219509a0f4f5d9b04a4613df9b243528a9555de44fd16349dbbb4e114fd81fab"
+  "archive_member_index_sha256": "1482e125c52cbb9f1ace1eb4f61d462bcd5d2a9096ad662fd012e954fba816c1"
 }

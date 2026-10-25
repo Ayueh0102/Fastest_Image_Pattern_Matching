@@ -1,0 +1,104 @@
+{
+ "stage": 46,
+ "date": "2026-10-25",
+ "title": "Illumination-normalized same-colour verification (von Kries from an in-object neutral reference) on test-bed v1",
+ "semantics": "New opt-in runner method chroma_vk (experiments/color_illuminant.{hpp,cpp}); the existing chroma, rgb_ncc and gray_ncc paths and every GUI, core and research default are unchanged whatever the result. Colour decisions only: localization is the existing grayscale Session search, identical for every method.",
+ "implementation_commit": "2a66cd6",
+ "implementation_note": "2a66cd6 adds color_illuminant.{hpp,cpp}, the chroma_vk runner method, tests/color_illuminant_test.cpp, runner contract tests, tools/benchmark_illuminant_colour.py and tests/test_illuminant_colour_harness.py to main 2d85d3a; color_verify.{hpp,cpp} are byte-identical. The frozen runner is build/stage46-release (Release, GUI+experiments+OpenCV) built from this worktree at 2a66cd6; the pre-change base runner is build/stage46-base built from 2d85d3a. Both SHA-256 are recorded in the run manifest.",
+ "question": [
+  "Q1 (gated): with thresholds calibrated on neutral, dark exposure, cool white balance and shading only, does chroma_vk with the object's own off-white panel as reference keep same-colour objects accepted and different-colour objects (isogray included) rejected under held-out warm white balance, a local warm spot, noise+JPEG, and Blender 3200 K and mixed light?",
+  "Q2 (gated): is its threshold-free AUC not below the existing masked chroma and the uncorrected region-mean chroma in each held-out cell?",
+  "Q3 (reported): what do the existing chroma (unmasked and masked), RGB NCC, gray NCC, a global reference-card correction (white and 18% gray patches), and the saturation ablations do on the same detections?"
+ ],
+ "data": {
+  "testbed": "build/testbed-v1 of the main checkout (generator testbed_generate.py SHA-256 cda904e193dd4cebc80a2501583e52ef805e041646587758d0192280d07e5cfe); every input is checked against final/manifest.json before any worker runs",
+  "synthetic": "16 scenes = 2 families (red, teal) x 8 lighting conditions, 32 objects each: 10 same-colour; hue+, hue-, chroma-, isogray0, isogray90 at CIEDE2000 2/4/8/16 (one each); lightness+ at 4/8",
+  "blender": "bl_rgb_white, bl_rgb_warm3200, bl_rgb_mixed: 12 objects each (4 same-colour; isogray90 4, chroma- 8, hue- 8, isogray0 8, hue+ 8, chroma- 4, lightness+ 8, hue+ 4); template final/bl_rgb_reference_template.png",
+  "labels": "colour labels are defined once per texture under the neutral reference light (TESTBED_V1); GT is read only by the summarize step"
+ },
+ "localization": {
+  "search": "testbed_evaluate.SEARCH (Metal search and refinement, angle 180, score .65, proposal .5, min_area 256, cpu_threads 8, pose_resident_mode 0, fine_ncc_mode 2, fused, angle reuse) with limit 64; synthetic scales [.85,1,1.15], Blender [.9,1,1.1] (the test-bed v1 sanity settings)",
+  "assignment": "many_object_accuracy.evaluate strict (one-to-one, 2 px, 1 degree, 2%)",
+  "rule": "colour metrics use found objects only; localization TP/FP/FN are reported separately per scene; false-positive detections are reported with their decisions but have no colour label"
+ },
+ "masks": {
+  "rule": "template annotations from the label artwork testbed_generate.capsule_texture: colour = pixels equal to the family colour, reference = pixels equal to the off-white panel (236,234,226); each eroded 5x5 (the probe's rule). No scene and no GT is used",
+  "files": {"red_colour.png": "c176a14bee84fbb6f8e94129d6b20873777565fa2ccde170f34aac2b27660667", "red_reference.png": "6cc34f88dc7056d19692294eff57b1202c6fb4bb43eb67d8ddc45ad79a950029",
+            "teal_colour.png": "c176a14bee84fbb6f8e94129d6b20873777565fa2ccde170f34aac2b27660667", "teal_reference.png": "6cc34f88dc7056d19692294eff57b1202c6fb4bb43eb67d8ddc45ad79a950029"},
+  "pixels": {"colour": 3637, "reference": 1396},
+  "note": "both families share the layout, so their masks are identical files; the colour and reference regions are 7 px apart, so bilinear colour samples never touch the panel"
+ },
+ "card": {
+  "rects": {"white": [32, 24, 112, 104], "gray18": [128, 24, 208, 104]},
+  "rule": "testbed_generate.REFERENCE_CARD patches inset by 8 px; a fixed fixture region identical in every synthetic scene (checked against each truth file at summarize time); it carries no object position or label. template_reference_rgb = [1,1,1]: the synthetic template was rendered under neutral light (test-bed design). Synthetic scenes only."
+ },
+ "methods": {
+  "note": "one fresh runner process per scene x method, warmups 0, repeats 1 (exact_repeat checks determinism); chroma options: chroma_distance_threshold .04, min_linear_sum .03, min_valid_fraction .95; chroma_vk adds saturation_level 255, max_reference_clip_fraction .45, min_reference_fraction .5",
+  "gray_ncc": "existing", "rgb_ncc": "existing", "chroma": "existing, unmasked (test-bed v1 sanity)", "chroma_masked": "existing, colour mask",
+  "vk_object": "chroma_vk, object reference, rank policy", "vk_object_drop": "chroma_vk, object reference, drop policy (ablation)",
+  "vk_object_none": "chroma_vk, object reference, no saturation handling (ablation, closest to the GT-aligned probe)",
+  "card_white": "chroma_vk, source_rect white patch, rank", "card_gray": "chroma_vk, source_rect 18% gray patch, rank",
+  "base_identity": "gray_ncc, rgb_ncc, chroma and chroma_masked also run on the base runner; scores and search matches must be identical"
+ },
+ "arms": {
+  "rule": "decision statistic per arm; dissimilarity (larger = more different). NCC: 1 - score (score -2 abstains). Chroma: the distance, -1 abstains (status != 0)",
+  "gray_ncc": "gray_ncc 1-score", "rgb_ncc": "rgb_ncc 1-score", "chroma": "chroma mean_distance", "chroma_masked": "chroma_masked mean_distance",
+  "masked_region": "vk_object_none uncorrected_region_distance (control: region mean, no correction, no clip handling)",
+  "vk_pixel": "vk_object mean_distance (secondary: correction with the existing per-pixel statistic)",
+  "vk_region": "vk_object region_distance  <- PRIMARY",
+  "vk_drop_region": "vk_object_drop region_distance", "vk_none_region": "vk_object_none region_distance",
+  "card_white_region": "card_white region_distance", "card_gray_region": "card_gray region_distance",
+  "vk_uncorrected_region": "vk_object uncorrected_region_distance (input of the secondary fallback policy only)"
+ },
+ "split": {
+  "calibration": ["neutral", "exposure_dark", "wb_cool", "shading", "white"],
+  "holdout": ["wb_warm", "exposure_bright", "spot_warm", "noise_jpeg", "warm3200", "mixed"],
+  "gated_synthetic": ["wb_warm", "spot_warm", "noise_jpeg"],
+  "gated_blender": ["warm3200", "mixed"],
+  "exposure_bright": "held out and reported, not gated: the off-white panel is clipped by design (linear .838 x 1.35 > 1), so the object reference is expected to abstain (prediction P1)"
+ },
+ "thresholds": {
+  "rule": "one-class: per arm and template group (syn_red, syn_teal, bl_red), numpy percentile 95 (linear) of the dissimilarity of found, non-abstained same-colour objects in the calibration lighting; applied unchanged to every condition. bl_red is calibrated on bl_rgb_white only (n = 4 same-colour objects)",
+  "decision": "accepted = not abstained and dissimilarity <= threshold; abstention counts as not accepted (a false alarm for same-colour, never an acceptance for different-colour)",
+  "secondary": ["max rule (calibration maximum)", "Blender scored with the syn_red thresholds (cross-renderer transfer)", "fallback policy: vk_region, or vk_uncorrected_region against its own threshold when the reference abstains"]
+ },
+ "metrics": "per arm, group, condition and split: same-colour acceptance (accepted/abstained/n), different-colour rejection (wrongly accepted/abstained/n, every wrongly accepted object listed), rejection per direction x DeltaE target, isogray per condition, AUC = P(different > same) + ties/2 with abstentions ranked as +inf (and AUC over valid values only)",
+ "gates": {
+  "integrity": ["every worker exits 0 with exact_repeat", "search matches identical across all methods of a scene", "existing methods: candidate runner output equals the base runner (scores and search matches)", "no GT key or GT path in any job", "input, job and result SHA-256 unchanged; run complete; binaries unchanged", "synthetic reference card unchanged"],
+  "localization_precondition": "recorded, not a colour gate: test-bed v1 sanity had 32/0/0 per synthetic scene and 12/0/0 per bl_rgb scene",
+  "H1": "primary arm, per gated synthetic condition pooled over both families: H1a same-colour acceptance >= .90 (n = 20); H1b rejection >= .95 over hue+, hue-, chroma-, isogray0, isogray90 at DeltaE >= 4 (n = 30); H1c isogray0/isogray90 DeltaE >= 4 pooled over the three conditions >= .95 (n = 36)",
+  "H2": "primary arm, Blender warm3200 and mixed with the bl_rgb_white threshold: H2a 4/4 same-colour accepted; H2b all 7 gated different-colour objects rejected",
+  "H3": "AUC of vk_region >= AUC of chroma_masked and >= AUC of masked_region in each of syn_red/syn_teal x {wb_warm, spot_warm, noise_jpeg} and bl_red x {warm3200, mixed} (16 checks)",
+  "not_gated": "lightness+ (a chromaticity statistic removes intensity by construction) and DeltaE 2 (near the noise/quantization floor) are reported in every table but excluded from H1/H2"
+ },
+ "decision": {
+  "recommended": "chroma_vk (object reference, rank, region distance) is named the research recommendation for same-colour checks only if every integrity gate and every H1, H2 and H3 check passes; otherwise it stays an opt-in research method and every failed check is listed",
+  "defaults": "no default changes in any outcome; no change to chroma, rgb_ncc or gray_ncc"
+ },
+ "predictions": [
+  "P1 exposure_bright: vk_region abstains (status 3) on nearly every object because the panel is clipped; vk_none_region does not abstain and degrades",
+  "P2 card_white abstains under exposure_bright and wb_warm (white patch red channel clipped: .9 x 1.18 > 1); card_gray does not",
+  "P3 the global card corrects uniform white-balance shifts but not spot_warm (light differs between the card and the objects)",
+  "P4 vk_drop_region is biased low in red under wb_warm (the panel red sits near 254, so dropping clipped samples truncates the distribution) and accepts fewer same-colour objects than vk_region",
+  "P5 noise_jpeg: per-pixel mean statistics (chroma, chroma_masked, vk_pixel) reject most same-colour objects because their noise floor exceeds thresholds calibrated at sigma 1.5; region statistics are not affected that way",
+  "P6 lightness+ is weakly detected by every chromaticity arm"
+ ],
+ "pre_registration_disclosure": [
+  "Before this protocol the author knew the test-bed v1 sanity and the GT-aligned probe results documented in TESTBED_V1_zh-TW.md (object-internal white: AUC 1.000 for synthetic white-balance shifts and Blender warm/mixed, .986 local warm, .898 overexposure; neutral-only thresholds too tight), the generator code and lighting gains (used for P1, P2, P4 and for the .45 clip limit: a median is unaffected while fewer than half the samples are clipped), and the Blender scene metadata (object list and labels, read to plan cell counts). The previous build/testbed-v1/eval outputs were not read.",
+  "No stage-46 method was run on the evaluation scenes before this protocol. The region-mean statistic was added before any evaluation run, from the documented 0-5% same-colour acceptance of the existing chroma under JPEG and the noise floor of a per-pixel mean.",
+  "Implementation smoke (plumbing only, seen, not evidence): the test-bed generator rerun with layout/noise/background seeds 46000001-46000004 (same label artwork) into build/stage46-smoke-testbed; scenes syn_red_neutral and syn_red_exposure_bright; development runner, base runner, summarize. Seen: integrity clean, localization 32/0/0 on both, vk_object status 3 on 30/32 and status 2 on 2/32 under exposure_bright, all values finite. Distances and decisions were not inspected. The first smoke attempt crashed in the test-bed manifest hash lookup (keys were absolute in one manifest and relative in another); keying by subdirectory/file fixed it. Nothing else changed after the smoke.",
+  "Mutation testing before this protocol: 16 compiled mutants of color_illuminant.cpp and 20 harness mutants, all killed. Mutant T9 (p95 replaced by the maximum) survived the first run; test_thresholds_use_calibration_only was tightened before the implementation commit. The even-count median and nearest-pixel native controls were written for planned mutants C7/C9 before mutants ran.",
+  "Split, thresholds, targets, arms, masks, card rects and every chroma_vk parameter were fixed before any evaluation run."
+ ],
+ "evidence": {
+  "raw": "build/stage46-illuminant (masks, run manifest, jobs, stderr, results) archived as raw-results.tar.gz with SHA-256 manifests",
+  "validation": "independent recount that does not import the harness, a replay of every job on the frozen runner (scores and search matches equal), summary regeneration (byte-identical), compiled and tool mutants, and the full test gates at the exact head"
+ },
+ "limits": [
+  "Renderer-domain data only (OpenCV synthetic and Blender Cycles); one label design, two colour families, one Blender family",
+  "The reference must be a printed neutral region of the template and visible in every object; a clipped reference cannot be recovered and abstains",
+  "A diagonal (von Kries) model on sRGB-decoded values without a camera characterization; no colored inter-reflection or non-neutral reference handling",
+  "Blender thresholds rest on 4 calibration objects",
+  "No timing claims: Metal search and one CPU thread verification, sibling sessions may use the machine"
+ ]
+}

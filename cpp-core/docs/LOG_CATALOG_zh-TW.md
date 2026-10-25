@@ -50,6 +50,7 @@
 | 43 | 細搜尋前的粗候選去重（改變語意）：全部GT家族、敏感度與消融負控制、兩路徑計時 | [stage43-candidate-dedup](stage43-candidate-dedup/)、[報告](CANDIDATE_DEDUP_zh-TW.md) |
 | 44 | 去重疊在平行選峰上的實際速度（量測輪）：靜態與每換新影格8個arm、GT階段與第43輪封存逐位比對 | [stage44-dedup-peak2](stage44-dedup-peak2/)、[報告](DEDUP_PEAK2_zh-TW.md) |
 | 45 | 全CPU研究路徑對混合與完整GPU（量測輪）：每換新影格6個arm、CPU GT階段、中止的第一次正式保留 | [stage45-cpu-path](stage45-cpu-path/)、[報告](CPU_PATH_zh-TW.md) |
+| 46 | 物件內白參考的照明正規化同色驗證（`chroma_vk`）：測試樣本集 v1 的19場景×9方法、校準／保留照明切分、既有方法與改動前runner逐位比對 | [stage46-illuminant-chroma](stage46-illuminant-chroma/)、[報告](ILLUMINANT_CHROMA_zh-TW.md) |
 
 新一輪正式結果由[實驗總索引](EXPERIMENT_REVIEW_zh-TW.md)連接，重新產生機器索引即可列出新增資料。沒有階段對照的目錄保留 `stage: null`，不猜測輪次或把它算成通過項目。
 
@@ -126,3 +127,5 @@ for member in index["members"]:
 第44輪的protocol與凍結源碼在任何量測前提交，事前揭露包含先前的整合重播與128物件每影格smoke。GT階段（不作計時宣稱）、pilot與profile、正式靜態、正式每影格混合、正式每影格完整GPU分成五個raw封存，各在100 MB以內。4筆`job_equals_round43`失敗（控制場景路徑不同、內容相同）保留在decision-and-failures.json；工具突變、獨立稽核、摘要重播與最終測試log在validation-logs.tar.gz。
 
 第45輪的protocol與凍結源碼在任何量測前提交，之後的兩次修訂各有獨立紀錄檔：修訂1只改GT摘要程式（輸入雜湊改以路徑查），修訂2處理被應用程式更新中止的第一次正式計時。raw封存為GT、pilot、第二次正式（依方法分三包）與中止的第一次正式（依方法分三包），各在100 MB以內；第一次只作描述性對照（run1-comparison.json），不用於判定。
+
+第46輪的protocol與凍結源碼在任何評估前提交，事前揭露包含測試樣本集 v1 探針、產生器照明參數與只看管線的換種子smoke。241個worker（含既有四方法在改動前runner的對照）、遮罩與run manifest放在單一raw-results.tar.gz，每個成員的SHA-256在raw-files-sha256.json；不作時間宣稱。H1a、H2a、H3共8項未通過的檢查、6項預測的對照與事後診斷保留在decision-and-failures.json；獨立重算、摘要與job重播、事後診斷、編譯與工具突變及最終測試log在validation-logs.tar.gz。

@@ -1,0 +1,33 @@
+{
+ "stage": 46,
+ "note": "Every source, template and mask read by a stage-46 worker; test-bed images are checked against build/testbed-v1/final/manifest.json before the run.",
+ "testbed_generator_sha256": "cda904e193dd4cebc80a2501583e52ef805e041646587758d0192280d07e5cfe",
+ "inputs": {
+  "/Users/Ayueh/Fastest_Image_Pattern_Matching/.claude/worktrees/quizzical-noether-f68383/build/stage46-illuminant/masks/red_colour.png": "c176a14bee84fbb6f8e94129d6b20873777565fa2ccde170f34aac2b27660667",
+  "/Users/Ayueh/Fastest_Image_Pattern_Matching/.claude/worktrees/quizzical-noether-f68383/build/stage46-illuminant/masks/red_reference.png": "6cc34f88dc7056d19692294eff57b1202c6fb4bb43eb67d8ddc45ad79a950029",
+  "/Users/Ayueh/Fastest_Image_Pattern_Matching/.claude/worktrees/quizzical-noether-f68383/build/stage46-illuminant/masks/teal_colour.png": "c176a14bee84fbb6f8e94129d6b20873777565fa2ccde170f34aac2b27660667",
+  "/Users/Ayueh/Fastest_Image_Pattern_Matching/.claude/worktrees/quizzical-noether-f68383/build/stage46-illuminant/masks/teal_reference.png": "6cc34f88dc7056d19692294eff57b1202c6fb4bb43eb67d8ddc45ad79a950029",
+  "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/testbed-v1/blender/bl_rgb_mixed.png": "ffebda8514b50ecd45d4c1467969acb6bcf8576c81c4a7d1633d2b8833f460ff",
+  "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/testbed-v1/blender/bl_rgb_warm3200.png": "c47d7c93cc826c90fcaa7a225af62287e5e2f019bd61c244582dc050a384c76e",
+  "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/testbed-v1/blender/bl_rgb_white.png": "e064fe42e294403203b569d48e44457978cf5118432970174c498fcdc5886943",
+  "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/testbed-v1/final/bl_rgb_reference_template.png": "6fecc43adc963834aea3b8a16a08da4867e793aacfb58b749f0bf1839179f308",
+  "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/testbed-v1/synthetic/syn_red_exposure_bright.png": "f89bbe05850a9e02eaca40778c0f39414bb98cb31f1d0b9c5c326a7643a9ed17",
+  "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/testbed-v1/synthetic/syn_red_exposure_dark.png": "5592ab1feab6b4753f1f745f6c1c17d8e7d31388af356dc45f9a512569165851",
+  "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/testbed-v1/synthetic/syn_red_neutral.png": "b16070f2479ba40b3e122afd953a69eaf69f1031fa60c6964a76f9cd4d9961b7",
+  "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/testbed-v1/synthetic/syn_red_noise_jpeg.png": "e14a4dafc4ff24d926b1d6fa43bade7c610278581fe86f4a028c7df4374b8c6a",
+  "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/testbed-v1/synthetic/syn_red_shading.png": "81df6d5368c45cd3e7e55577aa2c7c5f6498df259f1b7194cbe22dac822eb531",
+  "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/testbed-v1/synthetic/syn_red_spot_warm.png": "5d24d516f6707c84f9cfe3e349f584a32a29fd42f851875c4bb4b871ed893b29",
+  "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/testbed-v1/synthetic/syn_red_template.png": "9944c55abbd33b94f083b756f083219a5274ada85b4b116399594ba1c9ecb176",
+  "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/testbed-v1/synthetic/syn_red_wb_cool.png": "2b7a454810d13c14a6ad71752406fdd4cead6046e294bd3837af9e33a73bb0ba",
+  "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/testbed-v1/synthetic/syn_red_wb_warm.png": "c5fc8340c9acf621a9e6915593c4a70c1c8002dff38462c0967bec4afe1260ad",
+  "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/testbed-v1/synthetic/syn_teal_exposure_bright.png": "f5de616011abaa35fb1f12f1d22e04645d4bce0b5893dffd011da1a6dcc7c39a",
+  "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/testbed-v1/synthetic/syn_teal_exposure_dark.png": "9dd3ad2becb2a8c266795ce9b393b3c8cf08c7180d7768fb34357eacbc5c558b",
+  "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/testbed-v1/synthetic/syn_teal_neutral.png": "7649b46451d7fcdf308ccbcf893ea7abd1a32cb403184408fcf7748c2c6837ef",
+  "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/testbed-v1/synthetic/syn_teal_noise_jpeg.png": "84d25668dd98f09da128c8b1e40c49546d74ddd342cc5b11c51e9c923dd7ec0a",
+  "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/testbed-v1/synthetic/syn_teal_shading.png": "fe78abcd03bd6af03164bcd8f8771ecf2dec1d0d18e2af92ef5ed025ae88f380",
+  "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/testbed-v1/synthetic/syn_teal_spot_warm.png": "b9bad690713b6c0aa3f0767939bc0f999b5810b9ab2f862f2d446dfd327587c1",
+  "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/testbed-v1/synthetic/syn_teal_template.png": "d6f0b74c5c8819a9068c59351b7f0d89e515c4ad3e815293428f6ecbd86e4735",
+  "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/testbed-v1/synthetic/syn_teal_wb_cool.png": "3cba44a1634c9e640221c62c14ce93b37781db09ddbef0f1a8dec50249f2733b",
+  "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/testbed-v1/synthetic/syn_teal_wb_warm.png": "c66bc36f4091c570fc0e839952d9b96fd4c4a68182915e16c3207ab129fd720a"
+ }
+}
