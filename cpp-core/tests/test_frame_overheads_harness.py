@@ -349,6 +349,21 @@ class FrameOverheadsHarness(unittest.TestCase):
                 with self.subTest(host=host), self.assertRaises(ValueError):
                     bench.summarize(changed, root)
 
+    def test_competing_process_detection(self):
+        # ucomm names and full argument lines as two ps listings, joined by pid.
+        names = {10: (90., 'Python'), 11: (795.2, 'Blender'), 12: (14.1, 'WindowServer'), 13: (0., 'python3.12'),
+                 14: (150.6, 'spotlightknowledged.updater'), 15: (99.9, 'Codex (Service)'), 16: (100., 'Python'),
+                 17: (3., 'clang++'), 18: (0., 'fpm_native_pipeline_runner')}
+        args = {10: '/opt/homebrew/Python.app/Contents/MacOS/Python cpp-core/tools/benchmark_chroma_margin.py holdout',
+                11: '/Applications/Blender.app/Contents/MacOS/Blender --background --python testbed_blender_render.py',
+                12: 'WindowServer -daemon', 13: '/Users/me/.cache/uv/bin/python /Users/me/.cache/uv/bin/blender-mcp',
+                14: '/usr/libexec/spotlightknowledged.updater', 15: 'Codex (Service)', 16: 'Python driver.py',
+                17: 'clang++ -c x.cpp', 18: 'fpm_native_pipeline_runner job.json'}
+        found = bench.competing_processes(names, args, own={16})
+        self.assertEqual(sorted((row['command'], row['reason']) for row in found),
+                         [('Blender', 'tool'), ('benchmark_chroma_margin.py', 'script'), ('clang++', 'tool'),
+                          ('fpm_native_pipeline_runner', 'tool'), ('spotlightknowledged.updater', 'cpu')])
+
     def test_sequence_structure_violations_rejected(self):
         mutations = [lambda data: data.update(sequence_gap='none'), lambda data: data.update(sequence_mode='reuse'),
                      lambda data: data.update(sequence_gap_sleep_ms=10.), lambda data: data['runs'].pop(),

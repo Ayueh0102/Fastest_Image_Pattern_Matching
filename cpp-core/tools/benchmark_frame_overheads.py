@@ -24,11 +24,13 @@ import argparse
 from datetime import datetime, timezone
 import json
 import math
+import os
 from pathlib import Path
 import platform
 import re
 import statistics
 import subprocess
+import time
 
 import benchmark_new_frame_cost as stage41
 import benchmark_parallel_peaks as stage42
@@ -57,6 +59,10 @@ SLEEP_TOLERANCE_MS = 50.  # longer oversleep is a gap-contract failure
 NO_GAP_MAXIMUM_MS = 1.
 # 1-minute load average before a worker; above it the worker is a host_load_high failure.
 HOST_LOAD_LIMIT = 4.
+# Round-41 detection missed framework Python (ucomm "Python") and Blender renders.
+BUSY_TOOLS = re.compile(r'^(cmake|ctest|make|gmake|ninja|clang|clang\+\+|c\+\+|cc|ld|swift-frontend|xcodebuild|metal|metallib|blender|fpm_\w+)$', re.I)
+BUSY_SCRIPTS = re.compile(r'\b(?:benchmark|testbed|soak|profile|diagnose|challenge)_\w+\.py\b')
+BUSY_CPU_PERCENT = 100.
 CONTRASTS = dict(round41=('reuse_decode', 'static_none'), update=('reuse_none', 'static_none'),
                  decode_gap=('static_decode', 'static_none'), sleep_gap=('static_sleep', 'static_none'),
                  gap_on_update=('reuse_decode', 'reuse_none'))
@@ -218,6 +224,43 @@ def metrics_of(record, method):
                         ('fine_ncc_ms', 'fine_ncc_ms'), ('cpu_normalization_ms', 'normalization_ms')):
         values[name] = sum(finite(model[field], 'work.'+field) for model in work)
     return values
+
+
+def competing_processes(names, args, own):
+    """Build/benchmark tools, repository experiment scripts and any other process using a full core.
+
+    names maps pid to (pcpu, ucomm) and args maps pid to the argument line; own pids are skipped.
+    """
+    found = []
+    for pid, (pcpu, name) in sorted(names.items()):
+        if pid in own:
+            continue
+        script = BUSY_SCRIPTS.search(args.get(pid, '')) if name.lower().startswith('python') else None
+        reason = 'tool' if BUSY_TOOLS.match(name) else 'script' if script else 'cpu' if pcpu >= BUSY_CPU_PERCENT else None
+        if reason:
+            found.append(dict(command=script.group(0) if reason == 'script' else name, pcpu=pcpu, reason=reason))
+    return found
+
+
+def host_state(samples=1):
+    """Load average, GPU device utilization samples and competing processes (names only, no arguments)."""
+    utilization = []
+    for index in range(samples):
+        if index:
+            time.sleep(.5)
+        listing = subprocess.run(['ioreg', '-r', '-d', '1', '-w', '0', '-c', 'IOAccelerator'], capture_output=True, text=True).stdout
+        utilization += [int(value) for value in re.findall(r'"Device Utilization %"=(\d+)', listing)]
+    names, args = {}, {}
+    for line in subprocess.run(['ps', '-Ao', 'pid=,pcpu=,ucomm='], capture_output=True, text=True).stdout.splitlines():
+        fields = line.split(None, 2)
+        if len(fields) == 3:
+            names[int(fields[0])] = (float(fields[1]), fields[2].strip())
+    for line in subprocess.run(['ps', '-Ao', 'pid=,args='], capture_output=True, text=True).stdout.splitlines():
+        fields = line.split(None, 1)
+        if len(fields) == 2:
+            args[int(fields[0])] = fields[1]
+    return dict(utc=datetime.now(timezone.utc).isoformat(), load_average=list(os.getloadavg()),
+                gpu_device_utilization_percent=utilization, competing_processes=competing_processes(names, args, {os.getpid()}))
 
 
 def accuracy_summary(records, truth):
@@ -481,7 +524,7 @@ def main():
     arms = {name: phase_arms(args.phase, name) for name in names}
     binary = (args.build/'experiments/fpm_native_pipeline_runner').resolve()
     before = previous.fingerprints(binary, cases)
-    host = stage41.host_state(samples=5)
+    host = host_state(samples=5)
     if host['competing_processes'] or host['load_average'][0] > HOST_LOAD_LIMIT:
         raise RuntimeError('Host not quiet: '+json.dumps(dict(load=host['load_average'], competing=host['competing_processes'])))
     profile = args.phase == 'profile'
@@ -499,7 +542,7 @@ def main():
                     label = f"{case['name']}-{arm}-b{block}"
                     jp, rp = root/'jobs'/(label+'.json'), root/'results'/(label+'.json')
                     save(jp, job(case, item, WARMUP_CALLS[case['name']], measured, profile))
-                    state = stage41.host_state()
+                    state = host_state()
                     print('Running '+label, flush=True)
                     try:
                         child = subprocess.run([str(binary), str(jp)], capture_output=True, text=True, timeout=args.timeout)
@@ -516,7 +559,7 @@ def main():
                         job_sha256=sha(jp), result=str(rp.relative_to(root)), result_sha256=sha(rp), host=state))
                     save(args.output, manifest)
         after = previous.fingerprints(binary, cases)
-        manifest['host']['after'] = stage41.host_state(samples=5)
+        manifest['host']['after'] = host_state(samples=5)
         manifest.update(complete=True, finished_utc=datetime.now(timezone.utc).isoformat(), after_sha256=after, unchanged=before == after)
         save(args.output, manifest)
         manifest['summary'] = summarize(manifest, root)
