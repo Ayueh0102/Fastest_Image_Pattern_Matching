@@ -2,7 +2,9 @@
 // Runs the real fpm_native_pipeline_runner. --job-keys: unknown keys fail
 // before image decoding and the message lists the accepted keys, while every
 // accepted key passes. --fine-windows: the JSON reports mode-4 SIMD32 and
-// fallback windows per level and per call.
+// fallback windows per level and per call. --sequence-gaps: source sequences
+// decode, skip or sleep between calls and can repeat one frame without
+// updating the source (CPU search, so no Metal device is needed).
 #include "metal_device.hpp"
 #include <QCoreApplication>
 #include <QFile>
@@ -51,18 +53,23 @@ void jobKeys(const QString& runner,const QTemporaryDir& dir) {
     require(message.find("Cannot decode image")==std::string::npos,"Unknown keys were checked after image decoding");
     // Every accepted key, with a value of its type: the job passes the key gate
     // and stops at decoding the missing image.
-    const QJsonObject accepted{{"angle",0},{"backend",1},{"coarse_peak_mode",1},{"cpu_threads",8},
+    const QJsonObject accepted{{"angle",0},{"backend",1},{"candidate_dedup_angle_steps",3.},{"candidate_dedup_radius",.5},
+        {"candidate_dedup_top_k",0},{"coarse_peak_mode",1},{"cpu_threads",8},
         {"fine_angle_reuse",false},{"fine_fused",false},{"fine_ncc_mode",0},{"fine_profiling",false},{"full_gpu",false},
         {"full_gpu_fine_mode",0},{"full_gpu_peak_batch",0},{"full_gpu_peak_mode",0},{"full_gpu_profiling",false},{"gray_load_mode","direct_gray8"},
         {"invert_source",false},{"limit",4},{"min_area",256},{"ncc_mode",0},{"overlap",.2},{"overlap_enabled",false},
         {"pose_input_mode",0},{"pose_resident_mode",0},{"pose_storage_mode",0},{"proposal_method","pyramid"},
         {"proposal_score",.5},{"refine",false},{"refinement_backend",-1},{"repeats",1},{"run_resource_diagnostics",false},
-        {"scale_support_refine",false},{"scales",QJsonArray{1.}},{"score",.8},{"sequence_mode","reuse"},{"soak_seconds",0},
+        {"scale_support_refine",false},{"scales",QJsonArray{1.}},{"score",.8},{"sequence_gap","sleep"},
+        {"sequence_gap_sleep_ms",5.},{"sequence_mode","reuse"},{"soak_seconds",0},
         {"source",missing},{"source_frames",QJsonArray{missing}},{"sparse_angle_step",6.},{"sparse_candidate_limit",256},
         {"sparse_cpu_gradient_mode",0},{"sparse_features",128},{"sparse_metal_submission_mode",0},{"sparse_min_gradient",8.},
         {"sparse_response_mode",0},{"sparse_search_backend",0},{"sparse_spread",2},{"sparse_stride",4},{"sparse_threshold",.75},
         {"stop_layer",1},{"stream_path",dir.filePath("stream.jsonl")},{"subpixel",false},{"template",missing},{"warmup_seconds",0}};
-    require(accepted.size()==52,"Fixture must list all 52 accepted keys");
+    // The fixture must name exactly the keys the runner itself lists, so a new
+    // key cannot be added without this test passing a value of its type.
+    const auto listed=QString::fromStdString(message.substr(message.find("accepted keys: ")+15)).trimmed().split(", ");
+    require(listed==accepted.keys(),"Fixture keys differ from the runner's accepted-key list");
     result=run(runner,dir,"accepted",accepted);
     require(result.code==1 && result.err.trimmed()=="Cannot decode image",
         "Accepted keys did not reach image decoding: "+result.err.toStdString());
@@ -116,18 +123,100 @@ void fineWindows(const QString& runner,const QTemporaryDir& dir) {
     require(!gpu["fine_work_available"].toBool() && gpu["fine_simd32_windows"].isNull() && gpu["fine_fallback_windows"].isNull(),
         "Unprofiled call reported window counts");
 }
+void sequenceGaps(const QString& runner,const QTemporaryDir& dir) {
+    // One exact copy of a random template on a flat background; CPU coarse
+    // search and refinement find it at score 1 without a Metal device.
+    std::mt19937 random(480019);
+    QImage templ(48,36,QImage::Format_Grayscale8),source(192,144,QImage::Format_Grayscale8);
+    for(int y=0;y<templ.height();++y) for(int x=0;x<templ.width();++x) templ.scanLine(y)[x]=uchar(random());
+    source.fill(23);
+    for(int y=0;y<templ.height();++y) std::copy_n(templ.constScanLine(y),templ.width(),source.scanLine(y+40)+64);
+    require(templ.save(dir.filePath("gap-template.png")) && source.save(dir.filePath("gap-source.png")),"Cannot write runner images");
+    const QString frame=dir.filePath("gap-source.png");
+    const QJsonObject base{{"source_frames",QJsonArray{frame}},{"template",dir.filePath("gap-template.png")},
+        {"backend",0},{"refinement_backend",0},{"refine",true},{"angle",0},{"scales",QJsonArray{1.}},{"limit",2},
+        {"score",.7},{"stop_layer",0},{"repeats",4},{"warmup_seconds",0}};
+    QJsonArray reference;
+    auto sequence=[&](const QString& name,QJsonObject changes) {
+        auto job=base;for(auto it=changes.begin();it!=changes.end();++it) job[it.key()]=it.value();
+        const auto result=run(runner,dir,name,job);
+        require(result.code==0,name.toStdString()+": runner failed: "+result.err.toStdString());
+        const auto out=QJsonDocument::fromJson(result.out).object();
+        const auto runs=out["runs"].toArray();
+        require(out["exact_sequence_repeat"].toBool() && runs.size()==4,name.toStdString()+": incomplete or inexact sequence");
+        for(const auto& value:runs) {
+            const auto row=value.toObject();
+            require(row["matches"].toArray().size()==1,name.toStdString()+": lost the object");
+            if(reference.isEmpty()) reference=row["matches"].toArray();
+            require(row["matches"].toArray()==reference,name.toStdString()+": output differs between gap modes");
+        }
+        return std::make_pair(out,runs);
+    };
+    struct Expect { const char* name; const char* mode; const char* gap; double sleep; };
+    for(const Expect& e:{Expect{"reuse-decode","reuse","",0},Expect{"reuse-none","reuse","none",0},Expect{"reuse-sleep","reuse","sleep",25},
+                         Expect{"static-decode","static","decode",0},Expect{"static-none","static","none",0},Expect{"static-sleep","static","sleep",25}}) {
+        QJsonObject changes{{"sequence_mode",e.mode}};
+        if(*e.gap) changes["sequence_gap"]=e.gap;
+        if(e.sleep>0) changes["sequence_gap_sleep_ms"]=e.sleep;
+        const auto [out,runs]=sequence(e.name,changes);
+        const std::string label=e.name;const bool reuse=std::string(e.mode)=="reuse";
+        const std::string gap=*e.gap ? e.gap:"decode";
+        require(out["sequence_mode"].toString().toStdString()==e.mode && out["sequence_gap"].toString().toStdString()==gap,
+            label+": output does not name its mode and gap");
+        require(e.sleep>0 ? out["sequence_gap_sleep_ms"].toDouble()==e.sleep:out["sequence_gap_sleep_ms"].isNull(),
+            label+": output does not report the sleep length");
+        for(int call=0;call<4;++call) {
+            const auto row=runs[call].toObject();
+            const double decode=row["source_decode_ms"].toDouble(-1),wait=row["gap_ms"].toDouble(-1);
+            require(row["sequence_gap"].toString().toStdString()==gap,label+": row does not name its gap");
+            if(call==0) require(decode==0 && wait==0,label+": the first call has a gap");
+            else if(gap=="decode") require(decode>0 && wait>=decode,label+": no decode before a later call");
+            else if(gap=="sleep") require(decode==0 && wait>=e.sleep,label+": slept less than requested or decoded");
+            else require(decode==0 && wait>=0 && wait<1000,label+": a no-gap call decoded or waited");
+            // Reuse updates the source every later call and rebuilds the pose
+            // context; static keeps both from call 0.
+            require(row["source_generation"].toInt(-1)==(reuse ? call:0),label+": wrong source generation");
+            require(row["pose_invalidated"].toBool()==(reuse && call>0),label+": wrong pose invalidation");
+            require((row["source_copy_bytes"].toDouble()>0)==(reuse && call>0),label+": wrong source copy");
+            require(reuse || call==0 || row["source_update_ms"].toDouble(-1)==0,label+": static call updated the source");
+            require((row["pose_create_ms"].toDouble()>0)==(reuse || call==0),label+": wrong pose context reuse");
+        }
+    }
+    auto reject=[&](const QString& name,QJsonObject changes,const std::string& expected) {
+        auto job=base;for(auto it=changes.begin();it!=changes.end();++it) job[it.key()]=it.value();
+        const auto result=run(runner,dir,name,job);
+        require(result.code==1 && result.out.isEmpty() && result.err.trimmed().toStdString()==expected,
+            name.toStdString()+": expected '"+expected+"', got '"+result.err.trimmed().toStdString()+"'");
+    };
+    const std::string gaps="sequence_gap must be decode, none or sleep";
+    const std::string sleeps="sequence_gap_sleep_ms is required with, and only with, sequence_gap sleep";
+    const std::string bounds="sequence_gap_sleep_ms must be a number in (0, 10000]";
+    reject("bad-mode",{{"sequence_mode","sideways"}},"sequence_mode must be reuse, fresh or static");
+    reject("bad-gap",{{"sequence_gap","pause"}},gaps);
+    reject("numeric-gap",{{"sequence_gap",1}},gaps);
+    reject("sleep-without-ms",{{"sequence_gap","sleep"}},sleeps);
+    reject("ms-without-sleep",{{"sequence_gap","none"},{"sequence_gap_sleep_ms",5.}},sleeps);
+    reject("ms-with-default",{{"sequence_gap_sleep_ms",5.}},sleeps);
+    reject("zero-sleep",{{"sequence_gap","sleep"},{"sequence_gap_sleep_ms",0}},bounds);
+    reject("long-sleep",{{"sequence_gap","sleep"},{"sequence_gap_sleep_ms",20000}},bounds);
+    reject("text-sleep",{{"sequence_gap","sleep"},{"sequence_gap_sleep_ms","5"}},bounds);
+    reject("static-two-frames",{{"sequence_mode","static"},{"source_frames",QJsonArray{frame,frame}}},
+        "Static sequences repeat exactly one source frame");
+}
 }
 int main(int argc,char** argv) {
     QCoreApplication app(argc,argv);
     try {
         const std::string mode=argc==3 ? argv[1]:"";
-        require(mode=="--job-keys" || mode=="--fine-windows","Usage: native_runner_contract_test --job-keys|--fine-windows runner");
+        require(mode=="--job-keys" || mode=="--fine-windows" || mode=="--sequence-gaps",
+            "Usage: native_runner_contract_test --job-keys|--fine-windows|--sequence-gaps runner");
         if(mode=="--fine-windows" && !fpm_test::metalDeviceAvailable()) { std::cout<<"SKIP: no Metal device\n";return 77; }
         QTemporaryDir dir;require(dir.isValid(),"Cannot create temporary directory");
         const QString runner=QString::fromLocal8Bit(argv[2]);
-        if(mode=="--job-keys") jobKeys(runner,dir); else fineWindows(runner,dir);
-        std::cout<<"Native runner "<<(mode=="--job-keys" ? "rejects unknown job keys before decoding and accepts all 51 keys":
-            "reports mode-4 SIMD32/fallback windows per level and per call")<<'\n';
+        if(mode=="--job-keys") jobKeys(runner,dir); else if(mode=="--fine-windows") fineWindows(runner,dir); else sequenceGaps(runner,dir);
+        std::cout<<"Native runner "<<(mode=="--job-keys" ? "rejects unknown job keys before decoding and accepts every listed key":
+            mode=="--fine-windows" ? "reports mode-4 SIMD32/fallback windows per level and per call":
+            "decodes, skips or sleeps between sequence calls and repeats a static frame without updating it")<<'\n';
         return 0;
     } catch(const std::exception& error) { std::cerr<<error.what()<<'\n';return 1; }
 }
