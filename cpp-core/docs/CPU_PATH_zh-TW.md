@@ -92,7 +92,7 @@
 - 量測工具`tools/benchmark_cpu_path.py`有18項負控制測試（`tests/test_cpu_path_harness.py`）：CPU呼叫用了pose GPU位元組、work列出現Metal指令、精修跑在Metal、多一個誤判、混合輸出與第43輪不同（門檻）而CPU不同（只報告）、單一block輸出改變、最快者需每個block都贏、暖機不足1秒、RSS、證據被改、少一個worker、job契約；GT端：少一個物件、GT階段用到Metal、輸入以內容比對而非路徑、兩個目錄有同名檔、worker失敗。10個工具突變全部被抓到。
 - 不匯入harness的獨立稽核（自寫的最大二分配對嚴格GT、自讀第43輪封存、自行檢查CPU沒有Metal工作）從本輪封存重算全部中位數、比較、block方向、最快者與GT計數：29,922項檢查零不符；把摘要中一個中位數改0.01ms的負控制會被抓到。
 - 用封存重新產生三份摘要，與提交的摘要逐位相同。
-- 測試與建置結果見[validation.json](stage45-cpu-path/validation.json)。
+- 量測後在5bd0c1a（乾淨工作樹，前後都檢查）全新Release研究建置：ctest 82／82、Python harness 653／653（含本輪18項）、color `--metal` 5／5、其他Python 49／49、ASan／UBSan（scalar＋experiments）77／77，沒有skip。詳見[validation.json](stage45-cpu-path/validation.json)。
 
 ## 這代表什麼
 

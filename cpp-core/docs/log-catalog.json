@@ -26,10 +26,10 @@
     "metadata": "Filesystem sidecar metadata",
     "other": "No recognized role; inspect manually"
   },
-  "artifact_count": 615,
-  "artifact_bytes": 2384275419,
+  "artifact_count": 618,
+  "artifact_bytes": 2384309051,
   "artifact_role_counts": {
-    "archive": 107,
+    "archive": 108,
     "calibration": 4,
     "failure_review": 20,
     "false_gate": 52,
@@ -38,15 +38,15 @@
     "other": 53,
     "pilot": 12,
     "protocol": 44,
-    "provenance": 59,
+    "provenance": 60,
     "raw": 73,
     "report": 71,
     "source": 17,
     "summary": 151,
-    "validation": 82,
+    "validation": 84,
     "visual": 68
   },
-  "archive_member_count": 44324,
+  "archive_member_count": 44349,
   "archive_member_role_counts": {
     "archive": 26,
     "binary": 47,
@@ -56,14 +56,14 @@
     "input": 605,
     "metadata": 6526,
     "other": 3030,
-    "pilot": 4156,
+    "pilot": 4157,
     "protocol": 109,
     "provenance": 115,
-    "raw": 11164,
+    "raw": 11178,
     "report": 82,
-    "source": 11169,
+    "source": 11172,
     "summary": 995,
-    "validation": 949,
+    "validation": 974,
     "visual": 884
   },
   "artifacts": [
@@ -151,8 +151,8 @@
       "path": "CPU_PATH_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 10234,
-      "sha256": "bae32a9f5db5b0eab645f7f858b5831dc090e23e3104312ecbf46176710b8031",
+      "bytes": 10473,
+      "sha256": "661d93d45add4dbd159f84d64c643e1a78c46b18d6e6c434cd3a1d1249b4938b",
       "roles": [
         "report"
       ]
@@ -222,8 +222,8 @@
       "path": "EXPERIMENT_REVIEW_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 82524,
-      "sha256": "8a1ab21129a01ed96f9db1e795e0e93b936d06894568ddfe8bf60d9f6765823d",
+      "bytes": 82607,
+      "sha256": "cf5c5fee41ae5f7b12a25ea4589adf031b5fbbaaa438b92ea9c9eb6586229b24",
       "roles": [
         "report"
       ]
@@ -7911,6 +7911,16 @@
       ]
     },
     {
+      "path": "stage45-cpu-path/archive.json",
+      "group": "stage45-cpu-path",
+      "stage": "45",
+      "bytes": 4221,
+      "sha256": "bb99fff27331608b72210b39193e90ff451b8359fe7149680402819bcc2e3df3",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
       "path": "stage45-cpu-path/decision-and-failures.json",
       "group": "stage45-cpu-path",
       "stage": "45",
@@ -8161,6 +8171,34 @@
       }
     },
     {
+      "path": "stage45-cpu-path/validation-logs.tar.gz",
+      "group": "stage45-cpu-path",
+      "stage": "45",
+      "bytes": 21958,
+      "sha256": "ec0a7c9a663b7848d7b5cab0b53d7d7b0ee56491f7ba25c919303274d468573f",
+      "roles": [
+        "archive",
+        "validation"
+      ],
+      "archive_file_count": 25,
+      "archive_role_counts": {
+        "pilot": 1,
+        "raw": 14,
+        "source": 3,
+        "validation": 25
+      }
+    },
+    {
+      "path": "stage45-cpu-path/validation.json",
+      "group": "stage45-cpu-path",
+      "stage": "45",
+      "bytes": 7131,
+      "sha256": "ac8b5613635ff554b618d1159d79ee45ea827dd5997fb9719766d91a51065c2b",
+      "roles": [
+        "validation"
+      ]
+    },
+    {
       "path": "validation-after-refinement.json",
       "group": "root",
       "stage": null,
@@ -8181,5 +8219,5 @@
       ]
     }
   ],
-  "archive_member_index_sha256": "1913be7daf38f1758ac2b001081a6407581cd14c26b6198466c802830612ba39"
+  "archive_member_index_sha256": "219509a0f4f5d9b04a4613df9b243528a9555de44fd16349dbbb4e114fd81fab"
 }

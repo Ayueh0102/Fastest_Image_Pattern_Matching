@@ -1,0 +1,112 @@
+{
+ "stage": 45,
+ "report": "../CPU_PATH_zh-TW.md",
+ "files": {
+  "amendment-1.json": {
+   "bytes": 5569,
+   "sha256": "5f946e251b3beb912f1de9c3e8126e8b5355dd82ee8c86a5ab062b4ca38d7341",
+   "role": "GT summarizer input lookup fix (before the GT summary, pilot and formal)"
+  },
+  "amendment-2.json": {
+   "bytes": 1190,
+   "sha256": "3107a5649d2cfa345d9bf1164c9dfc66fc1eb06502ac772d629e7c970920e3f7",
+   "role": "interrupted formal run 1 kept and unused; complete run 2 decides"
+  },
+  "decision-and-failures.json": {
+   "bytes": 14960,
+   "sha256": "520abb42f55ec694b03e7c8c2933c15863742565033e697191ad75d8f623d955",
+   "role": "decision and every failed gate"
+  },
+  "formal-summary.json": {
+   "bytes": 263706,
+   "sha256": "5b17e7b96b2830cc2f61b9f869f3d62a8ccbfa4d81441ab16266e528e461cbbb",
+   "role": "formal run 2 summary"
+  },
+  "gt-summary.json": {
+   "bytes": 298375,
+   "sha256": "d6e27e0597fa0880175d3606d55766dc304c8bcfaa9307c1f4fa1ac58b6df325",
+   "role": "GT phase summary (CPU path)"
+  },
+  "input-sha256.json": {
+   "bytes": 16432,
+   "sha256": "2074a61153a367bfd1e562924013cd55d2770df5c857c5f5d6fdac5b2f101b2a",
+   "role": "input image hashes"
+  },
+  "pilot-summary.json": {
+   "bytes": 115076,
+   "sha256": "03dee741706e81da728ecb10d258f57e18571e53e1296cc3ec9e515b8990a014",
+   "role": "pilot summary (screening only)"
+  },
+  "protocol.json": {
+   "bytes": 8181,
+   "sha256": "d9a6ecee564fd8e3ad21807819b2aabe62baf04187512cdeec54fa80d4f521fc",
+   "role": "pre-registered protocol"
+  },
+  "raw-results-formal-cpu-full.tar.gz": {
+   "bytes": 53226903,
+   "sha256": "cb8bd39187078da837eae1cc70d485251f71d56fef4ede8193d43ea402454455",
+   "role": "formal run 2 manifest and cpu_full workers"
+  },
+  "raw-results-formal-full-gpu-parallel.tar.gz": {
+   "bytes": 39284884,
+   "sha256": "15086ccd3c49af0a8772d34c7dd0e67ddc70905c4c808be16e105d61137c6601",
+   "role": "formal run 2 full_gpu_parallel workers"
+  },
+  "raw-results-formal-hybrid-best.tar.gz": {
+   "bytes": 54391793,
+   "sha256": "d305ba045eabf9b3c75171d474599174bce0b7a880b1c97e37a2a9b919150aad",
+   "role": "formal run 2 hybrid_best workers"
+  },
+  "raw-results-formal-run1-interrupted-cpu-full.tar.gz": {
+   "bytes": 53144650,
+   "sha256": "faa7e51df62c04e77dd573167ab8a484f0d2a13c41018827a44722d5fe255667",
+   "role": "interrupted run 1 manifest, orphaned job and cpu_full workers"
+  },
+  "raw-results-formal-run1-interrupted-full-gpu-parallel.tar.gz": {
+   "bytes": 39282181,
+   "sha256": "cbc7cb02942f914fac89f3585cae2a1ea5b01ed4e02363e496b0b55fa6c04ade",
+   "role": "interrupted run 1 full_gpu_parallel workers"
+  },
+  "raw-results-formal-run1-interrupted-hybrid-best.tar.gz": {
+   "bytes": 54240635,
+   "sha256": "74d0bef8289dcb86d700e7ce5a25b48d8c1022f4c63bffe82e42390fa6598c8f",
+   "role": "interrupted run 1 hybrid_best workers"
+  },
+  "raw-results-gt.tar.gz": {
+   "bytes": 13940376,
+   "sha256": "41470aab1ef7511a2c90c5843ee4a5c96b7943db584fb3d8ccb799755d8659b0",
+   "role": "GT phase manifest, jobs, stdout, results and control scenes"
+  },
+  "raw-results-pilot.tar.gz": {
+   "bytes": 21496716,
+   "sha256": "c488df47e9fd135155a4e71d020476395b2a61b682251bf52c19273f6f31375d",
+   "role": "pilot manifest, jobs, stdout and results"
+  },
+  "run1-comparison.json": {
+   "bytes": 15233,
+   "sha256": "229097b94c2b622c8cc8f91c20ab3e8a0941646083a4e18239f5c866ce42ee88",
+   "role": "interrupted run 1 against run 2, descriptive only"
+  },
+  "source-sha256.json": {
+   "bytes": 34901,
+   "sha256": "c056a572a66e573e00553c0307789c05c7a02155ad9a2b90849a01ca399596bf",
+   "role": "per-file hashes of the snapshot"
+  },
+  "source-snapshot.tar.gz": {
+   "bytes": 912396,
+   "sha256": "19c5ea87bae68f24ec3c63f180367e06af1a1b83ddc7fa13e10de797fb60da44",
+   "role": "frozen sources of 8a20ed9"
+  },
+  "validation-logs.tar.gz": {
+   "bytes": 21958,
+   "sha256": "ec0a7c9a663b7848d7b5cab0b53d7d7b0ee56491f7ba25c919303274d468573f",
+   "role": "gate logs, mutant logs, audit, replay, packaging and phase logs"
+  },
+  "validation.json": {
+   "bytes": 7131,
+   "sha256": "ac8b5613635ff554b618d1159d79ee45ea827dd5997fb9719766d91a51065c2b",
+   "role": "builds, tests, tool mutants, audit and replay"
+  }
+ },
+ "limits": "Each file below 100 MB (GitHub limit)."
+}

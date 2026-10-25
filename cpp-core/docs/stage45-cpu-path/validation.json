@@ -1,0 +1,209 @@
+{
+ "stage": 45,
+ "tested_commit": "5bd0c1af67c578874009a3a0193662db2c9fe448",
+ "platform": "Apple M4 Pro (8P+4E), 48 GiB, macOS",
+ "gates": {
+  "build": {
+   "command": "bash -c cmake -S cpp-core -B build/research -DCMAKE_BUILD_TYPE=Release -DFPM_BUILD_GUI=ON -DFPM_BUILD_EXPERIMENTS=ON -DFPM_WITH_OPENCV=ON && cmake --build build/research -j",
+   "exit": 0,
+   "head_before": "5bd0c1af67c578874009a3a0193662db2c9fe448",
+   "head_after": "5bd0c1af67c578874009a3a0193662db2c9fe448",
+   "clean_before": true,
+   "clean_after": true,
+   "start": "2026-10-25T11:43:03Z",
+   "end": "2026-10-25T11:43:14Z",
+   "log": "validation-logs/build.log",
+   "log_sha256": "7dc7ec4320565546642ce29e2099e00177e63332796e58367b58a96597a727fa",
+   "results": []
+  },
+  "ctest": {
+   "command": "ctest --test-dir build/research --output-on-failure",
+   "exit": 0,
+   "head_before": "5bd0c1af67c578874009a3a0193662db2c9fe448",
+   "head_after": "5bd0c1af67c578874009a3a0193662db2c9fe448",
+   "clean_before": true,
+   "clean_after": true,
+   "start": "2026-10-25T11:43:14Z",
+   "end": "2026-10-25T11:44:05Z",
+   "log": "validation-logs/ctest.log",
+   "log_sha256": "ffdc9cf8c6ed8827504d250e6eab8a1cf57f4cd471392a0e70b8fa2fc8a778dd",
+   "results": [
+    "100% tests passed, 0 tests failed out of 82"
+   ]
+  },
+  "harness": {
+   "command": "/Users/Ayueh/Fastest_Image_Pattern_Matching/python-port/venv/bin/python -m unittest discover -s cpp-core/tests -p test_*.py",
+   "exit": 0,
+   "head_before": "5bd0c1af67c578874009a3a0193662db2c9fe448",
+   "head_after": "5bd0c1af67c578874009a3a0193662db2c9fe448",
+   "clean_before": true,
+   "clean_after": true,
+   "start": "2026-10-25T11:44:06Z",
+   "end": "2026-10-25T11:44:26Z",
+   "log": "validation-logs/harness.log",
+   "log_sha256": "27ba40804697781fe8b31c8807e680f460293256cd7a3db9c5519f27bf39831d",
+   "results": [
+    "Ran 653 tests in 19.609s"
+   ]
+  },
+  "color": {
+   "command": "/Users/Ayueh/Fastest_Image_Pattern_Matching/python-port/venv/bin/python cpp-core/tests/color_verify_runner_test.py --runner build/research/experiments/fpm_color_verify_runner --metal",
+   "exit": 0,
+   "head_before": "5bd0c1af67c578874009a3a0193662db2c9fe448",
+   "head_after": "5bd0c1af67c578874009a3a0193662db2c9fe448",
+   "clean_before": true,
+   "clean_after": true,
+   "start": "2026-10-25T11:44:26Z",
+   "end": "2026-10-25T11:44:26Z",
+   "log": "validation-logs/color.log",
+   "log_sha256": "eb4df929e1c1442ab74eb41e53f5843776422724676d5be6d4b12718f18f0fda",
+   "results": [
+    "Ran 5 tests in 0.629s"
+   ]
+  },
+  "other-py": {
+   "command": "bash -c for f in blender_challenge_test.py challenge_coverage_test.py real_rgb_benchmark_test.py; do \"$0\" -m unittest discover -s cpp-core/tests -p \"$f\" || exit 1; done /Users/Ayueh/Fastest_Image_Pattern_Matching/python-port/venv/bin/python",
+   "exit": 0,
+   "head_before": "5bd0c1af67c578874009a3a0193662db2c9fe448",
+   "head_after": "5bd0c1af67c578874009a3a0193662db2c9fe448",
+   "clean_before": true,
+   "clean_after": true,
+   "start": "2026-10-25T11:44:27Z",
+   "end": "2026-10-25T11:44:28Z",
+   "log": "validation-logs/other-py.log",
+   "log_sha256": "8efd18dea7913e7bbbc2d7f9f115f2f07da3367e7c1a9912af2fa080c1b38422",
+   "results": [
+    "Ran 6 tests in 0.018s",
+    "Ran 17 tests in 0.234s",
+    "Ran 26 tests in 0.712s"
+   ]
+  },
+  "asan": {
+   "command": "bash -c cmake -S cpp-core -B build/sanitized -DCMAKE_BUILD_TYPE=Debug -DFPM_SANITIZERS=ON -DFPM_DISABLE_SIMD=ON -DFPM_BUILD_EXPERIMENTS=ON && cmake --build build/sanitized -j && ctest --test-dir build/sanitized --output-on-failure",
+   "exit": 0,
+   "head_before": "5bd0c1af67c578874009a3a0193662db2c9fe448",
+   "head_after": "5bd0c1af67c578874009a3a0193662db2c9fe448",
+   "clean_before": true,
+   "clean_after": true,
+   "start": "2026-10-25T11:44:28Z",
+   "end": "2026-10-25T11:54:24Z",
+   "log": "validation-logs/asan.log",
+   "log_sha256": "d0cfc7c3527698f1f8881cb2e3c01233589dcd6e9d42f665159a3b3d20255cac",
+   "results": [
+    "100% tests passed, 0 tests failed out of 77"
+   ]
+  }
+ },
+ "gate_notes": {
+  "build": "fresh Release research build (GUI+experiments+OpenCV) in the worktree",
+  "ctest": "82/82, none skipped",
+  "harness": "python unittest discover cpp-core/tests test_*.py with FPM_FINE_*_BUILD=build/research: 653, includes the 18 stage-45 harness tests",
+  "color": "color_verify_runner_test.py --metal: 5",
+  "other_py": "blender_challenge, challenge_coverage, real_rgb_benchmark: 6+17+26",
+  "asan": "Debug, FPM_SANITIZERS, FPM_DISABLE_SIMD, experiments on: 77/77"
+ },
+ "timing_build": {
+  "path": "build/stage45-release",
+  "note": "frozen Release runner of every stage-45 phase; SHA-256 in each manifest"
+ },
+ "tool_mutants": {
+  "total": 10,
+  "killed": 10,
+  "mutants": [
+   {
+    "name": "M1 CPU route ignores pose GPU bytes",
+    "killed": true,
+    "by": [
+     "test_cpu_call_that_used_metal_fails_route"
+    ]
+   },
+   {
+    "name": "M2 CPU route ignores work-row Metal commands",
+    "killed": true,
+    "by": [
+     "test_cpu_work_row_with_metal_commands_fails_route"
+    ]
+   },
+   {
+    "name": "M3 CPU route ignores the selected refinement backend",
+    "killed": true,
+    "by": [
+     "test_cpu_refinement_on_metal_fails_route"
+    ]
+   },
+   {
+    "name": "M4 hybrid archive identity ignored",
+    "killed": true,
+    "by": [
+     "test_hybrid_archive_difference_is_a_gate_cpu_difference_is_not"
+    ]
+   },
+   {
+    "name": "M5 cross-block identity ignored",
+    "killed": true,
+    "by": [
+     "test_cpu_output_change_in_one_block_breaks_cross_block_identity"
+    ]
+   },
+   {
+    "name": "M6 fastest named by median only",
+    "killed": true,
+    "by": [
+     "test_fastest_needs_every_block"
+    ]
+   },
+   {
+    "name": "M7 GT regression not recorded",
+    "killed": true,
+    "by": [
+     "test_lost_object_is_a_regression"
+    ]
+   },
+   {
+    "name": "M8 inputs compared by path again",
+    "killed": true,
+    "by": [
+     "test_inputs_compared_by_content_not_path",
+     "test_same_file_name_in_two_directories"
+    ]
+   },
+   {
+    "name": "M9 RSS budget skipped",
+    "killed": true,
+    "by": [
+     "test_rss_budget"
+    ]
+   },
+   {
+    "name": "M10 warm-up gate skipped",
+    "killed": true,
+    "by": [
+     "test_short_warmup_is_a_gate"
+    ]
+   }
+  ],
+  "log": "validation-logs/stage45-mutants.log",
+  "note": "all killed on the first run (stage45-mutants-dev.log); rerun after amendment 1 (dev2) and at the tested commit"
+ },
+ "independent_audit": {
+  "script": "validation-logs/stage45_audit.py",
+  "imports_harness": false,
+  "checks": 29922,
+  "problems": [],
+  "negative_control": {
+   "change": "formal-summary controlled6 cpu_full_frames_k3 median +0.01 ms",
+   "detected": [
+    "median controlled6 cpu_full_frames_k3"
+   ]
+  }
+ },
+ "summary_replay": {
+  "log": "validation-logs/stage45-replay.log",
+  "result": "gt, pilot and formal (run 2) summaries regenerated from the archives are byte-identical"
+ },
+ "archive_coverage": "stage45_package.py checks that the eight raw archives cover every raw file of gt, pilot and both formal runs exactly once, each below 100 MB",
+ "amendments": [
+  "amendment-1.json",
+  "amendment-2.json"
+ ]
+}
