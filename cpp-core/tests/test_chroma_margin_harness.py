@@ -73,8 +73,11 @@ class CatchThreshold(unittest.TestCase):
         self.assertAlmostEqual(catch['syn_red']['tau'], .0081575, delta=1e-6)
         self.assertAlmostEqual(catch['syn_teal']['tau'], .0147011, delta=1e-6)
         self.assertEqual(catch['bl_red']['tau'], catch['syn_red']['tau'], 'Blender uses the same red artwork')
+        # In-gamut means unclipped linear sRGB in [0, 1]; teal's circle leaves the gamut on 124 of 360 steps.
+        self.assertEqual({group: value['circle_in_gamut'] for group, value in catch.items()}, dict(syn_red=360, syn_teal=236, bl_red=360))
+        self.assertEqual(catch['syn_teal']['circle_min']['degrees'], 316)
+        self.assertAlmostEqual(catch['syn_teal']['circle_min']['distance'], .0314943, delta=1e-6)
         for group, value in catch.items():
-            self.assertEqual(value['circle_in_gamut'], 360)
             self.assertEqual(value['tau'], .5 * min(value['circle_min']['distance'], value['variant_min']['distance']))
         # teal: an artwork variant (isogray0 at DeltaE 4) is closer than the constant-L* circle
         self.assertEqual((catch['syn_teal']['variant_min']['direction'], catch['syn_teal']['variant_min']['target']), ('isogray0', 4.))

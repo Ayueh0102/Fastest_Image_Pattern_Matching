@@ -27,7 +27,7 @@
     "other": "No recognized role; inspect manually"
   },
   "artifact_count": 643,
-  "artifact_bytes": 2398451795,
+  "artifact_bytes": 2398453621,
   "artifact_role_counts": {
     "archive": 115,
     "calibration": 4,
@@ -101,8 +101,8 @@
       "path": "CHROMA_MARGIN_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 19643,
-      "sha256": "f32976d42e352bebd830f1c096dd89d77f78ab8aba87b4235ad179f97153a06d",
+      "bytes": 21352,
+      "sha256": "48898f8a0b94d9aa86dcf51e4ce2a7ffcd764889aa6b2aa312dbc05a748697f8",
       "roles": [
         "report"
       ]
@@ -382,8 +382,8 @@
       "path": "ILLUMINANT_CHROMA_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 18919,
-      "sha256": "603034dd25f4ef33ff209baedbdafe4a5fedb647f84d608600186d53c5451b1e",
+      "bytes": 19036,
+      "sha256": "1d04989dc5875c1a6bb22e0d9ceee463630f6957810ee8de60263ba9b8644dbe",
       "roles": [
         "report"
       ]
@@ -8593,5 +8593,5 @@
       ]
     }
   ],
-  "archive_member_index_sha256": "54987e5f6c7c213d6ca434171963b205da244aa92aaad4b7aa4cfe6ad114715b"
+  "archive_member_index_sha256": "40e11ba644134d91a7634b14982f738f96237f2870be771e2e0cdd7fa6747305"
 }

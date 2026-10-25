@@ -104,6 +104,15 @@ def _linear(rgb):
     return tb.srgb_to_linear(np.asarray(rgb, np.float64) / 255.)
 
 
+def _lab_to_linear(lab):
+    """Unclipped linear sRGB of a CIELAB colour; testbed_generate.lab_to_rgb clips negative channels to 0."""
+    lab = np.asarray(lab, np.float64)
+    fy = (lab[..., 0] + 16) / 116
+    f = np.stack([fy + lab[..., 1] / 500, fy, fy - lab[..., 2] / 200], -1)
+    xyz = np.where(f > 6 / 29, f ** 3, 3 * (6 / 29) ** 2 * (f - 4 / 29)) * tb._WHITE
+    return xyz @ np.linalg.inv(tb._RGB_TO_XYZ).T
+
+
 def region_chroma(a, b):
     """The chroma_vk distance between two linear RGB vectors: chromaticity Euclidean distance / sqrt(2)."""
     a, b = np.asarray(a, np.float64), np.asarray(b, np.float64)
@@ -122,8 +131,10 @@ def catch_distance(base):
         angle = math.radians(degrees)
         make = lambda t: [lightness, a + t * math.cos(angle), b + t * math.sin(angle)]
         t = tb._bisect(lambda t: tb.ciede2000(base_lab, make(t)), 0., 60., CATCH_DELTA_E)
-        rgb = tb.lab_to_rgb(make(t))
-        if np.all(rgb >= 0) and np.all(rgb <= 255):
+        # The gamut test uses unclipped linear values: lab_to_rgb clips negatives, so rgb >= 0 always held.
+        linear = _lab_to_linear(make(t))
+        if np.all(linear >= 0) and np.all(linear <= 1):
+            rgb = tb.lab_to_rgb(make(t))
             circle.append(dict(degrees=degrees, distance=region_chroma(_linear(base), _linear(rgb))))
     variants = []
     for direction in GATED_DIRECTIONS:
