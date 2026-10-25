@@ -164,11 +164,25 @@ void nccPruning()
 void simdOverflow()
 {
 	std::vector<std::uint8_t> a(200003,255), b(a);
-	for (int length : {1,15,16,17,4096,4097,33025,200003}) {
+	for (int length : {1,15,16,17,31,32,33,47,48,4095,4096,4097,4111,4112,4127,4128,33025,65536,66052,200003}) {
 		const std::uint64_t expected = std::uint64_t(length)*255*255;
 		require(dotProduct(a.data(),b.data(),length,Backend::Scalar)==expected,"scalar overflow");
 		require(dotProduct(a.data(),b.data(),length,Backend::Auto)==expected,"SIMD overflow/tail");
 	}
+	// Every SIMD block/tail split and misalignment. Each operand ends exactly
+	// at its allocation, so sanitizer builds also catch a read past the end.
+	std::mt19937 rng(2024);
+	for (int length = 0; length <= 300; ++length)
+		for (int offset = 0; offset < 4; ++offset) {
+			std::vector<std::uint8_t> x(length + offset), y(length + offset);
+			for (auto& v : x) v = std::uint8_t(rng());
+			for (auto& v : y) v = std::uint8_t(rng());
+			if (length % 7 == 0) std::fill(x.begin(), x.end(), 255);
+			std::uint64_t expected = 0;
+			for (int i = 0; i < length; ++i) expected += unsigned(x[offset + i]) * y[offset + i];
+			require(dotProduct(x.data()+offset,y.data()+offset,length,Backend::Scalar)==expected,"scalar random dot");
+			require(dotProduct(x.data()+offset,y.data()+offset,length,Backend::Auto)==expected,"SIMD random dot");
+		}
 }
 void peakExtraction()
 {

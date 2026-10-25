@@ -8,6 +8,11 @@
 #if !defined(FPM_DISABLE_SIMD) && (defined(__ARM_NEON) || defined(__ARM_NEON__))
 #include <arm_neon.h>
 #define FPM_NEON 1
+// Compile-time selection: e.g. Apple clang's default arm64 CPU or GCC with
+// -march=armv8.2-a+dotprod. Other ARM builds keep the widening NEON path.
+#if defined(__ARM_FEATURE_DOTPROD) && defined(__aarch64__)
+#define FPM_DOTPROD 1
+#endif
 #elif !defined(FPM_DISABLE_SIMD) && (defined(__SSE2__) || defined(_M_X64))
 #include <emmintrin.h>
 #define FPM_SSE2 1
@@ -16,7 +21,9 @@
 namespace fpm {
 const char* compiledBackend()
 {
-#if FPM_NEON
+#if FPM_DOTPROD
+	return "NEON+DOTPROD";
+#elif FPM_NEON
 	return "NEON";
 #elif FPM_SSE2
 	return "SSE2";
@@ -35,7 +42,14 @@ std::uint64_t dotProduct(const std::uint8_t* a, const std::uint8_t* b, int size,
 		// lanes nor their horizontal sum can overflow, even for all-255 rows.
 		while (size - x >= 16) {
 			const int end = x + std::min(4096, (size - x) / 16 * 16);
-#if FPM_NEON
+#if FPM_DOTPROD
+			// UDOT adds four products (each <= 65025) to a u32 lane. A chunk
+			// has at most 4096 products, so even the sum of all four lanes is
+			// <= 266342400 < 2^32 and vaddvq_u32 is exact.
+			uint32x4_t sum = vdupq_n_u32(0);
+			for (; x < end; x += 16) sum = vdotq_u32(sum, vld1q_u8(a + x), vld1q_u8(b + x));
+			total += vaddvq_u32(sum);
+#elif FPM_NEON
 			uint32x4_t sum = vdupq_n_u32(0);
 			for (; x < end; x += 16) {
 				const auto va = vld1q_u8(a + x), vb = vld1q_u8(b + x);
@@ -62,6 +76,17 @@ std::uint64_t dotProduct(const std::uint8_t* a, const std::uint8_t* b, int size,
 			break;
 #endif
 		}
+#if FPM_DOTPROD
+		// A 1..15 byte tail of a row of at least 16 bytes: reload the last 16
+		// bytes, which stay in bounds, and zero the lanes already counted.
+		if (x >= 16 && x < size) {
+			static const std::uint8_t tail[32] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+				255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255};
+			const auto va = vandq_u8(vld1q_u8(a + size - 16), vld1q_u8(tail + (size - x)));
+			total += vaddvq_u32(vdotq_u32(vdupq_n_u32(0), va, vld1q_u8(b + size - 16)));
+			x = size;
+		}
+#endif
 	}
 	for (; x < size; ++x) total += unsigned(a[x]) * unsigned(b[x]);
 	return total;
