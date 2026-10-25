@@ -1,5 +1,5 @@
 {
-  "commit": "9fcc44b982d289004605f99f92e9fadd87243c6a",
+  "commit": "06467f230fcaf8476d871944aba5056b5b42bfeb",
   "files": {
     "CMakeLists.txt": "8c05b6f8a4bfa499a4ec42b1041153d709b0a8d5e68121c6bb7f2409b056a47e",
     "LICENSE": "492935260ac304c166f16dc7341e84194bfec0fb16b28565b932ede0c99bad22",
@@ -138,7 +138,7 @@
     "cpp-core/tests/test_fine_search_binding.py": "419e7d7bcf93269898d798d6dd16a6476ee65d12b80466adc52778c1bb80c0c6",
     "cpp-core/tests/test_fine_search_harness.py": "ac8e32c4bef7fddd3504e531bf4a44057837777c178034b44a548c5d4f99d1c2",
     "cpp-core/tests/test_fine_strip_harness.py": "324a31dc45c7b546ccbb4084866428f05cd71eaecb3639caffa326fe150adde9",
-    "cpp-core/tests/test_frame_overheads_harness.py": "6207371cc1a4b565ccce4ab554d5d1f1dd131c9f18f166274bf6926932dd9076",
+    "cpp-core/tests/test_frame_overheads_harness.py": "09f70244afe04213f15ed3ec6de08f809edb18bcbcf5bf10ed633407539f1848",
     "cpp-core/tests/test_full_gpu_disclosure_audit.py": "1ac221f8e276b0c622f7f10eeaacece549d90b81a73c8258a800805b8d9fa9b2",
     "cpp-core/tests/test_full_gpu_harness.py": "ff3c653aa9d7494b2fd3522a2f9695982092c7d39c2796d7f85f4295f5b0d48d",
     "cpp-core/tests/test_gpu_fine_tiles_harness.py": "8802273074b970059104e21bf5004d349726e40a72c3a062509ed2f8f570aca6",
@@ -192,7 +192,7 @@
     "cpp-core/tools/benchmark_fine_search.py": "274fe373632be5969da32460982970a2c7202f05e54003ec064c30c86b1dd7c5",
     "cpp-core/tools/benchmark_fine_strip.py": "267bab16b3adae7e26cfb1490b89dcb3e929277907732f538f594041570d702b",
     "cpp-core/tools/benchmark_fixed_scale.py": "b2c6da9cae3a9f8502647a0678bf20a311c01f999304b136af7f3eb1930b3e0a",
-    "cpp-core/tools/benchmark_frame_overheads.py": "17fe1980c78232e726c0fcbc9e424d5922c0ff622fca81252da0a1758cf41a70",
+    "cpp-core/tools/benchmark_frame_overheads.py": "b1d1df7dce97341498886643b1e32ddfd6bf4f60d8f1ef5fe3080af040b6b75d",
     "cpp-core/tools/benchmark_full_gpu.py": "46bf7ece42ac5e1777390ac489e17c79aea162ce94403f0c0c840a3a2f15b461",
     "cpp-core/tools/benchmark_gpu_fine_tiles.py": "8a6479b0354177a9ada24b4697161cfd12dd72b3d975e2a3e707ebdba9744550",
     "cpp-core/tools/benchmark_gpu_ncc_closure.py": "5f3199858b4c1c6629780f5f457a38dca21a44d6989df3022a3b78e9a0853994",
