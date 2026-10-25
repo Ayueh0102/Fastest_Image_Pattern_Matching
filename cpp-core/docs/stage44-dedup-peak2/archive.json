@@ -1,0 +1,87 @@
+{
+ "stage": 44,
+ "report": "../DEDUP_PEAK2_zh-TW.md",
+ "files": {
+  "decision-and-failures.json": {
+   "bytes": 7036,
+   "sha256": "87435841434f48eef2ad5cf5e2aebf45dd7f71ac30e735d5437e87e9db7367f9",
+   "role": "decision and every failed gate"
+  },
+  "formal-summary.json": {
+   "bytes": 234102,
+   "sha256": "9a70d8d1d1c3504fc661f95670d2b2976796c945f7582fadb320cda9d8aaba6d",
+   "role": "formal timing summary"
+  },
+  "gt-summary.json": {
+   "bytes": 193606,
+   "sha256": "f4d91c5f3e275b5892e04c8ef0fd9e825ba712fa3f67fea9f5e7f4d90ef0cfcd",
+   "role": "GT phase summary"
+  },
+  "input-sha256.json": {
+   "bytes": 16483,
+   "sha256": "637b470c5c9ca046211152ab9b588e3c57ea665d6b43e46ee597a680bd33b7a4",
+   "role": "input image hashes"
+  },
+  "pilot-summary.json": {
+   "bytes": 108066,
+   "sha256": "62bd6be40a64983d7a32753e7f710cd7943615207b7dd512f1a6032d2df1c577",
+   "role": "pilot summary (screening only)"
+  },
+  "profile-summary.json": {
+   "bytes": 31844,
+   "sha256": "f3d9eedc8b9e45a238dd75722b42e26d04e2f0e9285c0fa173928c055be9cd51",
+   "role": "GPU encoder profile summary (diagnostic)"
+  },
+  "protocol.json": {
+   "bytes": 8857,
+   "sha256": "59636579fcc871fbd176581b9c52bd605c73efe3eb41defcc716b7471b6f84a9",
+   "role": "pre-registered protocol"
+  },
+  "raw-results-formal-frames-gpu.tar.gz": {
+   "bytes": 39282110,
+   "sha256": "adeb049aa29c57d67742777743c7cc31ffe383dd946f0bdfcd6c38f3ab3a9e6c",
+   "role": "formal full-GPU per-new-frame workers"
+  },
+  "raw-results-formal-frames-hybrid.tar.gz": {
+   "bytes": 54387521,
+   "sha256": "564e3f2ab45fd5f4376312d7fa398a9fe15dd488895b7d276fff1d5c615d8008",
+   "role": "formal hybrid per-new-frame workers"
+  },
+  "raw-results-formal-static.tar.gz": {
+   "bytes": 48018385,
+   "sha256": "5ef635d7f293cc072e33fb26ca727487d9d06bd747baef00c95683923228e9d0",
+   "role": "formal manifest and the static workers"
+  },
+  "raw-results-gt.tar.gz": {
+   "bytes": 10543309,
+   "sha256": "cfd4411438d1c05d8d87313f98afcf5b558a7d219b5351ad49247969afb89df1",
+   "role": "GT phase manifest, jobs, stdout, results and regenerated control scenes"
+  },
+  "raw-results-pilot-profile.tar.gz": {
+   "bytes": 22473762,
+   "sha256": "f044007e9a4082d46a9089fd5886e14d53d04b484ad02e05b5d1a6b1cda4e3c5",
+   "role": "pilot and profile manifests, jobs, stdout and results"
+  },
+  "source-sha256.json": {
+   "bytes": 34678,
+   "sha256": "afd2fed05ead62b974c63547c4d395199138ac72f715d94071d96f536e64d3f0",
+   "role": "per-file hashes of the snapshot"
+  },
+  "source-snapshot.tar.gz": {
+   "bytes": 907248,
+   "sha256": "0d695ab5b98a6a2bfac82eefc73091cda71124dcc38ab683fae07c6c0350a0b0",
+   "role": "frozen sources of 5c569f1"
+  },
+  "validation-logs.tar.gz": {
+   "bytes": 20976,
+   "sha256": "56ed49d627c7de389fbce4899d46fea1bf4ae239d1a204c82c9813c7e4a2dccf",
+   "role": "gate logs, mutant log, audit script and results, replay, packaging and phase logs"
+  },
+  "validation.json": {
+   "bytes": 7108,
+   "sha256": "5e0b1417ec3543aca8aac2c4b00d7351f485d9c3640866102bf5b1d188e89ca7",
+   "role": "builds, tests, tool mutants, audit and replay"
+  }
+ },
+ "limits": "Each file below 100 MB (GitHub limit)."
+}

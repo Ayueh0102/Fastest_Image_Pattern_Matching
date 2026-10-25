@@ -1,0 +1,219 @@
+{
+ "stage": 44,
+ "protocol_sha256": "59636579fcc871fbd176581b9c52bd605c73efe3eb41defcc716b7471b6f84a9",
+ "q1": {
+  "question": "full_gpu_parallel static k3 at least 10% below off on many128_pose and many512_pose, 6/6 blocks",
+  "gt_neutral": true,
+  "gt_case_variants": 79,
+  "gt_regressions": 0,
+  "gt_outputs_equal_round43": true,
+  "formal_outputs_equal_round43": true,
+  "speed": {
+   "many128_pose": {
+    "baseline_median_ms": 580.6589165,
+    "candidate_median_ms": 374.572562,
+    "delta_percent": -35.49180915746775,
+    "candidate_faster_blocks": 6,
+    "blocks": 6,
+    "consistent_direction": true
+   },
+   "many512_pose": {
+    "baseline_median_ms": 1870.806979,
+    "candidate_median_ms": 1143.7125835000002,
+    "delta_percent": -38.8652813284165,
+    "candidate_faster_blocks": 6,
+    "blocks": 6,
+    "consistent_direction": true
+   }
+  },
+  "speed_target_met": true,
+  "suitable": true
+ },
+ "q2": {
+  "question": "fastest of the four per-new-frame arms, named only when faster than each other arm in all 6 blocks",
+  "fastest": {
+   "many128_pose": "full_gpu_parallel_frames_k3",
+   "many512_pose": "full_gpu_parallel_frames_k3",
+   "controlled6": "full_gpu_parallel_frames_k3",
+   "8k_t256_angle180_3scales": null
+  },
+  "ranking": {
+   "many128_pose": {
+    "order": [
+     "full_gpu_parallel_frames_k3",
+     "full_gpu_parallel_frames_off",
+     "hybrid_best_frames_k3",
+     "hybrid_best_frames_off"
+    ],
+    "median_ms": {
+     "full_gpu_parallel_frames_k3": 384.130583,
+     "full_gpu_parallel_frames_off": 590.9371874999999,
+     "hybrid_best_frames_k3": 630.125896,
+     "hybrid_best_frames_off": 879.4580834999999
+    },
+    "fastest": "full_gpu_parallel_frames_k3",
+    "versus": [
+     {
+      "other": "full_gpu_parallel_frames_off",
+      "delta_percent": -34.99637675112466,
+      "faster_blocks": 6,
+      "consistent": true
+     },
+     {
+      "other": "hybrid_best_frames_k3",
+      "delta_percent": -39.03907370916875,
+      "faster_blocks": 6,
+      "consistent": true
+     },
+     {
+      "other": "hybrid_best_frames_off",
+      "delta_percent": -56.32189979182788,
+      "faster_blocks": 6,
+      "consistent": true
+     }
+    ]
+   },
+   "many512_pose": {
+    "order": [
+     "full_gpu_parallel_frames_k3",
+     "hybrid_best_frames_k3",
+     "full_gpu_parallel_frames_off",
+     "hybrid_best_frames_off"
+    ],
+    "median_ms": {
+     "full_gpu_parallel_frames_k3": 1149.0491245,
+     "hybrid_best_frames_k3": 1579.177979,
+     "full_gpu_parallel_frames_off": 1869.8144585,
+     "hybrid_best_frames_off": 2581.197125
+    },
+    "fastest": "full_gpu_parallel_frames_k3",
+    "versus": [
+     {
+      "other": "hybrid_best_frames_k3",
+      "delta_percent": -27.237515987423734,
+      "faster_blocks": 6,
+      "consistent": true
+     },
+     {
+      "other": "full_gpu_parallel_frames_off",
+      "delta_percent": -38.547425426275254,
+      "faster_blocks": 6,
+      "consistent": true
+     },
+     {
+      "other": "hybrid_best_frames_off",
+      "delta_percent": -55.483867800294405,
+      "faster_blocks": 6,
+      "consistent": true
+     }
+    ]
+   },
+   "controlled6": {
+    "order": [
+     "full_gpu_parallel_frames_k3",
+     "hybrid_best_frames_k3",
+     "full_gpu_parallel_frames_off",
+     "hybrid_best_frames_off"
+    ],
+    "median_ms": {
+     "full_gpu_parallel_frames_k3": 41.909729,
+     "hybrid_best_frames_k3": 47.283854000000005,
+     "full_gpu_parallel_frames_off": 63.5166875,
+     "hybrid_best_frames_off": 63.852125
+    },
+    "fastest": "full_gpu_parallel_frames_k3",
+    "versus": [
+     {
+      "other": "hybrid_best_frames_k3",
+      "delta_percent": -11.365666174335121,
+      "faster_blocks": 6,
+      "consistent": true
+     },
+     {
+      "other": "full_gpu_parallel_frames_off",
+      "delta_percent": -34.01776659086638,
+      "faster_blocks": 6,
+      "consistent": true
+     },
+     {
+      "other": "hybrid_best_frames_off",
+      "delta_percent": -34.36439429384692,
+      "faster_blocks": 6,
+      "consistent": true
+     }
+    ]
+   },
+   "8k_t256_angle180_3scales": {
+    "order": [
+     "full_gpu_parallel_frames_k3",
+     "full_gpu_parallel_frames_off",
+     "hybrid_best_frames_off",
+     "hybrid_best_frames_k3"
+    ],
+    "median_ms": {
+     "full_gpu_parallel_frames_k3": 49.250333499999996,
+     "full_gpu_parallel_frames_off": 49.415020999999996,
+     "hybrid_best_frames_off": 249.9335005,
+     "hybrid_best_frames_k3": 250.3884585
+    },
+    "fastest": null,
+    "versus": [
+     {
+      "other": "full_gpu_parallel_frames_off",
+      "delta_percent": -0.3332741677879669,
+      "faster_blocks": 3,
+      "consistent": false
+     },
+     {
+      "other": "hybrid_best_frames_off",
+      "delta_percent": -80.29462500966332,
+      "faster_blocks": 6,
+      "consistent": true
+     },
+     {
+      "other": "hybrid_best_frames_k3",
+      "delta_percent": -80.33042984686932,
+      "faster_blocks": 6,
+      "consistent": true
+     }
+    ]
+   }
+  }
+ },
+ "defaults": "unchanged: GUI, core and research defaults keep candidate_dedup_top_k=0 and the hybrid/CPU paths",
+ "failures": {
+  "gt": [
+   {
+    "gate": "job_equals_round43",
+    "case": "sym_marker12",
+    "arm": "off",
+    "diagnosis": "Only source/template paths differ: the control scenes are regenerated into this round's gt/inputs; their SHA-256 equal round 43's input-sha256.json and every output equals the round-43 archive. The gate compares paths, not content; kept as a failure as pre-registered."
+   },
+   {
+    "gate": "job_equals_round43",
+    "case": "sym_marker12",
+    "arm": "k3",
+    "diagnosis": "Only source/template paths differ: the control scenes are regenerated into this round's gt/inputs; their SHA-256 equal round 43's input-sha256.json and every output equals the round-43 archive. The gate compares paths, not content; kept as a failure as pre-registered."
+   },
+   {
+    "gate": "job_equals_round43",
+    "case": "adjacent_grid16",
+    "arm": "off",
+    "diagnosis": "Only source/template paths differ: the control scenes are regenerated into this round's gt/inputs; their SHA-256 equal round 43's input-sha256.json and every output equals the round-43 archive. The gate compares paths, not content; kept as a failure as pre-registered."
+   },
+   {
+    "gate": "job_equals_round43",
+    "case": "adjacent_grid16",
+    "arm": "k3",
+    "diagnosis": "Only source/template paths differ: the control scenes are regenerated into this round's gt/inputs; their SHA-256 equal round 43's input-sha256.json and every output equals the round-43 archive. The gate compares paths, not content; kept as a failure as pre-registered."
+   }
+  ],
+  "pilot": [],
+  "formal": [],
+  "profile": []
+ },
+ "notes": [
+  "Pilot (screening only) showed 8K k3 slower than off (GPU 59.8 vs 66.6 ms, hybrid 252.1 vs 291.1 ms per frame, one block); formal gives no consistent direction on 8K (GPU frames -0.3%, 3/6 blocks; hybrid frames +0.2%, 3/6).",
+  "controlled6 per frame: full-GPU off against hybrid off is -0.5% with 3/6 blocks (no direction); round 42 reported hybrid 1.5% faster."
+ ]
+}
