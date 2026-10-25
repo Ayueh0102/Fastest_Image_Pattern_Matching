@@ -27,7 +27,8 @@ struct Settings {
 };
 struct Options {
     MatchConfig match;
-    int fullGpuPeakMode = 0; // Full resident path: 0 original stripes; 1 exact sorted-tile merge.
+    int fullGpuPeakMode = 0; // Full resident path: 0 original stripes; 1 exact sorted-tile merge; 2 exact parallel rounds over batched maps.
+    int fullGpuPeakBatch = 0; // Peak mode 2 only: maps selected per dispatch, 1..16 (1 keeps one score map); 0 uses 8.
     int fullGpuFineMode = 0; // 0 original; 1 row cache; 2 bounded uint32; 3 reused moments; 4 SIMD32 windows.
     bool fullGpuProfiling = false; // Encoder GPU timestamps; diagnostic overhead, no intermediate waits.
     int nccMode = 0;
@@ -70,6 +71,8 @@ struct FullGpuMetrics {
     std::vector<FullGpuFineWork> fineWork;
     uint64_t fineSimd32Windows = 0, fineFallbackWindows = 0; // Sums of fineWork; profiling runs only.
     uint64_t peakScratchBytes = 0;
+    // Maps selected per peak dispatch (1 unless peak mode 2) and the retained score storage they use.
+    uint64_t peakBatchMaps = 0, coarseScoreBytes = 0;
     // Counted where run() submits, waits and reads GPU output: submitted command
     // buffers, host completion waits, GPU-output reads followed by another
     // submission, and those later submissions (host decisions between GPU

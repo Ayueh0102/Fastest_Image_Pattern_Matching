@@ -320,7 +320,7 @@ public:
             // Compile every entry before timed calls; unsupported devices fail
             // explicitly without partially running a host replacement.
             for(const char* name:{"fg_input","fg_scale_template","pyramid_direct","fg_learn","fg_rotate","coarse_strip4_32","coarse_strip4_64",
-                "fg_normalize32","fg_normalize64","fg_coarse_peaks","fg_coarse_sort_tiles","fg_coarse_peaks_tiled","fg_fine_search","fg_model_nms","fg_global_nms","fg_source_moments",
+                "fg_normalize32","fg_normalize64","fg_coarse_peaks","fg_coarse_sort_tiles","fg_coarse_peaks_tiled","fg_coarse_peaks_parallel","fg_fine_search","fg_model_nms","fg_global_nms","fg_source_moments",
                 "fg_pose_config","fg_center_source","fg_center_template","fg_compact_prepare","pose_refine_fused","fg_prepare_rescue",
                 "fg_select_continuations","fg_accept_continuations","fg_score_states","fg_publish_states","fg_write_results"})pipeline(name);
         }
@@ -346,13 +346,33 @@ public:
         auto rawSource=buffer("input-source",size_t(sw)*sh,true),rawTemplate=buffer("input-template",size_t(tw)*th,true);
         auto source=buffer("source-pyramid",p.sourceBytes),templ=buffer("template-pyramids",p.templateBytes),stats=buffer("template-moments",(p.levels.size()+1)*sizeof(FGStats));
         auto levels=buffer("level-descriptors",p.levels.size()*sizeof(FGLevel),true),rangeBuffer=buffer("angle-ranges",ranges.size()*sizeof(FGRange),true);
-        auto canvas=buffer("rotated-canvas",p.canvasBytes),scoremap=buffer("coarse-scores",p.scoreBytes),statistics=buffer("coarse-statistics",p.statsBytes);
-        id<MTLBuffer> peakEntries=nil,peakHeads=nil;
+        // Peak mode 2 gives each map of a batch its own score slot; all other
+        // modes share one map and select it before the next is scored.
+        size_t peakSlots=1,maxMaps=0;for(const auto& m:p.models)maxMaps=std::max(maxMaps,m.maps.size());
+        if(o.fullGpuPeakMode==2)peakSlots=std::max<size_t>(1,std::min<size_t>(o.fullGpuPeakBatch ? o.fullGpuPeakBatch:FG_PEAK_PARALLEL_DEFAULT_MAPS,maxMaps));
+        if(peakSlots>FG_PEAK_PARALLEL_MAPS)throw std::invalid_argument("Full GPU peak batch exceeds 16 maps");
+        const size_t scoreSlotBytes=aligned(p.scoreBytes);
+        auto canvas=buffer("rotated-canvas",p.canvasBytes);
+        auto scoremap=o.fullGpuPeakMode==2 ? buffer("coarse-score-ring",peakSlots*scoreSlotBytes):buffer("coarse-scores",p.scoreBytes);
+        auto statistics=buffer("coarse-statistics",p.statsBytes);
+        id<MTLBuffer> peakEntries=nil,peakHeads=nil,peakStates=nil,peakKeys=nil,peakRemoval=nil,peakLists=nil;
         if(o.fullGpuPeakMode==1 && p.scoreBytes) {
             const size_t tiles=(p.scoreBytes/sizeof(float)+FG_PEAK_TILE_SIZE-1)/FG_PEAK_TILE_SIZE;
             peakEntries=buffer("peak-sorted-entries",tiles*FG_PEAK_TILE_SIZE*sizeof(FGPeakEntry));
             peakHeads=buffer("peak-tile-heads",tiles*sizeof(uint32_t));
         }
+        const FGPeakBatch peakBatch{uint32_t(scoreSlotBytes/sizeof(float)),uint32_t(o.match.maxTargets+5),FG_PEAK_LIST_CAPACITY,0};
+        NSUInteger peakLanes=0;
+        if(o.fullGpuPeakMode==2 && p.scoreBytes) {
+            peakStates=buffer("peak-state-ring",peakSlots*2*size_t(peakBatch.scoreStride));
+            peakKeys=buffer("peak-key-ring",peakSlots*size_t(peakBatch.keyStride)*sizeof(uint64_t));
+            peakRemoval=buffer("peak-removal-ring",peakSlots*size_t(peakBatch.scoreStride)/8);
+            peakLists=buffer("peak-list-ring",peakSlots*3*size_t(peakBatch.listCapacity)*sizeof(uint32_t));
+            // Largest power of two the compiled kernel allows; results do not depend on it.
+            const NSUInteger allowed=std::min<NSUInteger>(FG_PEAK_PARALLEL_LANES,pipeline("fg_coarse_peaks_parallel").maxTotalThreadsPerThreadgroup);
+            for(peakLanes=256;peakLanes*2<=allowed;peakLanes*=2) {}
+        }
+        metrics_.peakBatchMaps=o.fullGpuPeakMode==2 ? peakSlots:1;metrics_.coarseScoreBytes=scoremap.length;
         auto candidates=buffer("fine-candidates",size_t(p.candidates)*sizeof(FGCandidate));
         auto modelOutput=buffer("model-proposals",size_t(p.capacity)*sizeof(FGCandidate)),counts=buffer("model-counts",p.models.size()*4);
         auto compact=buffer("compact-proposals",size_t(p.capacity)*sizeof(FGCandidate)),snapshot=buffer("proposal-snapshot",size_t(p.capacity)*sizeof(FGCandidate));
@@ -402,7 +422,8 @@ public:
                 [e dispatchThreads:MTLSizeMake(b.tw,b.th,1) threadsPerThreadgroup:MTLSizeMake(16,16,1)];[e endEncoding];++metrics_.dispatches;learn(templ,b.templateOffset,b.tw*b.th,b.statisticsIndex);
             }
             const auto top=p.levels[model.levelBase+model.top];
-            for(const auto& map:model.maps) {
+            for(size_t k=0;k<model.maps.size();++k) {
+                const auto& map=model.maps[k];const size_t slot=k%peakSlots;
                 profileStage_="coarse_rotation";
                 e=encoder(command,"fg_rotate");[e setBuffer:source offset:top.sourceOffset atIndex:0];[e setBuffer:canvas offset:0 atIndex:1];[e setBuffer:stats offset:0 atIndex:2];[e setBytes:&map length:sizeof(map) atIndex:3];linear(e,size_t(map.w)*map.h);
                 profileStage_="coarse_ncc";
@@ -412,10 +433,19 @@ public:
                     StatsConfig cfg{map.w,map.tw,map.th,width,first,n,0};
                     e=encoder(command,u32?"coarse_strip4_32":"coarse_strip4_64");[e setBuffer:canvas offset:0 atIndex:0];[e setBuffer:templ offset:top.templateOffset atIndex:1];[e setBuffer:statistics offset:0 atIndex:2];[e setBytes:&cfg length:sizeof(cfg) atIndex:3];
                     uint32_t rows=(first+n-1)/width-first/width+1;[e dispatchThreads:MTLSizeMake((width+3)/4,rows,1) threadsPerThreadgroup:MTLSizeMake(16,16,1)];[e endEncoding];++metrics_.dispatches;
-                    std::array<uint32_t,4> norm{first,n,top.statisticsIndex,0};e=encoder(command,u32?"fg_normalize32":"fg_normalize64");[e setBuffer:statistics offset:0 atIndex:0];[e setBuffer:scoremap offset:0 atIndex:1];[e setBuffer:stats offset:0 atIndex:2];[e setBytes:norm.data() length:sizeof(norm) atIndex:3];linear(e,n);
+                    std::array<uint32_t,4> norm{first,n,top.statisticsIndex,0};e=encoder(command,u32?"fg_normalize32":"fg_normalize64");[e setBuffer:statistics offset:0 atIndex:0];[e setBuffer:scoremap offset:slot*scoreSlotBytes atIndex:1];[e setBuffer:stats offset:0 atIndex:2];[e setBytes:norm.data() length:sizeof(norm) atIndex:3];linear(e,n);
                 }
                 profileStage_="coarse_peaks";
-                if(o.fullGpuPeakMode==1) {
+                if(o.fullGpuPeakMode==2) {
+                    // Select once every slot is scored, or at the model's last map.
+                    if(slot+1==peakSlots || k+1==model.maps.size()) {
+                        const size_t count=slot+1;
+                        e=encoder(command,"fg_coarse_peaks_parallel");[e setBuffer:scoremap offset:0 atIndex:0];[e setBuffer:candidates offset:0 atIndex:1];
+                        [e setBytes:&model.maps[k+1-count] length:count*sizeof(Coarse) atIndex:2];[e setBuffer:peakStates offset:0 atIndex:3];
+                        [e setBuffer:peakKeys offset:0 atIndex:4];[e setBytes:&peakBatch length:sizeof(peakBatch) atIndex:5];
+                        [e setBuffer:peakRemoval offset:0 atIndex:6];[e setBuffer:peakLists offset:0 atIndex:7];groups(e,count,peakLanes);
+                    }
+                } else if(o.fullGpuPeakMode==1) {
                     e=encoder(command,"fg_coarse_sort_tiles");[e setBuffer:scoremap offset:0 atIndex:0];[e setBuffer:peakEntries offset:0 atIndex:1];[e setBytes:&map length:sizeof(map) atIndex:2];[e setBuffer:peakHeads offset:0 atIndex:3];groups(e,(map.windows+FG_PEAK_TILE_SIZE-1)/FG_PEAK_TILE_SIZE);
                     e=encoder(command,"fg_coarse_peaks_tiled");[e setBuffer:scoremap offset:0 atIndex:0];[e setBuffer:candidates offset:0 atIndex:1];[e setBytes:&map length:sizeof(map) atIndex:2];[e setBuffer:peakEntries offset:0 atIndex:3];[e setBuffer:peakHeads offset:0 atIndex:4];groups(e,1);
                 } else {
@@ -522,7 +552,7 @@ public:
         collect(proposalResultOffset,resultStatus.proposals,r.proposals,r.proposalScales);collect(matchResultOffset,resultStatus.matches,r.matches,r.scales);
         metrics_.readbackBytes=sizeof(FGStatus)+size_t(resultStatus.proposals+resultStatus.matches)*sizeof(FGResult);metrics_.readbackMs=elapsed(read);
         for(const auto& entry:buffers_)metrics_.gpuBytes+=entry.second.length;
-        for(const char* name:{"peak-sorted-entries","peak-tile-heads"}) {
+        for(const char* name:{"peak-sorted-entries","peak-tile-heads","peak-state-ring","peak-key-ring","peak-removal-ring","peak-list-ring"}) {
             const auto entry=buffers_.find(name);if(entry!=buffers_.end())metrics_.peakScratchBytes+=entry->second.length;
         }
         for(const char* name:{"fine-work-counters","fine-work-readback"}) {

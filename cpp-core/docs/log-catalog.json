@@ -26,44 +26,44 @@
     "metadata": "Filesystem sidecar metadata",
     "other": "No recognized role; inspect manually"
   },
-  "artifact_count": 514,
-  "artifact_bytes": 1641299224,
+  "artifact_count": 529,
+  "artifact_bytes": 1745250311,
   "artifact_role_counts": {
-    "archive": 82,
+    "archive": 86,
     "calibration": 4,
-    "failure_review": 12,
+    "failure_review": 13,
     "false_gate": 52,
-    "formal": 11,
+    "formal": 12,
     "input": 21,
     "other": 43,
-    "pilot": 2,
-    "protocol": 38,
-    "provenance": 47,
-    "raw": 52,
-    "report": 65,
-    "source": 9,
-    "summary": 117,
-    "validation": 74,
+    "pilot": 3,
+    "protocol": 39,
+    "provenance": 50,
+    "raw": 54,
+    "report": 66,
+    "source": 10,
+    "summary": 123,
+    "validation": 76,
     "visual": 68
   },
-  "archive_member_count": 27915,
+  "archive_member_count": 29192,
   "archive_member_role_counts": {
     "archive": 26,
     "binary": 47,
     "calibration": 1,
     "failure_review": 19,
-    "formal": 15145,
-    "input": 583,
+    "formal": 15957,
+    "input": 584,
     "metadata": 1292,
-    "other": 1396,
-    "pilot": 3765,
+    "other": 1459,
+    "pilot": 3863,
     "protocol": 109,
-    "provenance": 98,
-    "raw": 6098,
-    "report": 77,
-    "source": 9995,
-    "summary": 918,
-    "validation": 662,
+    "provenance": 103,
+    "raw": 6599,
+    "report": 79,
+    "source": 10283,
+    "summary": 937,
+    "validation": 759,
     "visual": 872
   },
   "artifacts": [
@@ -141,8 +141,8 @@
       "path": "CURRENT_BEST_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 8760,
-      "sha256": "af26838ae8cb0fee42bbf13a58b762b98f58a7eca00e9cc981178f91b770eef7",
+      "bytes": 9614,
+      "sha256": "9934a10259e13aaf5e8ccf3b061697730b9980f6bcd60ab0a6a7218e0e85492b",
       "roles": [
         "report"
       ]
@@ -182,8 +182,8 @@
       "path": "EXPERIMENT_REVIEW_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 72324,
-      "sha256": "6682d2378fdee83c7f200f570349672288f16d91d671c53495c6e708c0cd8ce7",
+      "bytes": 74533,
+      "sha256": "0855c221b8b03579f39e949a15be29744917bc664478289ef2394a2ef385d7ca",
       "roles": [
         "report"
       ]
@@ -279,6 +279,16 @@
       ]
     },
     {
+      "path": "GPU_PARALLEL_PEAKS_zh-TW.md",
+      "group": "root",
+      "stage": null,
+      "bytes": 20651,
+      "sha256": "987ccd39ae886e2b0d633c65dfb9cf8af03c1a27e16de96e379e22d6768fe48b",
+      "roles": [
+        "report"
+      ]
+    },
+    {
       "path": "GPU_REFINEMENT_zh-TW.md",
       "group": "root",
       "stage": null,
@@ -292,8 +302,8 @@
       "path": "GPU_TILED_PEAKS_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 17510,
-      "sha256": "ee4317082b8b7da48ceed874fc81e22f69605cf19a7c7b9878e2a626791d9260",
+      "bytes": 17829,
+      "sha256": "a045cbcceeeced9407269d6eb529a2ad825c14392e1d05925b23506dcb27fcba",
       "roles": [
         "report"
       ]
@@ -322,8 +332,8 @@
       "path": "LOG_CATALOG_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 11596,
-      "sha256": "e71ce11ceb415e7d68b25246419a8cbd44f37a87d37be13887197bfab9e5e6a2",
+      "bytes": 12353,
+      "sha256": "defa6c22c9e4514782db0f1b4c75709eba86c90854e43c8c2e82f87d39808917",
       "roles": [
         "report"
       ]
@@ -493,8 +503,8 @@
       "path": "PROJECT_STATUS_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 7396,
-      "sha256": "6434d428f98dcb26963dec182dd65f66c1444e43342fc24453f1b3e41849606b",
+      "bytes": 7900,
+      "sha256": "b8266186ee02fb50d57d18384a00b80146b2922ef287ecf454fd318552d25874",
       "roles": [
         "report"
       ]
@@ -6904,6 +6914,188 @@
       ]
     },
     {
+      "path": "stage42-parallel-peaks/archive.json",
+      "group": "stage42-parallel-peaks",
+      "stage": "42",
+      "bytes": 2836,
+      "sha256": "a2b51e508aeac8d82232584c062203749ca544746f11083666f91d47506c0b3b",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage42-parallel-peaks/decision-and-failures.json",
+      "group": "stage42-parallel-peaks",
+      "stage": "42",
+      "bytes": 17952,
+      "sha256": "cda6e78ffe1655392b4158847217c4d2a1ed35ced91058aae57ab19d15db261d",
+      "roles": [
+        "failure_review"
+      ]
+    },
+    {
+      "path": "stage42-parallel-peaks/formal-summary.json",
+      "group": "stage42-parallel-peaks",
+      "stage": "42",
+      "bytes": 177662,
+      "sha256": "05faf38272e6fa832676dbeaef8fca74fc8a22608204f3d1058540e7185f03d0",
+      "roles": [
+        "formal",
+        "summary"
+      ]
+    },
+    {
+      "path": "stage42-parallel-peaks/holdout-summary.json",
+      "group": "stage42-parallel-peaks",
+      "stage": "42",
+      "bytes": 76249,
+      "sha256": "68f81a78b4589fff55b014e4fc9aff9765019851c8be5d75c275ea5145c9f6aa",
+      "roles": [
+        "summary"
+      ]
+    },
+    {
+      "path": "stage42-parallel-peaks/input-sha256.json",
+      "group": "stage42-parallel-peaks",
+      "stage": "42",
+      "bytes": 2010,
+      "sha256": "917aba4ac5ffab796c767e52ad295a808ade14dd85632a9a9222df0c609e3ac1",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage42-parallel-peaks/pilot-summary.json",
+      "group": "stage42-parallel-peaks",
+      "stage": "42",
+      "bytes": 77015,
+      "sha256": "80207436a5833ea0074031ec344a926517857f1473024f28254816e4684e144b",
+      "roles": [
+        "pilot",
+        "summary"
+      ]
+    },
+    {
+      "path": "stage42-parallel-peaks/profile-summary.json",
+      "group": "stage42-parallel-peaks",
+      "stage": "42",
+      "bytes": 81202,
+      "sha256": "30a81fe4493c81d3c60f70dad5ca1f3ef35fc38c56159a19d2d6d05363a41f43",
+      "roles": [
+        "summary"
+      ]
+    },
+    {
+      "path": "stage42-parallel-peaks/protocol.json",
+      "group": "stage42-parallel-peaks",
+      "stage": "42",
+      "bytes": 12782,
+      "sha256": "3a55e9263ebb3121130c06c1d19d5c7f28b995e38727bb549819dc99c0521fc4",
+      "roles": [
+        "protocol"
+      ]
+    },
+    {
+      "path": "stage42-parallel-peaks/raw-results-formal.tar.gz",
+      "group": "stage42-parallel-peaks",
+      "stage": "42",
+      "bytes": 76674050,
+      "sha256": "de269de0e05efeb0e79fd22af5c39d49383bdb3c90b31bfcb7755401da502f77",
+      "roles": [
+        "archive",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 577,
+      "archive_role_counts": {
+        "formal": 577,
+        "provenance": 1,
+        "raw": 288
+      }
+    },
+    {
+      "path": "stage42-parallel-peaks/raw-results-other.tar.gz",
+      "group": "stage42-parallel-peaks",
+      "stage": "42",
+      "bytes": 22259700,
+      "sha256": "7675efb120cc7cced6917ed885c2fed12f8f07aa018122d362cbc7fe08e9ada3",
+      "roles": [
+        "archive",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 315,
+      "archive_role_counts": {
+        "formal": 234,
+        "other": 54,
+        "pilot": 97,
+        "provenance": 3,
+        "raw": 156
+      }
+    },
+    {
+      "path": "stage42-parallel-peaks/source-sha256.json",
+      "group": "stage42-parallel-peaks",
+      "stage": "42",
+      "bytes": 33331,
+      "sha256": "f0f53ea8a958ee8e493ad9dc33275f1d057c4f3c17e8d3af741fd8d5710b5598",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage42-parallel-peaks/source-snapshot.tar.gz",
+      "group": "stage42-parallel-peaks",
+      "stage": "42",
+      "bytes": 861848,
+      "sha256": "88730f3614035fcbabe784f5d65a7e2b11af36ea6d48219ab8d3effbdd3ec9a1",
+      "roles": [
+        "archive",
+        "source"
+      ],
+      "archive_file_count": 290,
+      "archive_role_counts": {
+        "input": 1,
+        "other": 9,
+        "provenance": 1,
+        "report": 1,
+        "source": 278,
+        "summary": 18,
+        "validation": 2
+      }
+    },
+    {
+      "path": "stage42-parallel-peaks/validation-logs.tar.gz",
+      "group": "stage42-parallel-peaks",
+      "stage": "42",
+      "bytes": 3640161,
+      "sha256": "38a37f3cfaa2d47805e0f2f855c8b77e94af24387551ac817698d48661d3c272",
+      "roles": [
+        "archive",
+        "validation"
+      ],
+      "archive_file_count": 95,
+      "archive_role_counts": {
+        "formal": 1,
+        "pilot": 1,
+        "raw": 57,
+        "report": 1,
+        "source": 10,
+        "summary": 1,
+        "validation": 95
+      }
+    },
+    {
+      "path": "stage42-parallel-peaks/validation.json",
+      "group": "stage42-parallel-peaks",
+      "stage": "42",
+      "bytes": 8995,
+      "sha256": "363b405effb194484133aedf05444e9c16e785c3fe103bc3d38566ac2d5ae86d",
+      "roles": [
+        "validation"
+      ]
+    },
+    {
       "path": "validation-after-refinement.json",
       "group": "root",
       "stage": null,
@@ -6924,5 +7116,5 @@
       ]
     }
   ],
-  "archive_member_index_sha256": "f6339242a9ab18d23382c82ec8f886a35efadcaf61f272d62122d590fdce144f"
+  "archive_member_index_sha256": "04c67325e70e63103de898295cab56f2457b8cf0f3ee95275f663a9f097b372c"
 }

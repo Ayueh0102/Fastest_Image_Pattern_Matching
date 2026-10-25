@@ -1,6 +1,6 @@
 # Template Matching 研究總索引與人工審查指南
 
-更新：2026-10-19。此頁按第1–41輪列出問題、證據與採用決定。數字是各輪的證據快照，不是同一套輸入的連續加速曲線；不同輪次倍率不能相乘。最新輪次見頁末，第一次閱讀先看[外部導覽](../../docs/PROJECT_GUIDE_zh-TW.md)。
+更新：2026-10-24。此頁按第1–42輪列出問題、證據與採用決定。數字是各輪的證據快照，不是同一套輸入的連續加速曲線；不同輪次倍率不能相乘。最新輪次見頁末，第一次閱讀先看[外部導覽](../../docs/PROJECT_GUIDE_zh-TW.md)。
 
 ## 目前推薦方案
 
@@ -9,7 +9,7 @@
 | 主題 | 閱讀入口 |
 |---|---|
 | 核心、GUI與語言移植 | 第1輪；[建置](../README_zh-TW.md)、[移植契約](PORTING_zh-TW.md) |
-| GPU並行、同步與記憶體 | 第5–14、19–25、28–34、36–41輪；依工作量看CPU／Metal對照 |
+| GPU並行、同步與記憶體 | 第5–14、19–25、28–34、36–42輪；依工作量看CPU／Metal對照 |
 | 固定尺度與稀疏前段 | 第15–21輪；與金字塔路徑分開比較 |
 | 原始NCC與旋轉細搜尋 | 第26–30輪；保留未加速與記憶體失敗 |
 | 新場景、Blender、新影格與穩定性 | [第34輪](STAGE34_CLOSURE_zh-TW.md) |
@@ -451,3 +451,12 @@ Release 54/54、相關ASan／UBSan 2/2及Python工具75項通過。正式／有�
 - 驗證：96程序、288次正式呼叫、正式1008＋pilot 168次直接GT全部零FP／FN；同arm與同方法靜態的有序輸出一致。保留13筆fine4每影格time_budget失敗（pilot 1、512與六物件各6），沒有GT、route、暖機、RSS或host失敗。Release 73／73、Python harness 567／567、color verify 5／5；不匯入harness的獨立稽核重算GT、中位數與門檻零差異，摘要由凍結工具從封存重算逐位相同。
 - 決定：只量測，不改GUI或通用預設；完整GPU仍為明確研究選項，換新影格時128與8K較快、512與六物件較慢。不是變化內容的相機串流驗收。
 - 證據：[完整報告](NEW_FRAME_COST_zh-TW.md)、[正式摘要](stage41-new-frame-cost/formal-summary.json)、[判定與失敗](stage41-new-frame-cost/decision-and-failures.json)、[驗證](stage41-new-frame-cost/validation.json)、[封存清單](stage41-new-frame-cost/archive.json)。
+
+### 42. 完整GPU粗選峰改為精確平行回合（2026-10-24）
+
+- 問題／實作：第40輪profile中粗選峰占完整GPU時間28–34%：所有角度／尺度共用一張分數圖而串行，每張圖在單一工作群組做最多773次逐次選峰。新增`full_gpu_peak_mode=2`：每回合接受所有未被更高優先存活點涵蓋的候選，再只移除被本回合接受點涵蓋、且優先較低的點（矩形不對稱）；`full_gpu_peak_batch`張圖（預設8）各占一格分數ring、一次dispatch選完。mode 0／1與預設不變。
+- 正式結果：fine4靜態時間mode 1→mode 2為128 807.81→587.22ms（−27.3%）、512 2868.42→1881.34ms（−34.4%）、六物件−10.5%、8K−22.9%，全部6/6同向，達成事前10%目標。批次1消融為−20.3%／−28.7%，多數收益來自平行回合本身。每換新影格對混合：128 −31.4%、512 −22.7%（完整GPU首次在512勝過混合）、六物件+1.5%（混合仍較快）、8K −80.1%，各6/6。
+- 記憶體與診斷：peak RSS不變（差<0.5MiB）；批次8命名Metal配置在128／512多23.26／45.74MiB，批次1少1.99／5.57MiB。profile中粗選峰262.40→12.44ms、989.82→33.50ms，細搜尋現占約71%；encoder重疊使階段和大於GPU區間（批次1的512多574.71ms），階段值只作診斷。
+- 驗證：170組fixture×3種lane數×3種清單容量及混合批次的差分，有序候選bytes與mode 1相同；16個kernel突變殺15、存活者為輸出等價；工具20項負控制、17個手動突變全殺。四個phase共1538次直接GT零FP／FN，mode 2每次呼叫的完整有序輸出都與mode 1相同；0筆失敗門檻。母session一次`find`掃描與formal的many128 36個worker重疊，已揭露、未剔除。
+- 決定：依事前規則，完整GPU研究建議改為`full_gpu_peak_mode=2`、fine4；不改GUI、核心或混合預設。細搜尋是下一個主要瓶頸。
+- 證據：[完整報告](GPU_PARALLEL_PEAKS_zh-TW.md)、[正式摘要](stage42-parallel-peaks/formal-summary.json)、[判定與失敗](stage42-parallel-peaks/decision-and-failures.json)、[驗證](stage42-parallel-peaks/validation.json)、[封存清單](stage42-parallel-peaks/archive.json)。

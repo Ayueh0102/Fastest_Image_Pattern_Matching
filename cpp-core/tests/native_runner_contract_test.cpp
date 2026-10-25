@@ -53,7 +53,7 @@ void jobKeys(const QString& runner,const QTemporaryDir& dir) {
     // and stops at decoding the missing image.
     const QJsonObject accepted{{"angle",0},{"backend",1},{"coarse_peak_mode",1},{"cpu_threads",8},
         {"fine_angle_reuse",false},{"fine_fused",false},{"fine_ncc_mode",0},{"fine_profiling",false},{"full_gpu",false},
-        {"full_gpu_fine_mode",0},{"full_gpu_peak_mode",0},{"full_gpu_profiling",false},{"gray_load_mode","direct_gray8"},
+        {"full_gpu_fine_mode",0},{"full_gpu_peak_batch",0},{"full_gpu_peak_mode",0},{"full_gpu_profiling",false},{"gray_load_mode","direct_gray8"},
         {"invert_source",false},{"limit",4},{"min_area",256},{"ncc_mode",0},{"overlap",.2},{"overlap_enabled",false},
         {"pose_input_mode",0},{"pose_resident_mode",0},{"pose_storage_mode",0},{"proposal_method","pyramid"},
         {"proposal_score",.5},{"refine",false},{"refinement_backend",-1},{"repeats",1},{"run_resource_diagnostics",false},
@@ -62,7 +62,7 @@ void jobKeys(const QString& runner,const QTemporaryDir& dir) {
         {"sparse_cpu_gradient_mode",0},{"sparse_features",128},{"sparse_metal_submission_mode",0},{"sparse_min_gradient",8.},
         {"sparse_response_mode",0},{"sparse_search_backend",0},{"sparse_spread",2},{"sparse_stride",4},{"sparse_threshold",.75},
         {"stop_layer",1},{"stream_path",dir.filePath("stream.jsonl")},{"subpixel",false},{"template",missing},{"warmup_seconds",0}};
-    require(accepted.size()==51,"Fixture must list all 51 accepted keys");
+    require(accepted.size()==52,"Fixture must list all 52 accepted keys");
     result=run(runner,dir,"accepted",accepted);
     require(result.code==1 && result.err.trimmed()=="Cannot decode image",
         "Accepted keys did not reach image decoding: "+result.err.toStdString());
