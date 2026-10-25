@@ -75,6 +75,22 @@ int main()
         std::fill(copy.source.begin(),copy.source.end(),0);
         require(owned.score({0,0,0,0}).meanDistance==0,"Constructor borrowed source memory");
 
+        // Absolute scale of the region distance, which the round-47 catch thresholds share:
+        // linear-sRGB chromaticity difference of the colour-mask sums, divided by sqrt(2).
+        Fixture scaleFixture;scaleFixture.paste({1.1,1,.85});
+        const auto scaleScore=scaleFixture.object().score({0,0,0,0});
+        std::array<double,3> scaleSourceSum{},scaleTemplateSum{};
+        for(int y=0;y<scaleFixture.th;++y)for(int x=0;x<scaleFixture.tw;++x)if(scaleFixture.colour[y*scaleFixture.ms+x])for(int c=0;c<3;++c) {
+            scaleSourceSum[c]+=linear(scaleFixture.at(x,y)[c]);scaleTemplateSum[c]+=linear(scaleFixture.templ[std::size_t(y)*scaleFixture.ts+3*x+c]);
+        }
+        double scaleSquared=0;
+        for(int c=0;c<3;++c) {
+            const double d=scaleSourceSum[c]/(scaleSourceSum[0]+scaleSourceSum[1]+scaleSourceSum[2])-scaleTemplateSum[c]/(scaleTemplateSum[0]+scaleTemplateSum[1]+scaleTemplateSum[2]);
+            scaleSquared+=d*d;
+        }
+        require(scaleScore.status==0 && scaleScore.validPixels==24 && scaleSquared>1e-6,"Shifted crop support differs");
+        require(std::abs(scaleScore.uncorrectedRegionDistance-std::sqrt(scaleSquared/2))<=1e-12,"Region distance is not the chromaticity difference over sqrt(2)");
+
         // Shared geometry: without saturation handling the uncorrected distance is
         // ColorVerifier's masked chroma, bit for bit, on an off-grid noisy pose.
         Fixture noisy;
