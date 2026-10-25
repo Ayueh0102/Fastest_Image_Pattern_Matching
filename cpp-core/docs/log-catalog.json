@@ -26,45 +26,45 @@
     "metadata": "Filesystem sidecar metadata",
     "other": "No recognized role; inspect manually"
   },
-  "artifact_count": 595,
-  "artifact_bytes": 2053566641,
+  "artifact_count": 618,
+  "artifact_bytes": 2384311749,
   "artifact_role_counts": {
-    "archive": 98,
+    "archive": 108,
     "calibration": 4,
-    "failure_review": 16,
+    "failure_review": 20,
     "false_gate": 52,
-    "formal": 24,
+    "formal": 25,
     "input": 21,
-    "other": 50,
-    "pilot": 10,
-    "protocol": 43,
-    "provenance": 57,
-    "raw": 65,
-    "report": 70,
-    "source": 16,
-    "summary": 140,
-    "validation": 82,
+    "other": 53,
+    "pilot": 12,
+    "protocol": 44,
+    "provenance": 60,
+    "raw": 73,
+    "report": 71,
+    "source": 17,
+    "summary": 151,
+    "validation": 84,
     "visual": 68
   },
-  "archive_member_count": 41877,
+  "archive_member_count": 44349,
   "archive_member_role_counts": {
     "archive": 26,
     "binary": 47,
     "calibration": 1,
     "failure_review": 19,
-    "formal": 21192,
-    "input": 598,
+    "formal": 23075,
+    "input": 605,
     "metadata": 6526,
-    "other": 2797,
-    "pilot": 4059,
+    "other": 3030,
+    "pilot": 4157,
     "protocol": 109,
-    "provenance": 111,
-    "raw": 10100,
-    "report": 81,
-    "source": 10872,
-    "summary": 977,
-    "validation": 947,
-    "visual": 880
+    "provenance": 115,
+    "raw": 11178,
+    "report": 82,
+    "source": 11172,
+    "summary": 995,
+    "validation": 974,
+    "visual": 884
   },
   "artifacts": [
     {
@@ -148,6 +148,16 @@
       ]
     },
     {
+      "path": "CPU_PATH_zh-TW.md",
+      "group": "root",
+      "stage": null,
+      "bytes": 11916,
+      "sha256": "f67ea3f055eb0161d1366d0f4bf207de5912aa078bf065af32cd5bb9783b8066",
+      "roles": [
+        "report"
+      ]
+    },
+    {
       "path": "CURRENT_BEST_HISTORY_zh-TW.md",
       "group": "root",
       "stage": null,
@@ -161,8 +171,8 @@
       "path": "CURRENT_BEST_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 11300,
-      "sha256": "e37f4a81f68bf7e04ba648532487a59a0a43e4a5e8d379091f5068bc75c88f58",
+      "bytes": 12229,
+      "sha256": "df320830ae7470dc4be0ce9c83a1bab624402f5bde961e26f032da260e2392c8",
       "roles": [
         "report"
       ]
@@ -171,8 +181,8 @@
       "path": "DEDUP_PEAK2_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 12531,
-      "sha256": "1c1d852f2bf12c419c4fbcef1bfc360fbdd0560e6fdf3193d649c9e9cb1293eb",
+      "bytes": 12795,
+      "sha256": "78b70f788d1a87c2bb5191b3e50eb366adc1ca78e138393a0e2d8eecca33bdf4",
       "roles": [
         "report"
       ]
@@ -212,8 +222,8 @@
       "path": "EXPERIMENT_REVIEW_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 80148,
-      "sha256": "34e2718a82c4158c5d5aaef2aaac2a30fb9e8d36ca6f20afbe7ec799ca04fe51",
+      "bytes": 82820,
+      "sha256": "4e046d7bddabaf4c13874786a185a8794a77936d957947a69cc83baee120f6ec",
       "roles": [
         "report"
       ]
@@ -362,8 +372,8 @@
       "path": "LOG_CATALOG_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 13829,
-      "sha256": "e44d646829b96d560a00cb821ad963b34b249153972d2e234cbc1efd5046859e",
+      "bytes": 14490,
+      "sha256": "95d20e3a0a65941309910da10d74f79323f9d2e3dec069cc11838533c3588ff2",
       "roles": [
         "report"
       ]
@@ -533,8 +543,8 @@
       "path": "PROJECT_STATUS_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 9787,
-      "sha256": "c1ce7033bf7fb1cbe5764b1c1d4dbc6021938d9eb7d294ea58a45f5da4a5f078",
+      "bytes": 10303,
+      "sha256": "624999dbacc0ce96fbc706c65b960dddaea25fe00d1cfecce1e748b235f09fb9",
       "roles": [
         "report"
       ]
@@ -7881,6 +7891,314 @@
       ]
     },
     {
+      "path": "stage45-cpu-path/amendment-1.json",
+      "group": "stage45-cpu-path",
+      "stage": "45",
+      "bytes": 5569,
+      "sha256": "5f946e251b3beb912f1de9c3e8126e8b5355dd82ee8c86a5ab062b4ca38d7341",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "stage45-cpu-path/amendment-2.json",
+      "group": "stage45-cpu-path",
+      "stage": "45",
+      "bytes": 1190,
+      "sha256": "3107a5649d2cfa345d9bf1164c9dfc66fc1eb06502ac772d629e7c970920e3f7",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "stage45-cpu-path/archive.json",
+      "group": "stage45-cpu-path",
+      "stage": "45",
+      "bytes": 4221,
+      "sha256": "9a05f52e3d74e6b5434f74886b05baee109cf43fa924db9ade2019163324f029",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage45-cpu-path/decision-and-failures.json",
+      "group": "stage45-cpu-path",
+      "stage": "45",
+      "bytes": 15643,
+      "sha256": "ca4022f7b2e6d9babf3333e6f2577b84f4d979779fa2cf80fce92c59ff0f1399",
+      "roles": [
+        "failure_review"
+      ]
+    },
+    {
+      "path": "stage45-cpu-path/formal-summary.json",
+      "group": "stage45-cpu-path",
+      "stage": "45",
+      "bytes": 263706,
+      "sha256": "5b17e7b96b2830cc2f61b9f869f3d62a8ccbfa4d81441ab16266e528e461cbbb",
+      "roles": [
+        "formal",
+        "summary"
+      ]
+    },
+    {
+      "path": "stage45-cpu-path/gt-summary.json",
+      "group": "stage45-cpu-path",
+      "stage": "45",
+      "bytes": 298375,
+      "sha256": "d6e27e0597fa0880175d3606d55766dc304c8bcfaa9307c1f4fa1ac58b6df325",
+      "roles": [
+        "summary"
+      ]
+    },
+    {
+      "path": "stage45-cpu-path/input-sha256.json",
+      "group": "stage45-cpu-path",
+      "stage": "45",
+      "bytes": 16432,
+      "sha256": "2074a61153a367bfd1e562924013cd55d2770df5c857c5f5d6fdac5b2f101b2a",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage45-cpu-path/pilot-summary.json",
+      "group": "stage45-cpu-path",
+      "stage": "45",
+      "bytes": 115076,
+      "sha256": "03dee741706e81da728ecb10d258f57e18571e53e1296cc3ec9e515b8990a014",
+      "roles": [
+        "pilot",
+        "summary"
+      ]
+    },
+    {
+      "path": "stage45-cpu-path/protocol.json",
+      "group": "stage45-cpu-path",
+      "stage": "45",
+      "bytes": 8181,
+      "sha256": "d9a6ecee564fd8e3ad21807819b2aabe62baf04187512cdeec54fa80d4f521fc",
+      "roles": [
+        "protocol"
+      ]
+    },
+    {
+      "path": "stage45-cpu-path/raw-results-formal-cpu-full.tar.gz",
+      "group": "stage45-cpu-path",
+      "stage": "45",
+      "bytes": 53226903,
+      "sha256": "cb8bd39187078da837eae1cc70d485251f71d56fef4ede8193d43ea402454455",
+      "roles": [
+        "archive",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 193,
+      "archive_role_counts": {
+        "formal": 193,
+        "provenance": 1,
+        "raw": 96
+      }
+    },
+    {
+      "path": "stage45-cpu-path/raw-results-formal-full-gpu-parallel.tar.gz",
+      "group": "stage45-cpu-path",
+      "stage": "45",
+      "bytes": 39284884,
+      "sha256": "15086ccd3c49af0a8772d34c7dd0e67ddc70905c4c808be16e105d61137c6601",
+      "roles": [
+        "archive",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 192,
+      "archive_role_counts": {
+        "formal": 192,
+        "raw": 96
+      }
+    },
+    {
+      "path": "stage45-cpu-path/raw-results-formal-hybrid-best.tar.gz",
+      "group": "stage45-cpu-path",
+      "stage": "45",
+      "bytes": 54391793,
+      "sha256": "d305ba045eabf9b3c75171d474599174bce0b7a880b1c97e37a2a9b919150aad",
+      "roles": [
+        "archive",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 192,
+      "archive_role_counts": {
+        "formal": 192,
+        "raw": 96
+      }
+    },
+    {
+      "path": "stage45-cpu-path/raw-results-formal-run1-interrupted-cpu-full.tar.gz",
+      "group": "stage45-cpu-path",
+      "stage": "45",
+      "bytes": 53144650,
+      "sha256": "faa7e51df62c04e77dd573167ab8a484f0d2a13c41018827a44722d5fe255667",
+      "roles": [
+        "archive",
+        "failure_review",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 185,
+      "archive_role_counts": {
+        "formal": 185,
+        "provenance": 1,
+        "raw": 92
+      }
+    },
+    {
+      "path": "stage45-cpu-path/raw-results-formal-run1-interrupted-full-gpu-parallel.tar.gz",
+      "group": "stage45-cpu-path",
+      "stage": "45",
+      "bytes": 39282181,
+      "sha256": "cbc7cb02942f914fac89f3585cae2a1ea5b01ed4e02363e496b0b55fa6c04ade",
+      "roles": [
+        "archive",
+        "failure_review",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 192,
+      "archive_role_counts": {
+        "formal": 192,
+        "raw": 96
+      }
+    },
+    {
+      "path": "stage45-cpu-path/raw-results-formal-run1-interrupted-hybrid-best.tar.gz",
+      "group": "stage45-cpu-path",
+      "stage": "45",
+      "bytes": 54240635,
+      "sha256": "74d0bef8289dcb86d700e7ce5a25b48d8c1022f4c63bffe82e42390fa6598c8f",
+      "roles": [
+        "archive",
+        "failure_review",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 185,
+      "archive_role_counts": {
+        "formal": 185,
+        "raw": 92
+      }
+    },
+    {
+      "path": "stage45-cpu-path/raw-results-gt.tar.gz",
+      "group": "stage45-cpu-path",
+      "stage": "45",
+      "bytes": 13940376,
+      "sha256": "41470aab1ef7511a2c90c5843ee4a5c96b7943db584fb3d8ccb799755d8659b0",
+      "roles": [
+        "archive",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 903,
+      "archive_role_counts": {
+        "formal": 672,
+        "input": 6,
+        "other": 224,
+        "provenance": 1,
+        "raw": 448,
+        "visual": 4
+      }
+    },
+    {
+      "path": "stage45-cpu-path/raw-results-pilot.tar.gz",
+      "group": "stage45-cpu-path",
+      "stage": "45",
+      "bytes": 21496716,
+      "sha256": "c488df47e9fd135155a4e71d020476395b2a61b682251bf52c19273f6f31375d",
+      "roles": [
+        "archive",
+        "pilot",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 97,
+      "archive_role_counts": {
+        "formal": 72,
+        "pilot": 97,
+        "provenance": 1,
+        "raw": 48
+      }
+    },
+    {
+      "path": "stage45-cpu-path/run1-comparison.json",
+      "group": "stage45-cpu-path",
+      "stage": "45",
+      "bytes": 15233,
+      "sha256": "229097b94c2b622c8cc8f91c20ab3e8a0941646083a4e18239f5c866ce42ee88",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "stage45-cpu-path/source-sha256.json",
+      "group": "stage45-cpu-path",
+      "stage": "45",
+      "bytes": 34901,
+      "sha256": "c056a572a66e573e00553c0307789c05c7a02155ad9a2b90849a01ca399596bf",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage45-cpu-path/source-snapshot.tar.gz",
+      "group": "stage45-cpu-path",
+      "stage": "45",
+      "bytes": 912396,
+      "sha256": "19c5ea87bae68f24ec3c63f180367e06af1a1b83ddc7fa13e10de797fb60da44",
+      "roles": [
+        "archive",
+        "source"
+      ],
+      "archive_file_count": 308,
+      "archive_role_counts": {
+        "input": 1,
+        "other": 9,
+        "report": 1,
+        "source": 297,
+        "summary": 18,
+        "validation": 2
+      }
+    },
+    {
+      "path": "stage45-cpu-path/validation-logs.tar.gz",
+      "group": "stage45-cpu-path",
+      "stage": "45",
+      "bytes": 21958,
+      "sha256": "ec0a7c9a663b7848d7b5cab0b53d7d7b0ee56491f7ba25c919303274d468573f",
+      "roles": [
+        "archive",
+        "validation"
+      ],
+      "archive_file_count": 25,
+      "archive_role_counts": {
+        "pilot": 1,
+        "raw": 14,
+        "source": 3,
+        "validation": 25
+      }
+    },
+    {
+      "path": "stage45-cpu-path/validation.json",
+      "group": "stage45-cpu-path",
+      "stage": "45",
+      "bytes": 7131,
+      "sha256": "ac8b5613635ff554b618d1159d79ee45ea827dd5997fb9719766d91a51065c2b",
+      "roles": [
+        "validation"
+      ]
+    },
+    {
       "path": "validation-after-refinement.json",
       "group": "root",
       "stage": null,
@@ -7901,5 +8219,5 @@
       ]
     }
   ],
-  "archive_member_index_sha256": "96d819d21841f4cf54f536bc87daf6bd6e39ae169b4abfa008b45003f0bd0e85"
+  "archive_member_index_sha256": "219509a0f4f5d9b04a4613df9b243528a9555de44fd16349dbbb4e114fd81fab"
 }

@@ -1,6 +1,6 @@
 # Template Matching 研究總索引與人工審查指南
 
-更新：2026-10-25。此頁按第1–44輪列出問題、證據與採用決定。數字是各輪的證據快照，不是同一套輸入的連續加速曲線；不同輪次倍率不能相乘。最新輪次見頁末，第一次閱讀先看[外部導覽](../../docs/PROJECT_GUIDE_zh-TW.md)。
+更新：2026-10-25。此頁按第1–45輪列出問題、證據與採用決定。數字是各輪的證據快照，不是同一套輸入的連續加速曲線；不同輪次倍率不能相乘。最新輪次見頁末，第一次閱讀先看[外部導覽](../../docs/PROJECT_GUIDE_zh-TW.md)。
 
 ## 目前推薦方案
 
@@ -9,7 +9,7 @@
 | 主題 | 閱讀入口 |
 |---|---|
 | 核心、GUI與語言移植 | 第1輪；[建置](../README_zh-TW.md)、[移植契約](PORTING_zh-TW.md) |
-| GPU並行、同步與記憶體 | 第5–14、19–25、28–34、36–44輪；依工作量看CPU／Metal對照 |
+| GPU並行、同步與記憶體 | 第5–14、19–25、28–34、36–45輪；依工作量看CPU／Metal對照 |
 | 固定尺度與稀疏前段 | 第15–21輪；與金字塔路徑分開比較 |
 | 原始NCC與旋轉細搜尋 | 第26–30輪；保留未加速與記憶體失敗 |
 | 新場景、Blender、新影格與穩定性 | [第34輪](STAGE34_CLOSURE_zh-TW.md) |
@@ -484,3 +484,14 @@ Release 54/54、相關ASan／UBSan 2/2及Python工具75項通過。正式／有�
 - 驗證：工具19項負控制、10個工具突變全殺；不匯入harness的獨立稽核17,117項檢查零不符；封存重播四份摘要逐位相同；量測後Release 82／82、Python 635／635、color 5／5、ASan／UBSan 77／77。
 - 決定：完整GPU peak2＋k3適用於大量相同物件、可接受輸出不逐位相同的研究設定；每換新影格時在128／512／六物件是本輪最快組合。不改GUI、核心或任何預設。下一個瓶頸仍是細搜尋與initial_refine。
 - 證據：[完整報告](DEDUP_PEAK2_zh-TW.md)、[GT摘要](stage44-dedup-peak2/gt-summary.json)、[正式摘要](stage44-dedup-peak2/formal-summary.json)、[判定與失敗](stage44-dedup-peak2/decision-and-failures.json)、[驗證](stage44-dedup-peak2/validation.json)、[封存](stage44-dedup-peak2/archive.json)。
+
+### 45. 全CPU研究路徑對混合與完整GPU（2026-10-25，量測輪）
+
+- 問題：全CPU研究路徑（`backend=0`、`refinement_backend=0`）上次只在第34輪以「Metal前段＋CPU精修」比較過；需要在同一建置上和混合、完整GPU peak2／fine4一起量。不改演算法或預設。
+- 方法：每換新影格×{全CPU、混合、完整GPU}×{off、k3}共6個arm，4個正式場景×6 block。全CPU關閉流程在CPU上拒絕的Metal專用選項、改用獨立pose儲存，8執行緒（效能核心數），點積為核心的UDOT。每次呼叫都檢查CPU沒有任何Metal工作；混合與完整GPU輸出必須與第43輪封存相同。
+- 正式結果（每影格中位數ms，全CPU off／混合off／完整GPU k3）：128 3235.08／885.50／383.90，512 10236.80／2452.12／1144.31，六物件191.32／62.13／42.14，8K 444.50／265.85／49.21。完整GPU k3對全CPU off快78.0–88.9%（4.5–9.0倍），混合對全CPU快40.2–76.0%，全部6/6。最快仍是完整GPU k3（128／512／六物件）；8K不點名。CPU上k3省30.7–42.1%（8K無方向）。差距主要在搜尋階段（CPU慢約3.9–4.4倍）；精修在多物件慢1.9–2.3倍、六物件只慢9%。
+- GT：112個混合案例變體，CPU k3零退步；每個變體CPU嚴格計數與第43輪Metal混合完全相同（合計TP 3243／FP 33／FN 206），輸出逐位相同僅14/224（倍精度對單精度）。正式144程序每次呼叫零FP／FN。
+- 修訂：摘要程式以檔名查第43輪雜湊遇到兩個`empty_scene.png`而失敗，改以完整路徑查（修訂1，只改摘要）；第一次正式在140/144被應用程式更新中止，保留不用、完整重跑（修訂2）。第一次8K完整GPU慢約24%，應是受更新干擾；第二次則在應用程式重啟後主機負載偏高（load average中位數4.5–11.2），CPU arm比第一次慢1.7–6.1%、8K混合慢5.2–7.0%，絕對值可能偏高，方向不變，依規則不重跑。
+- 驗證：工具18項負控制、10個工具突變全殺；獨立稽核29,922項檢查零不符；封存重播三份摘要逐位相同；量測後Release 82／82、Python 653／653、color 5／5、ASan／UBSan 77／77。
+- 決定：全CPU路徑在本輪所有場景都最慢；完整GPU peak2＋k3維持最快的研究設定。不改GUI、核心或任何預設；沒有Metal的平台仍走CPU。
+- 證據：[完整報告](CPU_PATH_zh-TW.md)、[GT摘要](stage45-cpu-path/gt-summary.json)、[正式摘要](stage45-cpu-path/formal-summary.json)、[判定與失敗](stage45-cpu-path/decision-and-failures.json)、[驗證](stage45-cpu-path/validation.json)、[封存](stage45-cpu-path/archive.json)。

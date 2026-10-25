@@ -1,0 +1,9 @@
+{
+ "stage": 45,
+ "date": "2026-10-25",
+ "number": 2,
+ "event": "Formal run 1 (build/stage45-cpu-path/formal, started 2026-10-25T09:58:25Z) was stopped at 10:42:06Z by an application restart (software update) after 140 of 144 workers; the 141st worker (8k_t256_angle180_3scales-hybrid_best_frames_k3-b5) had written its job file and produced no output. Missing: 8K block 5 for cpu_full off/k3 and hybrid_best off/k3.",
+ "rule": "Run 1 is kept unchanged as evidence (incomplete manifest, its 140 workers and the orphaned job file) and is NOT used for any decision or table. A complete fresh formal run 2 (build/stage45-cpu-path/formal-2) repeats the whole pre-registered formal phase with the same build, tool, cases, arms, blocks, warm-up counts and gates; decisions use run 2 only. Missing workers are not re-run and spliced into run 1. The 140 run-1 workers are compared with run 2 descriptively (per arm medians and directions) and reported as a consistency check.",
+ "reason": "The protocol did not cover an external interruption; splicing four late workers into run 1 would mix host states and break the complete before/after fingerprints.",
+ "recorded_before": "formal run 2 starts"
+}
