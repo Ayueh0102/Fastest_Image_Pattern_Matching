@@ -26,45 +26,45 @@
     "metadata": "Filesystem sidecar metadata",
     "other": "No recognized role; inspect manually"
   },
-  "artifact_count": 630,
-  "artifact_bytes": 2389734686,
+  "artifact_count": 640,
+  "artifact_bytes": 2398370110,
   "artifact_role_counts": {
-    "archive": 111,
+    "archive": 114,
     "calibration": 4,
-    "failure_review": 21,
-    "false_gate": 54,
+    "failure_review": 22,
+    "false_gate": 56,
     "formal": 25,
     "input": 21,
     "other": 53,
     "pilot": 12,
-    "protocol": 45,
-    "provenance": 64,
-    "raw": 74,
-    "report": 72,
-    "source": 18,
-    "summary": 153,
+    "protocol": 46,
+    "provenance": 67,
+    "raw": 75,
+    "report": 73,
+    "source": 19,
+    "summary": 155,
     "validation": 86,
     "visual": 68
   },
-  "archive_member_count": 45423,
+  "archive_member_count": 47005,
   "archive_member_role_counts": {
     "archive": 26,
     "binary": 47,
     "calibration": 1,
     "failure_review": 19,
-    "formal": 23557,
-    "input": 606,
+    "formal": 24381,
+    "input": 607,
     "metadata": 6526,
-    "other": 3281,
+    "other": 3726,
     "pilot": 4157,
     "protocol": 109,
-    "provenance": 116,
-    "raw": 11431,
-    "report": 84,
-    "source": 11482,
-    "summary": 1013,
-    "validation": 1009,
-    "visual": 888
+    "provenance": 118,
+    "raw": 11844,
+    "report": 85,
+    "source": 11786,
+    "summary": 1031,
+    "validation": 1011,
+    "visual": 892
   },
   "artifacts": [
     {
@@ -93,6 +93,16 @@
       "stage": null,
       "bytes": 22164,
       "sha256": "3e94706ade7f64932a422ddc3be581bdea7b6d8acd6afa0a7a405c2fea2365c5",
+      "roles": [
+        "report"
+      ]
+    },
+    {
+      "path": "CHROMA_MARGIN_zh-TW.md",
+      "group": "root",
+      "stage": null,
+      "bytes": 19217,
+      "sha256": "1522703b380fa80b1465a42d027f9e76cb1069f47b5a9f52e4021ae661c9a5f7",
       "roles": [
         "report"
       ]
@@ -131,8 +141,8 @@
       "path": "COLOR_VERIFY_RUNNER.md",
       "group": "root",
       "stage": null,
-      "bytes": 13808,
-      "sha256": "a393ef3e4f746a0c7c793ddfcd99537192f29ed140501a8ada05b07260086a9a",
+      "bytes": 15337,
+      "sha256": "7aa5ef42cc617a7a38e5b1de190d61143daed6c7590b82cb8e33ec229482dca5",
       "roles": [
         "report"
       ]
@@ -171,8 +181,8 @@
       "path": "CURRENT_BEST_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 13722,
-      "sha256": "09d5e6ccb0d50df93e5c152a5cca118ecfb8c3ea3baaf469d02835099c931031",
+      "bytes": 15417,
+      "sha256": "3eaa7b251c0f56d25709c78b96c065ce7023a2527d5317eebed009129a4777ac",
       "roles": [
         "report"
       ]
@@ -222,8 +232,8 @@
       "path": "EXPERIMENT_REVIEW_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 85842,
-      "sha256": "fbba67c36c514c3d883328f2bdd4a8e4bb8f20b97b27236520a85b9c3a9851c4",
+      "bytes": 89226,
+      "sha256": "9763a3840673b74da6a0a6d9f61b212b765ff8f77619d35c75b9aacfa6abf541",
       "roles": [
         "report"
       ]
@@ -382,8 +392,8 @@
       "path": "LOG_CATALOG_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 15366,
-      "sha256": "3b629df54caf2015b5092e4d5be664e0cb649b903544281ee7b06bbc64da751f",
+      "bytes": 16345,
+      "sha256": "c7bb3a8d23459466882d5182786e1b8bd56b49a5d21e09ad8355d31ca8e2c95f",
       "roles": [
         "report"
       ]
@@ -553,8 +563,8 @@
       "path": "PROJECT_STATUS_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 11333,
-      "sha256": "eec3794bcceeb60c8343059c086728f3e5c2e087ab9cb0c04cafa4958ac5e155",
+      "bytes": 12377,
+      "sha256": "4a180f7dfb9d8b14bbedbe17e470dab96bd4aa5dbe16db5146d0ddec23570f29",
       "roles": [
         "report"
       ]
@@ -745,8 +755,8 @@
       "path": "TESTBED_V1_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 9456,
-      "sha256": "f20ca6e9f0c2ad87216db5449ba1e6beb2bb773abade2de043efc27c3426c5c4",
+      "bytes": 9924,
+      "sha256": "a4ed1d1c95cf982ecdbba6294f2016d98e7a277d93d80805b110269cb36d594c",
       "roles": [
         "report"
       ]
@@ -8371,6 +8381,158 @@
       ]
     },
     {
+      "path": "stage47-chroma-margin/decision-and-failures.json",
+      "group": "stage47-chroma-margin",
+      "stage": "47",
+      "bytes": 33368,
+      "sha256": "8c3ee93016cc0b4075940690c4e43ff4255799318b918e17ff716f5425c2178f",
+      "roles": [
+        "failure_review",
+        "false_gate"
+      ],
+      "explicit_false_gates": [
+        "/gradient/checks/2/passed",
+        "/gradient/checks_passed"
+      ]
+    },
+    {
+      "path": "stage47-chroma-margin/holdout-metadata.tar.gz",
+      "group": "stage47-chroma-margin",
+      "stage": "47",
+      "bytes": 27075,
+      "sha256": "ddb5a44c0cb7e8988ec36cf4bb2fe1c8a1c8d6dbcff292b3cc1c2b946e7637c7",
+      "roles": [
+        "archive"
+      ],
+      "archive_file_count": 25,
+      "archive_role_counts": {
+        "other": 23,
+        "provenance": 1,
+        "raw": 1
+      }
+    },
+    {
+      "path": "stage47-chroma-margin/input-sha256.json",
+      "group": "stage47-chroma-margin",
+      "stage": "47",
+      "bytes": 15261,
+      "sha256": "e530dab5063b28f7b0d3155de293ec555b923f6907d7ecbffa4af99124d622ca",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage47-chroma-margin/protocol.json",
+      "group": "stage47-chroma-margin",
+      "stage": "47",
+      "bytes": 21495,
+      "sha256": "5ee5b0375b2fd94908ef26b5571eeec9c008e74b728e4405e6710fd08b7963a2",
+      "roles": [
+        "protocol"
+      ]
+    },
+    {
+      "path": "stage47-chroma-margin/raw-files-sha256.json",
+      "group": "stage47-chroma-margin",
+      "stage": "47",
+      "bytes": 176147,
+      "sha256": "d5385f45f98225a2cefef9e8067ee27565864d8b7bd8a52abb0378eed22d7dbc",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage47-chroma-margin/raw-results.tar.gz",
+      "group": "stage47-chroma-margin",
+      "stage": "47",
+      "bytes": 3524841,
+      "sha256": "08aa9678824761966824bb8b9516d407f04fb6c739062c8069a438d3b166abd6",
+      "roles": [
+        "archive",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 1242,
+      "archive_role_counts": {
+        "formal": 824,
+        "other": 413,
+        "provenance": 1,
+        "raw": 412,
+        "visual": 4
+      }
+    },
+    {
+      "path": "stage47-chroma-margin/source-sha256.json",
+      "group": "stage47-chroma-margin",
+      "stage": "47",
+      "bytes": 36141,
+      "sha256": "05a7b00dd14f5b1a48ce283ed6b57b8d92c9c11b2a0bbb2fa318dd798e776852",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage47-chroma-margin/source-snapshot.tar.gz",
+      "group": "stage47-chroma-margin",
+      "stage": "47",
+      "bytes": 957664,
+      "sha256": "33bcc0cf60acb62492852417db0b43168135841ffde66800fabaaa79f8ec7e0f",
+      "roles": [
+        "archive",
+        "source"
+      ],
+      "archive_file_count": 315,
+      "archive_role_counts": {
+        "input": 1,
+        "other": 9,
+        "report": 1,
+        "source": 304,
+        "summary": 18,
+        "validation": 2
+      }
+    },
+    {
+      "path": "stage47-chroma-margin/summary.json",
+      "group": "stage47-chroma-margin",
+      "stage": "47",
+      "bytes": 3815116,
+      "sha256": "940328cc37a0a0b9010c986f79c35219a2bd61af9c5bfe788642ce62ca22b281",
+      "roles": [
+        "false_gate",
+        "summary"
+      ],
+      "explicit_false_gates": [
+        "/hypotheses/catch/vk_linear_region/2/passed",
+        "/hypotheses/rayleigh/vk_region/0/passed",
+        "/hypotheses/rayleigh/vk_region/2/passed",
+        "/hypotheses/rayleigh/vk_region/4/passed",
+        "/hypotheses/rayleigh/vk_region/8/passed",
+        "/hypotheses/rayleigh/vk_region/10/passed",
+        "/hypotheses/rayleigh/vk_region/14/passed",
+        "/hypotheses/rayleigh/vk_linear_region/0/passed",
+        "/hypotheses/rayleigh/vk_linear_region/2/passed",
+        "/hypotheses/rayleigh/vk_linear_region/4/passed",
+        "/hypotheses/rayleigh/vk_linear_region/8/passed",
+        "/hypotheses/rayleigh/vk_linear_region/10/passed",
+        "/hypotheses/p95/vk_region/0/passed",
+        "/hypotheses/p95/vk_region/2/passed",
+        "/hypotheses/p95/vk_region/4/passed",
+        "/hypotheses/p95/vk_region/8/passed",
+        "/hypotheses/p95/vk_region/10/passed",
+        "/hypotheses/p95/vk_region/14/passed",
+        "/hypotheses/p95/vk_linear_region/0/passed",
+        "/hypotheses/p95/vk_linear_region/2/passed",
+        "/hypotheses/p95/vk_linear_region/4/passed",
+        "/hypotheses/p95/vk_linear_region/8/passed",
+        "/hypotheses/p95/vk_linear_region/10/passed",
+        "/hypotheses/p95/vk_linear_region/12/passed",
+        "/hypotheses/p95/vk_linear_region/14/passed",
+        "/end_to_end/vk_region/1/passed",
+        "/end_to_end/vk_linear_region/1/passed",
+        "/gradient_checks_passed"
+      ]
+    },
+    {
       "path": "validation-after-refinement.json",
       "group": "root",
       "stage": null,
@@ -8391,5 +8553,5 @@
       ]
     }
   ],
-  "archive_member_index_sha256": "1482e125c52cbb9f1ace1eb4f61d462bcd5d2a9096ad662fd012e954fba816c1"
+  "archive_member_index_sha256": "e32079fa93d061df3a1e7acbac34d64ac5a135b6ec7d2418efa7b9a3a1e62a78"
 }

@@ -68,6 +68,8 @@ python-port/venv/bin/python -m unittest discover -s cpp-core/tests -p test_testb
 
 Blender 整套約 30 秒、但會吃滿 CPU；**不要在其他 session 進行 GPU 正式計時時執行**。`final/manifest.json` 記錄每個檔案的 SHA-256 與產生器雜湊。
 
+`testbed_blender_render.py` 可用 `--seed`、`--rgb-order-seed`、`--rgb-layout-seed` 換 Cycles、bl_rgb 紋理順序與位姿的種子（預設即 v1 的種子；以預設重渲 bl_rgb_white，解碼後像素與 v1 相同，但 Blender 的 PNG 檔含渲染中繼資料，檔案雜湊每次不同）。[第47輪](CHROMA_MARGIN_zh-TW.md)以這些選項與新的合成 layout／noise／background 種子重產了全新的保留集，標籤原稿逐位元組相同。
+
 ## 建議的評估方式
 
 1. **定位**：嚴格 GT（2 px／1°／2%），FP 與 FN 都算；傾斜／透視場景改用投影中心與四邊形 IoU，並分開報告。
