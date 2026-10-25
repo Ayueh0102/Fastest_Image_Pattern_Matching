@@ -34,6 +34,7 @@ STAGES = {
     "stage40-ncc-closure": "40", "stage41-new-frame-cost": "41", "stage42-parallel-peaks": "42",
     "stage43-candidate-dedup": "43",
     "stage44-dedup-peak2": "44",
+    "stage45-cpu-path": "45",
 }
 ROLE_DESCRIPTIONS = {
     "protocol": "Settings, workload definition, budgets and acceptance gates",
