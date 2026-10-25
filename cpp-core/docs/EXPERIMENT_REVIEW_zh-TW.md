@@ -1,6 +1,6 @@
 # Template Matching 研究總索引與人工審查指南
 
-更新：2026-10-25。此頁按第1–45輪列出問題、證據與採用決定。數字是各輪的證據快照，不是同一套輸入的連續加速曲線；不同輪次倍率不能相乘。最新輪次見頁末，第一次閱讀先看[外部導覽](../../docs/PROJECT_GUIDE_zh-TW.md)。
+更新：2026-10-26。此頁按第1–48輪列出問題、證據與採用決定。數字是各輪的證據快照，不是同一套輸入的連續加速曲線；不同輪次倍率不能相乘。最新輪次見頁末，第一次閱讀先看[外部導覽](../../docs/PROJECT_GUIDE_zh-TW.md)。
 
 ## 目前推薦方案
 
@@ -9,7 +9,7 @@
 | 主題 | 閱讀入口 |
 |---|---|
 | 核心、GUI與語言移植 | 第1輪；[建置](../README_zh-TW.md)、[移植契約](PORTING_zh-TW.md) |
-| GPU並行、同步與記憶體 | 第5–14、19–25、28–34、36–45輪；依工作量看CPU／Metal對照 |
+| GPU並行、同步與記憶體 | 第5–14、19–25、28–34、36–45、48輪；依工作量看CPU／Metal對照 |
 | 固定尺度與稀疏前段 | 第15–21輪；與金字塔路徑分開比較 |
 | 原始NCC與旋轉細搜尋 | 第26–30輪；保留未加速與記憶體失敗 |
 | 新場景、Blender、新影格與穩定性 | [第34輪](STAGE34_CLOSURE_zh-TW.md) |
@@ -495,3 +495,34 @@ Release 54/54、相關ASan／UBSan 2/2及Python工具75項通過。正式／有�
 - 驗證：工具18項負控制、10個工具突變全殺；獨立稽核29,922項檢查零不符；封存重播三份摘要逐位相同；量測後Release 82／82、Python 653／653、color 5／5、ASan／UBSan 77／77。
 - 決定：全CPU路徑在本輪所有場景都最慢；完整GPU peak2＋k3維持最快的研究設定。不改GUI、核心或任何預設；沒有Metal的平台仍走CPU。
 - 證據：[完整報告](CPU_PATH_zh-TW.md)、[GT摘要](stage45-cpu-path/gt-summary.json)、[正式摘要](stage45-cpu-path/formal-summary.json)、[判定與失敗](stage45-cpu-path/decision-and-failures.json)、[驗證](stage45-cpu-path/validation.json)、[封存](stage45-cpu-path/archive.json)。
+
+### 46. 物件內白參考的照明正規化同色驗證（2026-10-25，研究選項）
+
+- 問題／實作：測試樣本集 v1 中，既有色度驗證在白平衡偏移、局部暖光、過曝與 JPEG 下同色接受率掉到 0–5%，GT 對齊的探針顯示物件自己的米白面板可校正白平衡。新增預設關閉的 runner 方法 `chroma_vk`：把模板參考遮罩經位姿映到來源，取每通道最近像素中位數估計光源，以 von Kries 對角增益轉進模板的光，再只在色彩遮罩內算色度距離（逐像素平均與區域加總兩種）。裁切的參考棄權（rank 政策），drop／none 為消融；也可改用固定來源矩形（參考卡）。既有 `chroma`／`rgb_ncc`／`gray_ncc` 源碼不變，輸出與改動前 runner 逐位相同。
+- 事前登錄：校準＝neutral、exposure_dark、wb_cool、shading、Blender white；保留＝wb_warm、exposure_bright、spot_warm、noise_jpeg、Blender warm3200、mixed。單類別第 95 百分位門檻（每模板群組），主方法 `vk_region`；H1 合成三種保留照明的同色接受 ≥0.90、ΔE≥4 異色拒絕 ≥0.95、isogray ≥0.95；H2 Blender 4/4 與 7/7；H3 AUC 不低於遮罩色度與未校正區域色度。lightness+ 與 ΔE 2 只報告。
+- 結果：19 場景定位與 v1 相同，所有方法同一份偵測，241 個 worker 完整性全過。主方法在 376 個異色物件（含 134 個 isogray、ΔE 2 與 lightness+）中誤收 0，既有遮罩色度在保留照明誤收 63/192（isogray 19/68）。但保留照明同色只接受 31/88：wb_warm 18/20 通過，spot_warm 4/20、noise_jpeg 4/20、Blender 3/4、2/4 未通過；過曝全部棄權（事前預測）。H3 在 spot_warm 因棄權記為 +∞ 而未通過。
+- 事後診斷（非證據）：未棄權格子中最近的 ΔE≥4 異色是同色最大距離的 4.7–81 倍，但 p95 門檻只有 0.00039／0.00137／0.00094，JPEG、物件內光梯度與 Blender 混合光的殘差都超過門檻。spot_warm 距光斑中心 1.24σ 內全部因面板裁切棄權。drop 在紅色 wb_warm 同色 0/10；棄權改用未校正距離的後備政策在過曝下誤收 8/22、11/22。18% 灰參考卡在均勻照明保留集 57/80、0 誤收，局部暖光 0/20。
+- 驗證：不匯入 harness 的獨立重算 4,550 項零不符（負控制被抓到）；摘要重播逐位相同；源碼快照重建後 165 個 job 輸出全同；16 個編譯突變、20 個工具突變全殺（T9 首次存活後補測試）。
+- 決定：依事前規則**不推薦**；`chroma_vk` 保留為研究選項，不改任何預設。下一步需要事前登錄有餘裕的門檻規則與物件內光梯度模型。
+- 證據：[完整報告](ILLUMINANT_CHROMA_zh-TW.md)、[protocol](stage46-illuminant-chroma/protocol.json)、[摘要](stage46-illuminant-chroma/summary.json)、[判定與失敗](stage46-illuminant-chroma/decision-and-failures.json)、[驗證](stage46-illuminant-chroma/validation.json)、[封存](stage46-illuminant-chroma/archive.json)。
+
+### 47. 有餘裕的事前門檻與物件內光梯度模型（2026-10-25／26，研究選項）
+
+- 問題：第46輪的 `chroma_vk` 分得開同色與異色，但事前的第 95 百分位單類別門檻太緊，保留照明同色只接受 31/88。需要一條有明確餘裕、不靠第46輪評估資料調整的門檻規則，並在全新的保留集上評估；另試物件內光梯度模型。
+- 方法：門檻 τ＝必須抓到的 ΔE00=4 變化（固定 L* 圓與 ΔE≥4 原稿變體）無雜訊最小區域色度距離的一半，只由標籤原稿決定：紅 0.00816、藍綠 0.01470。第46輪校準照明只做可行性檢查（同色 ≤ τ/2、ΔE≥4 拒絕 ≥0.95）。新增預設關閉的 `reference_model: "linear"`：面板兩端（各軸外側三分之一）的中位數聯立解出斜率，外插到每個色彩樣本。保留集以從未用過的 layout、noise、background 與 Blender 種子重產，標籤原稿逐位元組相同，第46輪評估場景完全不讀。
+- 事前登錄：判定只對有判定（非棄權）的物件做，並設最少件數（合成 5、Blender 2）；棄權與端到端接受另行報告。次要規則（校準雜訊 Rayleigh、第46輪 p95）只報告。線性模型要通過自己的檢查，且在 spot_warm＋mixed 的配對殘差符號檢定 p<.05，才取代常數模型。規則形式在算出數值前寫入共用筆記；protocol 與凍結源碼在保留集產生前提交。
+- 結果：412 個 worker 完整性全過，28 個場景定位全部正確（32/0/0、12/0/0），既有方法與第46輪的 `chroma_vk` 和改動前 runner 逐位相同，v1 校準輸出與第46輪封存 62/62 相同。主方法 `vk_region` 的 17 項事前判定全部通過：有判定同色 57/57，ΔE≥4 異色 0/134、isogray 0/52；有判定同色殘差最大 0.43τ，最近的 ΔE≥4 異色 ≥1.97τ。門檻外的 ΔE 2 部分被接受（保留照明 4/192），lightness+ 全部拒絕。局部暖光 11/20 同色因面板裁切棄權（端到端 9/20），過曝 64/64 棄權。同一批物件上 Rayleigh 規則有判定同色 43/57，p95 規則 34/57。
+- 線性模型：藍綠校準可行性 F1 未通過（0.00911 對 τ/2 0.00735），梯度場景配對殘差較大的有 9/13（p=0.954），均勻光下 JPEG 殘差中位數變成 2.1 倍。事後看，局部暖光中有梯度的物件都已因面板裁切棄權，有判定的物件離光斑遠，外插雜訊比梯度修正大。
+- 驗證：不匯入 harness 的獨立重算 11,903 項零不符（含獨立 CIEDE2000 重算門檻，負控制被抓到）；摘要重播逐位相同；源碼快照重建後 220 個候選 job 全同；依種子重產保留集 91/91 一致（Blender PNG 以像素比對）；20 個編譯突變、32 個工具突變全殺（第一次 3 個存活，補強測試後重跑）。
+- 決定：依事前規則**推薦** catch 門檻為 `chroma_vk`（常數模型）的研究用門檻，棄權視為需人工檢查的輸出；線性光源模型**不推薦**。不改任何預設。第46、47輪於2026-10-26一起併入main。
+- 證據：[完整報告](CHROMA_MARGIN_zh-TW.md)、[protocol](stage47-chroma-margin/protocol.json)、[摘要](stage47-chroma-margin/summary.json)、[判定與失敗](stage47-chroma-margin/decision-and-failures.json)、[驗證](stage47-chroma-margin/validation.json)、[封存](stage47-chroma-margin/archive.json)。
+
+### 48. 每換一張影格的額外成本從哪裡來（2026-10-26，診斷輪）
+
+- 問題：第41輪每次換影格前runner都先解碼（65–131ms、GPU閒置），靜態對照則連續執行；混合多出的候選搜尋時間與8K fine4的GPU時間增加，無法分辨來自換來源還是空檔。runner新增預設關閉的`sequence_mode:"static"`與`sequence_gap`（decode／none／sleep），每個方法量{static, reuse}×{none, sleep, decode}五個條件；方法為第41輪的混合與fine4，8K另加peak2。macOS 27.0.1（第41輪為macOS 26）。
+- 換來源：混合每影格多的時間＝pose重建（128 20.22ms、512 39.81ms）加精修+1.24／+0.85ms（↑）；候選搜尋−1.34／−4.43ms，第41輪的+6／+30ms沒有重現。完整GPU換來源無可確立影響（8K peak2 +0.57ms為唯一6/6）。
+- 空檔：解碼空檔只在8K混合成立（+9.19ms，幾乎都在影像準備）；閒置空檔使混合慢33.03／31.58／42.26ms（128／512／8K），完整GPU在512與8K慢5.6–6.9ms，各6/6（8K多出的是主機端上傳，GPU時間不變或↓；512上傳與編碼+3.55ms、等待GPU完成+3.46ms，GPU時間+2.95ms無方向）。劑量：512混合total在0→300ms閒置時單調增加2378.85→2435.56ms；8K上傳在10–30ms以上的空檔由1.0ms跳到約6ms，total之後不再增加（fine4 300ms時+4.5ms）。profile各GPU階段不受空檔影響。
+- 判定（事前規則）：重現第41輪否（8K GPU時間沒有增加）；H1「空檔拖慢第一段GPU工作」mixed；H2「新pose buffer讓精修變慢」成立（512 GPU精修+0.80ms）；H3否定；H4與S1兩者皆非。閒置後CPU端變慢是與資料一致的事後解釋，沒有頻率讀數。
+- 驗證：正式210程序、四個phase共4760次直接GT零FP／FN；同方法跨條件輸出完全相同、8K peak2與peak1相同。主機gate：正式2筆（一次系統Spotlight、一次負載4.09），pilot 25筆（第47輪session在16:23:54–16:26:57 UTC的build／ctest，早於正式開始），全部保留；第一次開始因另一個session的Metal runner被driver拒絕。runner契約測試與8個編譯突變、量測工具18項負控制與22個突變全殺；不匯入harness的獨立稽核比對32,966個數值零不符。稽核發現profile分段把冷呼叫與暖機也算進去，量測後修正為只算正式呼叫（分析修訂1，原摘要保留；pilot、正式、劑量摘要與判定不變）；封存重播時凍結與修正後的driver各自重算的摘要都逐位相同。修訂後在176b661（乾淨工作樹，前後都檢查）全新Release研究建置：ctest 83／83、Python 671／671、color 5／5、其他Python 49／49；沒有跑ASan／UBSan（唯一的C++改動在runner，sanitized組態不建置它）。
+- 決定：診斷輪，不改任何預設；runner新鍵預設關閉。第41輪多出時間的原因在本作業系統上無法重現、仍未知。
+- 證據：[完整報告](FRAME_OVERHEADS_zh-TW.md)、[正式摘要](stage48-frame-overheads/formal-summary.json)、[劑量](stage48-frame-overheads/dose-summary.json)、[判定與失敗](stage48-frame-overheads/decision-and-failures.json)、[分析修訂](stage48-frame-overheads/analysis-revision.json)、[驗證](stage48-frame-overheads/validation.json)、[封存](stage48-frame-overheads/archive.json)。

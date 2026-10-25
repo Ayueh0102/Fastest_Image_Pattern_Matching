@@ -1,0 +1,198 @@
+{
+  "stage": 48,
+  "date": "2026-10-26",
+  "title": "Where the round-41 per-new-frame overheads come from",
+  "question": "Round 41 found, per new frame, more hybrid time than the pose-context rebuild explains and a full-GPU fine4 device-time rise on 8K. In round 41 every new-frame call was also preceded by the runner decoding the frame (65-131 ms, GPU idle) while the static control ran back to back. Are the extra times caused by that gap (idle or decode work), by the update itself (new source copy, new pose buffers), or by neither?",
+  "round41_observations": {
+    "source": "cpp-core/docs/stage41-new-frame-cost/stage-breakdown.json and formal-summary.json (frames minus static, medians of 18 measured calls)",
+    "hybrid_total_ms": {
+      "many128_pose": 27.61,
+      "many512_pose": 73.73
+    },
+    "hybrid_pose_create_ms": {
+      "many128_pose": 19.94,
+      "many512_pose": 40.19
+    },
+    "hybrid_proposal_ms": {
+      "many128_pose": 6.16,
+      "many512_pose": 29.8
+    },
+    "hybrid_refine_minus_pose_ms": {
+      "many128_pose": 0.83,
+      "many512_pose": 7.01
+    },
+    "full_gpu_simd_8k_device_ms": {
+      "frames": 72.73,
+      "static": 64.96,
+      "frames_blocks": "64.9, 64.8, 75.3, 73.1, 74.2, 74.6"
+    }
+  },
+  "exploratory_disclosure": "Before this protocol was written, the archived round-41 per-model fields were inspected (scratch, not archived as evidence): at 512 objects the hybrid coarse-stage GPU device time was +14.0 ms per frame (101.9 vs 87.9 ms) while the fine stage changed +0.4% and CPU normalization -0.2 ms; at 128 objects coarse +1.2 ms. The gap hypothesis H1 was sharpened from that observation, so it is not a blind prediction; the factorial below tests it on new runs.",
+  "source": {
+    "frozen_commit": "06467f2",
+    "base": "main c1e3b03 (round 45 merged)",
+    "snapshot": "source-snapshot.tar.gz and source-sha256.json (committed bytes, stage-40 selection rule)",
+    "runner_change": "native_pipeline_runner: opt-in sequence_mode static, sequence_gap decode|none|sleep, sequence_gap_sleep_ms; defaults unchanged",
+    "driver": "cpp-core/tools/benchmark_frame_overheads.py",
+    "negative_controls": "cpp-core/tests/test_frame_overheads_harness.py (18 tests), native_runner_sequence_gaps and the exact-key native_runner_job_keys ctest"
+  },
+  "host": {
+    "machine": "Apple M4 Pro, 48 GiB, 8 performance + 4 efficiency cores",
+    "os": "macOS 27.0.1 (26A434); round 41 ran on macOS 26 (Darwin 25.6), so round-41 numbers are compared by direction only",
+    "toolchain": "Apple clang 21.0.0, CMake 4.2.3",
+    "build": "build/stage48-release, Release, FPM_BUILD_GUI=ON, FPM_BUILD_EXPERIMENTS=ON, FPM_WITH_OPENCV=ON",
+    "pre_measurement_validation": "ctest 83/83, Python harness 670/670, color_verify_runner_test --metal OK, before any timing"
+  },
+  "inputs": "stage-37 formal fixtures (SHA256 checked); identical bytes are archived in stage40-ncc-closure/fixtures.tar.gz",
+  "methods": {
+    "hybrid_best": "round-40/41 hybrid (CPU/Metal frame, Metal refinement, coarse_peak_mode 1)",
+    "full_gpu_simd": "round-41 full GPU: peak mode 1, fine mode 4",
+    "full_gpu_parallel": "current recommendation from round 42: peak mode 2, batch 8, fine mode 4 (supplementary, 8K only in formal)"
+  },
+  "conditions": {
+    "static_none": "sequence_mode static, sequence_gap none: same Session source and pose context, back-to-back calls",
+    "static_sleep": "static, idle sleep before every later call: 65/130/131 ms at 128/512/8K (rounded round-41 hybrid decode medians)",
+    "static_decode": "static, the runner decodes the file before every later call and discards it",
+    "reuse_none": "sequence_mode reuse, frames pre-decoded: updateSource with a fresh copy every later call, no gap",
+    "reuse_decode": "the round-41 frames job unchanged: decode, then updateSource, every later call"
+  },
+  "cases": {
+    "formal_and_pilot": {
+      "many128_pose": [
+        "hybrid_best",
+        "full_gpu_simd"
+      ],
+      "many512_pose": [
+        "hybrid_best",
+        "full_gpu_simd"
+      ],
+      "8k_t256_angle180_3scales": [
+        "hybrid_best",
+        "full_gpu_simd",
+        "full_gpu_parallel"
+      ]
+    },
+    "dose": {
+      "many512_pose": [
+        "hybrid_best"
+      ],
+      "8k_t256_angle180_3scales": [
+        "full_gpu_simd",
+        "full_gpu_parallel"
+      ],
+      "conditions": "static with no gap or idle sleeps of 10, 30, 100, 300 ms"
+    },
+    "profile": {
+      "8k_t256_angle180_3scales": [
+        "full_gpu_simd"
+      ],
+      "conditions": "all five, full_gpu_profiling=true; diagnostic only"
+    },
+    "excluded": "controlled6 (round-41 effects there were 0.8-2.3 ms)"
+  },
+  "schedule": {
+    "fresh_process_per_case_arm_block": true,
+    "measured_calls_per_process": 3,
+    "warmup_calls": {
+      "many128_pose": 2,
+      "many512_pose": 1,
+      "8k_t256_angle180_3scales": 23
+    },
+    "blocks": {
+      "pilot": 1,
+      "formal": 6,
+      "dose": 3,
+      "profile": 2
+    },
+    "order": "per case and block: conditions outer, methods inner; even blocks forward, odd blocks reversed",
+    "phases_run": "pilot, formal, dose, profile, consecutively in one timing window; the pilot is screening only",
+    "warmup_gate": "elapsed from the end of call 0 to the end of the last warm-up call >= 1000 ms per process"
+  },
+  "metrics": {
+    "hybrid": [
+      "total_ms",
+      "frame_wall_ms",
+      "prepare_ms",
+      "proposal_ms",
+      "coarse_device_ms (sum of work[].device_ms)",
+      "coarse_wait_ms",
+      "fine_wait_ms",
+      "fine_ncc_ms",
+      "cpu_normalization_ms",
+      "refine_ms",
+      "pose_create_ms",
+      "refine_minus_pose_ms",
+      "refinement_device_ms",
+      "source_update_ms"
+    ],
+    "full_gpu": [
+      "total_ms",
+      "frame_wall_ms",
+      "device_ms",
+      "wait_ms",
+      "upload_ms",
+      "encode_ms",
+      "pose_create_ms",
+      "source_update_ms"
+    ],
+    "scope": "Measured calls only; gap_ms (decode or sleep) precedes each call and is outside total_ms and frame_wall_ms. Memory: peak RSS per process and named Metal bytes, never added."
+  },
+  "contrasts": {
+    "round41": "reuse_decode - static_none",
+    "update": "reuse_none - static_none",
+    "decode_gap": "static_decode - static_none",
+    "sleep_gap": "static_sleep - static_none",
+    "gap_on_update": "reuse_decode - reuse_none",
+    "direction_rule": "up/down only when the pooled measured medians and all paired block medians agree in sign; otherwise no direction"
+  },
+  "verdict_rules": {
+    "round41_reproduced": "round41 up for hybrid total_ms at 128 and 512 and full_gpu_simd device_ms at 8K",
+    "H1_gap_slows_first_gpu_stage": "supported if sleep_gap is up for hybrid 512 coarse_device_ms and 8K full_gpu_simd device_ms; decode_only if only decode_gap is up for both; rejected if no gap is up for either; otherwise mixed",
+    "H2_new_pose_buffers_slow_refinement": "512 hybrid refinement_device_ms: update up and neither gap up = supported; update not up = rejected; update and a gap up = confounded",
+    "H3_new_source_slows_frame_prepare": "512 hybrid prepare_ms, same rule as H2",
+    "H4_8k_full_gpu_attribution": "8K full_gpu_simd device_ms raised by update, by a gap (sleep or decode), both, or neither",
+    "S1_8k_peak2_attribution": "same as H4 for full_gpu_parallel (supplementary)",
+    "dose": "per method, medians at 0/10/30/100/300 ms sleep, whether they are non-decreasing, and 300 ms versus no gap with the direction rule over 3 blocks",
+    "attribution": "per case and method: round41 total delta compared with update delta plus decode_gap delta, reported (no gate)"
+  },
+  "accuracy": {
+    "position_px": 2,
+    "angle_deg": 1,
+    "relative_scale": 0.02,
+    "false_positives": 0,
+    "false_negatives": 0,
+    "scope": "Independent GT in the parent on every cold, warm-up and measured call of every arm",
+    "separate_output_checks": "ordered matches and proposals identical within an arm, across all arms of a method in a case, and full_gpu_parallel equal to full_gpu_simd (round 42)"
+  },
+  "gates": [
+    "independent_ground_truth",
+    "route_and_residency",
+    "requested_algorithm_not_executed",
+    "exact_repeat",
+    "sequence_route",
+    "gap_contract (decode > 0 before decode calls; sleep within [ms, ms+50]; no-gap calls <= 1 ms and no decode)",
+    "cross_arm_output_parity",
+    "peak2_equals_peak1",
+    "warmup_shorter_than_1s",
+    "device_timestamp_unavailable",
+    "host_busy (competing build/benchmark process before a worker)",
+    "host_load_high (1-minute load average > 4 before a worker)"
+  ],
+  "host_rules": "Before the window: a timing-lock file in the shared notes folder, no other session's lock. The driver refuses to start a phase with competing build/benchmark processes or a 1-minute load average above 4, and records host state before every worker. No builds, tests or other experiments of this session during the window.",
+  "decision": "Diagnosis only: verdicts per hypothesis, no adoption. GUI, core and research defaults unchanged.",
+  "limits": [
+    "Single M4 Pro; OS differs from round 41",
+    "Repeated identical frame",
+    "Timing-based inference; no hardware counters or GPU frequency readout (powermetrics needs root)",
+    "Sleep matches the round-41 decode length, not this OS's decode length"
+  ],
+  "revisions": [
+    {
+      "date": "2026-10-26",
+      "before_any_timing": true,
+      "previous_frozen_commit": "9fcc44b",
+      "change": "Host check joins ps ucomm names with argument lines: tool names case-insensitive (Blender added), repository experiment scripts run by any Python, and any other process using >= 100% CPU count as competing.",
+      "reason": "Before the window, another session ran a framework-Python benchmark (ucomm \"Python\") and a background Blender render that the round-41 rule did not detect."
+    }
+  ]
+}

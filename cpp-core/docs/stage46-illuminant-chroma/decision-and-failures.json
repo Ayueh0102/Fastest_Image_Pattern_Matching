@@ -1,0 +1,594 @@
+{
+ "stage": 46,
+ "protocol_sha256": "5e95613754f7672fe70becb3cc4eeaf08d7d0a602789036fa119e93ffce96e95",
+ "summary_sha256": "ddb3df33e32ece82f69b3fdeb02b8072ca80489585c835cd49558c4ca6504cff",
+ "runner_sha256": "1425cdca7a61b3ac1cdcf25ca9adbceb247420e3a7fbe1f178a03cb23afc5599",
+ "base_runner_sha256": "f8b1ae27d9913bafddd49fc1b385bb4932f305aa92d6b9f3527fb8346479bf7b",
+ "integrity": {
+  "passed": true,
+  "failures": [],
+  "note": "241 workers exit 0 with exact repeat; search matches identical across the 9 (synthetic) or 7 (Blender) methods of every scene; gray_ncc, rgb_ncc, chroma and chroma_masked equal the pre-change base runner; no GT in any job"
+ },
+ "localization": {
+  "all_equal_testbed_v1": true,
+  "per_scene": {
+   "syn_red_neutral": [
+    32,
+    0,
+    0
+   ],
+   "syn_red_exposure_dark": [
+    32,
+    0,
+    0
+   ],
+   "syn_red_exposure_bright": [
+    32,
+    0,
+    0
+   ],
+   "syn_red_wb_warm": [
+    32,
+    0,
+    0
+   ],
+   "syn_red_wb_cool": [
+    32,
+    0,
+    0
+   ],
+   "syn_red_shading": [
+    32,
+    0,
+    0
+   ],
+   "syn_red_spot_warm": [
+    32,
+    0,
+    0
+   ],
+   "syn_red_noise_jpeg": [
+    32,
+    0,
+    0
+   ],
+   "syn_teal_neutral": [
+    32,
+    0,
+    0
+   ],
+   "syn_teal_exposure_dark": [
+    32,
+    0,
+    0
+   ],
+   "syn_teal_exposure_bright": [
+    32,
+    0,
+    0
+   ],
+   "syn_teal_wb_warm": [
+    32,
+    0,
+    0
+   ],
+   "syn_teal_wb_cool": [
+    32,
+    0,
+    0
+   ],
+   "syn_teal_shading": [
+    32,
+    0,
+    0
+   ],
+   "syn_teal_spot_warm": [
+    32,
+    0,
+    0
+   ],
+   "syn_teal_noise_jpeg": [
+    32,
+    0,
+    0
+   ],
+   "bl_rgb_white": [
+    12,
+    0,
+    0
+   ],
+   "bl_rgb_warm3200": [
+    12,
+    0,
+    0
+   ],
+   "bl_rgb_mixed": [
+    12,
+    0,
+    0
+   ]
+  }
+ },
+ "hypotheses": [
+  {
+   "name": "H1a same-colour acceptance",
+   "value": 0.9,
+   "target": 0.9,
+   "n": 20,
+   "passed": true,
+   "condition": "wb_warm"
+  },
+  {
+   "name": "H1b gated different-colour rejection",
+   "value": 1.0,
+   "target": 0.95,
+   "n": 30,
+   "passed": true,
+   "condition": "wb_warm"
+  },
+  {
+   "name": "H1a same-colour acceptance",
+   "value": 0.2,
+   "target": 0.9,
+   "n": 20,
+   "passed": false,
+   "condition": "spot_warm"
+  },
+  {
+   "name": "H1b gated different-colour rejection",
+   "value": 1.0,
+   "target": 0.95,
+   "n": 30,
+   "passed": true,
+   "condition": "spot_warm"
+  },
+  {
+   "name": "H1a same-colour acceptance",
+   "value": 0.2,
+   "target": 0.9,
+   "n": 20,
+   "passed": false,
+   "condition": "noise_jpeg"
+  },
+  {
+   "name": "H1b gated different-colour rejection",
+   "value": 1.0,
+   "target": 0.95,
+   "n": 30,
+   "passed": true,
+   "condition": "noise_jpeg"
+  },
+  {
+   "name": "H1c isogray rejection (pooled)",
+   "value": 1.0,
+   "target": 0.95,
+   "n": 36,
+   "passed": true,
+   "condition": "wb_warm+spot_warm+noise_jpeg"
+  },
+  {
+   "name": "H2a Blender same-colour acceptance",
+   "value": 0.75,
+   "target": 1.0,
+   "n": 4,
+   "passed": false,
+   "condition": "warm3200"
+  },
+  {
+   "name": "H2b Blender gated different-colour rejection",
+   "value": 1.0,
+   "target": 1.0,
+   "n": 7,
+   "passed": true,
+   "condition": "warm3200"
+  },
+  {
+   "name": "H2a Blender same-colour acceptance",
+   "value": 0.5,
+   "target": 1.0,
+   "n": 4,
+   "passed": false,
+   "condition": "mixed"
+  },
+  {
+   "name": "H2b Blender gated different-colour rejection",
+   "value": 1.0,
+   "target": 1.0,
+   "n": 7,
+   "passed": true,
+   "condition": "mixed"
+  },
+  {
+   "name": "H3 AUC vk_region >= chroma_masked",
+   "group": "syn_red",
+   "condition": "wb_warm",
+   "value": 1.0,
+   "baseline": 0.8636363636363636,
+   "n": 32,
+   "passed": true
+  },
+  {
+   "name": "H3 AUC vk_region >= masked_region",
+   "group": "syn_red",
+   "condition": "wb_warm",
+   "value": 1.0,
+   "baseline": 0.8636363636363636,
+   "n": 32,
+   "passed": true
+  },
+  {
+   "name": "H3 AUC vk_region >= chroma_masked",
+   "group": "syn_red",
+   "condition": "spot_warm",
+   "value": 0.4590909090909091,
+   "baseline": 0.7909090909090909,
+   "n": 32,
+   "passed": false
+  },
+  {
+   "name": "H3 AUC vk_region >= masked_region",
+   "group": "syn_red",
+   "condition": "spot_warm",
+   "value": 0.4590909090909091,
+   "baseline": 0.7909090909090909,
+   "n": 32,
+   "passed": false
+  },
+  {
+   "name": "H3 AUC vk_region >= chroma_masked",
+   "group": "syn_red",
+   "condition": "noise_jpeg",
+   "value": 1.0,
+   "baseline": 1.0,
+   "n": 32,
+   "passed": true
+  },
+  {
+   "name": "H3 AUC vk_region >= masked_region",
+   "group": "syn_red",
+   "condition": "noise_jpeg",
+   "value": 1.0,
+   "baseline": 1.0,
+   "n": 32,
+   "passed": true
+  },
+  {
+   "name": "H3 AUC vk_region >= chroma_masked",
+   "group": "syn_teal",
+   "condition": "wb_warm",
+   "value": 1.0,
+   "baseline": 0.7727272727272727,
+   "n": 32,
+   "passed": true
+  },
+  {
+   "name": "H3 AUC vk_region >= masked_region",
+   "group": "syn_teal",
+   "condition": "wb_warm",
+   "value": 1.0,
+   "baseline": 0.7727272727272727,
+   "n": 32,
+   "passed": true
+  },
+  {
+   "name": "H3 AUC vk_region >= chroma_masked",
+   "group": "syn_teal",
+   "condition": "spot_warm",
+   "value": 0.7090909090909091,
+   "baseline": 0.8136363636363636,
+   "n": 32,
+   "passed": false
+  },
+  {
+   "name": "H3 AUC vk_region >= masked_region",
+   "group": "syn_teal",
+   "condition": "spot_warm",
+   "value": 0.7090909090909091,
+   "baseline": 0.8136363636363636,
+   "n": 32,
+   "passed": false
+  },
+  {
+   "name": "H3 AUC vk_region >= chroma_masked",
+   "group": "syn_teal",
+   "condition": "noise_jpeg",
+   "value": 1.0,
+   "baseline": 1.0,
+   "n": 32,
+   "passed": true
+  },
+  {
+   "name": "H3 AUC vk_region >= masked_region",
+   "group": "syn_teal",
+   "condition": "noise_jpeg",
+   "value": 1.0,
+   "baseline": 1.0,
+   "n": 32,
+   "passed": true
+  },
+  {
+   "name": "H3 AUC vk_region >= chroma_masked",
+   "group": "bl_red",
+   "condition": "warm3200",
+   "value": 1.0,
+   "baseline": 0.5,
+   "n": 12,
+   "passed": true
+  },
+  {
+   "name": "H3 AUC vk_region >= masked_region",
+   "group": "bl_red",
+   "condition": "warm3200",
+   "value": 1.0,
+   "baseline": 0.5,
+   "n": 12,
+   "passed": true
+  },
+  {
+   "name": "H3 AUC vk_region >= chroma_masked",
+   "group": "bl_red",
+   "condition": "mixed",
+   "value": 1.0,
+   "baseline": 0.9375,
+   "n": 12,
+   "passed": true
+  },
+  {
+   "name": "H3 AUC vk_region >= masked_region",
+   "group": "bl_red",
+   "condition": "mixed",
+   "value": 1.0,
+   "baseline": 0.9375,
+   "n": 12,
+   "passed": true
+  }
+ ],
+ "hypotheses_passed": false,
+ "failed_checks": [
+  {
+   "name": "H1a same-colour acceptance",
+   "condition": "spot_warm",
+   "group": null,
+   "value": 0.2,
+   "target": 0.9,
+   "baseline": null,
+   "n": 20
+  },
+  {
+   "name": "H1a same-colour acceptance",
+   "condition": "noise_jpeg",
+   "group": null,
+   "value": 0.2,
+   "target": 0.9,
+   "baseline": null,
+   "n": 20
+  },
+  {
+   "name": "H2a Blender same-colour acceptance",
+   "condition": "warm3200",
+   "group": null,
+   "value": 0.75,
+   "target": 1.0,
+   "baseline": null,
+   "n": 4
+  },
+  {
+   "name": "H2a Blender same-colour acceptance",
+   "condition": "mixed",
+   "group": null,
+   "value": 0.5,
+   "target": 1.0,
+   "baseline": null,
+   "n": 4
+  },
+  {
+   "name": "H3 AUC vk_region >= chroma_masked",
+   "condition": "spot_warm",
+   "group": "syn_red",
+   "value": 0.4590909090909091,
+   "target": null,
+   "baseline": 0.7909090909090909,
+   "n": 32
+  },
+  {
+   "name": "H3 AUC vk_region >= masked_region",
+   "condition": "spot_warm",
+   "group": "syn_red",
+   "value": 0.4590909090909091,
+   "target": null,
+   "baseline": 0.7909090909090909,
+   "n": 32
+  },
+  {
+   "name": "H3 AUC vk_region >= chroma_masked",
+   "condition": "spot_warm",
+   "group": "syn_teal",
+   "value": 0.7090909090909091,
+   "target": null,
+   "baseline": 0.8136363636363636,
+   "n": 32
+  },
+  {
+   "name": "H3 AUC vk_region >= masked_region",
+   "condition": "spot_warm",
+   "group": "syn_teal",
+   "value": 0.7090909090909091,
+   "target": null,
+   "baseline": 0.8136363636363636,
+   "n": 32
+  }
+ ],
+ "recommended": false,
+ "decision": "NOT recommended. chroma_vk stays an opt-in research method; the pre-registered gates H1a (spot_warm, noise_jpeg), H2a (warm3200, mixed) and H3 (spot_warm, both families, both baselines) failed. No default changes.",
+ "defaults": "unchanged: chroma, rgb_ncc and gray_ncc are byte-identical in output to the base runner; GUI, core and research defaults untouched",
+ "predictions": [
+  {
+   "id": "P1",
+   "held": true,
+   "observed": "exposure_bright: vk_region abstained on all 64 synthetic objects (62 status 3, clipped panel; 2 status 2, clipped colour field); vk_none_region did not abstain, AUC red 1.000 / teal 0.864, accepted 0/20 same-colour",
+   "evidence": {
+    "red": {
+     "same_accepted": 0,
+     "same_n": 10,
+     "same_abstained": 10,
+     "different_wrongly_accepted": 0,
+     "different_n": 22,
+     "different_abstained": 22,
+     "auc": 0.5
+    },
+    "teal": {
+     "same_accepted": 0,
+     "same_n": 10,
+     "same_abstained": 10,
+     "different_wrongly_accepted": 0,
+     "different_n": 22,
+     "different_abstained": 22,
+     "auc": 0.5
+    },
+    "none_red": {
+     "same_accepted": 0,
+     "same_n": 10,
+     "same_abstained": 0,
+     "different_wrongly_accepted": 0,
+     "different_n": 22,
+     "different_abstained": 0,
+     "auc": 1.0
+    },
+    "none_teal": {
+     "same_accepted": 0,
+     "same_n": 10,
+     "same_abstained": 0,
+     "different_wrongly_accepted": 0,
+     "different_n": 22,
+     "different_abstained": 0,
+     "auc": 0.8636363636363636
+    }
+   }
+  },
+  {
+   "id": "P2",
+   "held": true,
+   "observed": "card_white abstained on every object under exposure_bright and wb_warm; it ALSO abstained under wb_cool (blue clipped, .9 x 1.22 > 1), which the prediction missed; card_gray never abstained on the reference (5 colour-support abstentions)",
+   "evidence": {
+    "wb_cool_red": {
+     "same_accepted": 0,
+     "same_n": 10,
+     "same_abstained": 10,
+     "different_wrongly_accepted": 0,
+     "different_n": 22,
+     "different_abstained": 22,
+     "auc": 0.5
+    },
+    "wb_warm_red": {
+     "same_accepted": 0,
+     "same_n": 10,
+     "same_abstained": 10,
+     "different_wrongly_accepted": 0,
+     "different_n": 22,
+     "different_abstained": 22,
+     "auc": 0.5
+    }
+   }
+  },
+  {
+   "id": "P3",
+   "held": true,
+   "observed": "card_gray: wb_warm 9/10 and 10/10 same-colour accepted, spot_warm 0/10 and 0/10",
+   "evidence": {
+    "red": {
+     "same_accepted": 0,
+     "same_n": 10,
+     "same_abstained": 0,
+     "different_wrongly_accepted": 0,
+     "different_n": 22,
+     "different_abstained": 1,
+     "auc": 0.8636363636363636
+    },
+    "teal": {
+     "same_accepted": 0,
+     "same_n": 10,
+     "same_abstained": 0,
+     "different_wrongly_accepted": 0,
+     "different_n": 22,
+     "different_abstained": 0,
+     "auc": 0.8363636363636363
+    }
+   }
+  },
+  {
+   "id": "P4",
+   "held": "partly",
+   "observed": "wb_warm same-colour accepted: vk_drop_region red 0/10 vs vk_region 10/10; teal 8/10 for both",
+   "evidence": {
+    "red": {
+     "same_accepted": 0,
+     "same_n": 10,
+     "same_abstained": 0,
+     "different_wrongly_accepted": 0,
+     "different_n": 22,
+     "different_abstained": 1,
+     "auc": 1.0
+    },
+    "teal": {
+     "same_accepted": 8,
+     "same_n": 10,
+     "same_abstained": 0,
+     "different_wrongly_accepted": 0,
+     "different_n": 22,
+     "different_abstained": 0,
+     "auc": 1.0
+    }
+   }
+  },
+  {
+   "id": "P5",
+   "held": "partly",
+   "observed": "noise_jpeg: vk_pixel accepted 0/10 and 0/10 (held); the existing chroma and chroma_masked accepted 10/10 because their calibration thresholds absorb the wb_cool shift (not held); vk_region accepted 1/10 and 3/10, so the region statistic is also shifted by JPEG (not held)",
+   "evidence": {
+    "vk_pixel": {
+     "same_accepted": 0,
+     "same_n": 10,
+     "same_abstained": 0,
+     "different_wrongly_accepted": 0,
+     "different_n": 22,
+     "different_abstained": 1,
+     "auc": 1.0
+    },
+    "vk_region": {
+     "same_accepted": 1,
+     "same_n": 10,
+     "same_abstained": 0,
+     "different_wrongly_accepted": 0,
+     "different_n": 22,
+     "different_abstained": 1,
+     "auc": 1.0
+    },
+    "chroma_masked": {
+     "same_accepted": 10,
+     "same_n": 10,
+     "same_abstained": 0,
+     "different_wrongly_accepted": 8,
+     "different_n": 22,
+     "different_abstained": 0,
+     "auc": 1.0
+    }
+   }
+  },
+  {
+   "id": "P6",
+   "held": false,
+   "observed": "vk_region rejected every lightness+ object (lightness at fixed a*, b* changes RGB chromaticity); the uncorrected chroma arms detected lightness+ weakly as predicted"
+  }
+ ],
+ "post_hoc": {
+  "note": "after the summary, not evidence: stage46-posthoc.json in validation-logs.tar.gz",
+  "findings": [
+   "Primary-arm separation is wide in every non-abstained cell: same-colour max 0.0002-0.0061 against the closest gated different colour 0.017 (red) / 0.029 (teal) and DeltaE 2 at 0.008 / 0.013; no different-colour object of any direction or DeltaE was accepted in any of the 19 scenes",
+   "The one-class p95 thresholds (red 0.00039, teal 0.00137, Blender 0.00094) sit just above the clean calibration distances; JPEG (same-colour median 0.0014 / 0.0026), the light gradient inside an object near the spot (up to 0.006) and Blender mixed light (0.0027) exceed them while staying 5-10x below the closest different colour",
+   "spot_warm: every object within 1.24 sigma of the spot centre abstained (panel red clipped); every object beyond 1.37 sigma was valid; abstentions rank as +inf in AUC, which is why H3 failed there (vk_none_region AUC 0.959 / 1.000 without abstentions)",
+   "The fallback policy (uncorrected when the reference abstains) wrongly accepted 8/22 and 11/22 different-colour objects under exposure_bright, so falling back is unsafe",
+   "card_gray_region accepted 57/80 held-out synthetic same-colour objects with 0 wrong acceptances, but 0/20 under spot_warm"
+  ],
+  "not_claimed": "No post-hoc threshold is adopted; a margin-based or noise-aware threshold rule needs its own pre-registered round"
+ }
+}

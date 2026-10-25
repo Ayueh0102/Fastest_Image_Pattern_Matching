@@ -26,45 +26,45 @@
     "metadata": "Filesystem sidecar metadata",
     "other": "No recognized role; inspect manually"
   },
-  "artifact_count": 618,
-  "artifact_bytes": 2384311749,
+  "artifact_count": 699,
+  "artifact_bytes": 2623068186,
   "artifact_role_counts": {
-    "archive": 108,
+    "archive": 122,
     "calibration": 4,
-    "failure_review": 20,
-    "false_gate": 52,
-    "formal": 25,
+    "failure_review": 25,
+    "false_gate": 57,
+    "formal": 46,
     "input": 21,
     "other": 53,
-    "pilot": 12,
-    "protocol": 44,
-    "provenance": 60,
-    "raw": 73,
-    "report": 71,
-    "source": 17,
-    "summary": 151,
-    "validation": 84,
+    "pilot": 19,
+    "protocol": 49,
+    "provenance": 73,
+    "raw": 82,
+    "report": 76,
+    "source": 23,
+    "summary": 166,
+    "validation": 94,
     "visual": 68
   },
-  "archive_member_count": 44349,
+  "archive_member_count": 48706,
   "archive_member_role_counts": {
     "archive": 26,
     "binary": 47,
     "calibration": 1,
-    "failure_review": 19,
-    "formal": 23075,
-    "input": 605,
+    "failure_review": 34,
+    "formal": 25493,
+    "input": 608,
     "metadata": 6526,
-    "other": 3030,
-    "pilot": 4157,
-    "protocol": 109,
-    "provenance": 115,
-    "raw": 11178,
-    "report": 82,
-    "source": 11172,
-    "summary": 995,
-    "validation": 974,
-    "visual": 884
+    "other": 3814,
+    "pilot": 4301,
+    "protocol": 113,
+    "provenance": 123,
+    "raw": 12546,
+    "report": 87,
+    "source": 12116,
+    "summary": 1053,
+    "validation": 1113,
+    "visual": 892
   },
   "artifacts": [
     {
@@ -81,8 +81,8 @@
       "path": "AUDIT_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 20817,
-      "sha256": "620db4f87500be57643165dbbf3cabacf75109507f39ee8c558e0abc9c60cb7d",
+      "bytes": 21193,
+      "sha256": "a352555feb4b9b52340b4a91c64929372ce9b5249c54cbdab73b6476eb75121e",
       "roles": [
         "report"
       ]
@@ -93,6 +93,16 @@
       "stage": null,
       "bytes": 22164,
       "sha256": "3e94706ade7f64932a422ddc3be581bdea7b6d8acd6afa0a7a405c2fea2365c5",
+      "roles": [
+        "report"
+      ]
+    },
+    {
+      "path": "CHROMA_MARGIN_zh-TW.md",
+      "group": "root",
+      "stage": null,
+      "bytes": 21352,
+      "sha256": "48898f8a0b94d9aa86dcf51e4ce2a7ffcd764889aa6b2aa312dbc05a748697f8",
       "roles": [
         "report"
       ]
@@ -131,8 +141,8 @@
       "path": "COLOR_VERIFY_RUNNER.md",
       "group": "root",
       "stage": null,
-      "bytes": 10700,
-      "sha256": "83743aacc2c72dbb5bdfe625e5127476985ba03e85b8ebdcefadfbdfcd2d33f3",
+      "bytes": 15337,
+      "sha256": "7aa5ef42cc617a7a38e5b1de190d61143daed6c7590b82cb8e33ec229482dca5",
       "roles": [
         "report"
       ]
@@ -143,6 +153,26 @@
       "stage": null,
       "bytes": 9992,
       "sha256": "ea1b893ed5318d88a46e91e2419f73964059fc09517c6859ea9800371ab0bbe3",
+      "roles": [
+        "report"
+      ]
+    },
+    {
+      "path": "CORE_EXHAUSTIVE_NCC_zh-TW.md",
+      "group": "root",
+      "stage": null,
+      "bytes": 9814,
+      "sha256": "936c46f77f89f945df2c59686939ee8fedd18225b093e819da533a8ff9fc3e4a",
+      "roles": [
+        "report"
+      ]
+    },
+    {
+      "path": "CORE_WARP_PYRDOWN_zh-TW.md",
+      "group": "root",
+      "stage": null,
+      "bytes": 9721,
+      "sha256": "eb9e75fe76859eb29a72ede70c42ed52adffa9154ffede5c22182f0a47587caa",
       "roles": [
         "report"
       ]
@@ -171,8 +201,8 @@
       "path": "CURRENT_BEST_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 12229,
-      "sha256": "df320830ae7470dc4be0ce9c83a1bab624402f5bde961e26f032da260e2392c8",
+      "bytes": 16435,
+      "sha256": "188c08482892e4051744e1bba841a2d9b4fa9c0962f49a0138612afb49a40c93",
       "roles": [
         "report"
       ]
@@ -222,8 +252,8 @@
       "path": "EXPERIMENT_REVIEW_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 82820,
-      "sha256": "4e046d7bddabaf4c13874786a185a8794a77936d957947a69cc83baee120f6ec",
+      "bytes": 92553,
+      "sha256": "8116fc4df9db098c61bd3984829b7eb48dee5aed9850245acac365f6d1fb1c9f",
       "roles": [
         "report"
       ]
@@ -284,6 +314,16 @@
       "stage": null,
       "bytes": 8270,
       "sha256": "e0c41a6a0496bff5f9778aeca435e0b8b887afcfd98a1edda744def8b45ca8d3",
+      "roles": [
+        "report"
+      ]
+    },
+    {
+      "path": "FRAME_OVERHEADS_zh-TW.md",
+      "group": "root",
+      "stage": null,
+      "bytes": 18894,
+      "sha256": "40efc0b536adc43033c05992201dbd3aaea726470109f22c8f54f009a321bc50",
       "roles": [
         "report"
       ]
@@ -369,11 +409,21 @@
       ]
     },
     {
+      "path": "ILLUMINANT_CHROMA_zh-TW.md",
+      "group": "root",
+      "stage": null,
+      "bytes": 19036,
+      "sha256": "1d04989dc5875c1a6bb22e0d9ceee463630f6957810ee8de60263ba9b8644dbe",
+      "roles": [
+        "report"
+      ]
+    },
+    {
       "path": "LOG_CATALOG_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 14490,
-      "sha256": "95d20e3a0a65941309910da10d74f79323f9d2e3dec069cc11838533c3588ff2",
+      "bytes": 19516,
+      "sha256": "3758fce7046239b1390677f21b3c27ee643749fd4dafbf70cb6a3bdf9b2e9bee",
       "roles": [
         "report"
       ]
@@ -443,8 +493,8 @@
       "path": "NEW_FRAME_COST_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 14846,
-      "sha256": "a6a3e8db440895dfd6cf0039630760034642698b43390abe6cfd8bbc5093b6fb",
+      "bytes": 15242,
+      "sha256": "3e46ecb7eba26b420fd1fbe0c18b61bfff78033c0cba3550ac7e76d7d40d01a5",
       "roles": [
         "report"
       ]
@@ -543,8 +593,8 @@
       "path": "PROJECT_STATUS_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 10303,
-      "sha256": "624999dbacc0ce96fbc706c65b960dddaea25fe00d1cfecce1e748b235f09fb9",
+      "bytes": 14651,
+      "sha256": "12175f882c0e32395ce682b4a694a93df85c308a8e1d39053972dc6dd75a1ec1",
       "roles": [
         "report"
       ]
@@ -735,8 +785,8 @@
       "path": "TESTBED_V1_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 9334,
-      "sha256": "4a182fbbd70740f39f6fdd3c7b1fa6ecc1805f9cc98663cf75e9a974b5c4e322",
+      "bytes": 9924,
+      "sha256": "a4ed1d1c95cf982ecdbba6294f2016d98e7a277d93d80805b110269cb36d594c",
       "roles": [
         "report"
       ]
@@ -1536,6 +1586,394 @@
       "stage": null,
       "bytes": 2845,
       "sha256": "b0716225b74006429b27bf5725844d6022d4e264f1122360389bd2eb464f6546",
+      "roles": [
+        "validation"
+      ]
+    },
+    {
+      "path": "core-exhaustive-ncc/archive.json",
+      "group": "core-exhaustive-ncc",
+      "stage": null,
+      "bytes": 1764,
+      "sha256": "caa55d1def19b51f78a562f1c5d07ac970b38630bdf76f512458324fc9d5e5aa",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "core-exhaustive-ncc/decision-and-failures.json",
+      "group": "core-exhaustive-ncc",
+      "stage": null,
+      "bytes": 5309,
+      "sha256": "525f1da2b265e438d9ae9d95c594790fc4952ffe42edc16990d856cc1bb9c17d",
+      "roles": [
+        "failure_review"
+      ]
+    },
+    {
+      "path": "core-exhaustive-ncc/formal/fixtures-ab.json",
+      "group": "core-exhaustive-ncc",
+      "stage": null,
+      "bytes": 12544,
+      "sha256": "055cb4e8163cc40789e459a73cee793d75ac77dce65aaaac93b0b8367a0c2fc6",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "core-exhaustive-ncc/formal/fixtures-ab.log",
+      "group": "core-exhaustive-ncc",
+      "stage": null,
+      "bytes": 1178,
+      "sha256": "b254b6bcb206b32a61755f581c6dca39e209692e956aab517219b75f0bee77e8",
+      "roles": [
+        "formal",
+        "raw"
+      ]
+    },
+    {
+      "path": "core-exhaustive-ncc/formal/modes-after-1.json",
+      "group": "core-exhaustive-ncc",
+      "stage": null,
+      "bytes": 17543,
+      "sha256": "c89f2c4fc6502f76db16ec394303388fbfde477b07097aeb46cce24c0545b25f",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "core-exhaustive-ncc/formal/modes-after-2.json",
+      "group": "core-exhaustive-ncc",
+      "stage": null,
+      "bytes": 17558,
+      "sha256": "aad1d742cb24ec9c2d352f4f2c53763cae3d62803df4e838212f9b71babeca03",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "core-exhaustive-ncc/formal/modes-after-3.json",
+      "group": "core-exhaustive-ncc",
+      "stage": null,
+      "bytes": 17549,
+      "sha256": "bcc4a8b43062ac6cbb82654a86a6e4361873f95490ae22e2c8bbed4273ed2500",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "core-exhaustive-ncc/formal/modes-before-1.json",
+      "group": "core-exhaustive-ncc",
+      "stage": null,
+      "bytes": 17539,
+      "sha256": "0bc363cc71411db615f9b67ff4128639a21fddf3f5bb616b8a8dfa749124fa20",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "core-exhaustive-ncc/formal/modes-before-2.json",
+      "group": "core-exhaustive-ncc",
+      "stage": null,
+      "bytes": 17552,
+      "sha256": "ebcfe7e245c97813e12b0504a32c936cc3e51c2fb50fcc21c82dd218646b46b5",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "core-exhaustive-ncc/formal/modes-before-3.json",
+      "group": "core-exhaustive-ncc",
+      "stage": null,
+      "bytes": 17554,
+      "sha256": "830235c808e4a60c9a70b1f6820f0a9150a27fafe817ed84faad668353ea4e76",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "core-exhaustive-ncc/formal/modes-sessions.log",
+      "group": "core-exhaustive-ncc",
+      "stage": null,
+      "bytes": 2859,
+      "sha256": "79d397ae1f9df0112e77106274ef2abcbf123148639daf81fb995262c903a521",
+      "roles": [
+        "formal",
+        "raw"
+      ]
+    },
+    {
+      "path": "core-exhaustive-ncc/formal/summary.json",
+      "group": "core-exhaustive-ncc",
+      "stage": null,
+      "bytes": 7562,
+      "sha256": "5c1e3758eb43e455b76a6cf4ffd368adc9794f0eb269a5ae266e8c9c46ef64ad",
+      "roles": [
+        "formal",
+        "summary"
+      ]
+    },
+    {
+      "path": "core-exhaustive-ncc/pilot/pilot-console-transcript.txt",
+      "group": "core-exhaustive-ncc",
+      "stage": null,
+      "bytes": 2974,
+      "sha256": "faa734ae064514796e1e73e2663bd8e40d9a705c98513ea11cde4268770e4263",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "core-exhaustive-ncc/pilot/pilot1-ncc.cpp",
+      "group": "core-exhaustive-ncc",
+      "stage": null,
+      "bytes": 20529,
+      "sha256": "02f3dd8023eeddea4157794ffd33197d83e3585ed996df2bac8adbf939757c0c",
+      "roles": [
+        "pilot",
+        "source"
+      ]
+    },
+    {
+      "path": "core-exhaustive-ncc/pilot/window-micro-output-rerun.txt",
+      "group": "core-exhaustive-ncc",
+      "stage": null,
+      "bytes": 1181,
+      "sha256": "3e30488e51a9869529d4d24438d512f9caf0d1ce5985b6377f4931d3bee7116a",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "core-exhaustive-ncc/pilot/window_micro.cpp",
+      "group": "core-exhaustive-ncc",
+      "stage": null,
+      "bytes": 6448,
+      "sha256": "1d92bf8b954e6fcf0ae4d06d5fa79ef1524f83e5307b36c3ace363e79224d8e2",
+      "roles": [
+        "pilot",
+        "source"
+      ]
+    },
+    {
+      "path": "core-exhaustive-ncc/protocol.json",
+      "group": "core-exhaustive-ncc",
+      "stage": null,
+      "bytes": 2351,
+      "sha256": "1dd1e6567c139fc7a09d2689a386301f00700ddffdbca7292b0d9559dc62a747",
+      "roles": [
+        "protocol"
+      ]
+    },
+    {
+      "path": "core-exhaustive-ncc/validation-logs.tar.gz",
+      "group": "core-exhaustive-ncc",
+      "stage": null,
+      "bytes": 462086,
+      "sha256": "a5658054d27107ec0c2dd04dbff3e98f50a83f124a4c4b94f2117b0711eec8a2",
+      "roles": [
+        "archive",
+        "validation"
+      ],
+      "archive_file_count": 50,
+      "archive_role_counts": {
+        "other": 12,
+        "pilot": 1,
+        "raw": 31,
+        "source": 6,
+        "summary": 1,
+        "validation": 6
+      }
+    },
+    {
+      "path": "core-exhaustive-ncc/validation.json",
+      "group": "core-exhaustive-ncc",
+      "stage": null,
+      "bytes": 2129,
+      "sha256": "c926f741f677669882b65e1a12251d80a92e015d48c31c2a740c054780071aeb",
+      "roles": [
+        "validation"
+      ]
+    },
+    {
+      "path": "core-warp-pyrdown/archive.json",
+      "group": "core-warp-pyrdown",
+      "stage": null,
+      "bytes": 1553,
+      "sha256": "4dfc6268745d22b6a16bfdaf7917d8f13fb7a9e7f51b4882d05d076e473b0947",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "core-warp-pyrdown/decision-and-failures.json",
+      "group": "core-warp-pyrdown",
+      "stage": null,
+      "bytes": 5073,
+      "sha256": "75141d00229207d21f94ca2cd05011a4127d2fd684ae7c854b2e5045bd7bdc2d",
+      "roles": [
+        "failure_review"
+      ]
+    },
+    {
+      "path": "core-warp-pyrdown/formal/fixtures-ab.json",
+      "group": "core-warp-pyrdown",
+      "stage": null,
+      "bytes": 12604,
+      "sha256": "7425a600ddcaa00e42c3cc14c0fc699af3bfad67044476aa5a5ab5d810bdafc9",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "core-warp-pyrdown/formal/fixtures-ab.log",
+      "group": "core-warp-pyrdown",
+      "stage": null,
+      "bytes": 1184,
+      "sha256": "df8ad6dba50fa4fe0b278544de9e9c1cada6aa76514d45c28edc955082846ddf",
+      "roles": [
+        "formal",
+        "raw"
+      ]
+    },
+    {
+      "path": "core-warp-pyrdown/formal/modes-after-1.json",
+      "group": "core-warp-pyrdown",
+      "stage": null,
+      "bytes": 17556,
+      "sha256": "c9bf51d0a512f45f3b5e550b8e48dfb77b60b6492e63428415a4b193326fadcf",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "core-warp-pyrdown/formal/modes-after-2.json",
+      "group": "core-warp-pyrdown",
+      "stage": null,
+      "bytes": 17542,
+      "sha256": "654e9a8face3349ff430b7e9f5a51cbff85bae755a5badb71aaf0cf6018ee4e7",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "core-warp-pyrdown/formal/modes-after-3.json",
+      "group": "core-warp-pyrdown",
+      "stage": null,
+      "bytes": 17559,
+      "sha256": "eb1d08bd8babf6a4caaedebd32f7b01ea7cd7d6b7999a9264fd253a8f502fc93",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "core-warp-pyrdown/formal/modes-before-1.json",
+      "group": "core-warp-pyrdown",
+      "stage": null,
+      "bytes": 17567,
+      "sha256": "c733e217700ea9c96d742b7154d56bb22234fe45745efd703f5fe5aac793a853",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "core-warp-pyrdown/formal/modes-before-2.json",
+      "group": "core-warp-pyrdown",
+      "stage": null,
+      "bytes": 17559,
+      "sha256": "cde424df3de231d1cda467ab73bc157498340fc786c060bb06639968a5d4b5ad",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "core-warp-pyrdown/formal/modes-before-3.json",
+      "group": "core-warp-pyrdown",
+      "stage": null,
+      "bytes": 17558,
+      "sha256": "6e1e71f0d03c614aafd9613aa9fa7ca44175ef95472e42a92db79ed59f8b0357",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "core-warp-pyrdown/formal/modes-sessions.log",
+      "group": "core-warp-pyrdown",
+      "stage": null,
+      "bytes": 2867,
+      "sha256": "dd9a2eff252b871c13531a7b69b19d871061537152b6b13446bfd3db8fee1cb9",
+      "roles": [
+        "formal",
+        "raw"
+      ]
+    },
+    {
+      "path": "core-warp-pyrdown/formal/summary.json",
+      "group": "core-warp-pyrdown",
+      "stage": null,
+      "bytes": 7602,
+      "sha256": "4e810f49cc85e33339823ad790e4ea4486adb784ee38c3f1947d957134e8dcca",
+      "roles": [
+        "formal",
+        "summary"
+      ]
+    },
+    {
+      "path": "core-warp-pyrdown/pilot/micro-output-rerun.txt",
+      "group": "core-warp-pyrdown",
+      "stage": null,
+      "bytes": 426,
+      "sha256": "378867c683537b7b37fda42c6ffe1243e2c7d34a801adce13ff4ba03f224bf97",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "core-warp-pyrdown/pilot/warp_micro.cpp",
+      "group": "core-warp-pyrdown",
+      "stage": null,
+      "bytes": 19898,
+      "sha256": "578ae610a396d94f4fd60ce673e167f053ae2bd0f70aeb5f16fbe2b77c577437",
+      "roles": [
+        "pilot",
+        "source"
+      ]
+    },
+    {
+      "path": "core-warp-pyrdown/protocol.json",
+      "group": "core-warp-pyrdown",
+      "stage": null,
+      "bytes": 2071,
+      "sha256": "6a35c89f736e9fa8259a4c291c0a503a19c78591ab98b12bea37311a8c59c8b4",
+      "roles": [
+        "protocol"
+      ]
+    },
+    {
+      "path": "core-warp-pyrdown/validation-logs.tar.gz",
+      "group": "core-warp-pyrdown",
+      "stage": null,
+      "bytes": 443623,
+      "sha256": "7f37562bfb6ba1d1579558f5d37510288f5b0e7d15fec92f4e6351380d2d6921",
+      "roles": [
+        "archive",
+        "validation"
+      ],
+      "archive_file_count": 48,
+      "archive_role_counts": {
+        "other": 12,
+        "raw": 31,
+        "source": 4,
+        "summary": 1,
+        "validation": 6
+      }
+    },
+    {
+      "path": "core-warp-pyrdown/validation.json",
+      "group": "core-warp-pyrdown",
+      "stage": null,
+      "bytes": 2127,
+      "sha256": "468582e77296a56753ac86c62fbe1eb39ff83a0d0acd4626c0a1948e9cb8a4f1",
       "roles": [
         "validation"
       ]
@@ -8199,6 +8637,583 @@
       ]
     },
     {
+      "path": "stage46-illuminant-chroma/archive.json",
+      "group": "stage46-illuminant-chroma",
+      "stage": "46",
+      "bytes": 1902,
+      "sha256": "201a2147ab2d62b79cb4fff4f8803614bdc222fec0f06bc93743ee2e01b87753",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage46-illuminant-chroma/decision-and-failures.json",
+      "group": "stage46-illuminant-chroma",
+      "stage": "46",
+      "bytes": 14074,
+      "sha256": "32efa28ef208408a4ef21a63b3206a6d0f61899d5ba3b1aa83c6b47a1dc02440",
+      "roles": [
+        "failure_review",
+        "false_gate"
+      ],
+      "explicit_false_gates": [
+        "/hypotheses/2/passed",
+        "/hypotheses/4/passed",
+        "/hypotheses/7/passed",
+        "/hypotheses/9/passed",
+        "/hypotheses/13/passed",
+        "/hypotheses/14/passed",
+        "/hypotheses/19/passed",
+        "/hypotheses/20/passed",
+        "/hypotheses_passed"
+      ]
+    },
+    {
+      "path": "stage46-illuminant-chroma/input-sha256.json",
+      "group": "stage46-illuminant-chroma",
+      "stage": "46",
+      "bytes": 4773,
+      "sha256": "7bf8c91cd2fa24dd0bf4d8a8d56dfd4c4a34aa0884773c384bd92e2adb37a778",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage46-illuminant-chroma/protocol.json",
+      "group": "stage46-illuminant-chroma",
+      "stage": "46",
+      "bytes": 13798,
+      "sha256": "5e95613754f7672fe70becb3cc4eeaf08d7d0a602789036fa119e93ffce96e95",
+      "roles": [
+        "protocol"
+      ]
+    },
+    {
+      "path": "stage46-illuminant-chroma/raw-files-sha256.json",
+      "group": "stage46-illuminant-chroma",
+      "stage": "46",
+      "bytes": 101614,
+      "sha256": "ae344e3b7909e9a8d7e748c8103cf38b72a56892d21c46b07f2ed0cc8523b7ef",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage46-illuminant-chroma/raw-results.tar.gz",
+      "group": "stage46-illuminant-chroma",
+      "stage": "46",
+      "bytes": 1837001,
+      "sha256": "d87f20f49585eb37352bb74bc1be03c3892b122171bdc224e7cccdaa2d9928e0",
+      "roles": [
+        "archive",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 730,
+      "archive_role_counts": {
+        "formal": 482,
+        "other": 242,
+        "provenance": 1,
+        "raw": 242,
+        "visual": 4
+      }
+    },
+    {
+      "path": "stage46-illuminant-chroma/source-sha256.json",
+      "group": "stage46-illuminant-chroma",
+      "stage": "46",
+      "bytes": 35263,
+      "sha256": "77d8ae2c504a20a50445f26136d2448fa63fc353420aeb4abf18ed74f611c684",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage46-illuminant-chroma/source-snapshot.tar.gz",
+      "group": "stage46-illuminant-chroma",
+      "stage": "46",
+      "bytes": 930950,
+      "sha256": "6b7e8906a02cdcfe2148fc41b6458287b35143266a0a80878eb83bd677321d8d",
+      "roles": [
+        "archive",
+        "source"
+      ],
+      "archive_file_count": 311,
+      "archive_role_counts": {
+        "input": 1,
+        "other": 9,
+        "report": 1,
+        "source": 300,
+        "summary": 18,
+        "validation": 2
+      }
+    },
+    {
+      "path": "stage46-illuminant-chroma/summary.json",
+      "group": "stage46-illuminant-chroma",
+      "stage": "46",
+      "bytes": 2406996,
+      "sha256": "ddb3df33e32ece82f69b3fdeb02b8072ca80489585c835cd49558c4ca6504cff",
+      "roles": [
+        "false_gate",
+        "summary"
+      ],
+      "explicit_false_gates": [
+        "/hypotheses/2/passed",
+        "/hypotheses/4/passed",
+        "/hypotheses/7/passed",
+        "/hypotheses/9/passed",
+        "/hypotheses/13/passed",
+        "/hypotheses/14/passed",
+        "/hypotheses/19/passed",
+        "/hypotheses/20/passed",
+        "/hypotheses_passed"
+      ]
+    },
+    {
+      "path": "stage46-illuminant-chroma/validation-logs.tar.gz",
+      "group": "stage46-illuminant-chroma",
+      "stage": "46",
+      "bytes": 34677,
+      "sha256": "b2d2908a201aefc798615a4925435a9f17e6d1ab6445291b811d785cea359273",
+      "roles": [
+        "archive",
+        "validation"
+      ],
+      "archive_file_count": 33,
+      "archive_role_counts": {
+        "raw": 11,
+        "report": 1,
+        "source": 10,
+        "validation": 33
+      }
+    },
+    {
+      "path": "stage46-illuminant-chroma/validation.json",
+      "group": "stage46-illuminant-chroma",
+      "stage": "46",
+      "bytes": 13319,
+      "sha256": "ded3d8e41bd4399013d08e65bf19677c4812749acc0c4ad6a49c6aebc78ac3ce",
+      "roles": [
+        "validation"
+      ]
+    },
+    {
+      "path": "stage47-chroma-margin/archive.json",
+      "group": "stage47-chroma-margin",
+      "stage": "47",
+      "bytes": 2232,
+      "sha256": "be979cb9a21a4988560212e495236bc6c454c8c2604e83e949b6c70fccea55f4",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage47-chroma-margin/decision-and-failures.json",
+      "group": "stage47-chroma-margin",
+      "stage": "47",
+      "bytes": 33368,
+      "sha256": "8c3ee93016cc0b4075940690c4e43ff4255799318b918e17ff716f5425c2178f",
+      "roles": [
+        "failure_review",
+        "false_gate"
+      ],
+      "explicit_false_gates": [
+        "/gradient/checks/2/passed",
+        "/gradient/checks_passed"
+      ]
+    },
+    {
+      "path": "stage47-chroma-margin/holdout-metadata.tar.gz",
+      "group": "stage47-chroma-margin",
+      "stage": "47",
+      "bytes": 27075,
+      "sha256": "ddb5a44c0cb7e8988ec36cf4bb2fe1c8a1c8d6dbcff292b3cc1c2b946e7637c7",
+      "roles": [
+        "archive"
+      ],
+      "archive_file_count": 25,
+      "archive_role_counts": {
+        "other": 23,
+        "provenance": 1,
+        "raw": 1
+      }
+    },
+    {
+      "path": "stage47-chroma-margin/input-sha256.json",
+      "group": "stage47-chroma-margin",
+      "stage": "47",
+      "bytes": 15261,
+      "sha256": "e530dab5063b28f7b0d3155de293ec555b923f6907d7ecbffa4af99124d622ca",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage47-chroma-margin/protocol.json",
+      "group": "stage47-chroma-margin",
+      "stage": "47",
+      "bytes": 21495,
+      "sha256": "5ee5b0375b2fd94908ef26b5571eeec9c008e74b728e4405e6710fd08b7963a2",
+      "roles": [
+        "protocol"
+      ]
+    },
+    {
+      "path": "stage47-chroma-margin/raw-files-sha256.json",
+      "group": "stage47-chroma-margin",
+      "stage": "47",
+      "bytes": 176147,
+      "sha256": "d5385f45f98225a2cefef9e8067ee27565864d8b7bd8a52abb0378eed22d7dbc",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage47-chroma-margin/raw-results.tar.gz",
+      "group": "stage47-chroma-margin",
+      "stage": "47",
+      "bytes": 3524841,
+      "sha256": "08aa9678824761966824bb8b9516d407f04fb6c739062c8069a438d3b166abd6",
+      "roles": [
+        "archive",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 1242,
+      "archive_role_counts": {
+        "formal": 824,
+        "other": 413,
+        "provenance": 1,
+        "raw": 412,
+        "visual": 4
+      }
+    },
+    {
+      "path": "stage47-chroma-margin/source-sha256.json",
+      "group": "stage47-chroma-margin",
+      "stage": "47",
+      "bytes": 36141,
+      "sha256": "05a7b00dd14f5b1a48ce283ed6b57b8d92c9c11b2a0bbb2fa318dd798e776852",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage47-chroma-margin/source-snapshot.tar.gz",
+      "group": "stage47-chroma-margin",
+      "stage": "47",
+      "bytes": 957664,
+      "sha256": "33bcc0cf60acb62492852417db0b43168135841ffde66800fabaaa79f8ec7e0f",
+      "roles": [
+        "archive",
+        "source"
+      ],
+      "archive_file_count": 315,
+      "archive_role_counts": {
+        "input": 1,
+        "other": 9,
+        "report": 1,
+        "source": 304,
+        "summary": 18,
+        "validation": 2
+      }
+    },
+    {
+      "path": "stage47-chroma-margin/summary.json",
+      "group": "stage47-chroma-margin",
+      "stage": "47",
+      "bytes": 3815116,
+      "sha256": "940328cc37a0a0b9010c986f79c35219a2bd61af9c5bfe788642ce62ca22b281",
+      "roles": [
+        "false_gate",
+        "summary"
+      ],
+      "explicit_false_gates": [
+        "/hypotheses/catch/vk_linear_region/2/passed",
+        "/hypotheses/rayleigh/vk_region/0/passed",
+        "/hypotheses/rayleigh/vk_region/2/passed",
+        "/hypotheses/rayleigh/vk_region/4/passed",
+        "/hypotheses/rayleigh/vk_region/8/passed",
+        "/hypotheses/rayleigh/vk_region/10/passed",
+        "/hypotheses/rayleigh/vk_region/14/passed",
+        "/hypotheses/rayleigh/vk_linear_region/0/passed",
+        "/hypotheses/rayleigh/vk_linear_region/2/passed",
+        "/hypotheses/rayleigh/vk_linear_region/4/passed",
+        "/hypotheses/rayleigh/vk_linear_region/8/passed",
+        "/hypotheses/rayleigh/vk_linear_region/10/passed",
+        "/hypotheses/p95/vk_region/0/passed",
+        "/hypotheses/p95/vk_region/2/passed",
+        "/hypotheses/p95/vk_region/4/passed",
+        "/hypotheses/p95/vk_region/8/passed",
+        "/hypotheses/p95/vk_region/10/passed",
+        "/hypotheses/p95/vk_region/14/passed",
+        "/hypotheses/p95/vk_linear_region/0/passed",
+        "/hypotheses/p95/vk_linear_region/2/passed",
+        "/hypotheses/p95/vk_linear_region/4/passed",
+        "/hypotheses/p95/vk_linear_region/8/passed",
+        "/hypotheses/p95/vk_linear_region/10/passed",
+        "/hypotheses/p95/vk_linear_region/12/passed",
+        "/hypotheses/p95/vk_linear_region/14/passed",
+        "/end_to_end/vk_region/1/passed",
+        "/end_to_end/vk_linear_region/1/passed",
+        "/gradient_checks_passed"
+      ]
+    },
+    {
+      "path": "stage47-chroma-margin/validation-logs.tar.gz",
+      "group": "stage47-chroma-margin",
+      "stage": "47",
+      "bytes": 44205,
+      "sha256": "cd29cf929bec0e51684526935ec5bcf6601fafa437aaba7b6c114a6c8b0823bb",
+      "roles": [
+        "archive",
+        "validation"
+      ],
+      "archive_file_count": 51,
+      "archive_role_counts": {
+        "failure_review": 12,
+        "protocol": 4,
+        "raw": 20,
+        "report": 1,
+        "source": 11,
+        "validation": 51
+      }
+    },
+    {
+      "path": "stage47-chroma-margin/validation.json",
+      "group": "stage47-chroma-margin",
+      "stage": "47",
+      "bytes": 34822,
+      "sha256": "a800f47256af4894b3862eaf8686e060808835d88ad75c6031edd2b4e7689345",
+      "roles": [
+        "validation"
+      ]
+    },
+    {
+      "path": "stage48-frame-overheads/analysis-revision.json",
+      "group": "stage48-frame-overheads",
+      "stage": "48",
+      "bytes": 17164,
+      "sha256": "2c0347d3e789ba07b2cbf926a85ab144a516fbe65ce18b975c88b6322679710b",
+      "roles": [
+        "summary"
+      ]
+    },
+    {
+      "path": "stage48-frame-overheads/archive.json",
+      "group": "stage48-frame-overheads",
+      "stage": "48",
+      "bytes": 3769,
+      "sha256": "712fd0a130392b29446bcc4dd069c4d6f1aa1362f0e6d0cdb538618ac333542f",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage48-frame-overheads/decision-and-failures.json",
+      "group": "stage48-frame-overheads",
+      "stage": "48",
+      "bytes": 118842,
+      "sha256": "06a98386ac17645bd0187c508fecbfc1794c313db268264cb3f307f3dd1aa12b",
+      "roles": [
+        "failure_review"
+      ]
+    },
+    {
+      "path": "stage48-frame-overheads/dose-summary.json",
+      "group": "stage48-frame-overheads",
+      "stage": "48",
+      "bytes": 145585,
+      "sha256": "a69790e39d45b48d9dda6e9bb2db4cec8bf2d8434f1661119d3f70dcecf085a9",
+      "roles": [
+        "summary"
+      ]
+    },
+    {
+      "path": "stage48-frame-overheads/formal-summary.json",
+      "group": "stage48-frame-overheads",
+      "stage": "48",
+      "bytes": 862074,
+      "sha256": "7d34d1fb9e858976e85544b3530fb59f42873af21792c954eb9ff0a4bcbe11ab",
+      "roles": [
+        "formal",
+        "summary"
+      ]
+    },
+    {
+      "path": "stage48-frame-overheads/input-sha256.json",
+      "group": "stage48-frame-overheads",
+      "stage": "48",
+      "bytes": 633,
+      "sha256": "529790644eb862428b6ccf411165cd8912c1c2db219fdf639668d3343de4f6e3",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage48-frame-overheads/pilot-summary.json",
+      "group": "stage48-frame-overheads",
+      "stage": "48",
+      "bytes": 345671,
+      "sha256": "3d322c933a1626b7dae7007abcadb0632e1a5ef095e5e7df75d2265bfad3e98b",
+      "roles": [
+        "pilot",
+        "summary"
+      ]
+    },
+    {
+      "path": "stage48-frame-overheads/profile-summary-frozen-driver.json",
+      "group": "stage48-frame-overheads",
+      "stage": "48",
+      "bytes": 156690,
+      "sha256": "daf7c9636c94c9182fafab7883590068c61325589c1f47458dd9e3193198b8c4",
+      "roles": [
+        "summary"
+      ]
+    },
+    {
+      "path": "stage48-frame-overheads/profile-summary.json",
+      "group": "stage48-frame-overheads",
+      "stage": "48",
+      "bytes": 73465,
+      "sha256": "401629e0510756c7893be754df6ecbcd0afa65c59aff4ee48d7c76eb5a558e6b",
+      "roles": [
+        "summary"
+      ]
+    },
+    {
+      "path": "stage48-frame-overheads/protocol.json",
+      "group": "stage48-frame-overheads",
+      "stage": "48",
+      "bytes": 9863,
+      "sha256": "9e71a2030fbe509a53598e3daee24f73124836266af14c3cb8e49c681411e0f3",
+      "roles": [
+        "protocol"
+      ]
+    },
+    {
+      "path": "stage48-frame-overheads/raw-results-formal-full-gpu.tar.gz",
+      "group": "stage48-frame-overheads",
+      "stage": "48",
+      "bytes": 67260764,
+      "sha256": "a15c150f75cde3720024950ee38a419b677dd3facf7ef3d531da4de81fc79d7f",
+      "roles": [
+        "archive",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 481,
+      "archive_role_counts": {
+        "formal": 481,
+        "provenance": 1,
+        "raw": 240
+      }
+    },
+    {
+      "path": "stage48-frame-overheads/raw-results-formal-hybrid-best.tar.gz",
+      "group": "stage48-frame-overheads",
+      "stage": "48",
+      "bytes": 91537473,
+      "sha256": "bccfcd0037af037a8d32a813f060e991244e67b086968e1100d05c9949f39f56",
+      "roles": [
+        "archive",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 360,
+      "archive_role_counts": {
+        "formal": 360,
+        "raw": 180
+      }
+    },
+    {
+      "path": "stage48-frame-overheads/raw-results-other.tar.gz",
+      "group": "stage48-frame-overheads",
+      "stage": "48",
+      "bytes": 61630347,
+      "sha256": "ba8134bc49d27a14ceca0c955c361a887eba2cb87d5850c62e12d833d21e0bde",
+      "roles": [
+        "archive",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 363,
+      "archive_role_counts": {
+        "formal": 270,
+        "other": 55,
+        "pilot": 141,
+        "provenance": 3,
+        "raw": 180
+      }
+    },
+    {
+      "path": "stage48-frame-overheads/source-sha256.json",
+      "group": "stage48-frame-overheads",
+      "stage": "48",
+      "bytes": 35761,
+      "sha256": "2aa3521da4fbb59caa5c8f7f07c72f53d31abefc007e03cd80d1cffd33ef1d5a",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage48-frame-overheads/source-snapshot.tar.gz",
+      "group": "stage48-frame-overheads",
+      "stage": "48",
+      "bytes": 947459,
+      "sha256": "28787eb1bb920f54be837df3070fadfd34aa3c492b4185fabe61154af6cfe045",
+      "roles": [
+        "archive",
+        "source"
+      ],
+      "archive_file_count": 311,
+      "archive_role_counts": {
+        "input": 1,
+        "other": 9,
+        "provenance": 1,
+        "report": 1,
+        "source": 299,
+        "summary": 18,
+        "validation": 2
+      }
+    },
+    {
+      "path": "stage48-frame-overheads/validation-logs.tar.gz",
+      "group": "stage48-frame-overheads",
+      "stage": "48",
+      "bytes": 162960,
+      "sha256": "d875a17c0c90dc32172292421fee51ede391108d1d61e6923bbac3e3e2e3c5a1",
+      "roles": [
+        "archive",
+        "validation"
+      ],
+      "archive_file_count": 37,
+      "archive_role_counts": {
+        "failure_review": 3,
+        "formal": 1,
+        "pilot": 2,
+        "raw": 20,
+        "source": 10,
+        "summary": 2,
+        "validation": 37
+      }
+    },
+    {
+      "path": "stage48-frame-overheads/validation.json",
+      "group": "stage48-frame-overheads",
+      "stage": "48",
+      "bytes": 18476,
+      "sha256": "ba1213428cf92d73210b1aaa6f8733810ec1afdea61419722a60cce222dbc209",
+      "roles": [
+        "false_gate",
+        "validation"
+      ],
+      "explicit_false_gates": [
+        "/independent_audit/all_checks_pass"
+      ]
+    },
+    {
       "path": "validation-after-refinement.json",
       "group": "root",
       "stage": null,
@@ -8219,5 +9234,5 @@
       ]
     }
   ],
-  "archive_member_index_sha256": "219509a0f4f5d9b04a4613df9b243528a9555de44fd16349dbbb4e114fd81fab"
+  "archive_member_index_sha256": "9e1f41d7e2cbabd753bda73739c53b7a735b85cd42fd807fe7775487fb9ab367"
 }

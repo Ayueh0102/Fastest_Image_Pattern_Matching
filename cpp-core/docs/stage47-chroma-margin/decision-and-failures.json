@@ -1,0 +1,1554 @@
+{
+ "stage": 47,
+ "protocol_sha256": "5ee5b0375b2fd94908ef26b5571eeec9c008e74b728e4405e6710fd08b7963a2",
+ "summary_sha256": "940328cc37a0a0b9010c986f79c35219a2bd61af9c5bfe788642ce62ca22b281",
+ "runner_sha256": "0a6b3a26232f282fd1b2beda9df524d082b9a5fb536de140098cce3ea4600b63",
+ "base_runner_sha256": "e2be71b46bf807592ce389fd911da2e05440364b05094154553d5456a6142f85",
+ "integrity": {
+  "passed": true,
+  "failures": [],
+  "note": "412 workers (220 candidate, 192 base) exit 0 with exact repeat; search matches identical across the 8 (synthetic) or 7 (Blender) methods of every scene; every method except vk_linear equals the base runner (ce057fe); no GT in any job; holdout seeds equal the protocol and were never used; artwork byte-identical to v1; masks equal stage 46; catch thresholds recomputed equal the protocol"
+ },
+ "localization": {
+  "all_found_no_fp": true,
+  "per_scene": {
+   "v1/syn_red_neutral": [
+    32,
+    0,
+    0
+   ],
+   "v1/syn_red_exposure_dark": [
+    32,
+    0,
+    0
+   ],
+   "v1/syn_red_wb_cool": [
+    32,
+    0,
+    0
+   ],
+   "v1/syn_red_shading": [
+    32,
+    0,
+    0
+   ],
+   "v1/syn_teal_neutral": [
+    32,
+    0,
+    0
+   ],
+   "v1/syn_teal_exposure_dark": [
+    32,
+    0,
+    0
+   ],
+   "v1/syn_teal_wb_cool": [
+    32,
+    0,
+    0
+   ],
+   "v1/syn_teal_shading": [
+    32,
+    0,
+    0
+   ],
+   "v1/bl_rgb_white": [
+    12,
+    0,
+    0
+   ],
+   "r47/syn_red_neutral": [
+    32,
+    0,
+    0
+   ],
+   "r47/syn_red_exposure_dark": [
+    32,
+    0,
+    0
+   ],
+   "r47/syn_red_exposure_bright": [
+    32,
+    0,
+    0
+   ],
+   "r47/syn_red_wb_warm": [
+    32,
+    0,
+    0
+   ],
+   "r47/syn_red_wb_cool": [
+    32,
+    0,
+    0
+   ],
+   "r47/syn_red_shading": [
+    32,
+    0,
+    0
+   ],
+   "r47/syn_red_spot_warm": [
+    32,
+    0,
+    0
+   ],
+   "r47/syn_red_noise_jpeg": [
+    32,
+    0,
+    0
+   ],
+   "r47/syn_teal_neutral": [
+    32,
+    0,
+    0
+   ],
+   "r47/syn_teal_exposure_dark": [
+    32,
+    0,
+    0
+   ],
+   "r47/syn_teal_exposure_bright": [
+    32,
+    0,
+    0
+   ],
+   "r47/syn_teal_wb_warm": [
+    32,
+    0,
+    0
+   ],
+   "r47/syn_teal_wb_cool": [
+    32,
+    0,
+    0
+   ],
+   "r47/syn_teal_shading": [
+    32,
+    0,
+    0
+   ],
+   "r47/syn_teal_spot_warm": [
+    32,
+    0,
+    0
+   ],
+   "r47/syn_teal_noise_jpeg": [
+    32,
+    0,
+    0
+   ],
+   "r47/bl_rgb_white": [
+    12,
+    0,
+    0
+   ],
+   "r47/bl_rgb_warm3200": [
+    12,
+    0,
+    0
+   ],
+   "r47/bl_rgb_mixed": [
+    12,
+    0,
+    0
+   ]
+  }
+ },
+ "thresholds": {
+  "catch": {
+   "syn_red": 0.008157523331557915,
+   "syn_teal": 0.014701061145351278,
+   "bl_red": 0.008157523331557915
+  },
+  "rule": "half the smallest noise-free region chroma distance of a DeltaE00 4 must-catch change (artwork only)"
+ },
+ "primary": {
+  "arm": "vk_region",
+  "checks": [
+   {
+    "name": "F1 calibration same-colour within tau/2",
+    "value": 0.0006117207696970672,
+    "target": 0.004078761665778957,
+    "kind": "le",
+    "n": 40,
+    "passed": true,
+    "group": "syn_red"
+   },
+   {
+    "name": "F2 calibration gated different-colour rejection",
+    "value": 1.0,
+    "target": 0.95,
+    "kind": "ge",
+    "n": 60,
+    "passed": true,
+    "group": "syn_red"
+   },
+   {
+    "name": "F1 calibration same-colour within tau/2",
+    "value": 0.0017788917079955672,
+    "target": 0.007350530572675639,
+    "kind": "le",
+    "n": 40,
+    "passed": true,
+    "group": "syn_teal"
+   },
+   {
+    "name": "F2 calibration gated different-colour rejection",
+    "value": 1.0,
+    "target": 0.95,
+    "kind": "ge",
+    "n": 60,
+    "passed": true,
+    "group": "syn_teal"
+   },
+   {
+    "name": "F1 calibration same-colour within tau/2",
+    "value": 0.0009427904598464415,
+    "target": 0.004078761665778957,
+    "kind": "le",
+    "n": 4,
+    "passed": true,
+    "group": "bl_red"
+   },
+   {
+    "name": "F2 calibration gated different-colour rejection",
+    "value": 1.0,
+    "target": 0.95,
+    "kind": "ge",
+    "n": 7,
+    "passed": true,
+    "group": "bl_red"
+   },
+   {
+    "name": "H1a decided same-colour acceptance",
+    "value": 1.0,
+    "target": 0.9,
+    "kind": "ge",
+    "n": 20,
+    "passed": true,
+    "condition": "wb_warm",
+    "min_decided": 5,
+    "same_found": 20
+   },
+   {
+    "name": "H1b gated different-colour rejection",
+    "value": 1.0,
+    "target": 0.95,
+    "kind": "ge",
+    "n": 30,
+    "passed": true,
+    "condition": "wb_warm"
+   },
+   {
+    "name": "H1a decided same-colour acceptance",
+    "value": 1.0,
+    "target": 0.9,
+    "kind": "ge",
+    "n": 9,
+    "passed": true,
+    "condition": "spot_warm",
+    "min_decided": 5,
+    "same_found": 20
+   },
+   {
+    "name": "H1b gated different-colour rejection",
+    "value": 1.0,
+    "target": 0.95,
+    "kind": "ge",
+    "n": 30,
+    "passed": true,
+    "condition": "spot_warm"
+   },
+   {
+    "name": "H1a decided same-colour acceptance",
+    "value": 1.0,
+    "target": 0.9,
+    "kind": "ge",
+    "n": 20,
+    "passed": true,
+    "condition": "noise_jpeg",
+    "min_decided": 5,
+    "same_found": 20
+   },
+   {
+    "name": "H1b gated different-colour rejection",
+    "value": 1.0,
+    "target": 0.95,
+    "kind": "ge",
+    "n": 30,
+    "passed": true,
+    "condition": "noise_jpeg"
+   },
+   {
+    "name": "H2a decided same-colour acceptance",
+    "value": 1.0,
+    "target": 1.0,
+    "kind": "ge",
+    "n": 4,
+    "passed": true,
+    "condition": "warm3200",
+    "min_decided": 2,
+    "same_found": 4
+   },
+   {
+    "name": "H2b gated different-colour rejection",
+    "value": 1.0,
+    "target": 1.0,
+    "kind": "ge",
+    "n": 7,
+    "passed": true,
+    "condition": "warm3200"
+   },
+   {
+    "name": "H2a decided same-colour acceptance",
+    "value": 1.0,
+    "target": 1.0,
+    "kind": "ge",
+    "n": 4,
+    "passed": true,
+    "condition": "mixed",
+    "min_decided": 2,
+    "same_found": 4
+   },
+   {
+    "name": "H2b gated different-colour rejection",
+    "value": 1.0,
+    "target": 1.0,
+    "kind": "ge",
+    "n": 7,
+    "passed": true,
+    "condition": "mixed"
+   },
+   {
+    "name": "H1c isogray rejection (pooled)",
+    "value": 1.0,
+    "target": 0.95,
+    "kind": "ge",
+    "n": 36,
+    "passed": true,
+    "condition": "wb_warm+spot_warm+noise_jpeg"
+   }
+  ],
+  "passed": true,
+  "margin_max_same_over_tau": {
+   "wb_warm": 0.09427717650403444,
+   "spot_warm": 0.28473401844423657,
+   "noise_jpeg": 0.24777093872094239,
+   "warm3200": 0.09193307419384343,
+   "mixed": 0.4271442867450701
+  },
+  "end_to_end": {
+   "wb_warm": {
+    "value": 1.0,
+    "abstained": 0,
+    "n": 20
+   },
+   "spot_warm": {
+    "value": 0.45,
+    "abstained": 11,
+    "n": 20
+   },
+   "noise_jpeg": {
+    "value": 1.0,
+    "abstained": 0,
+    "n": 20
+   },
+   "warm3200": {
+    "value": 1.0,
+    "abstained": 0,
+    "n": 4
+   },
+   "mixed": {
+    "value": 1.0,
+    "abstained": 0,
+    "n": 4
+   }
+  }
+ },
+ "gradient": {
+  "arm": "vk_linear_region",
+  "checks": [
+   {
+    "name": "F1 calibration same-colour within tau/2",
+    "value": 0.00233904703835992,
+    "target": 0.004078761665778957,
+    "kind": "le",
+    "n": 40,
+    "passed": true,
+    "group": "syn_red"
+   },
+   {
+    "name": "F2 calibration gated different-colour rejection",
+    "value": 1.0,
+    "target": 0.95,
+    "kind": "ge",
+    "n": 60,
+    "passed": true,
+    "group": "syn_red"
+   },
+   {
+    "name": "F1 calibration same-colour within tau/2",
+    "value": 0.00910895028538822,
+    "target": 0.007350530572675639,
+    "kind": "le",
+    "n": 40,
+    "passed": false,
+    "group": "syn_teal"
+   },
+   {
+    "name": "F2 calibration gated different-colour rejection",
+    "value": 1.0,
+    "target": 0.95,
+    "kind": "ge",
+    "n": 60,
+    "passed": true,
+    "group": "syn_teal"
+   },
+   {
+    "name": "F1 calibration same-colour within tau/2",
+    "value": 0.0021215654389830692,
+    "target": 0.004078761665778957,
+    "kind": "le",
+    "n": 4,
+    "passed": true,
+    "group": "bl_red"
+   },
+   {
+    "name": "F2 calibration gated different-colour rejection",
+    "value": 1.0,
+    "target": 0.95,
+    "kind": "ge",
+    "n": 7,
+    "passed": true,
+    "group": "bl_red"
+   },
+   {
+    "name": "H1a decided same-colour acceptance",
+    "value": 1.0,
+    "target": 0.9,
+    "kind": "ge",
+    "n": 20,
+    "passed": true,
+    "condition": "wb_warm",
+    "min_decided": 5,
+    "same_found": 20
+   },
+   {
+    "name": "H1b gated different-colour rejection",
+    "value": 1.0,
+    "target": 0.95,
+    "kind": "ge",
+    "n": 30,
+    "passed": true,
+    "condition": "wb_warm"
+   },
+   {
+    "name": "H1a decided same-colour acceptance",
+    "value": 1.0,
+    "target": 0.9,
+    "kind": "ge",
+    "n": 9,
+    "passed": true,
+    "condition": "spot_warm",
+    "min_decided": 5,
+    "same_found": 20
+   },
+   {
+    "name": "H1b gated different-colour rejection",
+    "value": 1.0,
+    "target": 0.95,
+    "kind": "ge",
+    "n": 30,
+    "passed": true,
+    "condition": "spot_warm"
+   },
+   {
+    "name": "H1a decided same-colour acceptance",
+    "value": 1.0,
+    "target": 0.9,
+    "kind": "ge",
+    "n": 20,
+    "passed": true,
+    "condition": "noise_jpeg",
+    "min_decided": 5,
+    "same_found": 20
+   },
+   {
+    "name": "H1b gated different-colour rejection",
+    "value": 1.0,
+    "target": 0.95,
+    "kind": "ge",
+    "n": 30,
+    "passed": true,
+    "condition": "noise_jpeg"
+   },
+   {
+    "name": "H2a decided same-colour acceptance",
+    "value": 1.0,
+    "target": 1.0,
+    "kind": "ge",
+    "n": 4,
+    "passed": true,
+    "condition": "warm3200",
+    "min_decided": 2,
+    "same_found": 4
+   },
+   {
+    "name": "H2b gated different-colour rejection",
+    "value": 1.0,
+    "target": 1.0,
+    "kind": "ge",
+    "n": 7,
+    "passed": true,
+    "condition": "warm3200"
+   },
+   {
+    "name": "H2a decided same-colour acceptance",
+    "value": 1.0,
+    "target": 1.0,
+    "kind": "ge",
+    "n": 4,
+    "passed": true,
+    "condition": "mixed",
+    "min_decided": 2,
+    "same_found": 4
+   },
+   {
+    "name": "H2b gated different-colour rejection",
+    "value": 1.0,
+    "target": 1.0,
+    "kind": "ge",
+    "n": 7,
+    "passed": true,
+    "condition": "mixed"
+   },
+   {
+    "name": "H1c isogray rejection (pooled)",
+    "value": 1.0,
+    "target": 0.95,
+    "kind": "ge",
+    "n": 36,
+    "passed": true,
+    "condition": "wb_warm+spot_warm+noise_jpeg"
+   }
+  ],
+  "checks_passed": false,
+  "comparison": {
+   "gated": {
+    "conditions": [
+     "spot_warm",
+     "mixed"
+    ],
+    "n": 13,
+    "wins": 4,
+    "losses": 9,
+    "ties": 0,
+    "p_one_sided": 0.953857421875,
+    "median_ratio": 1.284110525039504
+   },
+   "per_condition": {
+    "wb_warm": {
+     "conditions": [
+      "wb_warm"
+     ],
+     "n": 20,
+     "wins": 6,
+     "losses": 14,
+     "ties": 0,
+     "p_one_sided": 0.9793052673339844,
+     "median_ratio": 1.0000000000001874
+    },
+    "exposure_bright": {
+     "conditions": [
+      "exposure_bright"
+     ],
+     "n": 0,
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "p_one_sided": null,
+     "median_ratio": null
+    },
+    "spot_warm": {
+     "conditions": [
+      "spot_warm"
+     ],
+     "n": 9,
+     "wins": 2,
+     "losses": 7,
+     "ties": 0,
+     "p_one_sided": 0.98046875,
+     "median_ratio": 1.284110525039504
+    },
+    "noise_jpeg": {
+     "conditions": [
+      "noise_jpeg"
+     ],
+     "n": 20,
+     "wins": 6,
+     "losses": 14,
+     "ties": 0,
+     "p_one_sided": 0.9793052673339844,
+     "median_ratio": 2.095517601062279
+    },
+    "warm3200": {
+     "conditions": [
+      "warm3200"
+     ],
+     "n": 4,
+     "wins": 1,
+     "losses": 3,
+     "ties": 0,
+     "p_one_sided": 0.9375,
+     "median_ratio": 6.877319089221757
+    },
+    "mixed": {
+     "conditions": [
+      "mixed"
+     ],
+     "n": 4,
+     "wins": 2,
+     "losses": 2,
+     "ties": 0,
+     "p_one_sided": 0.6875,
+     "median_ratio": 1.1720665915433763
+    }
+   }
+  },
+  "better_on_gradients": false,
+  "preferred": false
+ },
+ "recommended": true,
+ "gradient_preferred": false,
+ "decision": "RECOMMENDED as the research threshold rule: the catch-anchored threshold (tau = d_catch/2, red 0.00816, teal 0.01470) on chroma_vk vk_region passed every pre-registered integrity, F, H1 and H2 check on the fresh holdout, with abstention as a review output (spot_warm end-to-end 9/20 because 11 same-colour objects abstain on a clipped panel; exposure_bright abstains on every object). The linear reference model is NOT preferred: it failed F1 for teal (calibration maximum 0.00911 against tau/2 0.00735) and gave larger same-colour residuals than the constant model in 9 of 13 gradient pairs (sign test p = 0.954). No default changes; chroma_vk and reference_model stay opt-in.",
+ "defaults": "unchanged: gray_ncc, rgb_ncc, chroma and the constant chroma_vk are byte-identical to the base runner; GUI, core and research defaults untouched",
+ "failed_checks": [
+  {
+   "rule": "catch",
+   "arm": "vk_linear_region",
+   "gated": true,
+   "name": "F1 calibration same-colour within tau/2",
+   "condition": null,
+   "group": "syn_teal",
+   "value": 0.00910895028538822,
+   "target": 0.007350530572675639,
+   "n": 40
+  },
+  {
+   "rule": "rayleigh",
+   "arm": "vk_region",
+   "gated": false,
+   "name": "F1 calibration same-colour within tau/2",
+   "condition": null,
+   "group": "syn_red",
+   "value": 0.0006117207696970672,
+   "target": 0.00032910765355791984,
+   "n": 40
+  },
+  {
+   "rule": "rayleigh",
+   "arm": "vk_region",
+   "gated": false,
+   "name": "F1 calibration same-colour within tau/2",
+   "condition": null,
+   "group": "syn_teal",
+   "value": 0.0017788917079955672,
+   "target": 0.001079165644459197,
+   "n": 40
+  },
+  {
+   "rule": "rayleigh",
+   "arm": "vk_region",
+   "gated": false,
+   "name": "F1 calibration same-colour within tau/2",
+   "condition": null,
+   "group": "bl_red",
+   "value": 0.0009427904598464415,
+   "target": 0.0008907352008657364,
+   "n": 4
+  },
+  {
+   "rule": "rayleigh",
+   "arm": "vk_region",
+   "gated": false,
+   "name": "H1a decided same-colour acceptance",
+   "condition": "spot_warm",
+   "group": null,
+   "value": 0.8888888888888888,
+   "target": 0.9,
+   "n": 9
+  },
+  {
+   "rule": "rayleigh",
+   "arm": "vk_region",
+   "gated": false,
+   "name": "H1a decided same-colour acceptance",
+   "condition": "noise_jpeg",
+   "group": null,
+   "value": 0.4,
+   "target": 0.9,
+   "n": 20
+  },
+  {
+   "rule": "rayleigh",
+   "arm": "vk_region",
+   "gated": false,
+   "name": "H2a decided same-colour acceptance",
+   "condition": "mixed",
+   "group": null,
+   "value": 0.75,
+   "target": 1.0,
+   "n": 4
+  },
+  {
+   "rule": "rayleigh",
+   "arm": "vk_linear_region",
+   "gated": false,
+   "name": "F1 calibration same-colour within tau/2",
+   "condition": null,
+   "group": "syn_red",
+   "value": 0.00233904703835992,
+   "target": 0.0011014292513093868,
+   "n": 40
+  },
+  {
+   "rule": "rayleigh",
+   "arm": "vk_linear_region",
+   "gated": false,
+   "name": "F1 calibration same-colour within tau/2",
+   "condition": null,
+   "group": "syn_teal",
+   "value": 0.00910895028538822,
+   "target": 0.00396449880549079,
+   "n": 40
+  },
+  {
+   "rule": "rayleigh",
+   "arm": "vk_linear_region",
+   "gated": false,
+   "name": "F1 calibration same-colour within tau/2",
+   "condition": null,
+   "group": "bl_red",
+   "value": 0.0021215654389830692,
+   "target": 0.0017878794941801701,
+   "n": 4
+  },
+  {
+   "rule": "rayleigh",
+   "arm": "vk_linear_region",
+   "gated": false,
+   "name": "H1a decided same-colour acceptance",
+   "condition": "spot_warm",
+   "group": null,
+   "value": 0.8888888888888888,
+   "target": 0.9,
+   "n": 9
+  },
+  {
+   "rule": "rayleigh",
+   "arm": "vk_linear_region",
+   "gated": false,
+   "name": "H1a decided same-colour acceptance",
+   "condition": "noise_jpeg",
+   "group": null,
+   "value": 0.7,
+   "target": 0.9,
+   "n": 20
+  },
+  {
+   "rule": "p95",
+   "arm": "vk_region",
+   "gated": false,
+   "name": "F1 calibration same-colour within tau/2",
+   "condition": null,
+   "group": "syn_red",
+   "value": 0.0006117207696970672,
+   "target": 0.00019621884446469108,
+   "n": 40
+  },
+  {
+   "rule": "p95",
+   "arm": "vk_region",
+   "gated": false,
+   "name": "F1 calibration same-colour within tau/2",
+   "condition": null,
+   "group": "syn_teal",
+   "value": 0.0017788917079955672,
+   "target": 0.0006837233380521816,
+   "n": 40
+  },
+  {
+   "rule": "p95",
+   "arm": "vk_region",
+   "gated": false,
+   "name": "F1 calibration same-colour within tau/2",
+   "condition": null,
+   "group": "bl_red",
+   "value": 0.0009427904598464415,
+   "target": 0.0004703320868352713,
+   "n": 4
+  },
+  {
+   "rule": "p95",
+   "arm": "vk_region",
+   "gated": false,
+   "name": "H1a decided same-colour acceptance",
+   "condition": "spot_warm",
+   "group": null,
+   "value": 0.3333333333333333,
+   "target": 0.9,
+   "n": 9
+  },
+  {
+   "rule": "p95",
+   "arm": "vk_region",
+   "gated": false,
+   "name": "H1a decided same-colour acceptance",
+   "condition": "noise_jpeg",
+   "group": null,
+   "value": 0.25,
+   "target": 0.9,
+   "n": 20
+  },
+  {
+   "rule": "p95",
+   "arm": "vk_region",
+   "gated": false,
+   "name": "H2a decided same-colour acceptance",
+   "condition": "mixed",
+   "group": null,
+   "value": 0.75,
+   "target": 1.0,
+   "n": 4
+  },
+  {
+   "rule": "p95",
+   "arm": "vk_linear_region",
+   "gated": false,
+   "name": "F1 calibration same-colour within tau/2",
+   "condition": null,
+   "group": "syn_red",
+   "value": 0.00233904703835992,
+   "target": 0.0011065138242970212,
+   "n": 40
+  },
+  {
+   "rule": "p95",
+   "arm": "vk_linear_region",
+   "gated": false,
+   "name": "F1 calibration same-colour within tau/2",
+   "condition": null,
+   "group": "syn_teal",
+   "value": 0.00910895028538822,
+   "target": 0.004258452573915613,
+   "n": 40
+  },
+  {
+   "rule": "p95",
+   "arm": "vk_linear_region",
+   "gated": false,
+   "name": "F1 calibration same-colour within tau/2",
+   "condition": null,
+   "group": "bl_red",
+   "value": 0.0021215654389830692,
+   "target": 0.001026713299817838,
+   "n": 4
+  },
+  {
+   "rule": "p95",
+   "arm": "vk_linear_region",
+   "gated": false,
+   "name": "H1a decided same-colour acceptance",
+   "condition": "spot_warm",
+   "group": null,
+   "value": 0.8888888888888888,
+   "target": 0.9,
+   "n": 9
+  },
+  {
+   "rule": "p95",
+   "arm": "vk_linear_region",
+   "gated": false,
+   "name": "H1a decided same-colour acceptance",
+   "condition": "noise_jpeg",
+   "group": null,
+   "value": 0.7,
+   "target": 0.9,
+   "n": 20
+  },
+  {
+   "rule": "p95",
+   "arm": "vk_linear_region",
+   "gated": false,
+   "name": "H2a decided same-colour acceptance",
+   "condition": "warm3200",
+   "group": null,
+   "value": 0.75,
+   "target": 1.0,
+   "n": 4
+  },
+  {
+   "rule": "p95",
+   "arm": "vk_linear_region",
+   "gated": false,
+   "name": "H2a decided same-colour acceptance",
+   "condition": "mixed",
+   "group": null,
+   "value": 0.75,
+   "target": 1.0,
+   "n": 4
+  },
+  {
+   "rule": "catch",
+   "arm": "vk_region",
+   "gated": false,
+   "name": "E same-colour acceptance (abstention = not accepted)",
+   "condition": "spot_warm",
+   "value": 0.45,
+   "target": 0.9,
+   "n": 20,
+   "abstained": 11
+  },
+  {
+   "rule": "catch",
+   "arm": "vk_linear_region",
+   "gated": false,
+   "name": "E same-colour acceptance (abstention = not accepted)",
+   "condition": "spot_warm",
+   "value": 0.45,
+   "target": 0.9,
+   "n": 20,
+   "abstained": 11
+  }
+ ],
+ "gated_different_colour_wrongly_accepted": [],
+ "ungated": {
+  "delta_e2_primary": {
+   "syn_red hue+": {
+    "accepted": 3,
+    "n": 12,
+    "abstained": 2
+   },
+   "syn_red hue-": {
+    "accepted": 4,
+    "n": 12,
+    "abstained": 1
+   },
+   "syn_red chroma-": {
+    "accepted": 0,
+    "n": 12,
+    "abstained": 2
+   },
+   "syn_red isogray0": {
+    "accepted": 0,
+    "n": 12,
+    "abstained": 2
+   },
+   "syn_red isogray90": {
+    "accepted": 0,
+    "n": 12,
+    "abstained": 1
+   },
+   "syn_teal hue+": {
+    "accepted": 8,
+    "n": 12,
+    "abstained": 1
+   },
+   "syn_teal hue-": {
+    "accepted": 0,
+    "n": 12,
+    "abstained": 2
+   },
+   "syn_teal chroma-": {
+    "accepted": 0,
+    "n": 12,
+    "abstained": 1
+   },
+   "syn_teal isogray0": {
+    "accepted": 7,
+    "n": 12,
+    "abstained": 2
+   },
+   "syn_teal isogray90": {
+    "accepted": 0,
+    "n": 12,
+    "abstained": 2
+   }
+  },
+  "lightness_primary": {
+   "syn_red lightness+ 4": {
+    "accepted": 0,
+    "n": 12,
+    "abstained": 1
+   },
+   "syn_red lightness+ 8": {
+    "accepted": 0,
+    "n": 12,
+    "abstained": 2
+   },
+   "syn_teal lightness+ 4": {
+    "accepted": 0,
+    "n": 12,
+    "abstained": 2
+   },
+   "syn_teal lightness+ 8": {
+    "accepted": 0,
+    "n": 12,
+    "abstained": 1
+   },
+   "bl_red lightness+ 4": {
+    "accepted": 0,
+    "n": 0,
+    "abstained": 0
+   },
+   "bl_red lightness+ 8": {
+    "accepted": 0,
+    "n": 4,
+    "abstained": 0
+   }
+  },
+  "exposure_bright": [
+   {
+    "group": "syn_red",
+    "same_abstained": 10,
+    "same_n": 10,
+    "different_abstained": 22,
+    "different_n": 22
+   },
+   {
+    "group": "syn_teal",
+    "same_abstained": 10,
+    "same_n": 10,
+    "different_abstained": 22,
+    "different_n": 22
+   }
+  ]
+ },
+ "predictions": [
+  {
+   "id": "P1",
+   "held": true,
+   "observed": "F1 and F2 pass for every group; the largest calibration same-colour residual is 0.15 (red), 0.24 (teal) and 0.23 (Blender) of tau",
+   "evidence": {
+    "syn_red": 0.0006117207696970672,
+    "syn_teal": 0.0017788917079955672,
+    "bl_red": 0.0009427904598464415
+   }
+  },
+  {
+   "id": "P2",
+   "held": true,
+   "observed": "wb_warm 20/20 and noise_jpeg 20/20 decided same-colour objects accepted",
+   "evidence": {
+    "wb_warm": [
+     {
+      "same_accepted": 10,
+      "same_n": 10,
+      "same_decided": 10,
+      "same_max_decided": 0.00036553533511974907,
+      "different_wrongly_accepted": 0,
+      "different_n": 22,
+      "different_abstained": 1,
+      "different_min_decided": 0.008187260532271893,
+      "auc": 1.0,
+      "auc_valid": 1.0
+     },
+     {
+      "same_accepted": 10,
+      "same_n": 10,
+      "same_decided": 10,
+      "same_max_decided": 0.0013859745363968851,
+      "different_wrongly_accepted": 0,
+      "different_n": 22,
+      "different_abstained": 0,
+      "different_min_decided": 0.014927165496240452,
+      "auc": 1.0,
+      "auc_valid": 1.0
+     }
+    ],
+    "noise_jpeg": [
+     {
+      "same_accepted": 10,
+      "same_n": 10,
+      "same_decided": 10,
+      "same_max_decided": 0.001736329006883948,
+      "different_wrongly_accepted": 1,
+      "different_n": 22,
+      "different_abstained": 1,
+      "different_min_decided": 0.007186518227728432,
+      "auc": 1.0,
+      "auc_valid": 1.0
+     },
+     {
+      "same_accepted": 10,
+      "same_n": 10,
+      "same_decided": 10,
+      "same_max_decided": 0.0036424957201776583,
+      "different_wrongly_accepted": 1,
+      "different_n": 22,
+      "different_abstained": 0,
+      "different_min_decided": 0.010639021349559455,
+      "auc": 1.0,
+      "auc_valid": 1.0
+     }
+    ]
+   }
+  },
+  {
+   "id": "P3",
+   "held": true,
+   "observed": "spot_warm 9/9 decided accepted; its largest residual is the closest to tau of the gated synthetic cells (0.285 of tau against noise_jpeg 0.248 and wb_warm 0.094); Blender mixed is tighter still (0.427)",
+   "evidence": {
+    "wb_warm": 0.09427717650403444,
+    "spot_warm": 0.28473401844423657,
+    "noise_jpeg": 0.24777093872094239,
+    "warm3200": 0.09193307419384343,
+    "mixed": 0.4271442867450701
+   }
+  },
+  {
+   "id": "P4",
+   "held": true,
+   "observed": "spot_warm end-to-end 0.45 (11 of 20 same-colour abstained); exposure_bright abstained on all 64 objects",
+   "evidence": {
+    "spot_warm": {
+     "value": 0.45,
+     "abstained": 11,
+     "n": 20
+    },
+    "exposure_bright": [
+     {
+      "same": {
+       "n": 10,
+       "decided": 0,
+       "abstained": 10,
+       "accepted": 0,
+       "acceptance_decided": null,
+       "acceptance_end_to_end": 0.0,
+       "max_decided": null
+      },
+      "different": {
+       "n": 22,
+       "wrongly_accepted": 0,
+       "abstained": 22,
+       "rejection": 1.0,
+       "min_decided": null,
+       "wrong": []
+      },
+      "auc": 0.5,
+      "auc_valid": null,
+      "not_found": 0
+     },
+     {
+      "same": {
+       "n": 10,
+       "decided": 0,
+       "abstained": 10,
+       "accepted": 0,
+       "acceptance_decided": null,
+       "acceptance_end_to_end": 0.0,
+       "max_decided": null
+      },
+      "different": {
+       "n": 22,
+       "wrongly_accepted": 0,
+       "abstained": 22,
+       "rejection": 1.0,
+       "min_decided": null,
+       "wrong": []
+      },
+      "auc": 0.5,
+      "auc_valid": null,
+      "not_found": 0
+     }
+    ]
+   }
+  },
+  {
+   "id": "P5",
+   "held": true,
+   "observed": "no gated different-colour object accepted by vk_region (H1b, H1c, H2b all 1.0)",
+   "evidence": []
+  },
+  {
+   "id": "P6",
+   "held": "partly",
+   "observed": "no lightness+ object was accepted (held); red hue+/- DeltaE 2 were accepted 3/12 and 4/12, about a third rather than the predicted half; the prediction missed teal, whose hue+ and isogray0 DeltaE 2 variants (noise-free 0.0139 and 0.0143, just below tau 0.0147) were accepted 8/12 and 7/12; every other DeltaE 2 direction 0/12",
+   "evidence": {
+    "delta_e2": {
+     "syn_red hue+": {
+      "accepted": 3,
+      "n": 12,
+      "abstained": 2
+     },
+     "syn_red hue-": {
+      "accepted": 4,
+      "n": 12,
+      "abstained": 1
+     },
+     "syn_red chroma-": {
+      "accepted": 0,
+      "n": 12,
+      "abstained": 2
+     },
+     "syn_red isogray0": {
+      "accepted": 0,
+      "n": 12,
+      "abstained": 2
+     },
+     "syn_red isogray90": {
+      "accepted": 0,
+      "n": 12,
+      "abstained": 1
+     },
+     "syn_teal hue+": {
+      "accepted": 8,
+      "n": 12,
+      "abstained": 1
+     },
+     "syn_teal hue-": {
+      "accepted": 0,
+      "n": 12,
+      "abstained": 2
+     },
+     "syn_teal chroma-": {
+      "accepted": 0,
+      "n": 12,
+      "abstained": 1
+     },
+     "syn_teal isogray0": {
+      "accepted": 7,
+      "n": 12,
+      "abstained": 2
+     },
+     "syn_teal isogray90": {
+      "accepted": 0,
+      "n": 12,
+      "abstained": 2
+     }
+    },
+    "lightness": {
+     "syn_red lightness+ 4": {
+      "accepted": 0,
+      "n": 12,
+      "abstained": 1
+     },
+     "syn_red lightness+ 8": {
+      "accepted": 0,
+      "n": 12,
+      "abstained": 2
+     },
+     "syn_teal lightness+ 4": {
+      "accepted": 0,
+      "n": 12,
+      "abstained": 2
+     },
+     "syn_teal lightness+ 8": {
+      "accepted": 0,
+      "n": 12,
+      "abstained": 1
+     },
+     "bl_red lightness+ 4": {
+      "accepted": 0,
+      "n": 0,
+      "abstained": 0
+     },
+     "bl_red lightness+ 8": {
+      "accepted": 0,
+      "n": 4,
+      "abstained": 0
+     }
+    }
+   }
+  },
+  {
+   "id": "P7",
+   "held": true,
+   "observed": "Rayleigh: noise_jpeg 0.40, spot_warm 0.89, Blender mixed 0.75; p95: spot_warm 0.33, noise_jpeg 0.25, mixed 0.75",
+   "evidence": {
+    "rayleigh": [
+     {
+      "rule": "rayleigh",
+      "arm": "vk_region",
+      "gated": false,
+      "name": "F1 calibration same-colour within tau/2",
+      "condition": null,
+      "group": "syn_red",
+      "value": 0.0006117207696970672,
+      "target": 0.00032910765355791984,
+      "n": 40
+     },
+     {
+      "rule": "rayleigh",
+      "arm": "vk_region",
+      "gated": false,
+      "name": "F1 calibration same-colour within tau/2",
+      "condition": null,
+      "group": "syn_teal",
+      "value": 0.0017788917079955672,
+      "target": 0.001079165644459197,
+      "n": 40
+     },
+     {
+      "rule": "rayleigh",
+      "arm": "vk_region",
+      "gated": false,
+      "name": "F1 calibration same-colour within tau/2",
+      "condition": null,
+      "group": "bl_red",
+      "value": 0.0009427904598464415,
+      "target": 0.0008907352008657364,
+      "n": 4
+     },
+     {
+      "rule": "rayleigh",
+      "arm": "vk_region",
+      "gated": false,
+      "name": "H1a decided same-colour acceptance",
+      "condition": "spot_warm",
+      "group": null,
+      "value": 0.8888888888888888,
+      "target": 0.9,
+      "n": 9
+     },
+     {
+      "rule": "rayleigh",
+      "arm": "vk_region",
+      "gated": false,
+      "name": "H1a decided same-colour acceptance",
+      "condition": "noise_jpeg",
+      "group": null,
+      "value": 0.4,
+      "target": 0.9,
+      "n": 20
+     },
+     {
+      "rule": "rayleigh",
+      "arm": "vk_region",
+      "gated": false,
+      "name": "H2a decided same-colour acceptance",
+      "condition": "mixed",
+      "group": null,
+      "value": 0.75,
+      "target": 1.0,
+      "n": 4
+     }
+    ],
+    "p95": [
+     {
+      "rule": "p95",
+      "arm": "vk_region",
+      "gated": false,
+      "name": "F1 calibration same-colour within tau/2",
+      "condition": null,
+      "group": "syn_red",
+      "value": 0.0006117207696970672,
+      "target": 0.00019621884446469108,
+      "n": 40
+     },
+     {
+      "rule": "p95",
+      "arm": "vk_region",
+      "gated": false,
+      "name": "F1 calibration same-colour within tau/2",
+      "condition": null,
+      "group": "syn_teal",
+      "value": 0.0017788917079955672,
+      "target": 0.0006837233380521816,
+      "n": 40
+     },
+     {
+      "rule": "p95",
+      "arm": "vk_region",
+      "gated": false,
+      "name": "F1 calibration same-colour within tau/2",
+      "condition": null,
+      "group": "bl_red",
+      "value": 0.0009427904598464415,
+      "target": 0.0004703320868352713,
+      "n": 4
+     },
+     {
+      "rule": "p95",
+      "arm": "vk_region",
+      "gated": false,
+      "name": "H1a decided same-colour acceptance",
+      "condition": "spot_warm",
+      "group": null,
+      "value": 0.3333333333333333,
+      "target": 0.9,
+      "n": 9
+     },
+     {
+      "rule": "p95",
+      "arm": "vk_region",
+      "gated": false,
+      "name": "H1a decided same-colour acceptance",
+      "condition": "noise_jpeg",
+      "group": null,
+      "value": 0.25,
+      "target": 0.9,
+      "n": 20
+     },
+     {
+      "rule": "p95",
+      "arm": "vk_region",
+      "gated": false,
+      "name": "H2a decided same-colour acceptance",
+      "condition": "mixed",
+      "group": null,
+      "value": 0.75,
+      "target": 1.0,
+      "n": 4
+     }
+    ]
+   }
+  },
+  {
+   "id": "P8",
+   "held": false,
+   "observed": "the linear arm did NOT lower the gradient residuals (spot_warm 2 wins / 7 losses, mixed 2 wins / 2 losses, pooled p = 0.954); it did raise uniform-light residuals (noise_jpeg median ratio 2.10, 6/14) and abstained exactly as often in spot_warm (11)",
+   "evidence": {
+    "gated": {
+     "conditions": [
+      "spot_warm",
+      "mixed"
+     ],
+     "n": 13,
+     "wins": 4,
+     "losses": 9,
+     "ties": 0,
+     "p_one_sided": 0.953857421875,
+     "median_ratio": 1.284110525039504
+    },
+    "per_condition": {
+     "wb_warm": {
+      "conditions": [
+       "wb_warm"
+      ],
+      "n": 20,
+      "wins": 6,
+      "losses": 14,
+      "ties": 0,
+      "p_one_sided": 0.9793052673339844,
+      "median_ratio": 1.0000000000001874
+     },
+     "exposure_bright": {
+      "conditions": [
+       "exposure_bright"
+      ],
+      "n": 0,
+      "wins": 0,
+      "losses": 0,
+      "ties": 0,
+      "p_one_sided": null,
+      "median_ratio": null
+     },
+     "spot_warm": {
+      "conditions": [
+       "spot_warm"
+      ],
+      "n": 9,
+      "wins": 2,
+      "losses": 7,
+      "ties": 0,
+      "p_one_sided": 0.98046875,
+      "median_ratio": 1.284110525039504
+     },
+     "noise_jpeg": {
+      "conditions": [
+       "noise_jpeg"
+      ],
+      "n": 20,
+      "wins": 6,
+      "losses": 14,
+      "ties": 0,
+      "p_one_sided": 0.9793052673339844,
+      "median_ratio": 2.095517601062279
+     },
+     "warm3200": {
+      "conditions": [
+       "warm3200"
+      ],
+      "n": 4,
+      "wins": 1,
+      "losses": 3,
+      "ties": 0,
+      "p_one_sided": 0.9375,
+      "median_ratio": 6.877319089221757
+     },
+     "mixed": {
+      "conditions": [
+       "mixed"
+      ],
+      "n": 4,
+      "wins": 2,
+      "losses": 2,
+      "ties": 0,
+      "p_one_sided": 0.6875,
+      "median_ratio": 1.1720665915433763
+     }
+    }
+   }
+  },
+  {
+   "id": "P9",
+   "held": true,
+   "observed": "Blender warm3200 4/4 and mixed 4/4 decided same-colour accepted by both arms",
+   "evidence": {
+    "primary": [
+     {
+      "same_accepted": 4,
+      "same_n": 4,
+      "same_decided": 4,
+      "same_max_decided": 0.0007499461976781226,
+      "different_wrongly_accepted": 0,
+      "different_n": 8,
+      "different_abstained": 0,
+      "different_min_decided": 0.016794341305199714,
+      "auc": 1.0,
+      "auc_valid": 1.0
+     },
+     {
+      "same_accepted": 4,
+      "same_n": 4,
+      "same_decided": 4,
+      "same_max_decided": 0.0034844394850645733,
+      "different_wrongly_accepted": 0,
+      "different_n": 8,
+      "different_abstained": 0,
+      "different_min_decided": 0.01715512641410491,
+      "auc": 1.0,
+      "auc_valid": 1.0
+     }
+    ],
+    "linear": [
+     {
+      "same_accepted": 4,
+      "same_n": 4,
+      "same_decided": 4,
+      "same_max_decided": 0.0029315955086124524,
+      "different_wrongly_accepted": 0,
+      "different_n": 8,
+      "different_abstained": 0,
+      "different_min_decided": 0.016836958722506484,
+      "auc": 1.0,
+      "auc_valid": 1.0
+     },
+     {
+      "same_accepted": 4,
+      "same_n": 4,
+      "same_decided": 4,
+      "same_max_decided": 0.002747544002925439,
+      "different_wrongly_accepted": 0,
+      "different_n": 8,
+      "different_abstained": 0,
+      "different_min_decided": 0.01753198038238491,
+      "auc": 1.0,
+      "auc_valid": 1.0
+     }
+    ]
+   }
+  }
+ ]
+}

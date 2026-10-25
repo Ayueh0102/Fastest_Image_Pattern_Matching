@@ -1,0 +1,7 @@
+exact: 2623346 warp pixels, 4000 pyr images
+warp 768x527 angle    0.0  old 1.065 ms  A 0.848 ms  B 0.727 ms  C 0.661 ms  D 0.580 ms
+warp 768x527 angle   13.7  old 1.098 ms  A 0.908 ms  B 0.751 ms  C 0.688 ms  D 0.664 ms
+warp 768x527 angle  120.1  old 1.084 ms  A 0.883 ms  B 0.801 ms  C 0.687 ms  D 0.668 ms
+canvas 200x180 rotate 37deg old 0.060 A 0.054 B 0.054 C 0.054
+pyrDown 4024x3036 old 10.820 ms new 1.677 ms
+sink 16961

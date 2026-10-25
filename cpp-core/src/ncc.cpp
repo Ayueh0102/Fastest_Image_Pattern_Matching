@@ -92,6 +92,134 @@ std::uint64_t dotProduct(const std::uint8_t* a, const std::uint8_t* b, int size,
 	return total;
 }
 
+#if FPM_DOTPROD
+// Exact u8 dot products of eight horizontally adjacent windows; each template
+// block is loaded once for all of them. Template rows are zero-padded to
+// 16*blocks bytes, so source rows are read up to 22 bytes past the first
+// window. Between flushes each accumulator receives fewer than 256 + blocks
+// UDOTs (blocks <= 256): < 8192 products, below 2^32 even summed over lanes.
+static void windowDot8(const std::uint8_t* padded, int blocks, int rows,
+	const std::uint8_t* src, std::size_t stride, std::uint64_t* out)
+{
+	const std::size_t row = std::size_t(16) * blocks;
+	uint32x4_t a0 = vdupq_n_u32(0), a1 = a0, a2 = a0, a3 = a0, a4 = a0, a5 = a0, a6 = a0, a7 = a0;
+	std::uint64_t total[8] = {};
+	int pending = 0;
+	for (int y = 0; y < rows; ++y) {
+		const auto* t = padded + y * row;
+		const auto* p = src + y * stride;
+		for (std::size_t b = 0; b < row; b += 16) {
+			const uint8x16_t tb = vld1q_u8(t + b);
+			a0 = vdotq_u32(a0, tb, vld1q_u8(p + b));
+			a1 = vdotq_u32(a1, tb, vld1q_u8(p + b + 1));
+			a2 = vdotq_u32(a2, tb, vld1q_u8(p + b + 2));
+			a3 = vdotq_u32(a3, tb, vld1q_u8(p + b + 3));
+			a4 = vdotq_u32(a4, tb, vld1q_u8(p + b + 4));
+			a5 = vdotq_u32(a5, tb, vld1q_u8(p + b + 5));
+			a6 = vdotq_u32(a6, tb, vld1q_u8(p + b + 6));
+			a7 = vdotq_u32(a7, tb, vld1q_u8(p + b + 7));
+		}
+		if ((pending += blocks) >= 256) {
+			total[0] += vaddvq_u32(a0); total[1] += vaddvq_u32(a1);
+			total[2] += vaddvq_u32(a2); total[3] += vaddvq_u32(a3);
+			total[4] += vaddvq_u32(a4); total[5] += vaddvq_u32(a5);
+			total[6] += vaddvq_u32(a6); total[7] += vaddvq_u32(a7);
+			a0 = a1 = a2 = a3 = a4 = a5 = a6 = a7 = vdupq_n_u32(0);
+			pending = 0;
+		}
+	}
+	out[0] = total[0] + vaddvq_u32(a0); out[1] = total[1] + vaddvq_u32(a1);
+	out[2] = total[2] + vaddvq_u32(a2); out[3] = total[3] + vaddvq_u32(a3);
+	out[4] = total[4] + vaddvq_u32(a4); out[5] = total[5] + vaddvq_u32(a5);
+	out[6] = total[6] + vaddvq_u32(a6); out[7] = total[7] + vaddvq_u32(a7);
+}
+#endif
+
+// Default exhaustive map (no bounds or screens). Window sums and squares slide
+// over exact integer column sums instead of binary64 integral images, and UDOT
+// builds take products eight windows at a time. Every sum, square and product
+// is an exact integer below 2^53, the same value as the original integral
+// difference or row-by-row binary64 sum, so all scores are bit-identical.
+static void exhaustiveNcc(ImageView src, const TemplateLevel& templ, Backend backend,
+	ScoreMap& out, NccStats* stats, NccStats& counters)
+{
+	const auto& t = templ.image;
+	const int tw = t.width(), th = t.height();
+	const double area = double(tw) * th;
+	// Column sums of th (+1 while sliding) rows: <= 65537*65025 < 2^32, as the
+	// caller limits th to 65536.
+	std::vector<std::uint32_t> columns(src.width, 0), columnSquares(src.width, 0);
+	for (int y = 0; y < th; ++y) {
+		const auto* p = src.data + std::size_t(y) * src.stride;
+		for (int x = 0; x < src.width; ++x) {
+			columns[x] += p[x];
+			columnSquares[x] += unsigned(p[x]) * p[x];
+		}
+	}
+	std::vector<double> sums(out.width), squares(out.width), denominators(out.width);
+#if FPM_DOTPROD
+	const int blocks = (tw + 15) / 16;
+	const bool grouped = backend == Backend::Auto && blocks <= 256;
+	std::vector<std::uint8_t> padded, source;
+	std::vector<std::uint64_t> products;
+	if (grouped) {
+		const std::size_t row = std::size_t(16) * blocks;
+		padded.assign(row * th, 0);
+		for (int y = 0; y < th; ++y) std::copy_n(t.row(y), tw, padded.data() + y * row);
+		// Tight rows plus a zero tail that covers the last group's reads.
+		source.assign(std::size_t(src.width) * src.height + row + 8, 0);
+		for (int y = 0; y < src.height; ++y)
+			std::copy_n(src.data + std::size_t(y) * src.stride, src.width, source.data() + std::size_t(y) * src.width);
+		products.resize(std::size_t(out.width) + 7);
+	}
+#endif
+	for (int y = 0; y < out.height; ++y) {
+		if (y) {
+			const auto* removed = src.data + std::size_t(y - 1) * src.stride;
+			const auto* added = src.data + std::size_t(y + th - 1) * src.stride;
+			for (int x = 0; x < src.width; ++x) {
+				columns[x] = columns[x] + added[x] - removed[x];
+				columnSquares[x] = columnSquares[x] + unsigned(added[x]) * added[x] - unsigned(removed[x]) * removed[x];
+			}
+		}
+		std::uint64_t sum = 0, square = 0;
+		for (int x = 0; x < tw; ++x) { sum += columns[x]; square += columnSquares[x]; }
+		for (int x = 0; x < out.width; ++x) {
+			if (x) {
+				sum = sum + columns[x + tw - 1] - columns[x - 1];
+				square = square + columnSquares[x + tw - 1] - columnSquares[x - 1];
+			}
+			sums[x] = double(sum);
+			squares[x] = double(square);
+			const double variance = std::max(0.0, squares[x] - sums[x] * sums[x] / area);
+			denominators[x] = nccDenominator(variance, squares[x], templ.norm);
+		}
+#if FPM_DOTPROD
+		// Like the original, products are only needed where denominator != 0.
+		if (grouped)
+			for (int x = 0; x < out.width; x += 8) {
+				bool needed = false;
+				for (int k = x; k < std::min(x + 8, out.width); ++k) needed |= denominators[k] != 0;
+				if (needed)
+					windowDot8(padded.data(), blocks, th, source.data() + std::size_t(y) * src.width + x,
+						src.width, products.data() + x);
+			}
+#endif
+		for (int x = 0; x < out.width; ++x) {
+			if (denominators[x] == 0) { out.at(x, y) = 0; continue; }
+			double product = 0;
+#if FPM_DOTPROD
+			if (grouped) product = double(products[x]);
+			else
+#endif
+			for (int ty = 0; ty < th; ++ty)
+				product += double(dotProduct(t.row(ty), src.data + std::size_t(y + ty) * src.stride + x, tw, backend));
+			if (stats) { counters.dotPixels += std::uint64_t(th) * tw; ++counters.fullDotProducts; }
+			out.at(x, y) = nccNormalizeProduct(product, sums[x], templ.mean, denominators[x]);
+		}
+	}
+}
+
 static ScoreMap computeNcc(ImageView src, const TemplateLevel& templ, Backend backend,
 	double rejectBelow, NccStats* stats, const NccScreen* screen)
 {
@@ -109,6 +237,19 @@ static ScoreMap computeNcc(ImageView src, const TemplateLevel& templ, Backend ba
 		std::fill(out.values.begin(), out.values.end(), 1.0);
 		return out;
 	}
+	// Integral entries are exact integers within binary64's integer range.
+	// Beyond it, keep the original evaluation path instead of relying on a
+	// cancellation-sensitive bound. The guard is far above practical images.
+	const bool integerRange = double(src.width) * src.height <= 9007199254740992.0 / 65025;
+	const bool useBounds = std::isfinite(rejectBelow) && rejectBelow > 0 && rejectBelow <= 1 &&
+		area >= 256 && integerRange;
+	const bool screened = screen && std::isfinite(rejectBelow) && rejectBelow > 0 &&
+		rejectBelow <= 1 && screen->supports(src);
+	if (integerRange && !useBounds && !screened && t.height() <= 65536) {
+		exhaustiveNcc(src, templ, backend, out, stats, counters);
+		if (stats) *stats = counters;
+		return out;
+	}
 	const std::size_t stride = std::size_t(src.width) + 1;
 	std::vector<double> sums(stride * (std::size_t(src.height) + 1), 0);
 	std::vector<double> squares(sums.size(), 0);
@@ -123,13 +264,6 @@ static ScoreMap computeNcc(ImageView src, const TemplateLevel& templ, Backend ba
 			squares[i] = squares[i - stride] + square;
 		}
 	}
-	// Integral entries are exact integers within binary64's integer range.
-	// Beyond it, keep the original evaluation path instead of relying on a
-	// cancellation-sensitive bound. The guard is far above practical images.
-	const bool useBounds = std::isfinite(rejectBelow) && rejectBelow > 0 && rejectBelow <= 1 &&
-		area >= 256 && double(src.width) * src.height <= 9007199254740992.0 / 65025;
-	const bool screened = screen && std::isfinite(rejectBelow) && rejectBelow > 0 &&
-		rejectBelow <= 1 && screen->supports(src);
 	struct Block { int x0, y0, x1, y1; double count, centeredSum; };
 	std::array<Block, 4> blocks{};
 	double templateProjection = 0;

@@ -1,0 +1,61 @@
+{
+ "stage": 47,
+ "report": "../CHROMA_MARGIN_zh-TW.md",
+ "files": {
+  "protocol.json": {
+   "bytes": 21495,
+   "sha256": "5ee5b0375b2fd94908ef26b5571eeec9c008e74b728e4405e6710fd08b7963a2",
+   "role": "pre-registered protocol (frozen catch thresholds)"
+  },
+  "source-snapshot.tar.gz": {
+   "bytes": 957664,
+   "sha256": "33bcc0cf60acb62492852417db0b43168135841ffde66800fabaaa79f8ec7e0f",
+   "role": "frozen source of 190973e"
+  },
+  "source-sha256.json": {
+   "bytes": 36141,
+   "sha256": "05a7b00dd14f5b1a48ce283ed6b57b8d92c9c11b2a0bbb2fa318dd798e776852",
+   "role": "per-file SHA-256 of the frozen source"
+  },
+  "raw-results.tar.gz": {
+   "bytes": 3524841,
+   "sha256": "08aa9678824761966824bb8b9516d407f04fb6c739062c8069a438d3b166abd6",
+   "role": "masks, run manifest, jobs, stderr and results"
+  },
+  "holdout-metadata.tar.gz": {
+   "bytes": 27075,
+   "sha256": "ddb5a44c0cb7e8988ec36cf4bb2fe1c8a1c8d6dbcff292b3cc1c2b946e7637c7",
+   "role": "fresh holdout seed records, GT, Blender metadata and log, manifests (images pinned by SHA-256, not archived)"
+  },
+  "raw-files-sha256.json": {
+   "bytes": 176147,
+   "sha256": "d5385f45f98225a2cefef9e8067ee27565864d8b7bd8a52abb0378eed22d7dbc",
+   "role": "SHA-256 of every raw and holdout-metadata archive member"
+  },
+  "input-sha256.json": {
+   "bytes": 15261,
+   "sha256": "e530dab5063b28f7b0d3155de293ec555b923f6907d7ecbffa4af99124d622ca",
+   "role": "every input image and mask, every holdout PNG"
+  },
+  "summary.json": {
+   "bytes": 3815116,
+   "sha256": "940328cc37a0a0b9010c986f79c35219a2bd61af9c5bfe788642ce62ca22b281",
+   "role": "harness summary (every arm, rule, cell, threshold and check)"
+  },
+  "decision-and-failures.json": {
+   "bytes": 33368,
+   "sha256": "8c3ee93016cc0b4075940690c4e43ff4255799318b918e17ff716f5425c2178f",
+   "role": "decision, failed checks, predictions"
+  },
+  "validation.json": {
+   "bytes": 34822,
+   "sha256": "a800f47256af4894b3862eaf8686e060808835d88ad75c6031edd2b4e7689345",
+   "role": "gates, mutants, recount, replays, holdout regeneration"
+  },
+  "validation-logs.tar.gz": {
+   "bytes": 44205,
+   "sha256": "cd29cf929bec0e51684526935ec5bcf6601fafa437aaba7b6c114a6c8b0823bb",
+   "role": "validation scripts, logs and attests"
+  }
+ }
+}

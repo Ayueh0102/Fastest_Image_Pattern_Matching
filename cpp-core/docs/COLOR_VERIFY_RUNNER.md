@@ -178,6 +178,84 @@ This pixel threshold does not itself decide that an object is anomalous. Any
 object threshold must be calibrated using separate normal/training data and
 evaluated on held-out data. The default `.04` is only a research control value.
 
+## Illumination-normalized chroma (`chroma_vk`, round 46)
+
+`method: "chroma_vk"` is an opt-in variant implemented separately in
+`experiments/color_illuminant.{hpp,cpp}`; `chroma`, `rgb_ncc` and `gray_ncc` are
+unchanged. It estimates the source illuminant from a neutral reference, applies a
+von Kries diagonal gain that maps source linear RGB into the template's light, and
+then computes the chroma distance over `mask` (the colour region) only:
+
+```
+W_source,c   = median of nearest source pixels under the reference, linear RGB
+W_template,c = the same statistic on the template reference
+gain_c = W_template,c / W_source,c
+distance = ||c(gain * I) - c(T)|| / sqrt(2)
+```
+
+The reference is either `illuminant_reference: "object"` (default), with a
+template-size `reference_mask` mapped through every pose (for example a printed
+white panel inside the object), or `"source_rect"` with `reference_rect:
+[x0,y0,x1,y1)` in source pixels (a fixed calibration card; `template_reference_rgb`
+gives that reference's linear RGB under the template light, default `[1,1,1]`).
+Medians are per channel over nearest pixels, so clipped bytes can stay in the order
+statistic: a median is unchanged while fewer than half of the samples are clipped.
+
+`reference_clip_policy` controls saturation (`saturation_level`, default 255: a
+byte at or above it is clipped):
+
+- `rank` (default): clipped bytes stay in the median; the reference is unusable
+  when any channel's clipped share exceeds `max_reference_clip_fraction` (.45).
+  Colour samples with any clipped bilinear neighbour are missing support.
+- `drop`: ablation; reference samples with any clipped channel are discarded
+  before the median (a truncated sample biases the estimate low).
+- `none`: ablation; no saturation handling anywhere.
+
+The reference is also unusable when fewer than `min_reference_fraction` (.5) of its
+samples fall inside the source (for `drop`, after dropping) or its median is dark.
+Each score has `status` (0 valid, 1 no eligible template colour pixels, 2
+insufficient colour support, 3 reference unusable), `mean_distance` (per-pixel mean,
+as `chroma`), `region_distance` (chroma of the summed valid linear RGB against the
+template's sum over the same samples, so zero-mean noise adds no floor),
+`uncorrected_mean_distance` and `uncorrected_region_distance` (same samples, no
+gain), `changed_pixels`/`changed_fraction`, `clipped_pixels`, `reference_eligible`,
+`reference_samples`, `reference_fraction`, `reference_clip_fraction` (per channel)
+and `gain`. Status 3 is an abstention: corrected distances are `-1` and must never be
+read as acceptance. Its uncorrected distances remain for diagnostics. The output adds
+`illuminant_config`. Illuminant options are rejected for other methods, and
+`chroma_vk` supports one CPU thread.
+
+A diagonal gain cannot remove light that varies inside one object, colored
+inter-reflections, or a non-neutral reference, and a clipped reference cannot be
+recovered. Thresholds still need separate calibration data. Round 46
+([ILLUMINANT_CHROMA_zh-TW.md](ILLUMINANT_CHROMA_zh-TW.md)) evaluates it on test-bed v1.
+
+### Linear reference model (`reference_model`, round 47)
+
+`reference_model: "constant"` (default) is the model above, with byte-identical
+scores. `"linear"` (object reference only) models a first-order light gradient
+inside the object. The template reference pixels are ranked by template `u` and,
+separately, by `v`; the lowest and highest thirds are the two ends of each axis.
+Each end is estimated like the whole reference (same clip policy and limits) and
+placed at the median template `(u, v)` of the samples behind its median. The two
+slopes solve both end pairs jointly, so a pair that is unbalanced in the other
+coordinate (rank ties) does not leak that axis's gradient:
+
+```
+W_high_u - W_low_u = slope_u (u_high_u - u_low_u) + slope_v (v_high_u - v_low_u)
+W_high_v - W_low_v = slope_u (u_high_v - u_low_v) + slope_v (v_high_v - v_low_v)
+W_c(u,v)  = W_all,c + slope_u,c (u - u_all) + slope_v,c (v - v_all)
+corrected = I_c(u,v) * W_template,c / W_c(u,v)    at every colour sample
+```
+
+Every end must be usable, both pairs must be ordered along their own axis with a
+positive determinant, and `W` must stay positive at every valid colour sample, or
+the score is status 3. `gain` is taken at the reference centre, and linear
+scores add `reference_slope_u`/`reference_slope_v` (source linear RGB per template
+pixel; zero when unusable). When the colour field lies beside the reference, the
+`u` slope is extrapolated, which amplifies reference noise. Round 47
+([CHROMA_MARGIN_zh-TW.md](CHROMA_MARGIN_zh-TW.md)) evaluates it.
+
 ## Outputs and measurement boundaries
 
 The JSON output has `first`, `warmups_ms`, and `runs`. Each first/run record has

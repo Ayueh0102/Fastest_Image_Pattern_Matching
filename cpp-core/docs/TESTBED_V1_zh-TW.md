@@ -68,6 +68,8 @@ python-port/venv/bin/python -m unittest discover -s cpp-core/tests -p test_testb
 
 Blender 整套約 30 秒、但會吃滿 CPU；**不要在其他 session 進行 GPU 正式計時時執行**。`final/manifest.json` 記錄每個檔案的 SHA-256 與產生器雜湊。
 
+`testbed_blender_render.py` 可用 `--seed`、`--rgb-order-seed`、`--rgb-layout-seed` 換 Cycles、bl_rgb 紋理順序與位姿的種子（預設即 v1 的種子；以預設重渲 bl_rgb_white，解碼後像素與 v1 相同，但 Blender 的 PNG 檔含渲染中繼資料，檔案雜湊每次不同）。[第47輪](CHROMA_MARGIN_zh-TW.md)以這些選項與新的合成 layout／noise／background 種子重產了全新的保留集，標籤原稿逐位元組相同。
+
 ## 建議的評估方式
 
 1. **定位**：嚴格 GT（2 px／1°／2%），FP 與 FN 都算；傾斜／透視場景改用投影中心與四邊形 IoU，並分開報告。
@@ -96,7 +98,7 @@ Blender 整套約 30 秒、但會吃滿 CPU；**不要在其他 session 進行 G
 - RGB NCC 的 AUC 約 0.63–0.69，灰階 NCC 低於 0.5：兩者都不能拿來判色，與 [runner 文件](COLOR_VERIFY_RUNNER.md) 的推導一致。
 - Blender：白光下同色距離 0.006、最近的異色 0.013，可以分開；3200K 暖光下同色距離 0.085 反而大於部分異色（0.078）；混合光下有一個同色物件位在暖光側，距離 0.052，大於色相差 ΔE4 的異色（0.015）。
 
-**照明校正探針**（`testbed_colour_probe.py`，用 GT 對齊，只評估判色）：在模板的顏色區算色度，比較原始色度、全域參考卡校正，以及用物件自己的米白面板做 von Kries 校正。物件內白參考讓合成白平衡偏移的 AUC 從 0.69–0.73 回到 1.000、局部暖光從 0.78 提升到 0.986，Blender 暖光從 0.500 回到 1.000、混合光從 0.938 回到 1.000。限制：過曝時面板飽和（AUC 0.898）；只用中性光定的門檻在其他照明仍過緊，需要以多種照明下的正常樣本校準。只在顏色區計算（遮罩）也比對整個模板平均更好分；runner 已支援 chroma 遮罩。這是探針，不是新的驗證器實作。
+**照明校正探針**（`testbed_colour_probe.py`，用 GT 對齊，只評估判色）：在模板的顏色區算色度，比較原始色度、全域參考卡校正，以及用物件自己的米白面板做 von Kries 校正。物件內白參考讓合成白平衡偏移的 AUC 從 0.69–0.73 回到 1.000、局部暖光從 0.78 提升到 0.986，Blender 暖光從 0.500 回到 1.000、混合光從 0.938 回到 1.000。限制：過曝時面板飽和（AUC 0.898）；只用中性光定的門檻在其他照明仍過緊，需要以多種照明下的正常樣本校準。只在顏色區計算（遮罩）也比對整個模板平均更好分；runner 已支援 chroma 遮罩。這是探針，不是新的驗證器實作；實作與事前登錄的評估見[第46輪](ILLUMINANT_CHROMA_zh-TW.md)（分得開，但事前門檻規則未通過）。
 
 ## 其他說明
 

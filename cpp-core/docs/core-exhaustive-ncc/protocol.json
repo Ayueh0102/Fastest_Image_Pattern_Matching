@@ -1,0 +1,28 @@
+{
+  "registered_before_timing": "2026-10-25T15:53:06Z",
+  "question": "Does the exact exhaustive NCC path (sliding integer window sums, eight-window UDOT products) speed up the stable core's fixed-scale match, with bit-identical outputs?",
+  "builds": {
+    "before": {
+      "dir": "build/ncc-base",
+      "source": "git archive of 65b7dad (UDOT rows, NEON rotation, frozen copy)",
+      "ncc": "binary64 integral images, row-by-row dot products"
+    },
+    "after": {
+      "dir": "build/ncc-new",
+      "source": "worktree with the exhaustive NCC change",
+      "ncc": "exact uint32 column sums slid to window sums; UDOT builds take products of eight adjacent windows over a zero-padded template; bounded/screened maps keep the original path"
+    }
+  },
+  "toolchain": "Apple clang 21.0.0, CMAKE_BUILD_TYPE=Release, FPM_WITH_OPENCV=ON, default target-cpu apple-m1 for both builds",
+  "benchmark_modes": "cpp-core/tools/benchmark_modes.py --repeats 9 (one warm-up + 9 measured per mode, fresh process each); sessions interleaved before,after x3; the before sessions run the frozen base copy of the script",
+  "control": "legacy_cpp mode is the same macos-cli/match_core.cpp binary in both builds",
+  "fixture_ab": "cpp-core/tools/benchmark_backend_ab.py --rounds 8 (round 0 warm-up discarded), alternating order, 17 compare_versions cases",
+  "metric": "fpm_cli match_ms (excludes image decoding and learning); no runs dropped or rerun",
+  "acceptance": "speed is reported, not gated; identity is gated separately (check_backend_identity.py 544 runs, compare_versions.py, core_test exact-reference tests)",
+  "selection_history": "pilot 1 (four-row interleaved window kernel plus uint64 integral images) and pilot 2 (this design) were compared on nine fixtures with 5 measured runs each before registration; pilot numbers are selection-only",
+  "profiling": "instrumented and sample-based profiles are separate runs and are not formal timings",
+  "before_binary_sha256": "3e0a165e9c3d66f8e634bcd41b0eaab8db82ef5a568db4448e11bd6a6c8651fd",
+  "after_binary_sha256": "36bbbb536b5d616a0a140c711e6f1000a01e7c8a61140be973e313d63a241e5e",
+  "after_ncc_cpp_sha256": "9b8b2373b022b25a585b7670405f7f02660214313da3439dd0ffa7b219d11244",
+  "environment_note": "other Claude/Codex sessions may be active on this machine; load averages are recorded per session"
+}

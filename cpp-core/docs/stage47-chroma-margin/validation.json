@@ -1,0 +1,1021 @@
+{
+ "stage": 47,
+ "tested_commit": "16bd2c792b2f4a4f373628b656f2d83dfa1cdfda",
+ "platform": "Apple M4 Pro, 48 GiB, macOS",
+ "gates": {
+  "build": {
+   "command": "bash -c cmake -S cpp-core -B build/research -DCMAKE_BUILD_TYPE=Release -DFPM_BUILD_GUI=ON -DFPM_BUILD_EXPERIMENTS=ON -DFPM_WITH_OPENCV=ON && cmake --build build/research -j",
+   "exit": 0,
+   "head_before": "16bd2c792b2f4a4f373628b656f2d83dfa1cdfda",
+   "head_after": "16bd2c792b2f4a4f373628b656f2d83dfa1cdfda",
+   "clean_before": true,
+   "clean_after": true,
+   "start": "2026-10-25T17:03:28Z",
+   "end": "2026-10-25T17:03:39Z",
+   "log": "validation-logs/build.log",
+   "log_sha256": "5ace864b8d05dc574db6dac976c298abb5ee3e61fbd9fa3644fe3b675623afcb",
+   "results": []
+  },
+  "ctest": {
+   "command": "ctest --test-dir build/research --output-on-failure",
+   "exit": 0,
+   "head_before": "16bd2c792b2f4a4f373628b656f2d83dfa1cdfda",
+   "head_after": "16bd2c792b2f4a4f373628b656f2d83dfa1cdfda",
+   "clean_before": true,
+   "clean_after": true,
+   "start": "2026-10-25T17:03:39Z",
+   "end": "2026-10-25T17:04:29Z",
+   "log": "validation-logs/ctest.log",
+   "log_sha256": "68bb01305139a2812e0f0ea618dd22c0904accbe73c8785d77a123dd44c85d19",
+   "results": [
+    "100% tests passed, 0 tests failed out of 83"
+   ]
+  },
+  "harness": {
+   "command": "env FPM_FINE_REUSE_BUILD=build/research FPM_FINE_SEARCH_BUILD=build/research FPM_FINE_FUSED_BUILD=build/research /Users/Ayueh/Fastest_Image_Pattern_Matching/python-port/venv/bin/python -m unittest discover -s cpp-core/tests -p test_*.py",
+   "exit": 0,
+   "head_before": "16bd2c792b2f4a4f373628b656f2d83dfa1cdfda",
+   "head_after": "16bd2c792b2f4a4f373628b656f2d83dfa1cdfda",
+   "clean_before": true,
+   "clean_after": true,
+   "start": "2026-10-25T17:04:29Z",
+   "end": "2026-10-25T17:04:49Z",
+   "log": "validation-logs/harness.log",
+   "log_sha256": "9021c54bab22f15530b46f219a78e0258515517d46839b94c5df960254f3d7a9",
+   "results": [
+    "Ran 714 tests in 20.080s"
+   ]
+  },
+  "color": {
+   "command": "/Users/Ayueh/Fastest_Image_Pattern_Matching/python-port/venv/bin/python cpp-core/tests/color_verify_runner_test.py --runner build/research/experiments/fpm_color_verify_runner --metal",
+   "exit": 0,
+   "head_before": "16bd2c792b2f4a4f373628b656f2d83dfa1cdfda",
+   "head_after": "16bd2c792b2f4a4f373628b656f2d83dfa1cdfda",
+   "clean_before": true,
+   "clean_after": true,
+   "start": "2026-10-25T17:04:49Z",
+   "end": "2026-10-25T17:04:50Z",
+   "log": "validation-logs/color.log",
+   "log_sha256": "5af794603e3f0d84356044bdd25f13146210fc48e294499d0b731c40d0cb2afc",
+   "results": [
+    "Ran 9 tests in 1.205s"
+   ]
+  },
+  "other-py": {
+   "command": "bash -c for f in blender_challenge_test.py challenge_coverage_test.py real_rgb_benchmark_test.py; do \"$0\" -m unittest discover -s cpp-core/tests -p \"$f\" || exit 1; done /Users/Ayueh/Fastest_Image_Pattern_Matching/python-port/venv/bin/python",
+   "exit": 0,
+   "head_before": "16bd2c792b2f4a4f373628b656f2d83dfa1cdfda",
+   "head_after": "16bd2c792b2f4a4f373628b656f2d83dfa1cdfda",
+   "clean_before": true,
+   "clean_after": true,
+   "start": "2026-10-25T17:04:51Z",
+   "end": "2026-10-25T17:04:52Z",
+   "log": "validation-logs/other-py.log",
+   "log_sha256": "1855bed3d16ead8770a4d77e6c2aa4dd52c99b4c1374cbc37539625365ff9fab",
+   "results": [
+    "Ran 6 tests in 0.017s",
+    "Ran 17 tests in 0.249s",
+    "Ran 26 tests in 0.652s"
+   ]
+  },
+  "asan": {
+   "command": "bash -c cmake -S cpp-core -B build/sanitized -DCMAKE_BUILD_TYPE=Debug -DFPM_SANITIZERS=ON -DFPM_DISABLE_SIMD=ON -DFPM_BUILD_EXPERIMENTS=ON && cmake --build build/sanitized -j && ctest --test-dir build/sanitized --output-on-failure",
+   "exit": 0,
+   "head_before": "16bd2c792b2f4a4f373628b656f2d83dfa1cdfda",
+   "head_after": "16bd2c792b2f4a4f373628b656f2d83dfa1cdfda",
+   "clean_before": true,
+   "clean_after": true,
+   "start": "2026-10-25T17:04:52Z",
+   "end": "2026-10-25T17:14:36Z",
+   "log": "validation-logs/asan.log",
+   "log_sha256": "ec770514e9c23144fe19cc8676586a95714c7bdcdfe67ad777c2c2015a9795a0",
+   "results": [
+    "100% tests passed, 0 tests failed out of 78"
+   ]
+  }
+ },
+ "gate_notes": {
+  "build": "fresh Release research build (GUI+experiments+OpenCV) in build/research of the worktree",
+  "ctest": "full research ctest, includes experimental_color_illuminant with the linear-model controls",
+  "harness": "python unittest discover cpp-core/tests test_*.py with FPM_FINE_*_BUILD=build/research; includes the stage-47 harness tests",
+  "color": "color_verify_runner_test.py --runner build/research/... --metal (9 tests: 5 existing + 3 round-46 chroma_vk + 1 reference_model)",
+  "other_py": "blender_challenge, challenge_coverage, real_rgb_benchmark",
+  "asan": "Debug, FPM_SANITIZERS, FPM_DISABLE_SIMD, experiments on; includes the linear-model native test"
+ },
+ "all_gates_passed": true,
+ "frozen_runner": {
+  "path": "build/stage47-release",
+  "sha256": "0a6b3a26232f282fd1b2beda9df524d082b9a5fb536de140098cce3ea4600b63",
+  "built_from": "git archive 190973e"
+ },
+ "base_runner": {
+  "path": "build/stage47-base",
+  "sha256": "e2be71b46bf807592ce389fd911da2e05440364b05094154553d5456a6142f85",
+  "built_from": "git archive ce057fe"
+ },
+ "compiled_mutants": {
+  "script": "validation-logs/stage47_compiled_mutants.py",
+  "note": "each mutant of color_illuminant.cpp (L1-L16) or color_verify_runner.cpp (R1-R4) is compiled in a git-archive copy and run against fpm_color_illuminant_test and the runner contract tests; the worktree is never modified",
+  "first_run_172f86a": {
+   "total": 20,
+   "killed": 19,
+   "survived": [
+    "R4 runner accepts reference_model for chroma"
+   ],
+   "log": "validation-logs/stage47-compiled-mutants-pre-protocol-first-run-172f86a.log",
+   "mutants": [
+    {
+     "name": "L1 slopes not applied",
+     "killed": true,
+     "by": "['native'] ['Linear model did not remove an in-object gradient']"
+    },
+    {
+     "name": "L2 u slope dropped",
+     "killed": true,
+     "by": "['native'] ['Linear model did not remove an in-object gradient']"
+    },
+    {
+     "name": "L3 v slope dropped",
+     "killed": true,
+     "by": "['native'] ['v slope']"
+    },
+    {
+     "name": "L4 extrapolation sign flipped",
+     "killed": true,
+     "by": "['native'] ['Linear model did not remove an in-object gradient']"
+    },
+    {
+     "name": "L5 per-axis slopes instead of the joint solve",
+     "killed": true,
+     "by": "['native'] ['v slope']"
+    },
+    {
+     "name": "L6 end usability not required",
+     "killed": true,
+     "by": "['native'] ['Clipped end must abstain']"
+    },
+    {
+     "name": "L7 non-positive illuminant accepted",
+     "killed": true,
+     "by": "['native'] ['Non-positive extrapolated illuminant accepted']"
+    },
+    {
+     "name": "L8 linear region uses the centre gain",
+     "killed": true,
+     "by": "['native'] ['Linear model did not remove an in-object gradient']"
+    },
+    {
+     "name": "L9 centre at the template origin",
+     "killed": true,
+     "by": "['native'] ['Linear model did not remove an in-object gradient']"
+    },
+    {
+     "name": "L10 low and high ends swapped",
+     "killed": true,
+     "by": "['native', 'runner_contract'] ['Linear model under uniform light']"
+    },
+    {
+     "name": "L11 halves instead of thirds",
+     "killed": true,
+     "by": "['native', 'runner_contract'] ['Linear ends must be the outer thirds']"
+    },
+    {
+     "name": "L12 ends at the centroid instead of the median coordinate",
+     "killed": true,
+     "by": "['native'] ['v slope']"
+    },
+    {
+     "name": "L13 unusable linear result keeps its gain",
+     "killed": true,
+     "by": "['native'] ['Non-positive extrapolated illuminant accepted']"
+    },
+    {
+     "name": "L14 slopes reported for the constant model",
+     "killed": true,
+     "by": "['native'] ['Constant model reports slopes']"
+    },
+    {
+     "name": "L15 linear with a source rectangle not rejected",
+     "killed": true,
+     "by": "['native'] ['Linear model with a source rectangle']"
+    },
+    {
+     "name": "L16 one-axis reference accepted",
+     "killed": true,
+     "by": "['native'] ['Linear model on a one-column reference']"
+    },
+    {
+     "name": "R1 runner ignores reference_model",
+     "killed": true,
+     "by": "['runner_contract'] []"
+    },
+    {
+     "name": "R2 runner emits slopes for the constant model",
+     "killed": true,
+     "by": "['runner_contract'] []"
+    },
+    {
+     "name": "R3 runner accepts unknown reference_model",
+     "killed": true,
+     "by": "['runner_contract'] []"
+    },
+    {
+     "name": "R4 runner accepts reference_model for chroma",
+     "killed": false,
+     "by": "[] []"
+    }
+   ]
+  },
+  "rerun_190973e": {
+   "total": 20,
+   "killed": 20,
+   "survived": [],
+   "log": "validation-logs/stage47-compiled-mutants-pre-protocol.log",
+   "mutants": [
+    {
+     "name": "L1 slopes not applied",
+     "killed": true,
+     "by": "['native'] ['Linear model did not remove an in-object gradient']"
+    },
+    {
+     "name": "L2 u slope dropped",
+     "killed": true,
+     "by": "['native'] ['Linear model did not remove an in-object gradient']"
+    },
+    {
+     "name": "L3 v slope dropped",
+     "killed": true,
+     "by": "['native'] ['v slope']"
+    },
+    {
+     "name": "L4 extrapolation sign flipped",
+     "killed": true,
+     "by": "['native'] ['Linear model did not remove an in-object gradient']"
+    },
+    {
+     "name": "L5 per-axis slopes instead of the joint solve",
+     "killed": true,
+     "by": "['native'] ['v slope']"
+    },
+    {
+     "name": "L6 end usability not required",
+     "killed": true,
+     "by": "['native'] ['Clipped end must abstain']"
+    },
+    {
+     "name": "L7 non-positive illuminant accepted",
+     "killed": true,
+     "by": "['native'] ['Non-positive extrapolated illuminant accepted']"
+    },
+    {
+     "name": "L8 linear region uses the centre gain",
+     "killed": true,
+     "by": "['native'] ['Linear model did not remove an in-object gradient']"
+    },
+    {
+     "name": "L9 centre at the template origin",
+     "killed": true,
+     "by": "['native'] ['Linear model did not remove an in-object gradient']"
+    },
+    {
+     "name": "L10 low and high ends swapped",
+     "killed": true,
+     "by": "['native', 'runner_contract'] ['Linear model under uniform light']"
+    },
+    {
+     "name": "L11 halves instead of thirds",
+     "killed": true,
+     "by": "['native', 'runner_contract'] ['Linear ends must be the outer thirds']"
+    },
+    {
+     "name": "L12 ends at the centroid instead of the median coordinate",
+     "killed": true,
+     "by": "['native'] ['v slope']"
+    },
+    {
+     "name": "L13 unusable linear result keeps its gain",
+     "killed": true,
+     "by": "['native'] ['Non-positive extrapolated illuminant accepted']"
+    },
+    {
+     "name": "L14 slopes reported for the constant model",
+     "killed": true,
+     "by": "['native'] ['Constant model reports slopes']"
+    },
+    {
+     "name": "L15 linear with a source rectangle not rejected",
+     "killed": true,
+     "by": "['native'] ['Linear model with a source rectangle']"
+    },
+    {
+     "name": "L16 one-axis reference accepted",
+     "killed": true,
+     "by": "['native'] ['Linear model on a one-column reference']"
+    },
+    {
+     "name": "R1 runner ignores reference_model",
+     "killed": true,
+     "by": "['runner_contract'] []"
+    },
+    {
+     "name": "R2 runner emits slopes for the constant model",
+     "killed": true,
+     "by": "['runner_contract'] []"
+    },
+    {
+     "name": "R3 runner accepts unknown reference_model",
+     "killed": true,
+     "by": "['runner_contract'] []"
+    },
+    {
+     "name": "R4 runner accepts reference_model for chroma",
+     "killed": true,
+     "by": "['runner_contract'] []"
+    }
+   ]
+  },
+  "after_measurement": {
+   "total": 20,
+   "killed": 20,
+   "survived": [],
+   "log": "validation-logs/stage47-compiled-mutants-after-measurement.log",
+   "mutants": [
+    {
+     "name": "L1 slopes not applied",
+     "killed": true,
+     "by": "['native'] ['Linear model did not remove an in-object gradient']"
+    },
+    {
+     "name": "L2 u slope dropped",
+     "killed": true,
+     "by": "['native'] ['Linear model did not remove an in-object gradient']"
+    },
+    {
+     "name": "L3 v slope dropped",
+     "killed": true,
+     "by": "['native'] ['v slope']"
+    },
+    {
+     "name": "L4 extrapolation sign flipped",
+     "killed": true,
+     "by": "['native'] ['Linear model did not remove an in-object gradient']"
+    },
+    {
+     "name": "L5 per-axis slopes instead of the joint solve",
+     "killed": true,
+     "by": "['native'] ['v slope']"
+    },
+    {
+     "name": "L6 end usability not required",
+     "killed": true,
+     "by": "['native'] ['Clipped end must abstain']"
+    },
+    {
+     "name": "L7 non-positive illuminant accepted",
+     "killed": true,
+     "by": "['native'] ['Non-positive extrapolated illuminant accepted']"
+    },
+    {
+     "name": "L8 linear region uses the centre gain",
+     "killed": true,
+     "by": "['native'] ['Linear model did not remove an in-object gradient']"
+    },
+    {
+     "name": "L9 centre at the template origin",
+     "killed": true,
+     "by": "['native'] ['Linear model did not remove an in-object gradient']"
+    },
+    {
+     "name": "L10 low and high ends swapped",
+     "killed": true,
+     "by": "['native', 'runner_contract'] ['Linear model under uniform light']"
+    },
+    {
+     "name": "L11 halves instead of thirds",
+     "killed": true,
+     "by": "['native', 'runner_contract'] ['Linear ends must be the outer thirds']"
+    },
+    {
+     "name": "L12 ends at the centroid instead of the median coordinate",
+     "killed": true,
+     "by": "['native'] ['v slope']"
+    },
+    {
+     "name": "L13 unusable linear result keeps its gain",
+     "killed": true,
+     "by": "['native'] ['Non-positive extrapolated illuminant accepted']"
+    },
+    {
+     "name": "L14 slopes reported for the constant model",
+     "killed": true,
+     "by": "['native'] ['Constant model reports slopes']"
+    },
+    {
+     "name": "L15 linear with a source rectangle not rejected",
+     "killed": true,
+     "by": "['native'] ['Linear model with a source rectangle']"
+    },
+    {
+     "name": "L16 one-axis reference accepted",
+     "killed": true,
+     "by": "['native'] ['Linear model on a one-column reference']"
+    },
+    {
+     "name": "R1 runner ignores reference_model",
+     "killed": true,
+     "by": "['runner_contract'] []"
+    },
+    {
+     "name": "R2 runner emits slopes for the constant model",
+     "killed": true,
+     "by": "['runner_contract'] []"
+    },
+    {
+     "name": "R3 runner accepts unknown reference_model",
+     "killed": true,
+     "by": "['runner_contract'] []"
+    },
+    {
+     "name": "R4 runner accepts reference_model for chroma",
+     "killed": true,
+     "by": "['runner_contract'] []"
+    }
+   ]
+  }
+ },
+ "tool_mutants": {
+  "script": "validation-logs/stage47_tool_mutants.py",
+  "note": "each mutant of benchmark_chroma_margin.py must make test_chroma_margin_harness.py fail, on a git-archive copy of cpp-core/tools, tests and examples",
+  "first_run_172f86a": {
+   "total": 32,
+   "killed": 30,
+   "survived": [
+    "T13 fresh calibration lighting gated as holdout",
+    "T20 paired comparison includes fresh calibration lighting"
+   ],
+   "log": "validation-logs/stage47-tool-mutants-pre-protocol-first-run-172f86a.log",
+   "mutants": [
+    {
+     "name": "T1 catch fraction 1 (tau = d_catch)",
+     "killed": true,
+     "by": "['test_artwork_thresholds', 'test_every_gated_variant_is_at_least_twice_tau']"
+    },
+    {
+     "name": "T2 catch ignores the artwork variants",
+     "killed": true,
+     "by": "['test_artwork_thresholds', 'test_every_gated_variant_is_at_least_twice_tau']"
+    },
+    {
+     "name": "T3 catch requirement DeltaE 2",
+     "killed": true,
+     "by": "['test_artwork_thresholds']"
+    },
+    {
+     "name": "T4 calibration values include fresh calibration lighting",
+     "killed": true,
+     "by": "['test_clean_fixture_passes', 'test_fresh_calibration_lighting_is_never_gated_or_calibrating', 'test_secondary_rules']"
+    },
+    {
+     "name": "T5 exclusive threshold",
+     "killed": true,
+     "by": "['test_threshold_is_inclusive']"
+    },
+    {
+     "name": "T6 abstention accepted",
+     "killed": true,
+     "by": "['test_abstained_different_colour_is_never_accepted', 'test_abstained_same_colour_excluded_from_decided_but_counts_end_to_end']"
+    },
+    {
+     "name": "T7 decided minimum ignored",
+     "killed": true,
+     "by": "['test_minimum_decided_count']"
+    },
+    {
+     "name": "T8 abstained objects in the H1a/H2a denominator",
+     "killed": true,
+     "by": "['test_abstained_same_colour_excluded_from_decided_but_counts_end_to_end', 'test_minimum_decided_count']"
+    },
+    {
+     "name": "T9 feasibility at tau instead of tau/2",
+     "killed": true,
+     "by": "['test_feasibility_on_calibration']"
+    },
+    {
+     "name": "T10 lightness+ gated",
+     "killed": true,
+     "by": "['test_artwork_thresholds', 'test_clean_fixture_passes', 'test_ungated_cells']"
+    },
+    {
+     "name": "T11 DeltaE 2 gated",
+     "killed": true,
+     "by": "['test_artwork_thresholds', 'test_abstained_different_colour_is_never_accepted', 'test_abstained_same_colour_excluded_from_decided_but_counts_end_to_end', 'test_clean_fixture_passes', 'test_feasibility_on_calibration', 'test_fresh_calibration_lighting_is_never_gated_or_calibrating', 'test_isogray_pooled_boundary', 'test_minimum_decided_count', 'test_threshold_is_inclusive', 'test_ungated_cells', 'test_wrong_accept_boundaries', 'test_gradient_preference_needs_its_own_checks']"
+    },
+    {
+     "name": "T12 exposure_bright gated",
+     "killed": true,
+     "by": "['test_clean_fixture_passes', 'test_isogray_pooled_boundary', 'test_ungated_cells']"
+    },
+    {
+     "name": "T13 fresh calibration lighting gated as holdout",
+     "killed": false,
+     "by": "[]"
+    },
+    {
+     "name": "T14 round-46 methods not compared with the base runner",
+     "killed": true,
+     "by": "['test_existing_and_round46_methods_must_equal_base', 'test_jobs_carry_no_gt_and_the_linear_model']"
+    },
+    {
+     "name": "T15 localization identity skipped",
+     "killed": true,
+     "by": "['test_localization_must_be_shared']"
+    },
+    {
+     "name": "T16 GT in jobs ignored",
+     "killed": true,
+     "by": "['test_gt_in_job']"
+    },
+    {
+     "name": "T17 seed reuse not checked",
+     "killed": true,
+     "by": "['test_reused_or_duplicated_seed']"
+    },
+    {
+     "name": "T18 artwork not compared",
+     "killed": true,
+     "by": "['test_artwork_and_record']"
+    },
+    {
+     "name": "T19 sign test off by one",
+     "killed": true,
+     "by": "['test_paired_uses_holdout_same_colour_decided_by_both', 'test_sign_test']"
+    },
+    {
+     "name": "T20 paired comparison includes fresh calibration lighting",
+     "killed": false,
+     "by": "[]"
+    },
+    {
+     "name": "T21 gradient preference ignores its own checks",
+     "killed": true,
+     "by": "['test_verdicts_need_integrity_and_every_check']"
+    },
+    {
+     "name": "T22 result hash not checked",
+     "killed": true,
+     "by": "['test_repeat_hashes_and_completion']"
+    },
+    {
+     "name": "T23 input hash not checked",
+     "killed": true,
+     "by": "['test_repeat_hashes_and_completion']"
+    },
+    {
+     "name": "T24 incomplete run accepted",
+     "killed": true,
+     "by": "['test_repeat_hashes_and_completion']"
+    },
+    {
+     "name": "T25 exact repeat not checked",
+     "killed": true,
+     "by": "['test_repeat_hashes_and_completion']"
+    },
+    {
+     "name": "T26 NCC arms get the catch threshold",
+     "killed": true,
+     "by": "['test_catch_does_not_use_scenes']"
+    },
+    {
+     "name": "T27 catch protocol check loose",
+     "killed": true,
+     "by": "['test_catch_thresholds_must_equal_the_protocol']"
+    },
+    {
+     "name": "T28 masks not compared",
+     "killed": true,
+     "by": "['test_masks_must_equal_stage46']"
+    },
+    {
+     "name": "T29 holdout record hash not checked",
+     "killed": true,
+     "by": "['test_artwork_and_record']"
+    },
+    {
+     "name": "T30 isogray pooled over every direction",
+     "killed": true,
+     "by": "['test_clean_fixture_passes', 'test_isogray_pooled_boundary']"
+    },
+    {
+     "name": "T31 Rayleigh false-reject 1e-2",
+     "killed": true,
+     "by": "['test_secondary_rules']"
+    },
+    {
+     "name": "T32 recommended ignores integrity",
+     "killed": true,
+     "by": "['test_verdicts_need_integrity_and_every_check']"
+    }
+   ]
+  },
+  "rerun_190973e": {
+   "total": 32,
+   "killed": 32,
+   "survived": [],
+   "log": "validation-logs/stage47-tool-mutants-pre-protocol.log",
+   "mutants": [
+    {
+     "name": "T1 catch fraction 1 (tau = d_catch)",
+     "killed": true,
+     "by": "['test_artwork_thresholds', 'test_every_gated_variant_is_at_least_twice_tau']"
+    },
+    {
+     "name": "T2 catch ignores the artwork variants",
+     "killed": true,
+     "by": "['test_artwork_thresholds', 'test_every_gated_variant_is_at_least_twice_tau']"
+    },
+    {
+     "name": "T3 catch requirement DeltaE 2",
+     "killed": true,
+     "by": "['test_artwork_thresholds']"
+    },
+    {
+     "name": "T4 calibration values include fresh calibration lighting",
+     "killed": true,
+     "by": "['test_clean_fixture_passes', 'test_fresh_calibration_lighting_is_never_gated_or_calibrating', 'test_gates_read_the_split_label', 'test_secondary_rules']"
+    },
+    {
+     "name": "T5 exclusive threshold",
+     "killed": true,
+     "by": "['test_threshold_is_inclusive']"
+    },
+    {
+     "name": "T6 abstention accepted",
+     "killed": true,
+     "by": "['test_abstained_different_colour_is_never_accepted', 'test_abstained_same_colour_excluded_from_decided_but_counts_end_to_end']"
+    },
+    {
+     "name": "T7 decided minimum ignored",
+     "killed": true,
+     "by": "['test_minimum_decided_count']"
+    },
+    {
+     "name": "T8 abstained objects in the H1a/H2a denominator",
+     "killed": true,
+     "by": "['test_abstained_same_colour_excluded_from_decided_but_counts_end_to_end', 'test_minimum_decided_count']"
+    },
+    {
+     "name": "T9 feasibility at tau instead of tau/2",
+     "killed": true,
+     "by": "['test_feasibility_on_calibration']"
+    },
+    {
+     "name": "T10 lightness+ gated",
+     "killed": true,
+     "by": "['test_artwork_thresholds', 'test_clean_fixture_passes', 'test_ungated_cells']"
+    },
+    {
+     "name": "T11 DeltaE 2 gated",
+     "killed": true,
+     "by": "['test_artwork_thresholds', 'test_abstained_different_colour_is_never_accepted', 'test_abstained_same_colour_excluded_from_decided_but_counts_end_to_end', 'test_clean_fixture_passes', 'test_feasibility_on_calibration', 'test_fresh_calibration_lighting_is_never_gated_or_calibrating', 'test_gates_read_the_split_label', 'test_isogray_pooled_boundary', 'test_minimum_decided_count', 'test_threshold_is_inclusive', 'test_ungated_cells', 'test_wrong_accept_boundaries', 'test_gradient_preference_needs_its_own_checks']"
+    },
+    {
+     "name": "T12 exposure_bright gated",
+     "killed": true,
+     "by": "['test_clean_fixture_passes', 'test_isogray_pooled_boundary', 'test_ungated_cells']"
+    },
+    {
+     "name": "T13 fresh calibration lighting gated as holdout",
+     "killed": true,
+     "by": "['test_gates_read_the_split_label']"
+    },
+    {
+     "name": "T14 round-46 methods not compared with the base runner",
+     "killed": true,
+     "by": "['test_existing_and_round46_methods_must_equal_base', 'test_jobs_carry_no_gt_and_the_linear_model']"
+    },
+    {
+     "name": "T15 localization identity skipped",
+     "killed": true,
+     "by": "['test_localization_must_be_shared']"
+    },
+    {
+     "name": "T16 GT in jobs ignored",
+     "killed": true,
+     "by": "['test_gt_in_job']"
+    },
+    {
+     "name": "T17 seed reuse not checked",
+     "killed": true,
+     "by": "['test_reused_or_duplicated_seed']"
+    },
+    {
+     "name": "T18 artwork not compared",
+     "killed": true,
+     "by": "['test_artwork_and_record']"
+    },
+    {
+     "name": "T19 sign test off by one",
+     "killed": true,
+     "by": "['test_paired_uses_holdout_same_colour_decided_by_both', 'test_sign_test']"
+    },
+    {
+     "name": "T20 paired comparison includes fresh calibration lighting",
+     "killed": true,
+     "by": "['test_paired_reads_the_split_label']"
+    },
+    {
+     "name": "T21 gradient preference ignores its own checks",
+     "killed": true,
+     "by": "['test_verdicts_need_integrity_and_every_check']"
+    },
+    {
+     "name": "T22 result hash not checked",
+     "killed": true,
+     "by": "['test_repeat_hashes_and_completion']"
+    },
+    {
+     "name": "T23 input hash not checked",
+     "killed": true,
+     "by": "['test_repeat_hashes_and_completion']"
+    },
+    {
+     "name": "T24 incomplete run accepted",
+     "killed": true,
+     "by": "['test_repeat_hashes_and_completion']"
+    },
+    {
+     "name": "T25 exact repeat not checked",
+     "killed": true,
+     "by": "['test_repeat_hashes_and_completion']"
+    },
+    {
+     "name": "T26 NCC arms get the catch threshold",
+     "killed": true,
+     "by": "['test_catch_does_not_use_scenes']"
+    },
+    {
+     "name": "T27 catch protocol check loose",
+     "killed": true,
+     "by": "['test_catch_thresholds_must_equal_the_protocol']"
+    },
+    {
+     "name": "T28 masks not compared",
+     "killed": true,
+     "by": "['test_masks_must_equal_stage46']"
+    },
+    {
+     "name": "T29 holdout record hash not checked",
+     "killed": true,
+     "by": "['test_artwork_and_record']"
+    },
+    {
+     "name": "T30 isogray pooled over every direction",
+     "killed": true,
+     "by": "['test_clean_fixture_passes', 'test_isogray_pooled_boundary']"
+    },
+    {
+     "name": "T31 Rayleigh false-reject 1e-2",
+     "killed": true,
+     "by": "['test_secondary_rules']"
+    },
+    {
+     "name": "T32 recommended ignores integrity",
+     "killed": true,
+     "by": "['test_verdicts_need_integrity_and_every_check']"
+    }
+   ]
+  },
+  "after_measurement": {
+   "total": 32,
+   "killed": 32,
+   "survived": [],
+   "log": "validation-logs/stage47-tool-mutants-after-measurement.log",
+   "mutants": [
+    {
+     "name": "T1 catch fraction 1 (tau = d_catch)",
+     "killed": true,
+     "by": "['test_artwork_thresholds', 'test_every_gated_variant_is_at_least_twice_tau']"
+    },
+    {
+     "name": "T2 catch ignores the artwork variants",
+     "killed": true,
+     "by": "['test_artwork_thresholds', 'test_every_gated_variant_is_at_least_twice_tau']"
+    },
+    {
+     "name": "T3 catch requirement DeltaE 2",
+     "killed": true,
+     "by": "['test_artwork_thresholds']"
+    },
+    {
+     "name": "T4 calibration values include fresh calibration lighting",
+     "killed": true,
+     "by": "['test_clean_fixture_passes', 'test_fresh_calibration_lighting_is_never_gated_or_calibrating', 'test_gates_read_the_split_label', 'test_secondary_rules']"
+    },
+    {
+     "name": "T5 exclusive threshold",
+     "killed": true,
+     "by": "['test_threshold_is_inclusive']"
+    },
+    {
+     "name": "T6 abstention accepted",
+     "killed": true,
+     "by": "['test_abstained_different_colour_is_never_accepted', 'test_abstained_same_colour_excluded_from_decided_but_counts_end_to_end']"
+    },
+    {
+     "name": "T7 decided minimum ignored",
+     "killed": true,
+     "by": "['test_minimum_decided_count']"
+    },
+    {
+     "name": "T8 abstained objects in the H1a/H2a denominator",
+     "killed": true,
+     "by": "['test_abstained_same_colour_excluded_from_decided_but_counts_end_to_end', 'test_minimum_decided_count']"
+    },
+    {
+     "name": "T9 feasibility at tau instead of tau/2",
+     "killed": true,
+     "by": "['test_feasibility_on_calibration']"
+    },
+    {
+     "name": "T10 lightness+ gated",
+     "killed": true,
+     "by": "['test_artwork_thresholds', 'test_clean_fixture_passes', 'test_ungated_cells']"
+    },
+    {
+     "name": "T11 DeltaE 2 gated",
+     "killed": true,
+     "by": "['test_artwork_thresholds', 'test_abstained_different_colour_is_never_accepted', 'test_abstained_same_colour_excluded_from_decided_but_counts_end_to_end', 'test_clean_fixture_passes', 'test_feasibility_on_calibration', 'test_fresh_calibration_lighting_is_never_gated_or_calibrating', 'test_gates_read_the_split_label', 'test_isogray_pooled_boundary', 'test_minimum_decided_count', 'test_threshold_is_inclusive', 'test_ungated_cells', 'test_wrong_accept_boundaries', 'test_gradient_preference_needs_its_own_checks']"
+    },
+    {
+     "name": "T12 exposure_bright gated",
+     "killed": true,
+     "by": "['test_clean_fixture_passes', 'test_isogray_pooled_boundary', 'test_ungated_cells']"
+    },
+    {
+     "name": "T13 fresh calibration lighting gated as holdout",
+     "killed": true,
+     "by": "['test_gates_read_the_split_label']"
+    },
+    {
+     "name": "T14 round-46 methods not compared with the base runner",
+     "killed": true,
+     "by": "['test_existing_and_round46_methods_must_equal_base', 'test_jobs_carry_no_gt_and_the_linear_model']"
+    },
+    {
+     "name": "T15 localization identity skipped",
+     "killed": true,
+     "by": "['test_localization_must_be_shared']"
+    },
+    {
+     "name": "T16 GT in jobs ignored",
+     "killed": true,
+     "by": "['test_gt_in_job']"
+    },
+    {
+     "name": "T17 seed reuse not checked",
+     "killed": true,
+     "by": "['test_reused_or_duplicated_seed']"
+    },
+    {
+     "name": "T18 artwork not compared",
+     "killed": true,
+     "by": "['test_artwork_and_record']"
+    },
+    {
+     "name": "T19 sign test off by one",
+     "killed": true,
+     "by": "['test_paired_uses_holdout_same_colour_decided_by_both', 'test_sign_test']"
+    },
+    {
+     "name": "T20 paired comparison includes fresh calibration lighting",
+     "killed": true,
+     "by": "['test_paired_reads_the_split_label']"
+    },
+    {
+     "name": "T21 gradient preference ignores its own checks",
+     "killed": true,
+     "by": "['test_verdicts_need_integrity_and_every_check']"
+    },
+    {
+     "name": "T22 result hash not checked",
+     "killed": true,
+     "by": "['test_repeat_hashes_and_completion']"
+    },
+    {
+     "name": "T23 input hash not checked",
+     "killed": true,
+     "by": "['test_repeat_hashes_and_completion']"
+    },
+    {
+     "name": "T24 incomplete run accepted",
+     "killed": true,
+     "by": "['test_repeat_hashes_and_completion']"
+    },
+    {
+     "name": "T25 exact repeat not checked",
+     "killed": true,
+     "by": "['test_repeat_hashes_and_completion']"
+    },
+    {
+     "name": "T26 NCC arms get the catch threshold",
+     "killed": true,
+     "by": "['test_catch_does_not_use_scenes']"
+    },
+    {
+     "name": "T27 catch protocol check loose",
+     "killed": true,
+     "by": "['test_catch_thresholds_must_equal_the_protocol']"
+    },
+    {
+     "name": "T28 masks not compared",
+     "killed": true,
+     "by": "['test_masks_must_equal_stage46']"
+    },
+    {
+     "name": "T29 holdout record hash not checked",
+     "killed": true,
+     "by": "['test_artwork_and_record']"
+    },
+    {
+     "name": "T30 isogray pooled over every direction",
+     "killed": true,
+     "by": "['test_clean_fixture_passes', 'test_isogray_pooled_boundary']"
+    },
+    {
+     "name": "T31 Rayleigh false-reject 1e-2",
+     "killed": true,
+     "by": "['test_secondary_rules']"
+    },
+    {
+     "name": "T32 recommended ignores integrity",
+     "killed": true,
+     "by": "['test_verdicts_need_integrity_and_every_check']"
+    }
+   ]
+  },
+  "first_run_note": "R4, T13 and T20 survived the first run (before the protocol). R4: the contract case sent reference_model to chroma together with reference_mask, which is rejected on its own; T13/T20: gates and the paired comparison filtered by condition name only (equivalent under the real split definition). 190973e hardened the three tests; an earlier invocation of the tool-mutant script that could not import the test module (every mutant \"killed\" by an import error, restored copy failing) was discarded and the script now refuses to run unless the unmutated copy passes"
+ },
+ "independent_recount": {
+  "script": "validation-logs/stage47_recount.py",
+  "imports_harness": false,
+  "checks": 11903,
+  "problems": [],
+  "negative_control": {
+   "change": "summary per_condition catch vk_region syn_red holdout/wb_warm wrongly_accepted + 1",
+   "detected": [
+    "catch vk_region syn_red holdout/wb_warm wrongly accepted: recount 0 vs summary 1",
+    "integrity_passed: recount False vs summary True",
+    "recommended: recount False vs summary True"
+   ]
+  }
+ },
+ "summary_replay": {
+  "result": "summarize on the extracted raw-results.tar.gz is byte-identical to summary.json",
+  "summary_sha256": "940328cc37a0a0b9010c986f79c35219a2bd61af9c5bfe788642ce62ca22b281"
+ },
+ "job_replay": {
+  "script": "validation-logs/stage47_replay.py",
+  "runner": "rebuilt from source-snapshot.tar.gz into build/stage47-replay",
+  "runner_sha256": "bec9e6101a23829f8dd2da35acd7d12a2d7c9d663a10f800879654b5e9503639",
+  "jobs": 220,
+  "equal": 220,
+  "differences": [],
+  "note": "first-call scores and search matches of every candidate job equal the archive; the binary hash differs from the frozen runner because the build path differs"
+ },
+ "round46_identity": {
+  "script": "validation-logs/stage47_round46_identity.py",
+  "compared": 62,
+  "equal": 62,
+  "jobs_equal_up_to_paths": 62,
+  "differences": []
+ },
+ "holdout_regeneration": {
+  "script": "validation-logs/stage47_holdout_regen.py",
+  "compared": 91,
+  "equal": 91,
+  "by_kind": {
+   "bytes": 84,
+   "pixels": 3,
+   "json": 4,
+   "missing": 0
+  },
+  "differences": [],
+  "note": "holdout regenerated from the protocol seeds into build/stage47-holdout-regen; synthetic, texture and GT files byte-identical, Blender PNGs pixel-identical (PNG metadata differs per render), scene JSON equal"
+ },
+ "post_hoc": {
+  "script": "validation-logs/stage47_posthoc.py",
+  "output": "validation-logs/stage47-posthoc.json",
+  "note": "computed after the summary; diagnostic only, not adoption evidence"
+ },
+ "smoke": {
+  "note": "two pre-protocol plumbing smokes on smoke_seeds data (build/stage47-smoke, build/stage47-smoke2); disclosed in the protocol; their outputs are not evidence and were not archived"
+ },
+ "interrupted_gate_run": {
+  "commit": "28f09f7",
+  "logs": "validation-logs/gates-28f09f7-interrupted/",
+  "note": "first gate run, started 16:23:54Z inside round 48's active timing lock (not re-checked before starting); build, ctest, harness, color and other-py passed with a clean tree, the ASan gate was stopped at about 16:26:50Z and has no result. Kept, not used as the gate set; round 48 was told the interval. The gate script now refuses to start while a timing lock exists, and the recorded gates above ran after the lock was removed"
+ },
+ "host": {
+  "notes": "validation-logs/host-notes.md"
+ }
+}

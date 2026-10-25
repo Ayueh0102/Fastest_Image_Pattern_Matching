@@ -1,0 +1,457 @@
+{
+  "stage": 48,
+  "date": "2026-10-26",
+  "revision": "post-measurement analysis revision 1",
+  "found_by": "Independent audit after all four phases (build/stage48-frame-overheads/validation/independent-audit.json, profile notes)",
+  "reason": "profile_stages pooled every call of each process (cold, 23 warm-up and 3 measured calls), while the protocol metric scope is measured calls only. The driver now builds stage distributions from measured calls. Native binaries, jobs, raw results, accuracy, verdicts and every other summary field are unchanged.",
+  "changed_files": [
+    {
+      "path": "cpp-core/tests/test_frame_overheads_harness.py",
+      "measured_sha256": "09f70244afe04213f15ed3ec6de08f809edb18bcbcf5bf10ed633407539f1848",
+      "final_sha256": "d4c60451b08f902f3eda2fee6fe01d62d85a3c8a8a1b7b4df5639cb29a43c3ff"
+    },
+    {
+      "path": "cpp-core/tools/benchmark_frame_overheads.py",
+      "measured_sha256": "b1d1df7dce97341498886643b1e32ddfd6bf4f60d8f1ef5fe3080af040b6b75d",
+      "final_sha256": "e5db8370ca493a6f84c9e75c69832dd4430bc57e28d8b5f40567b0820edcad38"
+    }
+  ],
+  "test_first": "The harness fixture now runs warm-up calls 2 ms slower; the revised test fails on the frozen driver (32.5 != 31.5) and passes on the revised one. Log: validation-logs.tar.gz:validation/analysis-revision-red-green.log",
+  "retained": {
+    "frozen_driver": "source-snapshot.tar.gz (commit 06467f230fcaf8476d871944aba5056b5b42bfeb)",
+    "frozen_profile_summary": "profile-summary-frozen-driver.json",
+    "frozen_profile_summary_equals_manifest_embedded": true,
+    "manifest_embedded_summary": "raw-results-other.tar.gz:profile/manifest.json (summary key, frozen driver)"
+  },
+  "recomputed_with_revised_driver": {
+    "pilot_formal_dose_byte_identical": "checked by replay_check.py (replay-check.json, revised_driver section)",
+    "profile_fields_other_than_profile_stages_unchanged": true,
+    "profile_available_calls_scope": "unchanged: every call that returned a profile (54 per arm), not only the measured calls",
+    "decision_file": "decision-and-failures.json regenerated; only profile_stage_medians_ms changed"
+  },
+  "audit_cross_check": {
+    "compared_values": 110,
+    "mismatches": 0,
+    "rule": "revised medians equal the audit measured_only recomputation; frozen medians equal its all_rows recomputation"
+  },
+  "largest_change": {
+    "case": "8k_t256_angle180_3scales",
+    "arm": "full_gpu_simd__reuse_none",
+    "stage": "template_pyramid",
+    "all_calls_median_ms": 4.10821,
+    "all_calls_count": 54,
+    "measured_median_ms": 2.2868770000000005,
+    "measured_count": 6,
+    "change_ms": -1.8213329999999992
+  },
+  "profile_stage_medians": {
+    "8k_t256_angle180_3scales": {
+      "full_gpu_simd__static_none": {
+        "coarse_ncc": {
+          "all_calls_median_ms": 35.067443499999996,
+          "all_calls_count": 54,
+          "measured_median_ms": 34.59089150000001,
+          "measured_count": 6,
+          "change_ms": -0.4765519999999839
+        },
+        "coarse_peaks": {
+          "all_calls_median_ms": 34.10205900000001,
+          "all_calls_count": 54,
+          "measured_median_ms": 34.19052150000003,
+          "measured_count": 6,
+          "change_ms": 0.08846250000001987
+        },
+        "coarse_rotation": {
+          "all_calls_median_ms": 4.468265499999999,
+          "all_calls_count": 54,
+          "measured_median_ms": 4.5825625,
+          "measured_count": 6,
+          "change_ms": 0.11429700000000054
+        },
+        "final_nms": {
+          "all_calls_median_ms": 0.020895499999999997,
+          "all_calls_count": 54,
+          "measured_median_ms": 0.021062499999999998,
+          "measured_count": 6,
+          "change_ms": 0.00016700000000000048
+        },
+        "final_output": {
+          "all_calls_median_ms": 0.014082,
+          "all_calls_count": 54,
+          "measured_median_ms": 0.014936999999999999,
+          "measured_count": 6,
+          "change_ms": 0.0008549999999999981
+        },
+        "fine_search": {
+          "all_calls_median_ms": 3.9223755,
+          "all_calls_count": 54,
+          "measured_median_ms": 3.9209375,
+          "measured_count": 6,
+          "change_ms": -0.0014379999999998283
+        },
+        "initialization": {
+          "all_calls_median_ms": 0.097021,
+          "all_calls_count": 54,
+          "measured_median_ms": 0.0902705,
+          "measured_count": 6,
+          "change_ms": -0.006750499999999993
+        },
+        "model_nms": {
+          "all_calls_median_ms": 0.041333999999999996,
+          "all_calls_count": 54,
+          "measured_median_ms": 0.040291999999999994,
+          "measured_count": 6,
+          "change_ms": -0.0010420000000000013
+        },
+        "pose_prepare": {
+          "all_calls_median_ms": 0.011938,
+          "all_calls_count": 54,
+          "measured_median_ms": 0.011875,
+          "measured_count": 6,
+          "change_ms": -6.300000000000056e-05
+        },
+        "source_pyramid": {
+          "all_calls_median_ms": 4.976355,
+          "all_calls_count": 54,
+          "measured_median_ms": 4.92475,
+          "measured_count": 6,
+          "change_ms": -0.05160499999999946
+        },
+        "template_pyramid": {
+          "all_calls_median_ms": 4.1211865,
+          "all_calls_count": 54,
+          "measured_median_ms": 4.1123945,
+          "measured_count": 6,
+          "change_ms": -0.008792000000000577
+        }
+      },
+      "full_gpu_simd__static_sleep": {
+        "coarse_ncc": {
+          "all_calls_median_ms": 34.547916500000014,
+          "all_calls_count": 54,
+          "measured_median_ms": 34.75210149999998,
+          "measured_count": 6,
+          "change_ms": 0.20418499999996698
+        },
+        "coarse_peaks": {
+          "all_calls_median_ms": 34.084558500000014,
+          "all_calls_count": 54,
+          "measured_median_ms": 33.973065,
+          "measured_count": 6,
+          "change_ms": -0.1114935000000159
+        },
+        "coarse_rotation": {
+          "all_calls_median_ms": 4.6039795,
+          "all_calls_count": 54,
+          "measured_median_ms": 4.3910385000000005,
+          "measured_count": 6,
+          "change_ms": -0.21294099999999982
+        },
+        "final_nms": {
+          "all_calls_median_ms": 0.020520499999999997,
+          "all_calls_count": 54,
+          "measured_median_ms": 0.0203125,
+          "measured_count": 6,
+          "change_ms": -0.00020799999999999638
+        },
+        "final_output": {
+          "all_calls_median_ms": 0.013728999999999998,
+          "all_calls_count": 54,
+          "measured_median_ms": 0.011751000000000001,
+          "measured_count": 6,
+          "change_ms": -0.001977999999999997
+        },
+        "fine_search": {
+          "all_calls_median_ms": 3.9152704999999997,
+          "all_calls_count": 54,
+          "measured_median_ms": 3.8971459999999998,
+          "measured_count": 6,
+          "change_ms": -0.018124499999999877
+        },
+        "initialization": {
+          "all_calls_median_ms": 0.1221455,
+          "all_calls_count": 54,
+          "measured_median_ms": 0.054812,
+          "measured_count": 6,
+          "change_ms": -0.0673335
+        },
+        "model_nms": {
+          "all_calls_median_ms": 0.0386455,
+          "all_calls_count": 54,
+          "measured_median_ms": 0.044583,
+          "measured_count": 6,
+          "change_ms": 0.005937499999999998
+        },
+        "pose_prepare": {
+          "all_calls_median_ms": 0.0116875,
+          "all_calls_count": 54,
+          "measured_median_ms": 0.0114585,
+          "measured_count": 6,
+          "change_ms": -0.00022900000000000004
+        },
+        "source_pyramid": {
+          "all_calls_median_ms": 5.156354499999999,
+          "all_calls_count": 54,
+          "measured_median_ms": 5.083876,
+          "measured_count": 6,
+          "change_ms": -0.072478499999999
+        },
+        "template_pyramid": {
+          "all_calls_median_ms": 4.1193735,
+          "all_calls_count": 54,
+          "measured_median_ms": 3.071916,
+          "measured_count": 6,
+          "change_ms": -1.0474575000000002
+        }
+      },
+      "full_gpu_simd__static_decode": {
+        "coarse_ncc": {
+          "all_calls_median_ms": 34.85626549999999,
+          "all_calls_count": 54,
+          "measured_median_ms": 34.85226849999998,
+          "measured_count": 6,
+          "change_ms": -0.003997000000012463
+        },
+        "coarse_peaks": {
+          "all_calls_median_ms": 34.26064700000001,
+          "all_calls_count": 54,
+          "measured_median_ms": 34.33914450000001,
+          "measured_count": 6,
+          "change_ms": 0.07849749999999744
+        },
+        "coarse_rotation": {
+          "all_calls_median_ms": 4.482230499999998,
+          "all_calls_count": 54,
+          "measured_median_ms": 4.496603500000001,
+          "measured_count": 6,
+          "change_ms": 0.014373000000002634
+        },
+        "final_nms": {
+          "all_calls_median_ms": 0.020812499999999998,
+          "all_calls_count": 54,
+          "measured_median_ms": 0.020541999999999998,
+          "measured_count": 6,
+          "change_ms": -0.0002704999999999999
+        },
+        "final_output": {
+          "all_calls_median_ms": 0.0120215,
+          "all_calls_count": 54,
+          "measured_median_ms": 0.011917499999999998,
+          "measured_count": 6,
+          "change_ms": -0.00010400000000000166
+        },
+        "fine_search": {
+          "all_calls_median_ms": 3.9061665,
+          "all_calls_count": 54,
+          "measured_median_ms": 3.852521,
+          "measured_count": 6,
+          "change_ms": -0.05364550000000001
+        },
+        "initialization": {
+          "all_calls_median_ms": 0.116542,
+          "all_calls_count": 54,
+          "measured_median_ms": 0.12276999999999999,
+          "measured_count": 6,
+          "change_ms": 0.0062279999999999835
+        },
+        "model_nms": {
+          "all_calls_median_ms": 0.041895999999999996,
+          "all_calls_count": 54,
+          "measured_median_ms": 0.0408335,
+          "measured_count": 6,
+          "change_ms": -0.001062499999999994
+        },
+        "pose_prepare": {
+          "all_calls_median_ms": 0.0121455,
+          "all_calls_count": 54,
+          "measured_median_ms": 0.0119165,
+          "measured_count": 6,
+          "change_ms": -0.00022900000000000004
+        },
+        "source_pyramid": {
+          "all_calls_median_ms": 5.1604805,
+          "all_calls_count": 54,
+          "measured_median_ms": 5.248457499999999,
+          "measured_count": 6,
+          "change_ms": 0.08797699999999864
+        },
+        "template_pyramid": {
+          "all_calls_median_ms": 2.0382725,
+          "all_calls_count": 54,
+          "measured_median_ms": 1.542396,
+          "measured_count": 6,
+          "change_ms": -0.49587650000000005
+        }
+      },
+      "full_gpu_simd__reuse_none": {
+        "coarse_ncc": {
+          "all_calls_median_ms": 34.859199499999995,
+          "all_calls_count": 54,
+          "measured_median_ms": 34.902477,
+          "measured_count": 6,
+          "change_ms": 0.04327750000000208
+        },
+        "coarse_peaks": {
+          "all_calls_median_ms": 34.242299999999986,
+          "all_calls_count": 54,
+          "measured_median_ms": 34.218699,
+          "measured_count": 6,
+          "change_ms": -0.023600999999985106
+        },
+        "coarse_rotation": {
+          "all_calls_median_ms": 4.5248789999999985,
+          "all_calls_count": 54,
+          "measured_median_ms": 4.584602500000001,
+          "measured_count": 6,
+          "change_ms": 0.05972350000000226
+        },
+        "final_nms": {
+          "all_calls_median_ms": 0.020937499999999998,
+          "all_calls_count": 54,
+          "measured_median_ms": 0.020729499999999998,
+          "measured_count": 6,
+          "change_ms": -0.00020799999999999985
+        },
+        "final_output": {
+          "all_calls_median_ms": 0.0122085,
+          "all_calls_count": 54,
+          "measured_median_ms": 0.0160205,
+          "measured_count": 6,
+          "change_ms": 0.0038119999999999994
+        },
+        "fine_search": {
+          "all_calls_median_ms": 3.9266879999999995,
+          "all_calls_count": 54,
+          "measured_median_ms": 3.926166,
+          "measured_count": 6,
+          "change_ms": -0.0005219999999996894
+        },
+        "initialization": {
+          "all_calls_median_ms": 0.1131055,
+          "all_calls_count": 54,
+          "measured_median_ms": 0.1270625,
+          "measured_count": 6,
+          "change_ms": 0.013956999999999997
+        },
+        "model_nms": {
+          "all_calls_median_ms": 0.041291,
+          "all_calls_count": 54,
+          "measured_median_ms": 0.0411455,
+          "measured_count": 6,
+          "change_ms": -0.0001454999999999998
+        },
+        "pose_prepare": {
+          "all_calls_median_ms": 0.0120005,
+          "all_calls_count": 54,
+          "measured_median_ms": 0.0120835,
+          "measured_count": 6,
+          "change_ms": 8.299999999999974e-05
+        },
+        "source_pyramid": {
+          "all_calls_median_ms": 4.9906665,
+          "all_calls_count": 54,
+          "measured_median_ms": 5.2637920000000005,
+          "measured_count": 6,
+          "change_ms": 0.2731255000000008
+        },
+        "template_pyramid": {
+          "all_calls_median_ms": 4.10821,
+          "all_calls_count": 54,
+          "measured_median_ms": 2.2868770000000005,
+          "measured_count": 6,
+          "change_ms": -1.8213329999999992
+        }
+      },
+      "full_gpu_simd__reuse_decode": {
+        "coarse_ncc": {
+          "all_calls_median_ms": 34.77875349999999,
+          "all_calls_count": 54,
+          "measured_median_ms": 34.959873000000016,
+          "measured_count": 6,
+          "change_ms": 0.18111950000002253
+        },
+        "coarse_peaks": {
+          "all_calls_median_ms": 34.2453105,
+          "all_calls_count": 54,
+          "measured_median_ms": 34.361147,
+          "measured_count": 6,
+          "change_ms": 0.11583650000000034
+        },
+        "coarse_rotation": {
+          "all_calls_median_ms": 4.534962999999999,
+          "all_calls_count": 54,
+          "measured_median_ms": 4.512691499999999,
+          "measured_count": 6,
+          "change_ms": -0.022271500000000444
+        },
+        "final_nms": {
+          "all_calls_median_ms": 0.020812999999999998,
+          "all_calls_count": 54,
+          "measured_median_ms": 0.020916499999999998,
+          "measured_count": 6,
+          "change_ms": 0.00010349999999999943
+        },
+        "final_output": {
+          "all_calls_median_ms": 0.012875000000000001,
+          "all_calls_count": 54,
+          "measured_median_ms": 0.0142915,
+          "measured_count": 6,
+          "change_ms": 0.0014164999999999994
+        },
+        "fine_search": {
+          "all_calls_median_ms": 3.9085,
+          "all_calls_count": 54,
+          "measured_median_ms": 3.924875,
+          "measured_count": 6,
+          "change_ms": 0.01637500000000003
+        },
+        "initialization": {
+          "all_calls_median_ms": 0.10777049999999999,
+          "all_calls_count": 54,
+          "measured_median_ms": 0.0716865,
+          "measured_count": 6,
+          "change_ms": -0.03608399999999999
+        },
+        "model_nms": {
+          "all_calls_median_ms": 0.0407075,
+          "all_calls_count": 54,
+          "measured_median_ms": 0.0389585,
+          "measured_count": 6,
+          "change_ms": -0.0017490000000000006
+        },
+        "pose_prepare": {
+          "all_calls_median_ms": 0.0118755,
+          "all_calls_count": 54,
+          "measured_median_ms": 0.011583,
+          "measured_count": 6,
+          "change_ms": -0.0002925000000000011
+        },
+        "source_pyramid": {
+          "all_calls_median_ms": 4.990207999999999,
+          "all_calls_count": 54,
+          "measured_median_ms": 5.146188499999999,
+          "measured_count": 6,
+          "change_ms": 0.15598050000000008
+        },
+        "template_pyramid": {
+          "all_calls_median_ms": 4.127294999999999,
+          "all_calls_count": 54,
+          "measured_median_ms": 3.395312999999999,
+          "measured_count": 6,
+          "change_ms": -0.7319820000000004
+        }
+      }
+    }
+  },
+  "disclosures": [
+    {
+      "topic": "host gates in formal",
+      "text": "formal_decision_eligible marks the phase; the protocol records host_busy and host_load_high without a consequence. Formal keeps both flagged workers (128 full_gpu_simd static_sleep block 3, 8K hybrid static_decode block 4). Diagnostic sensitivity with those blocks removed from every arm of the same case and method: verdicts unchanged, 110 effects recomputed, 3 directions change (all 128 full_gpu_simd gap_on_update, none in a verdict or the report tables).",
+      "evidence": "validation-logs.tar.gz:validation/host-gate-sensitivity.json"
+    },
+    {
+      "topic": "gate definitions",
+      "text": "The protocol names route_and_residency, requested_algorithm_not_executed and device_timestamp_unavailable without spelling out the checks; the driver compares row fields with the job request, and the independent audit re-derived them the same way."
+    }
+  ]
+}

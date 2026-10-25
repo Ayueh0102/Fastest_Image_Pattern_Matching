@@ -1,0 +1,344 @@
+{
+ "stage": 46,
+ "tested_commit": "b9572e00e9fe2f3e8c567b7c858737d4f185095b",
+ "platform": "Apple M4 Pro, 48 GiB, macOS",
+ "gates": {
+  "build": {
+   "command": "bash -c cmake -S cpp-core -B build/research -DCMAKE_BUILD_TYPE=Release -DFPM_BUILD_GUI=ON -DFPM_BUILD_EXPERIMENTS=ON -DFPM_WITH_OPENCV=ON && cmake --build build/research -j",
+   "exit": 0,
+   "head_before": "b9572e00e9fe2f3e8c567b7c858737d4f185095b",
+   "head_after": "b9572e00e9fe2f3e8c567b7c858737d4f185095b",
+   "clean_before": true,
+   "clean_after": true,
+   "start": "2026-10-25T12:48:21Z",
+   "end": "2026-10-25T12:48:33Z",
+   "log": "validation-logs/build.log",
+   "log_sha256": "56cc4607a2cfff2f873f8c759f2f6c099e373d59feeb9e259d93be17a5c2a791",
+   "results": []
+  },
+  "ctest": {
+   "command": "ctest --test-dir build/research --output-on-failure",
+   "exit": 0,
+   "head_before": "b9572e00e9fe2f3e8c567b7c858737d4f185095b",
+   "head_after": "b9572e00e9fe2f3e8c567b7c858737d4f185095b",
+   "clean_before": true,
+   "clean_after": true,
+   "start": "2026-10-25T12:48:33Z",
+   "end": "2026-10-25T12:49:25Z",
+   "log": "validation-logs/ctest.log",
+   "log_sha256": "0ed067435244d2392f2754ca62d54bfd76710a0eecb43df73fd0942141564d56",
+   "results": [
+    "100% tests passed, 0 tests failed out of 83"
+   ]
+  },
+  "harness": {
+   "command": "env FPM_FINE_REUSE_BUILD=build/research FPM_FINE_SEARCH_BUILD=build/research FPM_FINE_FUSED_BUILD=build/research /Users/Ayueh/Fastest_Image_Pattern_Matching/python-port/venv/bin/python -m unittest discover -s cpp-core/tests -p test_*.py",
+   "exit": 0,
+   "head_before": "b9572e00e9fe2f3e8c567b7c858737d4f185095b",
+   "head_after": "b9572e00e9fe2f3e8c567b7c858737d4f185095b",
+   "clean_before": true,
+   "clean_after": true,
+   "start": "2026-10-25T12:49:25Z",
+   "end": "2026-10-25T12:49:42Z",
+   "log": "validation-logs/harness.log",
+   "log_sha256": "8f19bd17d2fb2bb715833b4da60abd9df5b88e72eaccf64f4828c010c2777a3f",
+   "results": [
+    "Ran 661 tests in 16.927s"
+   ]
+  },
+  "color": {
+   "command": "/Users/Ayueh/Fastest_Image_Pattern_Matching/python-port/venv/bin/python cpp-core/tests/color_verify_runner_test.py --runner build/research/experiments/fpm_color_verify_runner --metal",
+   "exit": 0,
+   "head_before": "b9572e00e9fe2f3e8c567b7c858737d4f185095b",
+   "head_after": "b9572e00e9fe2f3e8c567b7c858737d4f185095b",
+   "clean_before": true,
+   "clean_after": true,
+   "start": "2026-10-25T12:49:42Z",
+   "end": "2026-10-25T12:49:43Z",
+   "log": "validation-logs/color.log",
+   "log_sha256": "3672b5440c63d73a10dfcd8117478f754bc52833cb372d5812ae943b75e2047a",
+   "results": [
+    "Ran 8 tests in 1.025s"
+   ]
+  },
+  "other-py": {
+   "command": "bash -c for f in blender_challenge_test.py challenge_coverage_test.py real_rgb_benchmark_test.py; do \"$0\" -m unittest discover -s cpp-core/tests -p \"$f\" || exit 1; done /Users/Ayueh/Fastest_Image_Pattern_Matching/python-port/venv/bin/python",
+   "exit": 0,
+   "head_before": "b9572e00e9fe2f3e8c567b7c858737d4f185095b",
+   "head_after": "b9572e00e9fe2f3e8c567b7c858737d4f185095b",
+   "clean_before": true,
+   "clean_after": true,
+   "start": "2026-10-25T12:49:43Z",
+   "end": "2026-10-25T12:49:45Z",
+   "log": "validation-logs/other-py.log",
+   "log_sha256": "15ed81c1dacd17226963db48d6197eeef37a3a83f5de4b08412ef41300a709f6",
+   "results": [
+    "Ran 6 tests in 0.016s",
+    "Ran 17 tests in 0.225s",
+    "Ran 26 tests in 0.624s"
+   ]
+  },
+  "asan": {
+   "command": "bash -c cmake -S cpp-core -B build/sanitized -DCMAKE_BUILD_TYPE=Debug -DFPM_SANITIZERS=ON -DFPM_DISABLE_SIMD=ON -DFPM_BUILD_EXPERIMENTS=ON && cmake --build build/sanitized -j && ctest --test-dir build/sanitized --output-on-failure",
+   "exit": 0,
+   "head_before": "b9572e00e9fe2f3e8c567b7c858737d4f185095b",
+   "head_after": "b9572e00e9fe2f3e8c567b7c858737d4f185095b",
+   "clean_before": true,
+   "clean_after": true,
+   "start": "2026-10-25T12:49:45Z",
+   "end": "2026-10-25T12:59:33Z",
+   "log": "validation-logs/asan.log",
+   "log_sha256": "b9b0afb9ac4a1a3bc4606e330db2ca5ce53dc7f13cbbbce9e99b6cd678f64f3c",
+   "results": [
+    "100% tests passed, 0 tests failed out of 78"
+   ]
+  }
+ },
+ "gate_notes": {
+  "build": "fresh Release research build (GUI+experiments+OpenCV) in the worktree",
+  "ctest": "full research ctest, includes experimental_color_illuminant",
+  "harness": "python unittest discover cpp-core/tests test_*.py with FPM_FINE_*_BUILD=build/research; includes the stage-46 harness tests",
+  "color": "color_verify_runner_test.py --runner build/research/... --metal (8 tests: 5 existing + 3 chroma_vk)",
+  "other_py": "blender_challenge, challenge_coverage, real_rgb_benchmark",
+  "asan": "Debug, FPM_SANITIZERS, FPM_DISABLE_SIMD, experiments on; includes the new native test"
+ },
+ "all_gates_passed": true,
+ "frozen_runner": {
+  "path": "build/stage46-release",
+  "sha256": "1425cdca7a61b3ac1cdcf25ca9adbceb247420e3a7fbe1f178a03cb23afc5599",
+  "built_from": "2a66cd6 (clean tree)"
+ },
+ "compiled_mutants": {
+  "total": 16,
+  "killed": 16,
+  "mutants": [
+   {
+    "name": "C1 per-pixel gain not applied",
+    "killed": true,
+    "by": "['native', 'runner_contract'] ['von Kries correction did not remove a white-balance shift']"
+   },
+   {
+    "name": "C2 region gain not applied",
+    "killed": true,
+    "by": "['native', 'runner_contract'] ['von Kries correction did not remove a white-balance shift']"
+   },
+   {
+    "name": "C3 gain inverted",
+    "killed": true,
+    "by": "['native', 'runner_contract'] ['von Kries correction did not remove a white-balance shift']"
+   },
+   {
+    "name": "C4 clip fraction check disabled",
+    "killed": true,
+    "by": "['native', 'runner_contract'] ['Clipped reference was not an abstention']"
+   },
+   {
+    "name": "C5 rank policy drops clipped samples",
+    "killed": true,
+    "by": "['native'] ['Rank median must keep clipped bytes in the order statistic']"
+   },
+   {
+    "name": "C6 mean instead of median",
+    "killed": true,
+    "by": "['native'] ['Rank median must keep clipped bytes in the order statistic']"
+   },
+   {
+    "name": "C7 even-count median takes the upper value",
+    "killed": true,
+    "by": "['native'] ['Even-count median']"
+   },
+   {
+    "name": "C8 reference ignores the pose rotation",
+    "killed": true,
+    "by": "['native'] ['Rotated reference not mapped through the pose']"
+   },
+   {
+    "name": "C9 reference uses floor instead of nearest",
+    "killed": true,
+    "by": "['native'] ['Reference must use the nearest source pixel']"
+   },
+   {
+    "name": "C10 clipped colour samples kept",
+    "killed": true,
+    "by": "['native'] ['Clipped colour samples were not excluded']"
+   },
+   {
+    "name": "C11 abstention reports a distance",
+    "killed": true,
+    "by": "['native', 'runner_contract'] ['Clipped reference was not an abstention']"
+   },
+   {
+    "name": "C12 reference saturation strict >",
+    "killed": true,
+    "by": "['native', 'runner_contract'] ['Clipped reference was not an abstention']"
+   },
+   {
+    "name": "C13 colour saturation strict >",
+    "killed": true,
+    "by": "['native'] ['Clipped colour samples were not excluded']"
+   },
+   {
+    "name": "C14 reference fraction not enforced",
+    "killed": true,
+    "by": "['native'] ['Reference fraction not enforced']"
+   },
+   {
+    "name": "C15 reference status before colour support",
+    "killed": true,
+    "by": "['native'] ['Missing colour support must be status 2']"
+   },
+   {
+    "name": "C16 template reference not validated",
+    "killed": true,
+    "by": "['native'] ['Clipped template reference accepted']"
+   }
+  ],
+  "log": "validation-logs/stage46-compiled-mutants.log",
+  "script": "validation-logs/stage46_compiled_mutants.py",
+  "note": "each mutant of experiments/color_illuminant.cpp is compiled into build/stage46-mutants and run against fpm_color_illuminant_test and the runner contract tests"
+ },
+ "tool_mutants": {
+  "total": 20,
+  "killed": 20,
+  "mutants": [
+   {
+    "name": "T1 thresholds include held-out lighting",
+    "killed": true,
+    "by": "['test_blender_transfer_uses_synthetic_red_threshold', 'test_thresholds_use_calibration_only']"
+   },
+   {
+    "name": "T2 abstention accepted",
+    "killed": true,
+    "by": "['test_abstained_different_colour_is_never_accepted', 'test_abstained_same_colour_is_not_accepted', 'test_exposure_bright_is_reported_not_gated']"
+   },
+   {
+    "name": "T3 AUC ties counted as wins",
+    "killed": true,
+    "by": "['test_auc_ties_and_abstentions', 'test_exposure_bright_is_reported_not_gated']"
+   },
+   {
+    "name": "T4 localization identity skipped",
+    "killed": true,
+    "by": "['test_localization_difference_between_methods_fails']"
+   },
+   {
+    "name": "T5 existing-method scores not compared",
+    "killed": true,
+    "by": "['test_existing_method_change_fails']"
+   },
+   {
+    "name": "T6 GT keys in jobs ignored",
+    "killed": true,
+    "by": "['test_jobs_carry_masks_and_no_gt', 'test_gt_in_job_fails']"
+   },
+   {
+    "name": "T7 lightness+ gated",
+    "killed": true,
+    "by": "['test_clean_fixture_passes', 'test_lightness_and_delta_e2_are_reported_not_gated']"
+   },
+   {
+    "name": "T8 DeltaE 2 gated",
+    "killed": true,
+    "by": "['test_clean_fixture_passes', 'test_h3_needs_auc_not_below_each_baseline', 'test_isogray_pooled_boundary', 'test_lightness_and_delta_e2_are_reported_not_gated', 'test_one_extra_wrong_accept_fails_synthetic_boundary']"
+   },
+   {
+    "name": "T9 p95 replaced by maximum",
+    "killed": true,
+    "by": "['test_thresholds_use_calibration_only']"
+   },
+   {
+    "name": "T10 H3 compares one baseline only",
+    "killed": true,
+    "by": "['test_clean_fixture_passes', 'test_h3_needs_auc_not_below_each_baseline']"
+   },
+   {
+    "name": "T11 fallback ignores the corrected value",
+    "killed": true,
+    "by": "['test_fallback_only_replaces_abstentions']"
+   },
+   {
+    "name": "T12 targets need strict improvement",
+    "killed": true,
+    "by": "['test_abstained_same_colour_is_not_accepted', 'test_clean_fixture_passes', 'test_exposure_bright_is_reported_not_gated', 'test_h3_needs_auc_not_below_each_baseline', 'test_isogray_pooled_boundary', 'test_lightness_and_delta_e2_are_reported_not_gated', 'test_one_extra_wrong_accept_fails_blender', 'test_one_extra_wrong_accept_fails_synthetic_boundary']"
+   },
+   {
+    "name": "T13 exposure_bright gated",
+    "killed": true,
+    "by": "['test_clean_fixture_passes', 'test_exposure_bright_is_reported_not_gated', 'test_isogray_pooled_boundary']"
+   },
+   {
+    "name": "T14 result hash not checked",
+    "killed": true,
+    "by": "['test_tampered_result_hash']"
+   },
+   {
+    "name": "T15 input hash not checked",
+    "killed": true,
+    "by": "['test_changed_input_and_incomplete_run']"
+   },
+   {
+    "name": "T16 Blender transfer uses Blender thresholds",
+    "killed": true,
+    "by": "['test_blender_transfer_uses_synthetic_red_threshold']"
+   },
+   {
+    "name": "T17 NCC similarity used as dissimilarity",
+    "killed": true,
+    "by": "['test_dissimilarity_and_abstention', 'test_clean_run_and_rows']"
+   },
+   {
+    "name": "T18 card methods run on Blender",
+    "killed": true,
+    "by": "['test_jobs_carry_masks_and_no_gt']"
+   },
+   {
+    "name": "T19 incomplete run accepted",
+    "killed": true,
+    "by": "['test_changed_input_and_incomplete_run']"
+   },
+   {
+    "name": "T20 exact repeat not checked",
+    "killed": true,
+    "by": "['test_inexact_repeat_and_failed_worker']"
+   }
+  ],
+  "log": "validation-logs/stage46-tool-mutants.log",
+  "script": "validation-logs/stage46_tool_mutants.py",
+  "first_run": "T9 (p95 replaced by the maximum) survived the first run, before the implementation commit, because the fixture calibration values were all equal; test_thresholds_use_calibration_only was tightened. Reproduced on temporary copies by validation-logs/stage46_t9_first_run.py (log stage46-t9-first-run.log)"
+ },
+ "independent_recount": {
+  "script": "validation-logs/stage46_recount.py",
+  "imports_harness": false,
+  "checks": 4550,
+  "problems": [],
+  "negative_control": {
+   "change": "summary per_condition vk_region syn_red wb_warm wrongly_accepted + 1",
+   "detected": [
+    "vk_region syn_red wb_warm wrongly accepted: recount 0 vs summary 1",
+    "integrity_passed: recount False vs summary True"
+   ]
+  }
+ },
+ "summary_replay": {
+  "result": "summarize on the extracted raw-results.tar.gz is byte-identical to summary.json",
+  "summary_sha256": "ddb3df33e32ece82f69b3fdeb02b8072ca80489585c835cd49558c4ca6504cff"
+ },
+ "job_replay": {
+  "script": "validation-logs/stage46_replay.py",
+  "runner": "rebuilt from source-snapshot.tar.gz into build/stage46-replay",
+  "runner_sha256": "da3bcfc5e331f9df24ada47dd0d12960d26feaf9e76c0a2c03ceb50b0eb43e94",
+  "jobs": 165,
+  "equal": 165,
+  "differences": [],
+  "note": "first-call scores and search matches of every candidate job equal the archive; the binary hash differs from the frozen runner because the build path differs"
+ },
+ "post_hoc": {
+  "script": "validation-logs/stage46_posthoc.py",
+  "output": "validation-logs/stage46-posthoc.json",
+  "note": "computed after the summary; diagnostic only, not adoption evidence"
+ },
+ "smoke": {
+  "script": "validation-logs/stage46_smoke_testbed.py",
+  "note": "pre-protocol plumbing smoke on seed-shifted regenerated data; disclosed in the protocol; its outputs are not evidence and were not archived"
+ }
+}

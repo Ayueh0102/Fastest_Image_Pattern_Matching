@@ -1,0 +1,42 @@
+== session 1 before 15:08:31 load { 2.98 3.10 2.16 }
+legacy_cpp legacy build 182.638 ms; count 6
+portable_scalar scalar 779.844 ms; count 6
+portable_simd NEON+DOTPROD 314.362 ms; count 6
+portable_fast NEON+DOTPROD 125.316 ms; count 6
+portable_subpixel NEON+DOTPROD 2867.058 ms; count 6
+Saved /private/tmp/claude-502/-Users-Ayueh-Fastest-Image-Pattern-Matching--claude-worktrees-silly-engelbart-a33cd2/1faf111a-de10-411b-a203-192b58aa70e1/scratchpad/warp/bench/modes-before-1.json
+== session 1 after 15:09:16 load { 3.88 3.29 2.27 }
+legacy_cpp legacy build 193.456 ms; count 6
+portable_scalar scalar 723.29 ms; count 6
+portable_simd NEON+DOTPROD 253.425 ms; count 6
+portable_fast NEON+DOTPROD 94.004 ms; count 6
+portable_subpixel NEON+DOTPROD 2316.592 ms; count 6
+Saved /private/tmp/claude-502/-Users-Ayueh-Fastest-Image-Pattern-Matching--claude-worktrees-silly-engelbart-a33cd2/1faf111a-de10-411b-a203-192b58aa70e1/scratchpad/warp/bench/modes-after-1.json
+== session 2 before 15:09:54 load { 3.73 3.31 2.32 }
+legacy_cpp legacy build 194.135 ms; count 6
+portable_scalar scalar 803.544 ms; count 6
+portable_simd NEON+DOTPROD 320.548 ms; count 6
+portable_fast NEON+DOTPROD 126.767 ms; count 6
+portable_subpixel NEON+DOTPROD 2792.335 ms; count 6
+Saved /private/tmp/claude-502/-Users-Ayueh-Fastest-Image-Pattern-Matching--claude-worktrees-silly-engelbart-a33cd2/1faf111a-de10-411b-a203-192b58aa70e1/scratchpad/warp/bench/modes-before-2.json
+== session 2 after 15:10:38 load { 3.83 3.45 2.42 }
+legacy_cpp legacy build 190.954 ms; count 6
+portable_scalar scalar 717.163 ms; count 6
+portable_simd NEON+DOTPROD 252.76 ms; count 6
+portable_fast NEON+DOTPROD 94.968 ms; count 6
+portable_subpixel NEON+DOTPROD 2362.699 ms; count 6
+Saved /private/tmp/claude-502/-Users-Ayueh-Fastest-Image-Pattern-Matching--claude-worktrees-silly-engelbart-a33cd2/1faf111a-de10-411b-a203-192b58aa70e1/scratchpad/warp/bench/modes-after-2.json
+== session 3 before 15:11:16 load { 3.47 3.40 2.45 }
+legacy_cpp legacy build 193.22 ms; count 6
+portable_scalar scalar 801.893 ms; count 6
+portable_simd NEON+DOTPROD 323.248 ms; count 6
+portable_fast NEON+DOTPROD 129.87 ms; count 6
+portable_subpixel NEON+DOTPROD 2922.053 ms; count 6
+Saved /private/tmp/claude-502/-Users-Ayueh-Fastest-Image-Pattern-Matching--claude-worktrees-silly-engelbart-a33cd2/1faf111a-de10-411b-a203-192b58aa70e1/scratchpad/warp/bench/modes-before-3.json
+== session 3 after 15:12:01 load { 3.28 3.34 2.47 }
+legacy_cpp legacy build 187.269 ms; count 6
+portable_scalar scalar 710.725 ms; count 6
+portable_simd NEON+DOTPROD 244.246 ms; count 6
+portable_fast NEON+DOTPROD 91.069 ms; count 6
+portable_subpixel NEON+DOTPROD 2256.298 ms; count 6
+Saved /private/tmp/claude-502/-Users-Ayueh-Fastest-Image-Pattern-Matching--claude-worktrees-silly-engelbart-a33cd2/1faf111a-de10-411b-a203-192b58aa70e1/scratchpad/warp/bench/modes-after-3.json
