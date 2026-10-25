@@ -1,0 +1,29 @@
+{
+  "registered_before_timing": "2026-10-25T15:08:18Z",
+  "question": "Do the exact NEON rotation pairs and the direct-interior pyrDown speed up the stable core's fixed-scale match, with bit-identical outputs?",
+  "builds": {
+    "before": {
+      "dir": "build/warp-base",
+      "source": "git archive of 51d95b1 (UDOT dot product, frozen copy)",
+      "warp": "scalar per-pixel loop",
+      "pyrDown": "reflect101 on every tap"
+    },
+    "after": {
+      "dir": "build/warp-new",
+      "source": "worktree with the warp/pyrDown change",
+      "warp": "NEON float64x2 pairs mirroring the fused scalar expressions; scalar warpPixel for edge pairs",
+      "pyrDown": "direct interior columns, reflected edges, row pointers"
+    }
+  },
+  "toolchain": "Apple clang 21.0.0, CMAKE_BUILD_TYPE=Release, FPM_WITH_OPENCV=ON, default target-cpu apple-m1 for both builds",
+  "benchmark_modes": "cpp-core/tools/benchmark_modes.py --repeats 9 (one warm-up + 9 measured per mode, fresh process each); sessions interleaved before,after x3; the before sessions run the frozen base copy of the script",
+  "control": "legacy_cpp mode is the same macos-cli/match_core.cpp binary in both builds",
+  "fixture_ab": "cpp-core/tools/benchmark_backend_ab.py --rounds 8 (round 0 warm-up discarded), alternating order, 17 compare_versions cases",
+  "metric": "fpm_cli match_ms (excludes image decoding and learning); no runs dropped or rerun",
+  "acceptance": "speed is reported, not gated; identity is gated separately (check_backend_identity.py 544 runs, compare_versions.py, core_test exact-reference test)",
+  "profiling": "sample-based profiles are separate runs and are not formal timings",
+  "before_binary_sha256": "9dccb46971c7386b6aaeef05ee451ad16110521f552a07009d55e257670974f2",
+  "after_binary_sha256": "3e0a165e9c3d66f8e634bcd41b0eaab8db82ef5a568db4448e11bd6a6c8651fd",
+  "after_image_cpp_sha256": "a5fc8d18a0299de394a220b5b4deeb1adf538d1ab5e36782388093e35e0b9766",
+  "environment_note": "other Claude sessions may be active on this machine; load averages are recorded per session"
+}

@@ -1,0 +1,10 @@
+Src5 top 10x10       windows    16761  ns/window: per-row     28.0  win1      6.8  win2      3.2  win4      3.2  group8      1.7
+Src10 top 14x14      windows   111069  ns/window: per-row     60.3  win1      9.3  win2      4.3  win4      4.0  group8      2.1
+Src1 top 30x9        windows    24282  ns/window: per-row     11.8  win1      7.6  win2      4.1  win4      3.7  group8      2.3
+Src4 33x17           windows    55632  ns/window: per-row     24.5  win1     23.1  win2     11.2  win4     11.4  group8      5.7
+Src7 fine 143x98     windows       49  ns/window: per-row    323.1  win1    650.5  win2    224.5  win4    167.5  group8     99.5
+Src6 fine 202x106    windows       49  ns/window: per-row    482.1  win1   1023.0  win2    347.8  win4    252.6  group8    161.6
+Src1 L0 466x135      windows       49  ns/window: per-row   1230.4  win1   3040.8  win2   1050.2  win4    775.5  group8    481.3
+Src6 L0 848x446      windows       49  ns/window: per-row   7941.3  win1  17905.6  win2   6967.7  win4   7684.5  group8   3120.8
+Src7 L0 762x521      windows       49  ns/window: per-row   9217.7  win1  18971.9  win2   7434.5  win4   9092.7  group8   3410.7
+sink 42057578835400

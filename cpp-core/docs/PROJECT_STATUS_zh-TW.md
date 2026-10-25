@@ -10,6 +10,10 @@
 
 2026-10-24穩定核心（非研究輪次）加入[ARM DOTPROD點積](CORE_DOTPROD_zh-TW.md)：GUI／CLI預設的`Backend::Auto`在有`__ARM_FEATURE_DOTPROD`的aarch64編譯改用UDOT（單一累加器、每4096 bytes歸約、遮罩尾端），其他ARM編譯照舊走NEON。輸出與原NEON、scalar逐位元相同（408次執行零差異）；Src7模式基準快13.7%（359.10→309.84ms），17張固定影像幾何平均快7.0%。舊OpenCV＋DOTPROD版仍快1.64倍，剩餘時間主要在旋轉、NCC其他部分與金字塔。第一個雙累加器候選使Src4慢9.9%，未採用但保留。
 
+2026-10-25接著加入[精確旋轉與金字塔加速](CORE_WARP_PYRDOWN_zh-TW.md)：clang＋aarch64以NEON每次兩像素做`warp`，每一步照原scalar運算式的FMA合併方式；`pyrDown`的內部欄直接計算，全程整數。輸出與`51d95b1`逐位元相同（544次執行零差異，包括純scalar建置），Src7模式基準再快21.3%（319.76→251.49ms），17張固定影像每張都較快、幾何平均快22.7%。舊OpenCV＋DOTPROD版仍快1.32倍；`warp`在大模板仍占近一半，Src5／Src10改以`computeNcc`為主。
+
+2026-10-25再改[窮舉NCC](CORE_EXHAUSTIVE_NCC_zh-TW.md)：預設窮舉路徑以精確整數欄和滑動求視窗和，取代binary64積分圖；UDOT建置一次計算8個相鄰視窗的點積，模板每個區塊只載入一次。有界限或screen的路徑不變。輸出與`65b7dad`逐位元相同（544次執行零差異），Src7模式基準再快37.6%（245.72→153.22ms），17張固定影像幾何平均快56.1%。穩定核心現在比同session的舊OpenCV＋DOTPROD版（186.22ms）快17.7%，稽核設定下17張也全部較快；剩下的時間以`warp`為主（大模板72～78%）。
+
 第42輪[完整GPU粗選峰改為精確平行回合](GPU_PARALLEL_PEAKS_zh-TW.md)：新增`full_gpu_peak_mode=2`，多張分數圖同批、每回合平行接受與抑制，完整有序輸出與mode 1逐位相同。fine4完整GPU時間128／512少27.3%／34.4%（587.22／1881.34ms），每換新影格對混合為−31.4%／−22.7%，六物件混合仍快1.5%、8K快80.1%，皆6/6 block同向。1538次直接GT零FP／FN、0筆失敗門檻；完整GPU研究建議改為peak2／fine4，預設不變。
 
 第43輪加入[細搜尋前的粗候選去重](CANDIDATE_DEDUP_zh-TW.md)，這是會改變語意、預設關閉的研究選項。k3在112／79個GT案例變體（混合／完整GPU）中沒有任何嚴格TP減少或FP增加，正式時間128／512物件混合少30.4%／37.0%、完整GPU少26.1%／25.7%（完整GPU臂用第40輪peak1／fine4，不與第42輪相乘），8K約不變。輸出不保證與基線逐位相同（matches相同者97/112、67/79）。k1與兩個刻意放寬的消融會失去物件，保留全部失敗；不改預設。
@@ -36,7 +40,7 @@
 
 | 範圍 | 狀態 | 證據入口 |
 |---|---|---|
-| 固定尺度灰階核心 | C++17完整自有實作；旋轉、金字塔、NCC、NMS與subpixel；ARM編譯期UDOT點積 | [移植契約](PORTING_zh-TW.md)、[核心與GUI建置](../README_zh-TW.md)、[DOTPROD點積](CORE_DOTPROD_zh-TW.md) |
+| 固定尺度灰階核心 | C++17完整自有實作；旋轉、金字塔、NCC、NMS與subpixel；ARM編譯期UDOT點積、NEON精確旋轉、滑動整數和與8視窗點積 | [移植契約](PORTING_zh-TW.md)、[核心與GUI建置](../README_zh-TW.md)、[DOTPROD點積](CORE_DOTPROD_zh-TW.md)、[旋轉與金字塔](CORE_WARP_PYRDOWN_zh-TW.md)、[窮舉NCC](CORE_EXHAUSTIVE_NCC_zh-TW.md) |
 | 灰階多尺度與連續精修 | 原生C++排程、CPU／Metal後端；GUI可選研究流程 | [總索引](EXPERIMENT_REVIEW_zh-TW.md)、`experiments/research_pipeline.hpp` |
 | 大量物件與大圖 | 有128／512物件、4K／8K測量；同模板合成為主 | [第34輪](STAGE34_CLOSURE_zh-TW.md)、各輪原始封存 |
 | 記憶體與提交改善 | gray8讀圖、u8初始化、共用影像、細搜尋旋轉／NCC融合 | [第31輪](GRAY_LOAD_MEMORY_zh-TW.md)、[第32輪](RUN_VARIABILITY_POSE_MEMORY_zh-TW.md) |

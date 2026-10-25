@@ -1,0 +1,42 @@
+Pilot outputs as printed to the session console (not written to files at the time; transcribed verbatim).
+All pilots are selection-only. Timings: fpm_cli match_ms medians of 5 measured runs, base/new alternating,
+on 2026-10-25 against build/ncc-base (65b7dad).
+
+== Instrumented 65b7dad (scratch copy with steady_clock phases; FPM_PROF_DOUBLE_DOT repeats each window's
+== row dot products through an opaque pointer to estimate their cost). Best of 3 runs.
+Src5-0.bmp: match 30.3 ms; coarse loop 21.9 -> +dot 17.9; fine loop 1.0 -> +dot 1.1
+Src10.bmp: match 47.9 ms; coarse loop 37.4 -> +dot 33.0; fine loop 0.7 -> +dot 0.8
+Src7.bmp: match 85.4 ms; coarse loop 3.7 -> +dot 2.9; fine loop 19.4 -> +dot 20.4
+Src6.jpg: match 300.8 ms; coarse loop 4.0 -> +dot 3.0; fine loop 72.4 -> +dot 74.9
+Src1.bmp: match 112.9 ms; coarse loop 27.7 -> +dot 30.8; fine loop 18.1 -> +dot 19.0
+(An earlier attempt at this measurement was invalid: the duplicated calls were merged by the compiler,
+and a second attempt did not apply the patch; both are superseded by the run above.)
+Phase split (single dot), 65b7dad:
+Src5-0 coarse calls=32 windows=868012 mean_tw=10.0 integral_ms=0.768 loop_ms=22.104 | fine calls=194 integral_ms=0.648 loop_ms=1.056
+Src10 coarse calls=1 windows=808201 mean_tw=14.0 integral_ms=0.803 loop_ms=37.191 | fine calls=210 integral_ms=0.293 loop_ms=0.663
+Src7 coarse calls=40 mean_tw=12.0 integral_ms=0.107 loop_ms=3.777 | fine calls=504 mean_tw=142.6 alloc_ms=1.873 integral_ms=18.809 loop_ms=20.259
+Src6 coarse calls=46 mean_tw=14.0 integral_ms=0.137 loop_ms=3.963 | fine calls=1270 mean_tw=201.7 alloc_ms=6.091 integral_ms=75.196 loop_ms=76.176
+Src1 coarse calls=96 mean_tw=30.0 integral_ms=2.163 loop_ms=28.890 | fine calls=955 mean_tw=203.7 alloc_ms=1.905 integral_ms=17.117 loop_ms=18.861
+
+== Pilot 1 (four-row interleaved window kernel + uint64 integral images; source in pilot1-ncc.cpp)
+Src5-0.bmp   base    29.45  new    12.28   -58.3%
+Src10.bmp    base    45.87  new    14.89   -67.5%
+Src7.bmp     base    82.06  new    72.98   -11.1%
+Src6.jpg     base   289.13  new   256.64   -11.2%
+Src1.bmp     base   110.68  new    87.75   -20.7%
+Src4.bmp     base    23.86  new    16.96   -28.9%
+Src3.bmp     base     4.57  new     3.76   -17.7%
+Src8.bmp     base    16.22  new    13.18   -18.7%
+Phase split, pilot 1 instrumented (fine level): Src6 integral(incl. alloc) 41.299 ms, loop 69.693 ms;
+Src7 11.397 / 19.084; Src1 11.152 / 12.984 -> the per-window loop did not improve at level 0.
+
+== Pilot 2 (adopted design)
+Src5-0.bmp   base    28.79  new     9.37   -67.4%
+Src10.bmp    base    46.65  new    11.62   -75.1%
+Src7.bmp     base    83.01  new    52.86   -36.3%
+Src6.jpg     base   287.51  new   180.66   -37.2%
+Src1.bmp     base   109.05  new    64.88   -40.5%
+Src4.bmp     base    23.55  new    12.59   -46.5%
+Src3.bmp     base     4.50  new     3.04   -32.5%
+Src8.bmp     base    16.34  new     9.98   -38.9%
+Src9.bmp     base     0.60  new     0.42   -29.5%

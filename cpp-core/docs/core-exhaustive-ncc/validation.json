@@ -1,0 +1,72 @@
+{
+  "date": "2026-10-25",
+  "head_before_change": "65b7dad11e5aaa9d9c9cca3594568a882280152f",
+  "gate_log_sha256": "e7f364a4faebb400d6ce42b4d4f3877e73f511a0989f1d2bcd436752416c17dc",
+  "ncc_cpp_sha256": "9b8b2373b022b25a585b7670405f7f02660214313da3439dd0ffa7b219d11244",
+  "core_test_sha256": "db76903bb275f846d5c712ad9b941e0b073afc70ae67875e9de6c6f45fbcb0cc",
+  "release_ctest": "3/3 (portable_core incl. NCC/exhaustive/exact-reference, c_abi, opencv_stage_comparison)",
+  "no_dotprod_ctest_march_armv8_a": "3/3 (sliding sums with the row-by-row NEON dot product)",
+  "scalar_release_ctest_disable_simd": "3/3 (sliding sums with the scalar dot product)",
+  "asan_ubsan_scalar_ctest": "2/2 (Debug, FPM_SANITIZERS=ON, FPM_DISABLE_SIMD=ON)",
+  "asan_ubsan_simd_ctest": "2/2 (Debug -O0, FPM_SANITIZERS=ON; grouped UDOT windows over the padded copy)",
+  "research_ctest": "73/73 (Release, GUI + experiments + OpenCV)",
+  "python_harness": "570 tests OK",
+  "identity": {
+    "runs": 544,
+    "different_runs": 0,
+    "libraries": [
+      "before",
+      "after_simd",
+      "after_no_dotprod",
+      "after_scalar_build"
+    ],
+    "reference": "before/scalar",
+    "cases": 68,
+    "matches_compared": 724
+  },
+  "compare_versions": {
+    "base": {
+      "outside_tolerance": [],
+      "cases": 17
+    },
+    "new": {
+      "outside_tolerance": [],
+      "cases": 17
+    }
+  },
+  "compare_versions_portable_matches_identical_base_vs_new": 17,
+  "compiled_mutants": {
+    "M0_unmutated": {
+      "exit": 0,
+      "expected_outcome": true
+    },
+    "N1_lane_offset": {
+      "exit": 1,
+      "expected_outcome": true
+    },
+    "N2_no_flush": {
+      "exit": 1,
+      "expected_outcome": true
+    },
+    "N3_skip_wrong_groups": {
+      "exit": 1,
+      "expected_outcome": true
+    },
+    "N4_column_not_removed": {
+      "exit": 1,
+      "expected_outcome": true
+    },
+    "N5_slide_wrong_column": {
+      "exit": 1,
+      "expected_outcome": true
+    },
+    "N6_no_zero_tail": {
+      "exit": -6,
+      "expected_outcome": true
+    },
+    "N7_bounds_take_exhaustive": {
+      "exit": 1,
+      "expected_outcome": true
+    }
+  }
+}
