@@ -15,6 +15,7 @@
 #include <cmath>
 #include <iostream>
 #include <stdexcept>
+#include <string>
 #include <sys/resource.h>
 #ifdef __APPLE__
 #include <mach/mach.h>
@@ -93,6 +94,17 @@ QJsonObject record(const Result& r,bool outputs) {
         {"device_timestamp_available",gpu.enabled && gpu.deviceMs>=0},
         {"device_ms",gpu.enabled && gpu.deviceMs>=0 ? QJsonValue(gpu.deviceMs):QJsonValue(QJsonValue::Null)},
         {"upload_ms",gpu.uploadMs},{"readback_ms",gpu.readbackMs}};
+    QJsonArray dedupModels;uint64_t dedupInput=0,dedupKept=0;
+    for(const auto& d:r.candidateDedup) {
+        dedupModels.append(QJsonObject{{"input_candidates",double(d.input)},{"kept_candidates",double(d.kept)},
+            {"radius_px",d.radiusPx},{"angle_window_deg",d.angleWindowDeg},{"filter_ms",d.filterMs}});
+        dedupInput+=d.input;dedupKept+=d.kept;
+    }
+    // Counts are unavailable on the full GPU path when the option is off.
+    const bool dedupAvailable=!r.candidateDedup.empty();
+    o["candidate_dedup"]=QJsonObject{{"top_k",r.candidateDedupTopK},{"available",dedupAvailable},{"models",dedupModels},
+        {"input_candidates",dedupAvailable?QJsonValue(double(dedupInput)):QJsonValue(QJsonValue::Null)},
+        {"kept_candidates",dedupAvailable?QJsonValue(double(dedupKept)):QJsonValue(QJsonValue::Null)}};
     o["scale_support_enabled"]=r.scaleSupportEnabled;
     o["scale_support_refine_ms"]=r.scaleSupportMs;
     o["scale_support_eligible"]=double(r.scaleSupportEligible);
@@ -191,7 +203,8 @@ QJsonObject record(const Result& r,bool outputs) {
 }
 // Every key main() reads. Any other key fails before images are decoded, so a
 // misspelled or unsupported option cannot silently keep its default.
-const char* const jobKeys[]={"angle","backend","coarse_peak_mode","cpu_threads","fine_angle_reuse","fine_fused",
+const char* const jobKeys[]={"angle","backend","candidate_dedup_angle_steps","candidate_dedup_radius",
+    "candidate_dedup_top_k","coarse_peak_mode","cpu_threads","fine_angle_reuse","fine_fused",
     "fine_ncc_mode","fine_profiling","full_gpu","full_gpu_fine_mode","full_gpu_peak_batch","full_gpu_peak_mode","full_gpu_profiling",
     "gray_load_mode","invert_source","limit","min_area","ncc_mode","overlap","overlap_enabled","pose_input_mode",
     "pose_resident_mode","pose_storage_mode","proposal_method","proposal_score","refine","refinement_backend",
@@ -289,6 +302,14 @@ int main(int argc,char** argv) {
         o.match.stopLayer=j["stop_layer"].toInt(1);o.match.subpixel=j["subpixel"].toBool();o.match.invertSource=j["invert_source"].toBool();
         o.proposalScore=j["proposal_score"].toDouble(.5);
         o.scaleSupportRefine=j["scale_support_refine"].toBool(false);
+        if(j.contains("candidate_dedup_top_k") && (!j["candidate_dedup_top_k"].isDouble() ||
+            j["candidate_dedup_top_k"].toDouble()!=j["candidate_dedup_top_k"].toInt(-1) || j["candidate_dedup_top_k"].toInt(-1)<0))
+            throw std::invalid_argument("candidate_dedup_top_k must be a nonnegative integer");
+        for(const char* key:{"candidate_dedup_radius","candidate_dedup_angle_steps"})
+            if(j.contains(key) && !j[key].isDouble()) throw std::invalid_argument(std::string(key)+" must be a number");
+        o.candidateDedupTopK=j["candidate_dedup_top_k"].toInt(0);
+        o.candidateDedupRadius=j["candidate_dedup_radius"].toDouble(o.candidateDedupRadius);
+        o.candidateDedupAngleSteps=j["candidate_dedup_angle_steps"].toDouble(o.candidateDedupAngleSteps);
         const int repeats=j["repeats"].toInt(5);const double warm=j["warmup_seconds"].toDouble(1.),soak=j["soak_seconds"].toDouble(0);
         if(repeats<1 || repeats>10000 || !std::isfinite(warm) || warm<0 || warm>60 || !std::isfinite(soak) || soak<0 || soak>3600) throw std::invalid_argument("Invalid repetitions or duration");
         const bool resourceDiagnostics=j["run_resource_diagnostics"].toBool(false);

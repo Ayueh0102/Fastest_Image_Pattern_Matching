@@ -39,6 +39,7 @@ struct Coarse {
 struct StatsConfig {uint32_t sw,tw,th,width;uint64_t first;uint32_t count,reserved;};
 static_assert(sizeof(FGCandidate)==48 && sizeof(FGFineConfig)==64 && sizeof(FGResult)==64 && sizeof(Coarse)==96 && sizeof(StatsConfig)==32,"Full GPU ABI");
 static_assert(sizeof(FGFineOptions)==8 && sizeof(FGFineCounters)==24,"Fine mode/counter ABI");
+static_assert(sizeof(FGDedupConfig)==48,"Candidate dedup ABI");
 std::runtime_error failure(const char* what,NSError* error) {
     return std::runtime_error(std::string(what)+(error?std::string(": ")+[[error localizedDescription] UTF8String]:""));
 }
@@ -320,7 +321,7 @@ public:
             // Compile every entry before timed calls; unsupported devices fail
             // explicitly without partially running a host replacement.
             for(const char* name:{"fg_input","fg_scale_template","pyramid_direct","fg_learn","fg_rotate","coarse_strip4_32","coarse_strip4_64",
-                "fg_normalize32","fg_normalize64","fg_coarse_peaks","fg_coarse_sort_tiles","fg_coarse_peaks_tiled","fg_coarse_peaks_parallel","fg_fine_search","fg_model_nms","fg_global_nms","fg_source_moments",
+                "fg_normalize32","fg_normalize64","fg_coarse_peaks","fg_coarse_sort_tiles","fg_coarse_peaks_tiled","fg_coarse_peaks_parallel","fg_dedup_mark","fg_dedup_apply","fg_fine_search","fg_model_nms","fg_global_nms","fg_source_moments",
                 "fg_pose_config","fg_center_source","fg_center_template","fg_compact_prepare","pose_refine_fused","fg_prepare_rescue",
                 "fg_select_continuations","fg_accept_continuations","fg_score_states","fg_publish_states","fg_write_results"})pipeline(name);
         }
@@ -343,6 +344,11 @@ public:
             1u|((o.match.toleranceAngle!=0 || !o.match.angleRanges.empty())?2u:0u)|(settings_.scales.size()>1?4u:0u),
             scoreCutoff(o.match.minScore),float(o.match.maxOverlap),uint32_t(ranges.size()),uint32_t(o.refine)};
         const size_t proposalResultOffset=256,matchResultOffset=aligned(proposalResultOffset+size_t(p.capacity)*sizeof(FGResult));
+        // Round 43 research option: per-model input/kept counters follow the
+        // matches in the final readback; nothing is allocated when disabled.
+        const bool dedup=o.candidateDedupTopK>0;
+        const size_t dedupResultOffset=aligned(matchResultOffset+size_t(o.match.maxTargets)*sizeof(FGResult));
+        const size_t dedupCountBytes=dedup?p.models.size()*2*sizeof(uint32_t):0;
         auto rawSource=buffer("input-source",size_t(sw)*sh,true),rawTemplate=buffer("input-template",size_t(tw)*th,true);
         auto source=buffer("source-pyramid",p.sourceBytes),templ=buffer("template-pyramids",p.templateBytes),stats=buffer("template-moments",(p.levels.size()+1)*sizeof(FGStats));
         auto levels=buffer("level-descriptors",p.levels.size()*sizeof(FGLevel),true),rangeBuffer=buffer("angle-ranges",ranges.size()*sizeof(FGRange),true);
@@ -386,7 +392,9 @@ public:
             fineWorkReadback=buffer("fine-work-readback",fineWorkBytes,true);
         }
         const FGFineOptions fineOptions{uint32_t(metrics_.fineEffectiveMode),uint32_t(o.fullGpuProfiling)};
-        auto readback=buffer("final-readback",matchResultOffset+size_t(o.match.maxTargets)*sizeof(FGResult),true);
+        auto readback=buffer("final-readback",dedup?dedupResultOffset+dedupCountBytes:matchResultOffset+size_t(o.match.maxTargets)*sizeof(FGResult),true);
+        id<MTLBuffer> dedupDrop=nil,dedupCounts=nil;
+        if(dedup){dedupDrop=buffer("dedup-flags",size_t(p.candidates)*sizeof(uint32_t));dedupCounts=buffer("dedup-counts",dedupCountBytes);}
         auto config=buffer("pose-config",80),seeds=buffer("original-seed-states",size_t(p.capacity)*208),states=buffer("pose-states",size_t(p.capacity)*208);
         auto upload=Clock::now();
         std::memcpy(rawSource.contents,source_.view().data,size_t(sw)*sh);std::memcpy(rawTemplate.contents,templ_.view().data,size_t(tw)*th);
@@ -397,6 +405,7 @@ public:
         profileStage_="initialization";
         zero(command,candidates);zero(command,modelOutput);zero(command,counts);zero(command,status);zero(command,config);
         if(o.fullGpuProfiling)zero(command,fineWork);
+        if(dedup)zero(command,dedupCounts);
         profileStage_="source_pyramid";
         auto e=encoder(command,"fg_input");std::array<uint32_t,2> input{sw*sh,uint32_t(o.match.invertSource)};
         [e setBuffer:rawSource offset:0 atIndex:0];[e setBuffer:source offset:0 atIndex:1];[e setBytes:input.data() length:sizeof(input) atIndex:2];linear(e,sw*sh);
@@ -453,6 +462,16 @@ public:
                 }
             }
             if(model.count) {
+                if(dedup) {
+                    profileStage_="candidate_dedup";
+                    const double radius=o.candidateDedupRadius*(1-o.match.maxOverlap)*std::min(base.tw,base.th);
+                    const double window=o.candidateDedupAngleSteps*std::atan(2./std::max(top.tw,top.th))*180/pi;
+                    const FGDedupConfig d{model.first,uint32_t(o.match.maxTargets+5),uint32_t(model.maps.size()),uint32_t(o.candidateDedupTopK),
+                        top.tw,top.th,uint32_t(m),0,float(radius),float(window),float(std::ldexp(1.,int(model.top))),0};
+                    if(size_t(d.maps)*d.limit!=model.count)throw std::logic_error("Full GPU dedup slot plan mismatch");
+                    e=encoder(command,"fg_dedup_mark");[e setBuffer:candidates offset:0 atIndex:0];[e setBuffer:dedupDrop offset:0 atIndex:1];[e setBuffer:dedupCounts offset:0 atIndex:2];[e setBytes:&d length:sizeof(d) atIndex:3];linear(e,model.count);
+                    e=encoder(command,"fg_dedup_apply");[e setBuffer:candidates offset:0 atIndex:0];[e setBuffer:dedupDrop offset:0 atIndex:1];[e setBytes:&d length:sizeof(d) atIndex:2];linear(e,model.count);
+                }
                 FGFineConfig fine{model.first,model.count,model.levelBase,model.top,std::min(uint32_t(o.match.stopLayer),model.top),uint32_t(o.match.subpixel),uint32_t(ranges.size()),uint32_t(m),
                     scoreCutoff(o.refine?std::min(o.proposalScore,o.match.minScore):o.match.minScore),float(o.match.maxOverlap),float(settings_.scales[m]),0,base.tw,base.th,uint32_t(o.match.maxTargets),0};
                 profileStage_="fine_search";
@@ -498,6 +517,7 @@ public:
             e=encoder(command,"fg_write_results");[e setBuffer:kind?matches:snapshot offset:0 atIndex:0];[e setBuffer:readback offset:kind?matchResultOffset:proposalResultOffset atIndex:1];[e setBuffer:status offset:0 atIndex:2];[e setBytes:&finish length:sizeof(finish) atIndex:3];[e setBytes:&kind length:4 atIndex:4];linear(e,kind?size_t(o.match.maxTargets):p.capacity);
         }
         copy(command,status,0,readback,0,sizeof(FGStatus));
+        if(dedup)copy(command,dedupCounts,0,readback,dedupResultOffset,dedupCountBytes);
         if(o.fullGpuProfiling)copy(command,fineWork,0,fineWorkReadback,0,fineWorkBytes);
         finishProfileEncoding();metrics_.encodeMs=elapsed(encodeStart);
         // The sole synchronization boundary. All intermediate allocations are
@@ -544,13 +564,22 @@ public:
         }
         const auto read=Clock::now();const auto* bytes=static_cast<const uint8_t*>(hostRead(readback));FGStatus resultStatus{};std::memcpy(&resultStatus,bytes,sizeof(resultStatus));
         if(resultStatus.overflow || resultStatus.proposals>p.capacity || resultStatus.matches>uint32_t(o.match.maxTargets))throw std::runtime_error("Full GPU overflow/capacity flag: "+std::to_string(resultStatus.overflow));
-        Result r;
+        Result r;r.candidateDedupTopK=o.candidateDedupTopK;
         auto collect=[&](size_t offset,uint32_t count,std::vector<Match>& output,std::vector<double>& scales){
             auto* values=reinterpret_cast<const FGResult*>(bytes+offset);output.reserve(count);scales.reserve(count);
             for(uint32_t i=0;i<count;++i){const auto& v=values[i];Match m;m.center={v.x,v.y};m.angle=v.angle;m.score=v.score;for(size_t k=0;k<4;++k)m.corners[k]={v.corners[2*k],v.corners[2*k+1]};output.push_back(m);scales.push_back(v.scale);}
         };
         collect(proposalResultOffset,resultStatus.proposals,r.proposals,r.proposalScales);collect(matchResultOffset,resultStatus.matches,r.matches,r.scales);
-        metrics_.readbackBytes=sizeof(FGStatus)+size_t(resultStatus.proposals+resultStatus.matches)*sizeof(FGResult);metrics_.readbackMs=elapsed(read);
+        if(dedup) {
+            const auto* counts=reinterpret_cast<const uint32_t*>(bytes+dedupResultOffset);
+            for(size_t m=0;m<p.models.size();++m) {
+                const auto& model=p.models[m];const auto base=p.levels[model.levelBase],top=p.levels[model.levelBase+model.top];
+                r.candidateDedup.push_back({counts[2*m],counts[2*m+1],o.candidateDedupRadius*(1-o.match.maxOverlap)*std::min(base.tw,base.th),
+                    o.candidateDedupAngleSteps*std::atan(2./std::max(top.tw,top.th))*180/pi,0});
+                if(counts[2*m+1]>counts[2*m] || counts[2*m]>model.count)throw std::runtime_error("Full GPU dedup counters are inconsistent");
+            }
+        }
+        metrics_.readbackBytes=sizeof(FGStatus)+size_t(resultStatus.proposals+resultStatus.matches)*sizeof(FGResult)+dedupCountBytes;metrics_.readbackMs=elapsed(read);
         for(const auto& entry:buffers_)metrics_.gpuBytes+=entry.second.length;
         for(const char* name:{"peak-sorted-entries","peak-tile-heads","peak-state-ring","peak-key-ring","peak-removal-ring","peak-list-ring"}) {
             const auto entry=buffers_.find(name);if(entry!=buffers_.end())metrics_.peakScratchBytes+=entry->second.length;

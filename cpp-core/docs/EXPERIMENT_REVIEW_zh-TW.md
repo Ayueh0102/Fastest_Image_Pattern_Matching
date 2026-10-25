@@ -1,6 +1,6 @@
 # Template Matching 研究總索引與人工審查指南
 
-更新：2026-10-24。此頁按第1–42輪列出問題、證據與採用決定。數字是各輪的證據快照，不是同一套輸入的連續加速曲線；不同輪次倍率不能相乘。最新輪次見頁末，第一次閱讀先看[外部導覽](../../docs/PROJECT_GUIDE_zh-TW.md)。
+更新：2026-10-24。此頁按第1–43輪列出問題、證據與採用決定。數字是各輪的證據快照，不是同一套輸入的連續加速曲線；不同輪次倍率不能相乘。最新輪次見頁末，第一次閱讀先看[外部導覽](../../docs/PROJECT_GUIDE_zh-TW.md)。
 
 ## 目前推薦方案
 
@@ -9,7 +9,7 @@
 | 主題 | 閱讀入口 |
 |---|---|
 | 核心、GUI與語言移植 | 第1輪；[建置](../README_zh-TW.md)、[移植契約](PORTING_zh-TW.md) |
-| GPU並行、同步與記憶體 | 第5–14、19–25、28–34、36–42輪；依工作量看CPU／Metal對照 |
+| GPU並行、同步與記憶體 | 第5–14、19–25、28–34、36–43輪；依工作量看CPU／Metal對照 |
 | 固定尺度與稀疏前段 | 第15–21輪；與金字塔路徑分開比較 |
 | 原始NCC與旋轉細搜尋 | 第26–30輪；保留未加速與記憶體失敗 |
 | 新場景、Blender、新影格與穩定性 | [第34輪](STAGE34_CLOSURE_zh-TW.md) |
@@ -460,3 +460,15 @@ Release 54/54、相關ASan／UBSan 2/2及Python工具75項通過。正式／有�
 - 驗證：170組fixture×3種lane數×3種清單容量及混合批次的差分，有序候選bytes與mode 1相同；16個kernel突變殺15、存活者為輸出等價；工具20項負控制、17個手動突變全殺。四個phase共1538次直接GT零FP／FN，mode 2每次呼叫的完整有序輸出都與mode 1相同；0筆失敗門檻。母session一次`find`掃描與formal的many128 36個worker重疊，已揭露、未剔除。
 - 決定：依事前規則，完整GPU研究建議改為`full_gpu_peak_mode=2`、fine4；不改GUI、核心或混合預設。細搜尋是下一個主要瓶頸。
 - 證據：[完整報告](GPU_PARALLEL_PEAKS_zh-TW.md)、[正式摘要](stage42-parallel-peaks/formal-summary.json)、[判定與失敗](stage42-parallel-peaks/decision-and-failures.json)、[驗證](stage42-parallel-peaks/validation.json)、[封存清單](stage42-parallel-peaks/archive.json)。
+
+### 43. 細搜尋前的粗候選去重（2026-10-24，會改變語意）
+
+- 問題／實作：每個粗候選在NMS前都要細搜尋，第40輪512物件最後一層仍有83,824個候選。新增預設關閉的研究選項：同一尺度模型內，若有至少k個排名較前的候選中心在radius·(1−maxOverlap)·短邊內、搜尋角在angle_steps個粗步內，就在細搜尋前丟掉。混合（CPU／Metal frame）與完整GPU（`fg_dedup_mark`／`fg_dedup_apply`，仍是1個command buffer、1次等待）都支援。輸出不保證與基線相同，報告不宣稱精確等價。
+- GT：事前登錄的7個GT家族，共112個混合／79個完整GPU案例變體（第40輪正式、保留、stop0，第34輪遮擋、干擾物、接觸、Blender與尺度支撐，第33輪，第35輪RGB 49物件，本輪對稱與相鄰控制）。主設定k3（radius 0.5、angle_steps 3）與k2在兩條路徑都沒有任何嚴格TP減少或FP增加；k1有6／4個案例變體退步。
+- 輸出：有序matches與基線相同的，混合97/112、完整GPU 67/79；不同的案例GT計數都沒變。
+- 正式速度（6 block，k3對off）：混合128 −30.4%、512 −37.0%、六物件 −25.8%；完整GPU −26.1%／−25.7%／−30.2%，各6/6同向（完整GPU臂是第40輪peak1／fine4，與第42輪分開量測、不可相乘）；8K約不變（−0.1%／−0.8%）。
+- 工作量：512留下41.4%（混合）／48.6%（完整GPU）的候選。完整GPU的fine_search從1326.9降到628.1ms，粗選峰（約1030ms）成為最大階段。
+- 負控制：只看位置的k1在對稱模板控制少7個物件，也在原128／512以角度別名取代真位姿；半徑2.0的k1在相鄰格點少10個物件。9個編譯突變在加入量測後測試後全部被抓到；只用事前登錄的測試時，「角點代替中心」與「忽略過濾結果」兩個存活。
+- 驗證：GT 1146程序、pilot 16、正式96、profile 4。不匯入harness的獨立稽核52,248項檢查零不符；封存重播摘要逐位相同；量測後Release 78／78、Python 585／585、Metal validation 22／22、ASan／UBSan 8／8。保留失敗：8K混合1個time_budget block（+11.5%），以及k1與消融arm的80筆GT退步。
+- 決定：k3在本輪全部場景GT中立，且達到兩條路徑的事前速度目標；保留為明確指定的研究選項，不改GUI或任何預設。對稱週期小於3個粗角度步的模板沒有驗證。
+- 證據：[完整報告](CANDIDATE_DEDUP_zh-TW.md)、[GT摘要](stage43-candidate-dedup/gt-summary.json)、[正式摘要](stage43-candidate-dedup/formal-summary.json)、[判定與失敗](stage43-candidate-dedup/decision-and-failures.json)、[驗證](stage43-candidate-dedup/validation.json)、[封存](stage43-candidate-dedup/archive.json)。

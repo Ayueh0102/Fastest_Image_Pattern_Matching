@@ -32,6 +32,7 @@ STAGES = {
     "run-diagnostics": "32", "resident-multiscale": "33", "stage34-closure": "34",
     "stage35-real-rgb": "35", "stage36-coarse-resident": "36", "stage37-full-gpu": "37", "stage38-gpu-peaks": "38", "stage39-fine-tiles": "39",
     "stage40-ncc-closure": "40", "stage41-new-frame-cost": "41", "stage42-parallel-peaks": "42",
+    "stage43-candidate-dedup": "43",
 }
 ROLE_DESCRIPTIONS = {
     "protocol": "Settings, workload definition, budgets and acceptance gates",

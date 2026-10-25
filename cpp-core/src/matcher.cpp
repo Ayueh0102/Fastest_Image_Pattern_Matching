@@ -134,12 +134,14 @@ std::vector<double> localAngles(double center, double step, const std::vector<An
 
 std::vector<Match> detail::matchWithCoarseNcc(ImageView source, const Pattern& pattern,
 	const MatchConfig& config, CoarseNccProvider* provider, MatchStageProfile* profile,
-	const SourcePyramid* prepared)
+	const SourcePyramid* prepared, const CandidateDedupConfig* dedup, CandidateDedupStats* dedupStats)
 {
 	using namespace detail;
 	StageClock stageClock(profile);
 	validateImage(source);
 	validateConfig(config);
+	if (dedup) validateDedup(*dedup);
+	if (dedupStats) *dedupStats = {};
 	const auto& levels = pattern.levels();
 	if (levels.empty()) throw std::invalid_argument("pattern has no learned levels");
 	const int tw = levels[0].image.width(), th = levels[0].image.height();
@@ -404,6 +406,31 @@ std::vector<Match> detail::matchWithCoarseNcc(ImageView source, const Pattern& p
 	std::stable_sort(candidates.begin(), candidates.end(), [](const Candidate& a, const Candidate& b) { return a.score > b.score; });
 	}
 	if (profile) profile->coarse_candidates = candidates.size();
+	if (dedupStats) dedupStats->input = dedupStats->kept = candidates.size();
+	if (dedup && dedup->topK > 0) {
+		// Research-only filter (CandidateDedupConfig); it changes which poses
+		// are refined. Centers use the same corner convention as makeMatch.
+		StageScope stage(stageClock, Stage::PeakSelection);
+		const auto begin = std::chrono::steady_clock::now();
+		const double radius = dedup->radiusFraction * (1 - config.maxOverlap) * std::min(tw, th);
+		const double window = dedup->angleSteps * angleStep(top), toSource = std::ldexp(1.0, top);
+		std::vector<DedupPoint> points;
+		points.reserve(candidates.size());
+		for (const auto& candidate : candidates) {
+			const double c = std::cos(candidate.angle * D2R), s = std::sin(candidate.angle * D2R);
+			points.push_back({{(candidate.point.x + 0.5 * (topW * c - topH * s)) * toSource,
+				(candidate.point.y + 0.5 * (topW * s + topH * c)) * toSource}, candidate.angle});
+		}
+		const auto keep = dedupKeep(points, dedup->topK, radius, window);
+		std::size_t kept = 0;
+		for (std::size_t i = 0; i < candidates.size(); ++i)
+			if (keep[i]) candidates[kept++] = candidates[i];
+		candidates.resize(kept);
+		if (dedupStats) {
+			dedupStats->kept = kept; dedupStats->radius = radius; dedupStats->angleWindow = window;
+			dedupStats->ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - begin).count();
+		}
+	}
 	std::vector<Match> refined;
 	const std::size_t fineBatchSize = provider ? provider->fineBatchSize() : 0;
 	if (fineBatchSize > 1024) throw std::runtime_error("fine provider batch size must be at most 1024");

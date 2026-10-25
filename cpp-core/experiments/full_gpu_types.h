@@ -27,6 +27,15 @@ struct FGFineConfig {
     FG_UINT templateWidth,templateHeight,maxTargets,reserved2;
 };
 struct FGRange { float minimum,maximum; };
+// Round 43, experimental and semantics-changing: one model's coarse slots are
+// maps*limit candidates in map order. radius is source pixels; toSource=2^top
+// maps top-level coordinates; angleWindow is degrees; counts holds the model's
+// input and kept candidate totals.
+struct FGDedupConfig {
+    FG_UINT first,limit,maps,topK;
+    FG_UINT templateWidth,templateHeight,model,reserved;
+    float radius,angleWindow,toSource,reserved1;
+};
 struct FGNmsConfig {
     FG_UINT first,count,outputFirst,limit;
     FG_UINT templateWidth,templateHeight,globalStage,rangeCount;

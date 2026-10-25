@@ -1,0 +1,176 @@
+{
+ "stage": 43,
+ "implementation_commit": "5d1d1ac14208f9e671ff4a8aacc2b191476546d8",
+ "preregistration_commit": "50027de",
+ "measured_build": "build/stage43-release from 50027de (sources = 5d1d1ac)",
+ "before_measurement": {
+  "commit": "50027de",
+  "release_ctest": "78/78",
+  "python_harness": "584/584",
+  "color_verify_metal": "5/5",
+  "build": "fresh Release GUI+experiments+OpenCV"
+ },
+ "measurement": {
+  "gt": {
+   "workers": 1146,
+   "failed_workers": 0,
+   "utc": [
+    "2026-10-24T13:07:54Z",
+    "2026-10-24T13:14:44Z"
+   ],
+   "parallel": 2,
+   "competing_workers": 159,
+   "note": "GT phase makes no timing claim; competing cmake came from mutant builds"
+  },
+  "pilot": {
+   "workers": 16,
+   "utc": [
+    "2026-10-24T13:15:13Z",
+    "2026-10-24T13:16:33Z"
+   ],
+   "competing": 0
+  },
+  "formal": {
+   "workers": 96,
+   "utc": [
+    "2026-10-24T13:16:36Z",
+    "2026-10-24T13:24:28Z"
+   ],
+   "competing": 0,
+   "load1": [
+    1.59,
+    6.89
+   ]
+  },
+  "profile": {
+   "workers": 4,
+   "utc": [
+    "2026-10-24T13:24:31Z",
+    "2026-10-24T13:25:00Z"
+   ],
+   "competing": 0
+  },
+  "sources_binaries_inputs_unchanged": true,
+  "coordination": "Sibling sessions paused builds/benchmarks during pilot/formal/profile by agreement; round 42 timed afterwards (13:28-13:46 UTC) while this session held all CPU work."
+ },
+ "tests": {
+  "unit": "research_candidate_dedup: grid equals quadratic definition (300 random trials), symmetric two-mode and adjacent two-object controls, edge/invalid cases",
+  "gpu_kernels": "experimental_full_gpu_dedup: fg_dedup_mark/apply equal dedupKeep on 40 FP32 slot layouts with ties and the +/-180 seam",
+  "session": "research_candidate_dedup_cpu/metal/full_gpu: off identical to default, counters, residency 1/1/0/0, CPU=Metal hybrid decisions, invalid options; post-measurement: center-convention scenes and fine-map reduction",
+  "harness": "tests/test_candidate_dedup_harness.py: 15 negative controls (14 pre-registered + 1 post-measurement top_k contract)"
+ },
+ "mutants": {
+  "count": 9,
+  "all_killed": true,
+  "restored_all_pass": true,
+  "killed_by": {
+   "M1_count_only_kept_neighbors": [
+    "gpu_kernels",
+    "unit"
+   ],
+   "M2_ignore_angle_window": [
+    "gpu_kernels",
+    "unit"
+   ],
+   "M3_corner_instead_of_center": [
+    "pipeline_cpu",
+    "pipeline_metal"
+   ],
+   "M4_gpu_break_on_equal_score": [
+    "gpu_kernels"
+   ],
+   "M5_gpu_level0_size_for_center": [
+    "pipeline_full_gpu"
+   ],
+   "M6_gpu_drop_not_applied": [
+    "gpu_kernels"
+   ],
+   "M7_filter_result_ignored": [
+    "pipeline_metal"
+   ],
+   "M8_session_drops_top_k": [
+    "pipeline_cpu",
+    "pipeline_metal"
+   ],
+   "M9_gpu_counts_dropped_as_kept": [
+    "gpu_kernels",
+    "pipeline_full_gpu"
+   ]
+  },
+  "note": "Run on a disposable copy of 50027de plus the post-measurement tests (committed as 494f774). Each mutant must build; the restored copy passes every test."
+ },
+ "independent_audit": {
+  "script": "validation-logs.tar.gz:validation/audit/audit_stage43.py",
+  "imports_harness": false,
+  "checks": 52248,
+  "mismatches": 0,
+  "gt_gate_failures": 80,
+  "formal_gate_failures": 1,
+  "notes": {
+   "formal_workers_warmup_total_below_1000ms": 2,
+   "geometry_groups": 296,
+   "gt_workers_with_competing_processes": 159,
+   "hybrid_calls_work_rows_differ_from_models": 0,
+   "radius_min_side_not_integer": 0
+  }
+ },
+ "replay": {
+  "result": "gt/pilot/formal/profile summaries recomputed from the two raw archives with the frozen snapshot tool are byte-identical; 294 snapshot file hashes OK",
+  "log": "validation-logs.tar.gz:validation/replay/replay.log"
+ },
+ "after_measurement": {
+  "commit": "494f774",
+  "clean_source_tree": true,
+  "release_ctest": "78/78",
+  "python_harness": "585/585",
+  "color_verify_metal": "5/5",
+  "metal_validation_layer": "22/22 (MTL_SHADER_VALIDATION=1 MTL_DEBUG_LAYER=1, -R 'dedup|experimental_full_gpu|native_runner')",
+  "asan_ubsan": "8/8 (Debug, FPM_SANITIZERS, FPM_DISABLE_SIMD, experiments; dedup, portable_core, native_research tests), no sanitizer reports",
+  "compiled_units": 85
+ },
+ "not_run": [
+  "Windows/Linux and non-M4 Metal devices",
+  "LeakSanitizer",
+  "changing-content frame sequences",
+  "symmetric templates with period below three coarse angle steps"
+ ],
+ "mutants_preregistered_tests_only": {
+  "tree": "50027de (pre-registered tests)",
+  "all_killed": false,
+  "restored_all_pass": true,
+  "survived": [
+   "M3_corner_instead_of_center",
+   "M7_filter_result_ignored"
+  ],
+  "killed_by": {
+   "M1_count_only_kept_neighbors": [
+    "gpu_kernels",
+    "unit"
+   ],
+   "M2_ignore_angle_window": [
+    "gpu_kernels",
+    "unit"
+   ],
+   "M3_corner_instead_of_center": [],
+   "M4_gpu_break_on_equal_score": [
+    "gpu_kernels"
+   ],
+   "M5_gpu_level0_size_for_center": [
+    "pipeline_full_gpu"
+   ],
+   "M6_gpu_drop_not_applied": [
+    "gpu_kernels"
+   ],
+   "M7_filter_result_ignored": [],
+   "M8_session_drops_top_k": [
+    "pipeline_cpu",
+    "pipeline_metal"
+   ],
+   "M9_gpu_counts_dropped_as_kept": [
+    "gpu_kernels",
+    "pipeline_full_gpu"
+   ]
+  },
+  "note": "M3 (corner instead of center) and M7 (filter result ignored) survive the pre-registered tests; the post-measurement center-convention scenes and the fine-map check catch them. The measured implementation (sources of 5d1d1ac, unchanged in 494f774) passes those stronger tests."
+ }
+}

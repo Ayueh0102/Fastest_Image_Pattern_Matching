@@ -236,6 +236,31 @@ FPM_API int fpm_frame_set_coarse_overlap(fpm_frame_handle* frame,
 FPM_API int fpm_frame_coarse_overlap_metrics(fpm_frame_handle* frame,
     FpmCoarseOverlapMetricsV1* metrics, size_t metrics_bytes,
     char* error, size_t error_capacity);
+/* Experimental, SEMANTICS-CHANGING coarse-candidate deduplication before fine
+ * search (research only; top_k=0, the default, disables it). Per model match,
+ * candidates are ranked by coarse score then insertion order; one is dropped
+ * when at least top_k earlier candidates have source-pixel centers within
+ * radius_fraction*(1-max_overlap)*min(template width,height) and wrapped search
+ * angles within angle_steps top-level coarse steps. CPU and Metal frames. */
+typedef struct FpmCandidateDedupConfigV1 {
+    uint32_t version, struct_bytes;
+    int32_t top_k, reserved0;
+    double radius_fraction, angle_steps;
+} FpmCandidateDedupConfigV1;
+/* Last fpm_frame_match only; reset by every match. Input/kept are candidates
+ * before/after the filter (equal when disabled). filter_ms is host wall time. */
+typedef struct FpmCandidateDedupMetricsV1 {
+    uint32_t version, struct_bytes;
+    int32_t top_k, reserved0;
+    uint64_t input_candidates, kept_candidates;
+    double radius_px, angle_window_deg, filter_ms;
+} FpmCandidateDedupMetricsV1;
+FPM_API int fpm_frame_set_candidate_dedup(fpm_frame_handle* frame,
+    const FpmCandidateDedupConfigV1* config, size_t config_bytes,
+    char* error, size_t error_capacity);
+FPM_API int fpm_frame_get_candidate_dedup_metrics(fpm_frame_handle* frame,
+    FpmCandidateDedupMetricsV1* metrics, size_t metrics_bytes,
+    char* error, size_t error_capacity);
 FPM_API void fpm_frame_default_config(FpmFrameConfigV1* config);
 FPM_API int fpm_frame_create(const FpmFrameConfigV1* config, size_t config_bytes,
     fpm_frame_handle** out, char* error, size_t error_capacity);

@@ -105,9 +105,32 @@ struct MatchStageProfile {
 	std::uint64_t fine_roi_total_bytes = 0, fine_roi_peak_bytes = 0;
 	std::uint64_t scoremap_peak_bytes = 0, scoremap_total_bytes = 0, timed_transitions = 0;
 };
+// Experimental, SEMANTICS-CHANGING coarse-candidate deduplication between the
+// top-level coarse search and fine search. Research option only; a null config
+// (every portable entry point) refines every candidate as before. Within one
+// call (one template scale model), candidates are ranked by coarse score, ties
+// by insertion order. A candidate is dropped before fine search when at least
+// topK candidates ranked before it (kept or dropped) have source-pixel centers
+// within radiusFraction*(1-maxOverlap)*min(level-0 width,height) and wrapped
+// search angles within angleSteps top-level coarse angle steps. Kept
+// candidates keep their relative order. topK=0 disables the filter.
+struct CandidateDedupConfig {
+	int topK = 0;
+	double radiusFraction = 0, angleSteps = 0;
+};
+struct CandidateDedupStats {
+	std::uint64_t input = 0, kept = 0;
+	double radius = 0, angleWindow = 0, ms = 0; // source px, degrees, host wall ms
+};
+struct DedupPoint { Point center; double angle = 0; };
+void validateDedup(const CandidateDedupConfig& config);
+// One keep flag per ranked input, identical to the quadratic definition above.
+std::vector<std::uint8_t> dedupKeep(const std::vector<DedupPoint>& ranked, int topK,
+	double radius, double angleWindow);
 std::vector<Match> matchWithCoarseNcc(ImageView source, const Pattern& pattern,
 	const MatchConfig& config, CoarseNccProvider* provider, MatchStageProfile* profile = nullptr,
-	const SourcePyramid* prepared = nullptr);
+	const SourcePyramid* prepared = nullptr, const CandidateDedupConfig* dedup = nullptr,
+	CandidateDedupStats* dedupStats = nullptr);
 std::uint64_t dotProduct(const std::uint8_t* a, const std::uint8_t* b, int size, Backend backend);
 struct NccStats {
 	std::uint64_t windows = 0, projectionChecks = 0, partialChecks = 0;

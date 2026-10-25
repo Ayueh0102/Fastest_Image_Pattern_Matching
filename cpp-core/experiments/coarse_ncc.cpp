@@ -85,6 +85,8 @@ struct fpm_frame_handle {
     fpm::detail::SourcePyramid pyramid;
     FpmFrameMetricsV1 frameMetrics{};
     FpmCoarseExecutionMetricsV1 prepareExecution{};
+    fpm::detail::CandidateDedupConfig dedup{};
+    fpm::detail::CandidateDedupStats dedupStats{};
     uint64_t generation = 0;
     bool ready = false;
     FpmFrameMetricsV1 metrics() const {
@@ -390,6 +392,41 @@ int fpm_frame_get_metrics(fpm_frame_handle* frame, FpmFrameMetricsV1* metrics,
     catch (...) { message(error, capacity, "unknown frame metrics exception"); }
     return FPM_ERROR;
 }
+int fpm_frame_set_candidate_dedup(fpm_frame_handle* frame,
+    const FpmCandidateDedupConfigV1* config, size_t bytes, char* error, size_t capacity)
+{
+    static_assert(sizeof(FpmCandidateDedupConfigV1) == 32, "candidate dedup config v1 ABI changed");
+    message(error, capacity, "");
+    try {
+        if (!frame || !config || bytes != sizeof(*config) || config->version != 1 ||
+            config->struct_bytes != sizeof(*config) || config->reserved0)
+            throw std::invalid_argument("valid candidate dedup v1 config of exact size and zero reserved field is required");
+        const fpm::detail::CandidateDedupConfig value{config->top_k, config->radius_fraction, config->angle_steps};
+        fpm::detail::validateDedup(value);
+        frame->dedup = value;
+        return FPM_OK;
+    } catch (const std::exception& e) { message(error, capacity, e.what()); }
+    catch (...) { message(error, capacity, "unknown candidate dedup exception"); }
+    return FPM_ERROR;
+}
+int fpm_frame_get_candidate_dedup_metrics(fpm_frame_handle* frame,
+    FpmCandidateDedupMetricsV1* metrics, size_t bytes, char* error, size_t capacity)
+{
+    static_assert(sizeof(FpmCandidateDedupMetricsV1) == 56, "candidate dedup metrics v1 ABI changed");
+    message(error, capacity, "");
+    try {
+        if (!frame || !metrics || bytes != sizeof(*metrics))
+            throw std::invalid_argument("frame and candidate dedup metrics v1 of exact size are required");
+        FpmCandidateDedupMetricsV1 value{};
+        value.version = 1; value.struct_bytes = sizeof(value); value.top_k = frame->dedup.topK;
+        value.input_candidates = frame->dedupStats.input; value.kept_candidates = frame->dedupStats.kept;
+        value.radius_px = frame->dedupStats.radius; value.angle_window_deg = frame->dedupStats.angleWindow;
+        value.filter_ms = frame->dedupStats.ms;
+        *metrics = value; return FPM_OK;
+    } catch (const std::exception& e) { message(error, capacity, e.what()); }
+    catch (...) { message(error, capacity, "unknown candidate dedup metrics exception"); }
+    return FPM_ERROR;
+}
 int fpm_frame_match(fpm_frame_handle* frame, fpm_coarse_handle* pattern,
     const fpm_config* config, fpm_result* results, size_t capacity, size_t* count,
     FpmCoarseMetrics* metrics, FpmCoarseProfileV1* profile, size_t profileBytes,
@@ -411,8 +448,10 @@ int fpm_frame_match(fpm_frame_handle* frame, fpm_coarse_handle* pattern,
         if (settings.invertSource != frame->pyramid.inverted)
             throw std::invalid_argument("config inversion differs from prepared frame");
         if (frame->backend) frame->backend->resetMetrics();
+        frame->dedupStats = {};
         const auto found = fpm::detail::matchWithCoarseNcc(frame->pyramid.levels.front().view(), pattern->pattern,
-            settings, frame->backend.get(), writableProfile ? &stages : nullptr, &frame->pyramid);
+            settings, frame->backend.get(), writableProfile ? &stages : nullptr, &frame->pyramid,
+            &frame->dedup, &frame->dedupStats);
         *metrics = frame->backend ? frame->backend->metrics() : FpmCoarseMetrics{};
         for (const auto& level : pattern->pattern.levels()) metrics->host_bytes += uint64_t(level.image.width())*level.image.height();
         if (frame->backend) {
