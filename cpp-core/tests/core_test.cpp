@@ -184,6 +184,99 @@ void simdOverflow()
 			require(dotProduct(x.data()+offset,y.data()+offset,length,Backend::Auto)==expected,"SIMD random dot");
 		}
 }
+// Verbatim copies of the original rotation and pyramid loops. Library paths
+// (SIMD rotation pairs, direct pyramid interiors) must match them byte for byte.
+std::uint8_t referencePixel(ImageView src, int x, int y, std::uint8_t border)
+{
+	return x < 0 || y < 0 || x >= src.width || y >= src.height ? border :
+		src.data[std::size_t(y) * src.stride + x];
+}
+Image referenceWarp(ImageView src, int width, int height, Point anchor, double angle, std::uint8_t border)
+{
+	Image result(width, height);
+	const double c = std::cos(angle * D2R), s = std::sin(angle * D2R);
+	for (int y = 0; y < height; ++y)
+		for (int x = 0; x < width; ++x) {
+			const double sx = anchor.x + c * x - s * y;
+			const double sy = anchor.y + s * x + c * y;
+			if (sx < -1 || sy < -1 || sx >= src.width || sy >= src.height) {
+				result.row(y)[x] = border;
+				continue;
+			}
+			const int ix = int(std::floor(sx)), iy = int(std::floor(sy));
+			const double dx = sx - ix, dy = sy - iy;
+			const double top = referencePixel(src, ix, iy, border) * (1 - dx) + referencePixel(src, ix + 1, iy, border) * dx;
+			const double bottom = referencePixel(src, ix, iy + 1, border) * (1 - dx) + referencePixel(src, ix + 1, iy + 1, border) * dx;
+			result.row(y)[x] = std::uint8_t(std::clamp(std::floor(top * (1 - dy) + bottom * dy + 0.5), 0.0, 255.0));
+		}
+	return result;
+}
+int referenceReflect(int p, int length)
+{
+	if (length == 1) return 0;
+	while (p < 0 || p >= length)
+		p = p < 0 ? -p : 2 * length - p - 2;
+	return p;
+}
+Image referencePyrDown(ImageView image)
+{
+	Image result(image.width / 2 + image.width % 2, image.height / 2 + image.height % 2);
+	constexpr int kernel[] = {1, 4, 6, 4, 1};
+	std::vector<int> horizontal(std::size_t(image.height) * result.width());
+	for (int y = 0; y < image.height; ++y) {
+		const auto* row = image.data + std::size_t(y) * image.stride;
+		for (int x = 0; x < result.width(); ++x) {
+			int sum = 0;
+			for (int k = -2; k <= 2; ++k)
+				sum += kernel[k + 2] * row[referenceReflect(x * 2 + k, image.width)];
+			horizontal[std::size_t(y) * result.width() + x] = sum;
+		}
+	}
+	for (int y = 0; y < result.height(); ++y)
+		for (int x = 0; x < result.width(); ++x) {
+			int sum = 0;
+			for (int k = -2; k <= 2; ++k)
+				sum += kernel[k + 2] * horizontal[std::size_t(referenceReflect(y * 2 + k, image.height)) * result.width() + x];
+			result.row(y)[x] = std::uint8_t((sum + 128) / 256);
+		}
+	return result;
+}
+bool samePixels(const Image& a, const Image& b)
+{
+	if (a.width() != b.width() || a.height() != b.height()) return false;
+	for (int y = 0; y < a.height(); ++y)
+		if (!std::equal(a.row(y), a.row(y) + a.width(), b.row(y))) return false;
+	return true;
+}
+void exactRotationAndPyramid()
+{
+	std::mt19937 rng(77);
+	for (int trial = 0; trial < 3000; ++trial) {
+		// Small sizes, padded strides and anchors far outside reach every
+		// border/interior mix; the last trials use a larger random image.
+		const bool large = trial >= 2900;
+		const int w = large ? 180 + int(rng() % 60) : 1 + int(rng() % 40);
+		const int h = large ? 150 + int(rng() % 60) : 1 + int(rng() % 40);
+		const int pad = int(rng() % 5);
+		std::vector<std::uint8_t> pixels(std::size_t(w + pad) * h);
+		for (auto& v : pixels) v = std::uint8_t(rng());
+		const ImageView src{pixels.data(), w, h, std::size_t(w + pad)};
+		require(samePixels(pyrDown(src), referencePyrDown(src)), "pyrDown must match the original loop");
+		const double angles[] = {0, 90, -90, 180, 45, 1e-9, -37.25, double(rng() % 36000) / 100 - 180};
+		const double angle = angles[rng() % 8];
+		const int tw = 1 + int(rng() % (large ? 120 : 30)), th = 1 + int(rng() % (large ? 100 : 30));
+		const Point anchor{double(int(rng() % 160) - 50) / 3, double(int(rng() % 160) - 50) / 7};
+		const Point origin = rotate({-PADDING, -PADDING}, {0, 0}, -angle);
+		require(samePixels(rotatedRoi(src, tw, th, anchor, angle), referenceWarp(src, tw + 2 * PADDING,
+			th + 2 * PADDING, {anchor.x + origin.x, anchor.y + origin.y}, angle, 0)), "rotated ROI must match the original loop");
+		const std::uint8_t border = rng() % 2 ? 255 : 0;
+		const auto canvas = rotateCanvas(src, std::min(tw, w), std::min(th, h), angle, border);
+		const Point center{(w - 1) * 0.5, (h - 1) * 0.5};
+		const Point canvasAnchor = rotate({-canvas.translation.x, -canvas.translation.y}, center, -angle);
+		require(samePixels(canvas.image, referenceWarp(src, canvas.image.width(), canvas.image.height(),
+			canvasAnchor, angle, border)), "rotation canvas must match the original loop");
+	}
+}
 void peakExtraction()
 {
 	ScoreMap map{100,30,std::vector<double>(3000,0)};
@@ -381,7 +474,7 @@ void fractionalPose()
 }
 int main()
 {
-	const std::pair<const char*,std::function<void()>> tests[]={{"image/pyramid",imageAndPyramid},{"NCC/reference/stride",nccReference},{"NCC/conservative-pruning",nccPruning},{"SIMD/overflow/tails",simdOverflow},{"peaks/BlockMax",peakExtraction},{"geometry/NMS",geometry},{"match/six-rotated-copies",sixRotatedCopies},{"subpixel/fits",subpixel},{"match/validation/invert",matching},{"rotation/ranges/layer0",rotatedMatching},{"subpixel/known-fractional-pose",fractionalPose}};
+	const std::pair<const char*,std::function<void()>> tests[]={{"image/pyramid",imageAndPyramid},{"NCC/reference/stride",nccReference},{"NCC/conservative-pruning",nccPruning},{"SIMD/overflow/tails",simdOverflow},{"rotation/pyramid/exact-reference",exactRotationAndPyramid},{"peaks/BlockMax",peakExtraction},{"geometry/NMS",geometry},{"match/six-rotated-copies",sixRotatedCopies},{"subpixel/fits",subpixel},{"match/validation/invert",matching},{"rotation/ranges/layer0",rotatedMatching},{"subpixel/known-fractional-pose",fractionalPose}};
 	int failed=0;
 	for(const auto& test:tests) {
 		try { test.second(); std::cout<<"PASS "<<test.first<<'\n'; }

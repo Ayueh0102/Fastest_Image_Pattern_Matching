@@ -1,0 +1,151 @@
+{
+  "adopted": [
+    "warp: NEON float64x2 pairs (clang + aarch64 + NEON, not FPM_DISABLE_SIMD) mirroring the fused scalar expressions; pairs with any pixel outside 0<=sx<w-1, 0<=sy<h-1 and the odd tail use the unchanged scalar warpPixel",
+    "pyrDown: direct taps for interior columns, reflect101 only at the edges, reflected row pointers once per output row; integer arithmetic unchanged"
+  ],
+  "rejected_in_pilot": [
+    {
+      "variant": "A: scalar loop with an interior fast path",
+      "reason": "about 8-20% faster warp only; dropped so the scalar reference loop stays literal"
+    },
+    {
+      "variant": "B: NEON pairs with per-pixel double gathers through the stack",
+      "reason": "slower than C (integer byte-pair gathers)"
+    },
+    {
+      "variant": "D: C unrolled to four pixels",
+      "reason": "about 3-12% faster warp than C in the pilot, not worth a second unrolled copy"
+    }
+  ],
+  "failures_and_caveats": [
+    "the NEON path reproduces clang's default -ffp-contract=on fusion; other compilers (GCC) keep the scalar loop and a different contraction flag would be caught by rotation/pyramid/exact-reference",
+    "the uint8 output is not proof of identical intermediates in general, but mutant W2 (one multiply-add left unfused) was caught by the exact-reference test",
+    "rotation SIMD is compile-time only: Backend::Scalar still selects only the scalar dot product, so portable_scalar mode also got faster (-9.9%)",
+    "pilot micro outputs were rerun once after selection to archive them; the selection used the earlier, unarchived runs with the same ordering",
+    "other Claude/Codex processes were active; load averages recorded per session (1-minute 3.0-3.9)",
+    "only one Apple M4 Pro; Linux/Jetson/Windows-on-ARM and x86 not run; the pyrDown change is platform-independent integer code that was not run on x86"
+  ],
+  "formal_benchmark_modes": {
+    "legacy_cpp": {
+      "before_session_medians_ms": [
+        182.638042,
+        194.134833,
+        193.2205
+      ],
+      "after_session_medians_ms": [
+        193.45625,
+        190.954042,
+        187.269042
+      ],
+      "before_pooled_median_ms": 191.971791,
+      "after_pooled_median_ms": 190.303792,
+      "pooled_change_percent": -0.8688771362246661,
+      "paired_session_change_percent": [
+        5.923304850147271,
+        -1.6384442456032655,
+        -3.08013797707799
+      ],
+      "matches_identical_across_sessions_and_builds": true,
+      "backends": [
+        "legacy build"
+      ]
+    },
+    "portable_scalar": {
+      "before_session_medians_ms": [
+        779.843958,
+        803.544333,
+        801.892709
+      ],
+      "after_session_medians_ms": [
+        723.290042,
+        717.162834,
+        710.725375
+      ],
+      "before_pooled_median_ms": 796.428666,
+      "after_pooled_median_ms": 717.616083,
+      "pooled_change_percent": -9.895749156773824,
+      "paired_session_change_percent": [
+        -7.251952832338294,
+        -10.750060133894323,
+        -11.369018944403441
+      ],
+      "matches_identical_across_sessions_and_builds": true,
+      "backends": [
+        "scalar"
+      ]
+    },
+    "portable_simd": {
+      "before_session_medians_ms": [
+        314.362084,
+        320.548333,
+        323.248291
+      ],
+      "after_session_medians_ms": [
+        253.424875,
+        252.759542,
+        244.245917
+      ],
+      "before_pooled_median_ms": 319.76025,
+      "after_pooled_median_ms": 251.494208,
+      "pooled_change_percent": -21.349133295961586,
+      "paired_session_change_percent": [
+        -19.38440165067744,
+        -21.147759642225317,
+        -24.44015210586218
+      ],
+      "matches_identical_across_sessions_and_builds": true,
+      "backends": [
+        "NEON+DOTPROD"
+      ]
+    },
+    "portable_fast": {
+      "before_session_medians_ms": [
+        125.315959,
+        126.767292,
+        129.869625
+      ],
+      "after_session_medians_ms": [
+        94.00425,
+        94.968,
+        91.068542
+      ],
+      "before_pooled_median_ms": 127.934333,
+      "after_pooled_median_ms": 93.764333,
+      "pooled_change_percent": -26.709014850610902,
+      "paired_session_change_percent": [
+        -24.986210255949924,
+        -25.084776599945037,
+        -29.87695005664336
+      ],
+      "matches_identical_across_sessions_and_builds": true,
+      "backends": [
+        "NEON+DOTPROD"
+      ]
+    },
+    "portable_subpixel": {
+      "before_session_medians_ms": [
+        2867.057791,
+        2792.335042,
+        2922.052542
+      ],
+      "after_session_medians_ms": [
+        2316.591917,
+        2362.699458,
+        2256.297791
+      ],
+      "before_pooled_median_ms": 2854.777166,
+      "after_pooled_median_ms": 2316.591917,
+      "pooled_change_percent": -18.852093095381008,
+      "paired_session_change_percent": [
+        -19.19967835067612,
+        -15.386247622071714,
+        -22.783804925845853
+      ],
+      "matches_identical_across_sessions_and_builds": true,
+      "backends": [
+        "NEON+DOTPROD"
+      ]
+    }
+  },
+  "formal_fixtures_ab_geomean_ratio": 0.7726698390209885
+}

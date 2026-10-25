@@ -1,0 +1,72 @@
+{
+  "date": "2026-10-25",
+  "head_before_change": "51d95b17d0737a4a5b5cfa2955edbffe717c56a0",
+  "gate_log_sha256": "8359fc2be2c18002ac893650455534981d98569a5ef920c079e34f13ae568397",
+  "image_cpp_sha256": "a5fc8d18a0299de394a220b5b4deeb1adf538d1ab5e36782388093e35e0b9766",
+  "core_test_sha256": "e0dcd30ac33c9da516ebc7677ce7f2a70b0a11a93f93a4f028e457d7f8720d24",
+  "release_ctest": "3/3 (portable_core incl. rotation/pyramid/exact-reference, c_abi, opencv_stage_comparison)",
+  "no_dotprod_ctest_march_armv8_a": "3/3 (NEON rotation still on, UDOT off)",
+  "scalar_release_ctest_disable_simd": "3/3 (scalar warp loop, no NEON intrinsics)",
+  "asan_ubsan_scalar_ctest": "2/2 (Debug, FPM_SANITIZERS=ON, FPM_DISABLE_SIMD=ON)",
+  "asan_ubsan_simd_ctest": "2/2 (Debug -O0, FPM_SANITIZERS=ON; NEON rotation and exact-reference test)",
+  "research_ctest": "73/73 (Release, GUI + experiments + OpenCV)",
+  "python_harness": "570 tests OK",
+  "identity": {
+    "runs": 544,
+    "different_runs": 0,
+    "libraries": [
+      "before",
+      "after_simd",
+      "after_no_dotprod",
+      "after_scalar_build"
+    ],
+    "reference": "before/scalar",
+    "cases": 68,
+    "matches_compared": 724
+  },
+  "compare_versions": {
+    "base": {
+      "outside_tolerance": [],
+      "cases": 17
+    },
+    "new": {
+      "outside_tolerance": [],
+      "cases": 17
+    }
+  },
+  "compare_versions_portable_matches_identical_base_vs_new": 17,
+  "compiled_mutants": {
+    "M0_unmutated": {
+      "exit": 0,
+      "expected_outcome": true
+    },
+    "W1_interior_one_column_too_far": {
+      "exit": 1,
+      "expected_outcome": true
+    },
+    "W2_top_not_fused": {
+      "exit": 1,
+      "expected_outcome": true
+    },
+    "W3_lower_pair_swapped": {
+      "exit": 1,
+      "expected_outcome": true
+    },
+    "W4_pyr_interior_too_far": {
+      "exit": 1,
+      "expected_outcome": true
+    },
+    "W5_pyr_rows_shifted": {
+      "exit": 1,
+      "expected_outcome": true
+    },
+    "W6_offset_axes_swapped": {
+      "exit": 1,
+      "expected_outcome": true
+    },
+    "W7_no_row_bound": {
+      "exit": 1,
+      "expected_outcome": true
+    }
+  }
+}

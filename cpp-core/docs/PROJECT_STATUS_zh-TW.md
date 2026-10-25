@@ -10,6 +10,8 @@
 
 2026-10-24穩定核心（非研究輪次）加入[ARM DOTPROD點積](CORE_DOTPROD_zh-TW.md)：GUI／CLI預設的`Backend::Auto`在有`__ARM_FEATURE_DOTPROD`的aarch64編譯改用UDOT（單一累加器、每4096 bytes歸約、遮罩尾端），其他ARM編譯照舊走NEON。輸出與原NEON、scalar逐位元相同（408次執行零差異）；Src7模式基準快13.7%（359.10→309.84ms），17張固定影像幾何平均快7.0%。舊OpenCV＋DOTPROD版仍快1.64倍，剩餘時間主要在旋轉、NCC其他部分與金字塔。第一個雙累加器候選使Src4慢9.9%，未採用但保留。
 
+2026-10-25接著加入[精確旋轉與金字塔加速](CORE_WARP_PYRDOWN_zh-TW.md)：clang＋aarch64以NEON每次兩像素做`warp`，每一步照原scalar運算式的FMA合併方式；`pyrDown`的內部欄直接計算，全程整數。輸出與`51d95b1`逐位元相同（544次執行零差異，包括純scalar建置），Src7模式基準再快21.3%（319.76→251.49ms），17張固定影像每張都較快、幾何平均快22.7%。舊OpenCV＋DOTPROD版仍快1.32倍；`warp`在大模板仍占近一半，Src5／Src10改以`computeNcc`為主。
+
 第37輪補齊[完整Metal灰階搜尋資料路徑](FULL_GPU_zh-TW.md)，包含細搜尋控制、精修／救援及最終NMS；一次提交、最後一次等待。保留研究開關，原混合路徑與GUI預設不變。
 
 第38輪完成[GPU分階段計時與精確分塊選峰](GPU_TILED_PEAKS_zh-TW.md)：128／512完整GPU耗時降低79.8%／87.3%，有序輸出不變；仍較混合慢15.5%／38.7%，細搜尋成為下一個主要瓶頸。
@@ -24,7 +26,7 @@
 
 | 範圍 | 狀態 | 證據入口 |
 |---|---|---|
-| 固定尺度灰階核心 | C++17完整自有實作；旋轉、金字塔、NCC、NMS與subpixel；ARM編譯期UDOT點積 | [移植契約](PORTING_zh-TW.md)、[核心與GUI建置](../README_zh-TW.md)、[DOTPROD點積](CORE_DOTPROD_zh-TW.md) |
+| 固定尺度灰階核心 | C++17完整自有實作；旋轉、金字塔、NCC、NMS與subpixel；ARM編譯期UDOT點積、NEON精確旋轉 | [移植契約](PORTING_zh-TW.md)、[核心與GUI建置](../README_zh-TW.md)、[DOTPROD點積](CORE_DOTPROD_zh-TW.md)、[旋轉與金字塔](CORE_WARP_PYRDOWN_zh-TW.md) |
 | 灰階多尺度與連續精修 | 原生C++排程、CPU／Metal後端；GUI可選研究流程 | [總索引](EXPERIMENT_REVIEW_zh-TW.md)、`experiments/research_pipeline.hpp` |
 | 大量物件與大圖 | 有128／512物件、4K／8K測量；同模板合成為主 | [第34輪](STAGE34_CLOSURE_zh-TW.md)、各輪原始封存 |
 | 記憶體與提交改善 | gray8讀圖、u8初始化、共用影像、細搜尋旋轉／NCC融合 | [第31輪](GRAY_LOAD_MEMORY_zh-TW.md)、[第32輪](RUN_VARIABILITY_POSE_MEMORY_zh-TW.md) |
