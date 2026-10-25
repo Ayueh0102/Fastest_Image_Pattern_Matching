@@ -238,13 +238,8 @@ def summarize(manifest, root, reference):
 
 
 def input_digests(path):
-    """Round-43 input hashes keyed by file name (the control scenes are regenerated under another directory)."""
-    listing = json.loads(Path(path).read_text())['inputs']
-    named = {}
-    for file, digest in listing.items():
-        if named.setdefault(Path(file).name, digest) != digest:
-            raise ValueError('Two round-43 inputs share a name: '+Path(file).name)
-    return named
+    """Round-43 input hashes keyed by the absolute path its jobs used (names repeat across rounds, e.g. empty_scene.png)."""
+    return json.loads(Path(path).read_text())['inputs']
 
 
 def summarize_gt(manifest, root, reference, inputs43):
@@ -276,7 +271,7 @@ def summarize_gt(manifest, root, reference, inputs43):
         old = reference['jobs'].get(ref)
         # Round-44 lesson: inputs are compared by content, not by path.
         cell['job_equals_round43'] = old is not None and comparable(mine) == comparable(old) and \
-            all(manifest['input_sha256'][mine[k]] == inputs43.get(Path(old[k]).name) for k in ('source', 'template'))
+            all(manifest['input_sha256'][mine[k]] == inputs43.get(old[k]) for k in ('source', 'template'))
         archived = reference['results'].get(ref)
         cell['outputs_equal_round43_hybrid'] = archived is not None and stage42.outputs(calls[0]) == stage42.outputs(archived['first'])
         if archived is not None:

@@ -177,7 +177,6 @@ class CpuPathGtHarness(unittest.TestCase):
             root = Path(directory)
             hashes = dict(source_sha256={'source': '1'}, binary_sha256={'worker': '2'},
                           input_sha256={path: 'h-'+Path(path).name for case in cases for path in (case['source'], case['template'])})
-            inputs43 = {Path(path).name: digest for path, digest in hashes['input_sha256'].items()}
             manifest = dict(version=1, stage=45, phase='gt', cases=cases, arms=list(bench.DEDUP), method_options=copy.deepcopy(bench.METHODS),
                             dedup_options=copy.deepcopy(bench.DEDUP), reference_sha256='r43gt', executions=[], complete=True,
                             unchanged=True, after_sha256=copy.deepcopy(hashes), **hashes)
@@ -209,6 +208,8 @@ class CpuPathGtHarness(unittest.TestCase):
                     manifest['executions'].append(entry)
             if ref_change:
                 ref_change(ref)
+            # Round-43 hashes are keyed by the paths its jobs used; the digest follows the file content (here: its name).
+            inputs43 = {job[k]: 'h-'+Path(job[k]).name for job in ref['jobs'].values() for k in ('source', 'template')}
             if inputs_change:
                 inputs_change(inputs43)
             return bench.summarize_gt(manifest, root, ref, inputs43)
@@ -246,6 +247,19 @@ class CpuPathGtHarness(unittest.TestCase):
         def different(inputs43):
             inputs43['alpha.png'] = 'other'
         self.assertEqual(self.gates(self.gt(inputs_change=different)), {('alpha', 'off', 'job_equals_round43'), ('alpha', 'k3', 'job_equals_round43')})
+
+    def test_same_file_name_in_two_directories(self):
+        # Round 43 has two different empty_scene.png files; each job must be checked against its own path.
+        def moved(ref):
+            for (name, _, _), job in ref['jobs'].items():
+                job['source'] = f'/round{name}/scene.png'
+        def digests(inputs43):
+            inputs43['/roundalpha/scene.png'], inputs43['/roundbeta/scene.png'] = 'h-alpha.png', 'h-beta.png'
+        self.assertEqual(self.gt(ref_change=moved, inputs_change=digests)['failures'], [])
+        def swapped(inputs43):
+            inputs43['/roundalpha/scene.png'], inputs43['/roundbeta/scene.png'] = 'h-beta.png', 'h-alpha.png'
+        self.assertEqual({gate for gate in self.gates(self.gt(ref_change=moved, inputs_change=swapped))},
+                         {(name, arm, 'job_equals_round43') for name in ('alpha', 'beta') for arm in ('off', 'k3')})
 
     def test_failed_worker_is_not_neutral(self):
         summary = self.gt(failed=('beta', 'k3'))
