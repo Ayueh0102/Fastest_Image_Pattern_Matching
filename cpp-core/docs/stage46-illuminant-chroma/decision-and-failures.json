@@ -425,7 +425,7 @@
   {
    "id": "P1",
    "held": true,
-   "observed": "exposure_bright: vk_region abstained on all 64 synthetic objects (status 3); vk_none_region did not abstain, AUC red 1.000 / teal 0.864, accepted 0/20 same-colour",
+   "observed": "exposure_bright: vk_region abstained on all 64 synthetic objects (62 status 3, clipped panel; 2 status 2, clipped colour field); vk_none_region did not abstain, AUC red 1.000 / teal 0.864, accepted 0/20 same-colour",
    "evidence": {
     "red": {
      "same_accepted": 0,

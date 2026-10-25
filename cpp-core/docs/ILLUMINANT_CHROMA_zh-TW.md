@@ -136,7 +136,7 @@
 
 | 預測 | 結果 |
 |---|---|
-| P1 過曝時主方法幾乎全部棄權；none 消融不棄權但變差 | 成立：64/64 棄權；none 的 AUC 為 1.000／0.864，同色接受 0/20 |
+| P1 過曝時主方法幾乎全部棄權；none 消融不棄權但變差 | 成立：64/64 棄權（62 個面板裁切，2 個色彩區裁切）；none 的 AUC 為 1.000／0.864，同色接受 0/20 |
 | P2 白卡在過曝與白平衡偏暖下棄權，灰卡不會 | 成立；白卡在 wb_cool 也被藍色裁切而棄權，預測漏了這一項 |
 | P3 全域卡片修正均勻白平衡，修不了局部暖光 | 成立：灰卡 wb_warm 9/10、10/10，spot_warm 0/10、0/10 |
 | P4 drop 在白平衡偏暖時偏低 | 部分成立：紅 0/10（rank 10/10）；藍綠兩者都是 8/10 |
@@ -159,8 +159,9 @@
 - **獨立重算**：`stage46_recount.py` 不匯入 harness，用自己的匹配器、百分位與判定重算。共 4,550 項檢查，零不符。負控制把一個格子的誤收數加 1，被偵測到。
 - **摘要重播**：從 raw-results.tar.gz 解壓後重新 summarize，與原 summary 逐位元組相同。
 - **工作重播**：從 source-snapshot.tar.gz 解壓、重新建置 runner，重跑全部 165 個候選 job，分數與搜尋結果 165/165 相同。重建出的二進位雜湊不同，因為建置路徑不同。
-- **突變測試**：`color_illuminant.cpp` 的 16 個編譯突變全部被原生測試或 runner 契約測試抓到。harness 的 20 個工具突變全部被抓到；T9（p95 換成最大值）第一次存活，在實作 commit 前補強了測試。
-- **最終測試門檻**：在 [validation.json](stage46-illuminant-chroma/validation.json)。在記錄 commit 的上一個 commit 執行 Release 研究建置、ctest、帶 `FPM_FINE_*` 的 Python harness、`color_verify_runner_test.py --metal`、其他 Python 測試與 ASan／UBSan。
+- **突變測試**：`color_illuminant.cpp` 的 16 個編譯突變全部被原生測試或 runner 契約測試抓到。harness 的 20 個工具突變全部被抓到；T9（p95 換成最大值）第一次存活，在實作 commit 前補強了測試，`stage46_t9_first_run.py` 在暫存複本上重現了這次存活。兩組突變在實作 commit 前跑過一次，量測 commit 後又在 HEAD 的暫存複本上重跑一次，結果相同。
+- **最終測試門檻**（`b9572e0`，每項前後工作樹都乾淨）：全新 Release 研究建置；ctest 83/83（多了 `experimental_color_illuminant`）；帶 `FPM_FINE_*` 的 Python harness 661 項（含本輪 26 項）；`color_verify_runner_test.py --metal` 8 項（既有 5＋`chroma_vk` 3）；其他 Python 測試 6＋17＋26；ASan／UBSan 78/78。指令與 log 雜湊在 [validation.json](stage46-illuminant-chroma/validation.json)。
+  - ASan 執行期間，作者曾在工作樹修改兩個文件檔約一分鐘（本頁 P1 用詞與判定檔），之後還原再重新套用，沒有動到源碼。
 
 ## 重現
 

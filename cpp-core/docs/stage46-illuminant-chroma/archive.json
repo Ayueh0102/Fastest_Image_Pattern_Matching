@@ -1,0 +1,56 @@
+{
+ "stage": 46,
+ "report": "../ILLUMINANT_CHROMA_zh-TW.md",
+ "files": {
+  "protocol.json": {
+   "bytes": 13798,
+   "sha256": "5e95613754f7672fe70becb3cc4eeaf08d7d0a602789036fa119e93ffce96e95",
+   "role": "pre-registered protocol"
+  },
+  "source-snapshot.tar.gz": {
+   "bytes": 930950,
+   "sha256": "6b7e8906a02cdcfe2148fc41b6458287b35143266a0a80878eb83bd677321d8d",
+   "role": "frozen source of 2a66cd6"
+  },
+  "source-sha256.json": {
+   "bytes": 35263,
+   "sha256": "77d8ae2c504a20a50445f26136d2448fa63fc353420aeb4abf18ed74f611c684",
+   "role": "per-file SHA-256 of the frozen source"
+  },
+  "raw-results.tar.gz": {
+   "bytes": 1837001,
+   "sha256": "d87f20f49585eb37352bb74bc1be03c3892b122171bdc224e7cccdaa2d9928e0",
+   "role": "masks, run manifest, jobs, stderr and results"
+  },
+  "raw-files-sha256.json": {
+   "bytes": 101614,
+   "sha256": "ae344e3b7909e9a8d7e748c8103cf38b72a56892d21c46b07f2ed0cc8523b7ef",
+   "role": "SHA-256 of every raw archive member"
+  },
+  "input-sha256.json": {
+   "bytes": 4773,
+   "sha256": "7bf8c91cd2fa24dd0bf4d8a8d56dfd4c4a34aa0884773c384bd92e2adb37a778",
+   "role": "every input image and mask"
+  },
+  "summary.json": {
+   "bytes": 2406996,
+   "sha256": "ddb3df33e32ece82f69b3fdeb02b8072ca80489585c835cd49558c4ca6504cff",
+   "role": "harness summary (every arm, cell, threshold and check)"
+  },
+  "decision-and-failures.json": {
+   "bytes": 14074,
+   "sha256": "32efa28ef208408a4ef21a63b3206a6d0f61899d5ba3b1aa83c6b47a1dc02440",
+   "role": "decision, failed checks, predictions, post-hoc notes"
+  },
+  "validation.json": {
+   "bytes": 13319,
+   "sha256": "ded3d8e41bd4399013d08e65bf19677c4812749acc0c4ad6a49c6aebc78ac3ce",
+   "role": "gates, mutants, recount and replays"
+  },
+  "validation-logs.tar.gz": {
+   "bytes": 34677,
+   "sha256": "b2d2908a201aefc798615a4925435a9f17e6d1ab6445291b811d785cea359273",
+   "role": "validation scripts, logs and attests"
+  }
+ }
+}
