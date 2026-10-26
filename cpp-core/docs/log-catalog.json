@@ -27,7 +27,7 @@
     "other": "No recognized role; inspect manually"
   },
   "artifact_count": 715,
-  "artifact_bytes": 2647261379,
+  "artifact_bytes": 2647263149,
   "artifact_role_counts": {
     "archive": 127,
     "calibration": 5,
@@ -46,7 +46,7 @@
     "validation": 96,
     "visual": 68
   },
-  "archive_member_count": 56999,
+  "archive_member_count": 57000,
   "archive_member_role_counts": {
     "archive": 26,
     "binary": 47,
@@ -63,7 +63,7 @@
     "report": 88,
     "source": 12440,
     "summary": 1171,
-    "validation": 1189,
+    "validation": 1190,
     "visual": 892
   },
   "artifacts": [
@@ -81,8 +81,8 @@
       "path": "ADAPTIVE_PYRAMID_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 17024,
-      "sha256": "8698227971f7a49a3b0a2cba482de3ceea57aae0942af6132e7e38b9cd02b607",
+      "bytes": 17476,
+      "sha256": "f26de2c20d8b18594bfa956aa409a082b07ce8da010a9f76c91396466edab1a4",
       "roles": [
         "report"
       ]
@@ -9228,7 +9228,7 @@
       "group": "stage49-adaptive-pyramid",
       "stage": "49",
       "bytes": 3041,
-      "sha256": "93aa5f6b4a0033b96496e20a2309671aec4ac10855c8b9da24f623cfc8c9d478",
+      "sha256": "38f26f57190025ad89790c700b76a1d06739d6aeba2d179cc1f8229d31fcf805",
       "roles": [
         "provenance"
       ]
@@ -9237,8 +9237,8 @@
       "path": "stage49-adaptive-pyramid/decision-and-failures.json",
       "group": "stage49-adaptive-pyramid",
       "stage": "49",
-      "bytes": 19701,
-      "sha256": "e715d26396c2f5313b63d3b3335e08f9ed3a6bc9d4bfa8f653400bf334804734",
+      "bytes": 20092,
+      "sha256": "a71d3ded6dd731b46b83f8303e775cb2fe66de25e82b460e0eec81145885c5f6",
       "roles": [
         "failure_review",
         "false_gate"
@@ -9409,19 +9409,19 @@
       "path": "stage49-adaptive-pyramid/validation-logs.tar.gz",
       "group": "stage49-adaptive-pyramid",
       "stage": "49",
-      "bytes": 48764,
-      "sha256": "4a0a7d0b15c71356f64bc42a6d5ca422230d8aafdc93b001d1d150c8c41cd32a",
+      "bytes": 49691,
+      "sha256": "068d7dd8102910b5ac7bafc439aa139eec4aeebe9c317b74d7f9deca52a438cd",
       "roles": [
         "archive",
         "validation"
       ],
-      "archive_file_count": 74,
+      "archive_file_count": 75,
       "archive_role_counts": {
         "failure_review": 2,
         "protocol": 1,
         "raw": 57,
         "source": 10,
-        "validation": 74
+        "validation": 75
       }
     },
     {
@@ -9464,5 +9464,5 @@
       ]
     }
   ],
-  "archive_member_index_sha256": "f1af2cfec11c19359c76b28fc99438161580b961a2de85602ace48e8d26f55fe"
+  "archive_member_index_sha256": "3254fbb61b2f9c9935008f0194002dffa076e93c10b5fe57fba780c1f725e339"
 }

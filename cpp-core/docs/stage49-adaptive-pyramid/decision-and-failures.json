@@ -134,7 +134,7 @@
     },
     {
       "id": "host_calibrate",
-      "summary": "dev_calibrate: mediaanalysisd before 311/400 workers; round 50 runner smoke at 09:50:07Z overlapped (3 workers saw fpm_native_pipeline_runner); three Python files were edited during the run (source fingerprint changed, binaries and inputs did not)"
+      "summary": "dev_calibrate: mediaanalysisd before 311/400 workers; round 50 runner smoke at 09:50:07Z overlapped (3 workers saw fpm_native_pipeline_runner); three Python files were edited during the run (source fingerprint changed, binaries and inputs did not). Round 50 later confirmed one <1 s fpm_native_pipeline_runner smoke at ~09:50:07Z inside our lock. Post hoc (no rerun): without the two fsc1924b2 cases whose workers saw it the budget choice stays 0.40/200; without all 22 cases that ran 09:49:30-09:50:30Z it would be 0.35/200 (narrow margin, large cases). 0.35/200 was not run on the holdout (validation/calibrate-overlap-sensitivity.json)"
     }
   ],
   "rule_changed_templates": [

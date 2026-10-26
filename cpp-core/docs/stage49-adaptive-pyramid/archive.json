@@ -4,8 +4,8 @@
   "artifacts": [
     {
       "path": "decision-and-failures.json",
-      "bytes": 19701,
-      "sha256": "e715d26396c2f5313b63d3b3335e08f9ed3a6bc9d4bfa8f653400bf334804734"
+      "bytes": 20092,
+      "sha256": "a71d3ded6dd731b46b83f8303e775cb2fe66de25e82b460e0eec81145885c5f6"
     },
     {
       "path": "dev-calibration.json",
@@ -68,9 +68,9 @@
     },
     {
       "path": "validation-logs.tar.gz",
-      "bytes": 48764,
-      "sha256": "4a0a7d0b15c71356f64bc42a6d5ca422230d8aafdc93b001d1d150c8c41cd32a",
-      "regular_files": 74
+      "bytes": 49691,
+      "sha256": "068d7dd8102910b5ac7bafc439aa139eec4aeebe9c317b74d7f9deca52a438cd",
+      "regular_files": 75
     },
     {
       "path": "validation.json",

@@ -95,7 +95,7 @@
 ## 量測方法與界線
 
 - **主機：** 正式期間沒有其他session的計時鎖，也沒有建置或benchmark程序；但系統的 `mediaanalysisd` 在1194個worker前佔滿一核，`node`／`chrome-headless` 約330個、`Codex (Renderer)` 192個；1分鐘負載在624個worker前超過6（最高14.1）。只有92個worker屬於安靜狀態。protocol規定主機狀態只記錄、不影響判定；事後在少數共同的安靜案例上，安靜worker的時間比與全部block的時間比相差約1%（[host-sensitivity](stage49-adaptive-pyramid/validation.json)）。計時數字因此比前幾輪雜訊大，未通過的判定則不受影響。
-- **開發集校準期間：** `mediaanalysisd` 在400個worker中的311個前佔滿一核；第50輪session在09:50:07Z的一次runner冒煙與校準重疊（3個worker記錄到 `fpm_native_pipeline_runner`）；我在校準進行中改了3個Python檔，所以該phase的源碼指紋前後不同（binary與輸入不變）。等時間預算的選擇照校準結果保留。
+- **開發集校準期間：** `mediaanalysisd` 在400個worker中的311個前佔滿一核；第50輪session在09:50:07Z的一次runner冒煙與校準重疊（3個worker記錄到 `fpm_native_pipeline_runner`）；我在校準進行中改了3個Python檔，所以該phase的源碼指紋前後不同（binary與輸入不變）。等時間預算的選擇照校準結果保留。第50輪事後確認那是一次不到1秒的runner冒煙（約09:50:07Z）。事後敏感度（不重跑）：只排除實際偵測到它的兩個fsc1924b2場景，選擇仍是0.40／200；把09:49:30–09:50:30間跑過的22個場景全部排除則會選0.35／200，原因是下一檔只比adaptive多81.7ms、這些場景又較大，不是重疊本身。0.35／200沒有在保留集跑過；凍結的0.40／200已經比規則多找到33個物件。
 - **其他揭露：** 第一次開發集掃描被主機gate拒絕（mediaanalysisd 106%、負載4.3），之後只有計時phase會拒絕，負載上限改為6（系統的ANECompilerService已連續數天佔約90%一核）；第一次量測前驗證因凍結源碼樹缺少 `Test Images` 而失敗（gui_workflow與7個Python測試），補上同一commit的資料夾後全部通過；第一版單元測試的條紋週期2.4px在第0層就已混疊，實作commit改成8px。全部記錄在protocol的 `exploratory_disclosure`。
 - 只有一台M4 Pro；場景是半合成的平坦背景、尺度固定1；FSC範例框不是同一模板的身份GT，本輪只用它們當模板。
 
