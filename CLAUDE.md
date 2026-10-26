@@ -31,7 +31,7 @@ cmake -S cpp-core -B build/core -DCMAKE_BUILD_TYPE=Release
 cmake --build build/core -j
 ctest --test-dir build/core --output-on-failure
 
-# Full research build: Qt GUI + OpenCV codecs + CPU/Metal experiments (84 tests on macOS)
+# Full research build: Qt GUI + OpenCV codecs + CPU/Metal experiments (87 tests on macOS)
 cmake -S cpp-core -B build/research -DCMAKE_BUILD_TYPE=Release \
   -DFPM_BUILD_GUI=ON -DFPM_BUILD_EXPERIMENTS=ON -DFPM_WITH_OPENCV=ON
 cmake --build build/research -j
