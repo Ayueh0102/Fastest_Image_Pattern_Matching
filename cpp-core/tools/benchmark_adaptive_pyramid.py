@@ -192,8 +192,11 @@ def run_phase(phase, cases_path, build, output, tuning_path=None, protocol_path=
         own = lock_dir/f'timing-lock-round49-{phase}.txt'
     waits = wait_for_locks(own)
     host = host_state(samples=5)
-    # Timed phases refuse a busy host; the recall sweep only records it (its times only break ties).
-    if spec['lock'] and (host['competing_processes'] or host['load_average'][0] > HOST_LOAD_LIMIT):
+    # Timed phases refuse a build/benchmark tool, a repository experiment script or a
+    # high load; a system process at >= 100% CPU (mediaanalysisd held one core during
+    # most of dev_calibrate) is recorded per worker. The recall sweep only records.
+    blocking = [p for p in host['competing_processes'] if p['reason'] != 'cpu']
+    if spec['lock'] and (blocking or host['load_average'][0] > HOST_LOAD_LIMIT):
         raise RuntimeError('Host not quiet: '+json.dumps(dict(load=host['load_average'], competing=host['competing_processes'])))
     manifest = dict(version=1, phase=phase, platform=platform.platform(), started_utc=datetime.now(timezone.utc).isoformat(),
                     spec=spec, cases_path=str(cases_path.resolve()), cases_sha256=sha(cases_path), binary=str(binary),
@@ -271,7 +274,9 @@ def load_rows(manifest, root):
                          named_gpu_bytes=dict(frame_coarse=diagnostics['frame_coarse_gpu_bytes'],
                                               frame_fine=diagnostics['frame_fine_gpu_bytes'], pose=diagnostics['pose_gpu_bytes']),
                          pyramid_rule=result.get('pyramid_rule'),
-                         host_busy=bool(entry['host']['competing_processes']), host_load=entry['host']['load_average'][0],
+                         host_busy=any(p['reason'] != 'cpu' for p in entry['host']['competing_processes']),
+                host_cpu_process=any(p['reason'] == 'cpu' for p in entry['host']['competing_processes']),
+                host_load=entry['host']['load_average'][0],
                          lock_waits=len(entry['lock_waits'])))
     return rows
 
@@ -290,6 +295,7 @@ def cell(rows):
                 matches_identical_across_blocks=all(row['matches'] == head['matches'] for row in rows),
                 exact_repeat=all(row['exact_repeat'] and row['returncode'] == 0 and row['runs_same_gt'] for row in rows),
                 host_busy_blocks=sum(row['host_busy'] or row['host_load'] > HOST_LOAD_LIMIT for row in rows),
+                host_cpu_process_blocks=sum(row['host_cpu_process'] for row in rows),
                 lock_waits=sum(row['lock_waits'] for row in rows),
                 pyramid_rule=head['pyramid_rule'], max_errors=head['max_errors'], matches=head['matches'])
 
@@ -448,11 +454,15 @@ def summarize(manifest, root, protocol):
                           adaptive_tp=a['tp'], stage35_tp=s['tp'], time_ratio=a['search_ms']/s['search_ms'])
     verdicts['H5'] = dict(passed=a['negative_fp'] == 0 and a['negative_fp'] <= totals['original']['negative_fp'],
                           negative_fp={arm: totals[arm]['negative_fp'] for arm in FORMAL_ARMS})
+    f = totals['fixed512']
+    verdicts['H7'] = dict(passed=a['tp'] >= f['tp'] and a['search_ms'] <= gates['H7_time_ratio']*f['search_ms'],
+                          adaptive_tp=a['tp'], fixed512_tp=f['tp'], time_ratio=a['search_ms']/f['search_ms'])
     verdicts['H6'] = dict(passed=a['fp'] <= totals['original']['fp']+gates['H6_fp_tolerance']*a['expected'],
                           positive_fp={arm: totals[arm]['fp'] for arm in FORMAL_ARMS})
     integrity = dict(all_exact_repeat=all(value['exact_repeat'] for value in table.values()),
                      all_blocks_identical=all(value['matches_identical_across_blocks'] for value in table.values()),
                      host_busy_cells=sorted(f'{case}/{arm}' for (case, arm), value in table.items() if value['host_busy_blocks']),
+                     host_cpu_process_cells=sum(bool(value['host_cpu_process_blocks']) for value in table.values()),
                      lock_wait_cells=sorted(f'{case}/{arm}' for (case, arm), value in table.items() if value['lock_waits']),
                      unchanged_binary_and_inputs=manifest.get('unchanged'))
     cell_rows = [dict(case=case, arm=arm, **{key: value for key, value in data.items() if key != 'matches'})

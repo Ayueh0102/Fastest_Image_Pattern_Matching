@@ -61,7 +61,8 @@ def rule(original, selected, scores):
 
 PROTOCOL = dict(frozen=dict(pyramid_rule_min_score=.5, secondary_min_score_r0=.75, budget=dict(proposal_score=.3, limit=300)),
                 gates=dict(deficient_recall_below=.9, H1_recovered_fraction=.8, H2_kept_fraction=.9, H2_time_ratio=1.05,
-                           H2r_template='keep', H3_time_ratio=1.1, H4_time_ratio=.75, H4_tp_tolerance=.02, H6_fp_tolerance=.01))
+                           H2r_template='keep', H3_time_ratio=1.1, H4_time_ratio=.75, H4_tp_tolerance=.02, H6_fp_tolerance=.01,
+                           H7_time_ratio=1.))
 
 
 class DepthMirror(unittest.TestCase):
@@ -254,6 +255,21 @@ class Offline(unittest.TestCase):
             self.assertTrue(out['verdicts'][name]['passed'], name)
         self.assertTrue(out['verdicts']['H3']['passed'])  # equal TP, 30 vs 29 ms is within 1.10
         self.assertTrue(out['verdicts']['H4']['passed'])  # 30 vs 50 ms
+        self.assertTrue(out['verdicts']['H7']['passed'])  # equal TP, 30 vs 35 ms
+
+    def test_host_flags_separate_tools_from_busy_processes(self):
+        objects = truth(2)
+        cases = [case('a_clean', 'a', objects)]
+        fake = Fake(self.root, cases)
+        fake.add(cases[0], 'original', found(objects), 1., busy=True)
+        fake.executions[-1]['host']['competing_processes'].append(dict(command='mediaanalysisd', reason='cpu'))
+        fake.executions[-1]['host']['competing_processes'][0]['reason'] = 'tool'
+        row = harness.load_rows(fake.manifest(), self.root)[0]
+        self.assertTrue(row['host_busy'] and row['host_cpu_process'])
+        fake.executions[-1]['host']['competing_processes'].pop(0)
+        row = harness.load_rows(fake.manifest(), self.root)[0]
+        self.assertFalse(row['host_busy'])
+        self.assertTrue(row['host_cpu_process'])
 
     def test_verdicts_fail(self):
         self.assertFalse(self.formal(adaptive_missing=3)['verdicts']['H1']['passed'])
@@ -262,10 +278,11 @@ class Offline(unittest.TestCase):
         self.assertFalse(self.formal(negative_fp=1)['verdicts']['H5']['passed'])
         self.assertFalse(self.formal(slow=1.2)['verdicts']['H2r']['passed'])
 
-    def test_h3_fails_when_the_budget_finds_more(self):
+    def test_h3_and_h7_fail_when_the_controls_find_more(self):
         out = self.formal(adaptive_missing=1)
         self.assertTrue(out['verdicts']['H1']['passed'])  # 5 of 6 recovered >= 4.8
         self.assertFalse(out['verdicts']['H3']['passed'])
+        self.assertFalse(out['verdicts']['H7']['passed'])
 
 
 class Scenes(unittest.TestCase):
