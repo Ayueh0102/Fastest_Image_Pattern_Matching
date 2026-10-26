@@ -209,7 +209,8 @@ const char* const jobKeys[]={"angle","backend","candidate_dedup_angle_steps","ca
     "candidate_dedup_top_k","coarse_peak_mode","cpu_threads","fine_angle_reuse","fine_fused",
     "fine_ncc_mode","fine_profiling","full_gpu","full_gpu_fine_mode","full_gpu_peak_batch","full_gpu_peak_mode","full_gpu_profiling",
     "gray_load_mode","invert_source","limit","min_area","ncc_mode","overlap","overlap_enabled","pose_input_mode",
-    "pose_resident_mode","pose_storage_mode","proposal_method","proposal_score","refine","refinement_backend",
+    "pose_resident_mode","pose_storage_mode","proposal_method","proposal_score","pyramid_rule","pyramid_rule_min_score",
+    "refine","refinement_backend",
     "repeats","run_resource_diagnostics","scale_support_refine","scales","score","sequence_gap",
     "sequence_gap_sleep_ms","sequence_mode","soak_seconds",
     "source","source_frames","sparse_angle_step","sparse_candidate_limit","sparse_cpu_gradient_mode",
@@ -222,6 +223,18 @@ void validateJobKeys(const QJsonObject& job) {
     for(const auto& key:job.keys()) if(!accepted.contains(key)) unknown.append(key);
     if(!unknown.isEmpty()) throw std::invalid_argument(("Unknown job key(s): "+unknown.join(", ")+
         "; accepted keys: "+accepted.join(", ")).toStdString());
+}
+// Opt-in pyramid rule decisions (round 49), one per scale model; absent when off.
+void addPyramidRule(QJsonObject& out,const Session& session,const Settings& settings) {
+    if(!settings.pyramidRule) return;
+    QJsonArray models;
+    for(size_t i=0;i<session.pyramidRule().size();++i) {
+        const auto& d=session.pyramidRule()[i];QJsonArray scores;for(double v:d.predictedScores) scores.append(v);
+        models.append(QJsonObject{{"scale",settings.scales[i]},{"original_top",d.originalTop},{"selected_top",d.selectedTop},
+            {"effective_min_area",d.effectiveMinArea},{"predicted_scores",scores},{"low_background",int(d.lowBackground)},
+            {"high_background",int(d.highBackground)},{"ms",d.ms}});
+    }
+    out["pyramid_rule"]=QJsonObject{{"min_score",settings.pyramidRuleMinScore},{"models",models}};
 }
 bool equal(const Result& a,const Result& b) {
     // Serialized double precision endpoints plus exact ordered proposal fields;
@@ -274,6 +287,16 @@ int main(int argc,char** argv) {
         settings.fullGpu=j["full_gpu"].toBool(false);
         settings.residentMode=j["pose_resident_mode"].toInt(0);
         settings.cpuThreads=j["cpu_threads"].toInt(8);settings.sparse.cpuThreads=settings.cpuThreads;
+        if(j.contains("pyramid_rule") && (!j["pyramid_rule"].isDouble() || (j["pyramid_rule"].toDouble()!=0 && j["pyramid_rule"].toDouble()!=1)))
+            throw std::invalid_argument("pyramid_rule must be 0 or 1");
+        settings.pyramidRule=j["pyramid_rule"].toInt(0);
+        if(j.contains("pyramid_rule_min_score")) {
+            if(settings.pyramidRule!=1) throw std::invalid_argument("pyramid_rule_min_score requires pyramid_rule 1");
+            const double value=j["pyramid_rule_min_score"].toDouble(2);
+            if(!j["pyramid_rule_min_score"].isDouble() || !std::isfinite(value) || value<-1 || value>1)
+                throw std::invalid_argument("pyramid_rule_min_score must be a number in [-1, 1]");
+            settings.pyramidRuleMinScore=value;
+        }
         Options o;o.nccMode=j["ncc_mode"].toInt();o.overlap=j["overlap_enabled"].toBool();o.refine=j["refine"].toBool(true);
         if(j.contains("full_gpu_profiling") && !j["full_gpu_profiling"].isBool())
             throw std::invalid_argument("full_gpu_profiling must be boolean");
@@ -394,6 +417,7 @@ int main(int argc,char** argv) {
                 {"load",load},{"after_load_memory",afterLoadMemory},{"final_memory",memory()},
                 {"comparison_reference","first cycle per frame index; independent fresh/reuse comparison belongs to parent harness"},
                 {"frame_wall_scope","source update or release+construct and run; excludes image decode, comparison, JSON and output"}};
+            if(session) addPyramidRule(out,*session,settings);
             const auto releaseStart=Clock::now();session.reset();out["final_release_ms"]=ms(releaseStart);
             out["after_release_memory"]=memory();
             std::cout<<QJsonDocument(out).toJson(QJsonDocument::Compact).constData()<<'\n';return exact&&drained?0:1;
@@ -421,7 +445,7 @@ int main(int argc,char** argv) {
                 ++calls;if(!exact || !drained) throw std::runtime_error("Soak output or drain mismatch");
             }
             QJsonObject summary{{"calls",calls},{"contexts_recreated",recreated},{"duration_ms",ms(soakStart)},{"before",before},{"after",memory()},{"exact",exact},{"drained",drained},{"construct_ms",construct},{"first",firstRecord}};
-            summary["load"]=load;summary["after_load_memory"]=afterLoadMemory;
+            summary["load"]=load;summary["after_load_memory"]=afterLoadMemory;addPyramidRule(summary,*session,settings);
             std::cout<<QJsonDocument(summary).toJson(QJsonDocument::Compact).constData()<<'\n';return exact&&drained?0:1;
         }
         for(int i=0;i<repeats;++i) {
@@ -430,7 +454,7 @@ int main(int argc,char** argv) {
             auto row=record(r,true);if(resourceDiagnostics) row["resources"]=resources(runResources);runs.append(row);
         }
         QJsonObject out{{"construct_ms",construct},{"first",firstRecord},{"warmups_ms",warmups},{"runs",runs},{"exact_repeat",exact},{"final_memory",memory()}};
-        out["load"]=load;out["after_load_memory"]=afterLoadMemory;
+        out["load"]=load;out["after_load_memory"]=afterLoadMemory;addPyramidRule(out,*session,settings);
         std::cout<<QJsonDocument(out).toJson(QJsonDocument::Compact).constData()<<'\n';return exact?0:1;
     }catch(const std::exception& e) {std::cerr<<e.what()<<'\n';return 1;}
 }

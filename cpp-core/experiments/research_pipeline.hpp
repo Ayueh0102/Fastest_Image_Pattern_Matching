@@ -3,6 +3,7 @@
 #include "fpm/matcher.hpp"
 #include "coarse_ncc.h"
 #include "pose_ncc.h"
+#include "pyramid_rule.hpp"
 #include "sparse_orientation.hpp"
 #include <memory>
 #include <string>
@@ -24,6 +25,12 @@ struct Settings {
     // or dense NCC maps are constructed; final acceptance still uses full NCC.
     bool sparseOrientation = false;
     SparseOrientationSettings sparse;
+    // Experimental (round 49): 1 lowers each scale model's top level until its
+    // predicted top-level score (pyramid_rule.hpp) reaches pyramidRuleMinScore,
+    // never deeper than minReducedArea gives. Dense pyramid path only (not
+    // fullGpu or sparseOrientation). 0 keeps the minReducedArea depth.
+    int pyramidRule = 0;
+    double pyramidRuleMinScore = .5;
 };
 struct Options {
     MatchConfig match;
@@ -144,6 +151,8 @@ public:
     // images are released and lazily recreated on the next refinement.
     SourceUpdate updateSource(ImageView source);
     Result run(const Options& options = {});
+    // One decision per scale model when Settings::pyramidRule is on; empty otherwise.
+    const std::vector<PyramidRuleDecision>& pyramidRule() const;
 private:
     struct Impl;
     std::unique_ptr<Impl> impl_;

@@ -234,6 +234,54 @@ class WorkerContract(unittest.TestCase):
         self.worker(dict(rect, illuminant_reference="source_rect", reference_rect=[60, 0, 66, 3], reference_model="linear"),
                     success=False)
 
+    def pyramid_fixture(self):
+        """44x30 stripes with an 8 px period (depth 2 at min_area 256), two upright copies."""
+        import math
+        tw, th, width, height = 44, 30, 140, 80
+        template = [max(0, min(255, round(128 + 70*math.sin(.8*x+.6*y) + 30*math.cos(.5*x-.7*y))))
+                    for y in range(th) for x in range(tw)]
+        source = [118] * width * height
+        for left, top in ((10, 12), (80, 40)):
+            for y in range(th):
+                for x in range(tw):
+                    source[(y+top)*width+x+left] = template[y*tw+x]
+        pgm(self.root / "stripes.pgm", tw, th, template)
+        pgm(self.root / "stripes_source.pgm", width, height, source)
+        search = dict(backend=0, refinement_backend=0, scales=[1], angle=0, limit=10, score=.8,
+                      proposal_score=.5, min_area=256, stop_layer=0, refine=False, overlap=.2)
+        return dict(source=str(self.root / "stripes_source.pgm"), template=str(self.root / "stripes.pgm"),
+                    method="geometry_only", backend="cpu", threads=1, warmups=0, repeats=1, search=search)
+
+    def test_pyramid_rule_reports_decisions(self):
+        job = self.pyramid_fixture()
+        off = self.worker(job)
+        self.assertNotIn("pyramid_rule", off)  # existing outputs keep their keys
+        keep = self.worker(dict(job, search=dict(job["search"], pyramid_rule=1, pyramid_rule_min_score=-1)))
+        self.assertEqual(keep["first"]["search_matches"], off["first"]["search_matches"])
+        rule = self.worker(dict(job, search=dict(job["search"], scales=[.95, 1], pyramid_rule=1, pyramid_rule_min_score=.5)))
+        report = rule["pyramid_rule"]
+        self.assertEqual(report["min_score"], .5)
+        self.assertEqual([model["scale"] for model in report["models"]], [.95, 1])
+        for model in report["models"]:
+            self.assertEqual(len(model["predicted_scores"]), model["original_top"]+1)
+            self.assertLessEqual(model["selected_top"], model["original_top"])
+            self.assertLessEqual(model["low_background"], model["high_background"])
+            self.assertGreaterEqual(model["ms"], 0)
+        upright = report["models"][1]
+        self.assertEqual(upright["original_top"], 2)
+        self.assertLess(upright["selected_top"], 2)
+        self.assertGreaterEqual(upright["predicted_scores"][upright["selected_top"]], .5)
+        self.assertNotEqual(upright["effective_min_area"], 256)
+        self.assertEqual(keep["pyramid_rule"]["models"][0]["selected_top"], 2)
+        self.assertEqual(keep["pyramid_rule"]["models"][0]["effective_min_area"], 256)
+
+    def test_pyramid_rule_rejects_invalid_options(self):
+        job = self.pyramid_fixture()
+        for search in (dict(pyramid_rule=2), dict(pyramid_rule=1, pyramid_rule_min_score=1.5),
+                       dict(pyramid_rule=1, pyramid_rule_min_score="0.5"), dict(pyramid_rule=True),
+                       dict(pyramid_rule_min_score=.5), dict(pyramid_rule=0, pyramid_rule_min_score=.5)):
+            self.worker(dict(job, search=dict(job["search"], **search)), success=False)
+
     def test_metal_rgb_smoke(self):
         if not METAL:
             self.skipTest("pass --metal to exercise available Metal hardware")

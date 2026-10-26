@@ -67,7 +67,7 @@ void configureSearch(const QJsonObject& job,fpm::research::Settings& s,fpm::rese
     const QStringList allowed{"backend","refinement_backend","scales","angle","limit","score","proposal_score",
         "min_area","cpu_threads","pose_resident_mode","pose_storage_mode","pose_input_mode","fine_ncc_mode",
         "fine_fused","fine_angle_reuse","ncc_mode","overlap_enabled","overlap","stop_layer","subpixel",
-        "refine","scale_support_refine"};
+        "refine","scale_support_refine","pyramid_rule","pyramid_rule_min_score"};
     for(auto it=job.begin();it!=job.end();++it)if(!allowed.contains(it.key()))
         throw std::invalid_argument("Unknown search option: "+it.key().toStdString());
     s.backend=integer(job,"backend",1,0,1);
@@ -77,6 +77,10 @@ void configureSearch(const QJsonObject& job,fpm::research::Settings& s,fpm::rese
     s.residentMode=integer(job,"pose_resident_mode",s.refinementBackend?2:0,0,2);
     s.poseStorageMode=integer(job,"pose_storage_mode",s.refinementBackend?1:0,0,1);
     s.poseInputMode=integer(job,"pose_input_mode",1,0,1);
+    s.pyramidRule=integer(job,"pyramid_rule",0,0,1);
+    if(job.contains("pyramid_rule_min_score") && s.pyramidRule!=1)
+        throw std::invalid_argument("pyramid_rule_min_score requires pyramid_rule 1");
+    s.pyramidRuleMinScore=number(job,"pyramid_rule_min_score",s.pyramidRuleMinScore,-1,1);
     if(job.contains("scales")) {
         if(!job["scales"].isArray() || job["scales"].toArray().isEmpty() || job["scales"].toArray().size()>64)
             throw std::invalid_argument("Expected 1..64 search scales");
@@ -101,6 +105,20 @@ void configureSearch(const QJsonObject& job,fpm::research::Settings& s,fpm::rese
     o.match.toleranceAngle=number(job,"angle",180,0,180);
     o.match.stopLayer=integer(job,"stop_layer",1,0,1);
     o.match.subpixel=boolean(job,"subpixel",false);
+}
+// Opt-in pyramid rule decisions (round 49), one per scale model.
+QJsonObject pyramidRuleJson(const fpm::research::Session& session,const fpm::research::Settings& settings)
+{
+    QJsonArray models;
+    for(std::size_t i=0;i<session.pyramidRule().size();++i) {
+        const auto& decision=session.pyramidRule()[i];QJsonArray scores;
+        for(double score:decision.predictedScores)scores.append(score);
+        models.append(QJsonObject{{"scale",settings.scales[i]},{"original_top",decision.originalTop},
+            {"selected_top",decision.selectedTop},{"effective_min_area",decision.effectiveMinArea},
+            {"predicted_scores",scores},{"low_background",int(decision.lowBackground)},
+            {"high_background",int(decision.highBackground)},{"ms",decision.ms}});
+    }
+    return {{"min_score",settings.pyramidRuleMinScore},{"models",models}};
 }
 QJsonArray searchMatches(const fpm::research::Result& result)
 {
@@ -397,6 +415,7 @@ int main(int argc,char** argv)
                 "known pose verification only; no object search or anomaly threshold training"},
             {"rgb_ncc_definition","per-channel mean subtraction, joint energy normalization; channel offsets cancel"},
             {"chroma_definition","sRGB LUT to linear RGB; normalized chromaticity Euclidean distance/sqrt(2)"}};
+        if (session && searchSettings.pyramidRule) out.insert("pyramid_rule",pyramidRuleJson(*session,searchSettings));
         if (illuminant) { // existing methods keep their output keys unchanged
             out.insert("illuminant_config",QJsonObject{
                 {"reference",job["illuminant_reference"].toString("object")},

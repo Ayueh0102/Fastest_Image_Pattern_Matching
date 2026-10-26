@@ -1,0 +1,115 @@
+{
+  "rule": "largest summed development search time not above the adaptive arm; cheapest if none",
+  "totals": {
+    "original": {
+      "search_ms": 1383.1792859999998,
+      "tp": 2216,
+      "fp": 5,
+      "expected": 2450
+    },
+    "adaptive": {
+      "search_ms": 2174.704795,
+      "tp": 2364,
+      "fp": 5,
+      "expected": 2450
+    },
+    "budget_0.45_150": {
+      "search_ms": 1643.435921,
+      "tp": 2234,
+      "fp": 5,
+      "expected": 2450
+    },
+    "budget_0.40_200": {
+      "search_ms": 1971.9574610000002,
+      "tp": 2259,
+      "fp": 5,
+      "expected": 2450
+    },
+    "budget_0.35_200": {
+      "search_ms": 2256.396501,
+      "tp": 2282,
+      "fp": 5,
+      "expected": 2450
+    },
+    "budget_0.30_300": {
+      "search_ms": 2653.9596300000003,
+      "tp": 2302,
+      "fp": 5,
+      "expected": 2450
+    },
+    "budget_0.25_300": {
+      "search_ms": 2919.4652499999993,
+      "tp": 2330,
+      "fp": 5,
+      "expected": 2450
+    },
+    "budget_0.20_400": {
+      "search_ms": 3206.667122999999,
+      "tp": 2350,
+      "fp": 5,
+      "expected": 2450
+    }
+  },
+  "grid": [
+    {
+      "name": "budget_0.45_150",
+      "proposal_score": 0.45,
+      "limit": 150,
+      "search_ms": 1643.435921,
+      "tp": 2234,
+      "fp": 5,
+      "expected": 2450
+    },
+    {
+      "name": "budget_0.40_200",
+      "proposal_score": 0.4,
+      "limit": 200,
+      "search_ms": 1971.9574610000002,
+      "tp": 2259,
+      "fp": 5,
+      "expected": 2450
+    },
+    {
+      "name": "budget_0.35_200",
+      "proposal_score": 0.35,
+      "limit": 200,
+      "search_ms": 2256.396501,
+      "tp": 2282,
+      "fp": 5,
+      "expected": 2450
+    },
+    {
+      "name": "budget_0.30_300",
+      "proposal_score": 0.3,
+      "limit": 300,
+      "search_ms": 2653.9596300000003,
+      "tp": 2302,
+      "fp": 5,
+      "expected": 2450
+    },
+    {
+      "name": "budget_0.25_300",
+      "proposal_score": 0.25,
+      "limit": 300,
+      "search_ms": 2919.4652499999993,
+      "tp": 2330,
+      "fp": 5,
+      "expected": 2450
+    },
+    {
+      "name": "budget_0.20_400",
+      "proposal_score": 0.2,
+      "limit": 400,
+      "search_ms": 3206.667122999999,
+      "tp": 2350,
+      "fp": 5,
+      "expected": 2450
+    }
+  ],
+  "selected": {
+    "proposal_score": 0.4,
+    "limit": 200
+  },
+  "selected_within_budget": true,
+  "adaptive_search_ms": 2174.704795
+}
