@@ -38,6 +38,7 @@ STAGES = {
     "stage46-illuminant-chroma": "46",
     "stage47-chroma-margin": "47",
     "stage48-frame-overheads": "48",
+    "stage49-adaptive-pyramid": "49",
 }
 ROLE_DESCRIPTIONS = {
     "protocol": "Settings, workload definition, budgets and acceptance gates",

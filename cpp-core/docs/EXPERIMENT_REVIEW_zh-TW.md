@@ -1,6 +1,6 @@
 # Template Matching 研究總索引與人工審查指南
 
-更新：2026-10-26。此頁按第1–48輪列出問題、證據與採用決定。數字是各輪的證據快照，不是同一套輸入的連續加速曲線；不同輪次倍率不能相乘。最新輪次見頁末，第一次閱讀先看[外部導覽](../../docs/PROJECT_GUIDE_zh-TW.md)。
+更新：2026-10-26。此頁按第1–49輪列出問題、證據與採用決定。數字是各輪的證據快照，不是同一套輸入的連續加速曲線；不同輪次倍率不能相乘。最新輪次見頁末，第一次閱讀先看[外部導覽](../../docs/PROJECT_GUIDE_zh-TW.md)。
 
 ## 目前推薦方案
 
@@ -14,6 +14,7 @@
 | 原始NCC與旋轉細搜尋 | 第26–30輪；保留未加速與記憶體失敗 |
 | 新場景、Blender、新影格與穩定性 | [第34輪](STAGE34_CLOSURE_zh-TW.md) |
 | 密集實拍、RGB與顏色不同物件 | [第35輪](STAGE35_REAL_RGB_zh-TW.md)與[小模板候選漏失診斷](STAGE35_PYRAMID_DIAGNOSIS_zh-TW.md) |
+| 小模板粗搜尋召回（依模板選頂層） | [第49輪](ADAPTIVE_PYRAMID_zh-TW.md)；規則未通過，保留失敗 |
 | 原始Log、失敗與完整源碼 | [分類索引](LOG_CATALOG_zh-TW.md)與各輪封存 |
 
 ## 先辨認比較的是哪一層
@@ -526,3 +527,14 @@ Release 54/54、相關ASan／UBSan 2/2及Python工具75項通過。正式／有�
 - 驗證：正式210程序、四個phase共4760次直接GT零FP／FN；同方法跨條件輸出完全相同、8K peak2與peak1相同。主機gate：正式2筆（一次系統Spotlight、一次負載4.09），pilot 25筆（第47輪session在16:23:54–16:26:57 UTC的build／ctest，早於正式開始），全部保留；第一次開始因另一個session的Metal runner被driver拒絕。runner契約測試與8個編譯突變、量測工具18項負控制與22個突變全殺；不匯入harness的獨立稽核比對32,966個數值零不符。稽核發現profile分段把冷呼叫與暖機也算進去，量測後修正為只算正式呼叫（分析修訂1，原摘要保留；pilot、正式、劑量摘要與判定不變）；封存重播時凍結與修正後的driver各自重算的摘要都逐位相同。修訂後在176b661（乾淨工作樹，前後都檢查）全新Release研究建置：ctest 83／83、Python 671／671、color 5／5、其他Python 49／49；沒有跑ASan／UBSan（唯一的C++改動在runner，sanitized組態不建置它）。
 - 決定：診斷輪，不改任何預設；runner新鍵預設關閉。第41輪多出時間的原因在本作業系統上無法重現、仍未知。
 - 證據：[完整報告](FRAME_OVERHEADS_zh-TW.md)、[正式摘要](stage48-frame-overheads/formal-summary.json)、[劑量](stage48-frame-overheads/dose-summary.json)、[判定與失敗](stage48-frame-overheads/decision-and-failures.json)、[分析修訂](stage48-frame-overheads/analysis-revision.json)、[驗證](stage48-frame-overheads/validation.json)、[封存](stage48-frame-overheads/archive.json)。
+
+### 49. 依模板資訊量選擇粗搜尋頂層（2026-10-26，研究選項，不推薦）
+
+- 問題：第35輪的43×30郵票模板在原設定（256／0.5／100）縮到11×8後只找回4/49，手動512／0.25／300可恢復但時間4倍，另一個58×71模板原本就49/49、改了只變慢。能否只看模板，自動決定粗搜尋的頂層，讓資訊不足的模板在較高解析度起搜、其餘維持原深度？
+- 方法：`research_pipeline` 新增預設關閉的 `Settings::pyramidRule`／`pyramidRuleMinScore`（runner鍵 `pyramid_rule`、`pyramid_rule_min_score`）。每個候選頂層把模板畫在平坦背景（平均±2個標準差）上的8個偏離格點的姿態，用比對器的 `pyrDown`／`rotateCanvas` 處理後算第L層模板的NCC；取較差背景的8姿態平均，選達門檻的最深一層，從不比原設定深。比較原預設、第35輪手動、規則（門檻0.50）、等開發集時間的候選預算（256／0.40／200）、固定512，另以描述用的R0門檻0.75跑一個block。模板依FSC照片、程序種子與Test Images檔案切成開發集25個、保留集32個（含第35輪heldout模板作回歸檢查），每模板49物件乾淨／雜訊場景與空場景、無目標干擾場景；GT由獨立的OpenCV產生器提供，保留集在protocol提交後才產生。
+- 調參（只用開發集）：掃描前提交的目標R0選出0.75，代價8.2倍時間、25個模板改15個；看過曲線後（保留集尚不存在）改用R1「2倍時間內TP最多」選出0.50（開發集TP 2216→2364、1.58倍）。開發集已預測H1、H2會失敗，H7平手，事前寫入protocol。
+- 結果（保留集1396個worker）：嚴格TP original 3022、手動3130、規則3025、預算3058、固定512 3040（共3136）；搜尋時間總和2190.6／6237.5／3004.7／3036.5／3862.6ms。兩個不足模板（fsc2931b0 2/98、b1 83/98）規則都沒改、回收0/111；30個足夠模板改了11個（含第35輪heldout模板：98/98、1.49倍），保持深度的19個輸出逐位相同。各組正、負場景FP都是0。R0的0.75找回3136/3136但時間10.3倍。
+- 判定：H1、H2、H2r、H3、H4、H7未通過，H5、H6通過；依事前規則不推薦。事後診斷：兩個不足模板的場景背景離模板平均3.51／2.59個標準差，超出規則假設的2個；背景在範圍內的模板又因取較差背景與單一門檻（不反映各層真正的接受分數）而被改淺。正式期間系統的mediaanalysisd、node／chrome-headless佔用核心、624個worker前負載>6；未通過的判定都由與負載無關的條件（TP、保持深度數）決定。
+- 驗證：紅燈commit先失敗、實作後通過；12個編譯突變（含最終測試對紅燈空殼）全殺；量測工具17項負控制；凍結commit全新Release建置ctest 87／87、Python harness 751、其他Python 49、color verify `--metal` 11；不匯入harness的stdlib獨立稽核比對3054個數值零不符；摘要由封存重算逐位相同，224個場景由產生器逐位重建。ASan／UBSan與最終head建置見validation。
+- 決定：不推薦；規則保留為預設關閉的研究選項，不改GUI、核心或研究預設。下一步若要再試，背景應取自實際影格、預測分數要對比該層真正的接受分數並納入候選上限，且需要新的事前登錄與保留集。
+- 證據：[完整報告](ADAPTIVE_PYRAMID_zh-TW.md)、[protocol](stage49-adaptive-pyramid/protocol.json)、[正式摘要](stage49-adaptive-pyramid/formal-summary.json)、[判定與失敗](stage49-adaptive-pyramid/decision-and-failures.json)、[驗證](stage49-adaptive-pyramid/validation.json)、[封存](stage49-adaptive-pyramid/archive.json)。
