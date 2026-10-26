@@ -109,7 +109,8 @@
 | 量測前Release | 凍結commit `8f8bdb9` 全新建置：ctest 87/87、Python harness `test_*.py` 751、其他Python 49、color verify `--metal` 11 |
 | 獨立稽核 | 系統Python 3.9、只用stdlib、不匯入harness、不啟動GPU：1396個worker雜湊與「job不含GT」、自寫的一對一配對重算GT、756個cell與3054個數值零不符，判定與發佈相同 |
 | 封存重播 | 從封存解出的原始結果用凍結driver重算正式摘要、開發集調參與校準，三份逐位相同；開發集與保留集場景由產生器重建，224個場景與模板的雜湊及GT全部相同 |
-| ASan／UBSan與最終建置 | 見[validation](stage49-adaptive-pyramid/validation.json)（含experiments的scalar與SIMD兩組，以及最終head的全新Release研究建置） |
+| ASan／UBSan | 凍結commit的Debug＋sanitizer、含experiments（不含GUI）：scalar（`FPM_DISABLE_SIMD=ON`）ctest 80/80、SIMD ctest 80/80，兩組都含 `research_pyramid_rule` 的CPU與Metal版；runner需要Qt，不在此組態，其規則路徑由Release契約測試與突變覆蓋 |
+| 最終head | 報告commit `40d0d15`（前後工作樹乾淨）全新Release研究建置：ctest 87/87、Python harness 751、其他Python 49、color verify `--metal` 11、log目錄 `--check` 通過；之後的commit只記錄這些結果 |
 
 ## 封存
 

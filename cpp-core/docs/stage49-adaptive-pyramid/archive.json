@@ -68,14 +68,14 @@
     },
     {
       "path": "validation-logs.tar.gz",
-      "bytes": 43730,
-      "sha256": "d5c6ebc1b718ac6688bfe4049da0e4785ed40356f2ccdfe96fffb771a78ba6a5",
-      "regular_files": 66
+      "bytes": 48764,
+      "sha256": "4a0a7d0b15c71356f64bc42a6d5ca422230d8aafdc93b001d1d150c8c41cd32a",
+      "regular_files": 74
     },
     {
       "path": "validation.json",
-      "bytes": 5358,
-      "sha256": "4088e2c245c35d7cfcf434caa26b586107189a29cb178c9c3ca847a46a5f0db0"
+      "bytes": 5790,
+      "sha256": "c5408a443dce89308f5e7c6b4108de8d7fd2c970a14a960a618e6932130f222d"
     }
   ],
   "source_commit": "8f8bdb9e96174d7fc1ec034625ab936d3a74fcb8",

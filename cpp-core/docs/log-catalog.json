@@ -27,7 +27,7 @@
     "other": "No recognized role; inspect manually"
   },
   "artifact_count": 715,
-  "artifact_bytes": 2647255443,
+  "artifact_bytes": 2647261379,
   "artifact_role_counts": {
     "archive": 127,
     "calibration": 5,
@@ -46,7 +46,7 @@
     "validation": 96,
     "visual": 68
   },
-  "archive_member_count": 56991,
+  "archive_member_count": 56999,
   "archive_member_role_counts": {
     "archive": 26,
     "binary": 47,
@@ -59,11 +59,11 @@
     "pilot": 4301,
     "protocol": 114,
     "provenance": 128,
-    "raw": 16541,
+    "raw": 16548,
     "report": 88,
     "source": 12440,
     "summary": 1171,
-    "validation": 1181,
+    "validation": 1189,
     "visual": 892
   },
   "artifacts": [
@@ -81,8 +81,8 @@
       "path": "ADAPTIVE_PYRAMID_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 16667,
-      "sha256": "cda1ab514cb2151fa06674ab687469c13f0ecd9b822a7ba017f8138cc9a1c82a",
+      "bytes": 17024,
+      "sha256": "8698227971f7a49a3b0a2cba482de3ceea57aae0942af6132e7e38b9cd02b607",
       "roles": [
         "report"
       ]
@@ -262,8 +262,8 @@
       "path": "EXPERIMENT_REVIEW_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 96388,
-      "sha256": "0cbd5d6ee11774d47fba3a64a99374edc7c669485c8ed01275431570a87348df",
+      "bytes": 96501,
+      "sha256": "cd93a9eeba252f166ec2dc835232a2ec3bd5e500b39d183169e180690846f059",
       "roles": [
         "report"
       ]
@@ -9228,7 +9228,7 @@
       "group": "stage49-adaptive-pyramid",
       "stage": "49",
       "bytes": 3041,
-      "sha256": "6eeff86b8c4ecd12038e152fe1b2176f42c5a0cb5101891a3a19fdbe74a8675e",
+      "sha256": "93aa5f6b4a0033b96496e20a2309671aec4ac10855c8b9da24f623cfc8c9d478",
       "roles": [
         "provenance"
       ]
@@ -9409,27 +9409,27 @@
       "path": "stage49-adaptive-pyramid/validation-logs.tar.gz",
       "group": "stage49-adaptive-pyramid",
       "stage": "49",
-      "bytes": 43730,
-      "sha256": "d5c6ebc1b718ac6688bfe4049da0e4785ed40356f2ccdfe96fffb771a78ba6a5",
+      "bytes": 48764,
+      "sha256": "4a0a7d0b15c71356f64bc42a6d5ca422230d8aafdc93b001d1d150c8c41cd32a",
       "roles": [
         "archive",
         "validation"
       ],
-      "archive_file_count": 66,
+      "archive_file_count": 74,
       "archive_role_counts": {
         "failure_review": 2,
         "protocol": 1,
-        "raw": 50,
+        "raw": 57,
         "source": 10,
-        "validation": 66
+        "validation": 74
       }
     },
     {
       "path": "stage49-adaptive-pyramid/validation.json",
       "group": "stage49-adaptive-pyramid",
       "stage": "49",
-      "bytes": 5358,
-      "sha256": "4088e2c245c35d7cfcf434caa26b586107189a29cb178c9c3ca847a46a5f0db0",
+      "bytes": 5790,
+      "sha256": "c5408a443dce89308f5e7c6b4108de8d7fd2c970a14a960a618e6932130f222d",
       "roles": [
         "false_gate",
         "validation"
@@ -9464,5 +9464,5 @@
       ]
     }
   ],
-  "archive_member_index_sha256": "f843eaacde209daac2168575bea9c62936ca217e1eb570376d5d80b8c80f6604"
+  "archive_member_index_sha256": "f1af2cfec11c19359c76b28fc99438161580b961a2de85602ace48e8d26f55fe"
 }

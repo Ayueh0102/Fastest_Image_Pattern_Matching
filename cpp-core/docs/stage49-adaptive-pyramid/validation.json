@@ -58,8 +58,8 @@
     },
     {
       "name": "final_head_release",
-      "result": "pending",
-      "detail": "filled after the report commit"
+      "result": "pass",
+      "detail": "commit 40d0d15 (report commit; clean worktree before and after), git archive to build/stage49-final-src, fresh Release build/stage49-final with GUI, experiments and OpenCV (90 compile units): ctest 87/87; python -m unittest discover -p test_*.py 751 OK with FPM_FINE_*_BUILD=build/stage49-final; other *_test.py 49 OK; color_verify_runner_test --metal 11 OK; build_log_catalog.py --check OK (validation/final-head-logs). The later commit only records these results."
     }
   ],
   "verdicts": {
