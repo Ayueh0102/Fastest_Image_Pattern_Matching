@@ -47,7 +47,9 @@ RUNNER_ARMS = {
     'ours_fullgpu_k3': dict(full_gpu=True, full_gpu_peak_mode=2, full_gpu_fine_mode=4, full_gpu_peak_batch=8,
                             candidate_dedup_top_k=3),
 }
-METHODS = ['ours_core', *RUNNER_ARMS, 'opencv', 'tdcm_cpu', 'tdcm_mps', 'geco2_cpu', 'geco2_mps']
+# tdcm_* copy the authors' evaluation script test_single.py; tdcm_testpy_* copy the README example test.py.
+METHODS = ['ours_core', *RUNNER_ARMS, 'opencv', 'tdcm_cpu', 'tdcm_mps', 'tdcm_testpy_cpu', 'tdcm_testpy_mps',
+           'geco2_cpu', 'geco2_mps']
 
 
 def sha256(path):
@@ -144,11 +146,11 @@ def opencv(pair, out, lock_root, threads, smoke_maps):
     return worker_result(*run(cmd, out, lock_root, 3600), out)
 
 
-def tdcm(external, pair, out, lock_root, device, threads):
+def tdcm(external, pair, out, lock_root, device, threads, pipeline):
     py = external / 'envs/tdcm-py312/bin/python'
     cmd = [py, '-I', TOOLS / 'literature_tdcm_worker.py', '--repo', external / 'repos/tdcm',
            '--weights', external / 'repos/tdcm/dict/model.pth', '--image', pair['image'], '--template', pair['template'],
-           '--device', device, '--threads', threads, '--output', out]
+           '--device', device, '--pipeline', pipeline, '--threads', threads, '--output', out]
     return worker_result(*run(cmd, out, lock_root, 3600), out)
 
 
@@ -216,9 +218,10 @@ def main():
                 elif method == 'opencv':
                     result = opencv(pair, out, args.lock_root, args.threads, args.opencv_smoke_maps if name == 'many128' else 0)
                 elif method.startswith('tdcm'):
-                    result = tdcm(args.external, pair, out, args.lock_root, method.split('_')[1], args.threads)
+                    result = tdcm(args.external, pair, out, args.lock_root, method.split('_')[-1], args.threads,
+                                  'test_py' if '_testpy_' in method else 'test_single')
                 else:
-                    result = geco2(args.external, pair, out, args.lock_root, method.split('_')[1], args.threads)
+                    result = geco2(args.external, pair, out, args.lock_root, method.split('_')[-1], args.threads)
             except subprocess.TimeoutExpired as e:
                 result = dict(status='timeout', seconds=e.timeout)
             result['started'] = started

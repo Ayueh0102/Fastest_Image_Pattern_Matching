@@ -14,14 +14,20 @@ script's own grey conversion. Two deviations are explicit and recorded:
 * the official code returns one target per call; multi-target extraction is not
   published, so this worker only reports the single peak.
 
+``--pipeline test_py`` instead copies the README's usage example ``test.py``:
+BGR input, ``cv2.resize`` of the template, ImageNet denormalisation, refinement
+on the three-channel images and a final ``refine_angle`` (initial_range 5).
+
 Output JSON (stdout or --output): one pose with centre, angle, scale_x/y and the
 model and refinement times. Times are wall clock around each step, excluding
-image decoding; model loading is reported separately.
+image decoding; model loading is reported separately. Peak RSS is the process
+maximum (ru_maxrss); on MPS the driver allocation is reported separately.
 """
 import argparse
 import json
 import math
 from pathlib import Path
+import resource
 import sys
 import time
 
@@ -33,6 +39,7 @@ def main():
     p.add_argument('--image', type=Path, required=True)
     p.add_argument('--template', type=Path, required=True)
     p.add_argument('--device', default='cpu', choices=('cpu', 'mps'))
+    p.add_argument('--pipeline', default='test_single', choices=('test_single', 'test_py'))
     p.add_argument('--threads', type=int, default=0, help='torch intra-op threads; 0 keeps the default')
     p.add_argument('--output', type=Path)
     args = p.parse_args()
@@ -45,7 +52,7 @@ def main():
     from PIL import Image
     from model import Model
     from utils import get_center
-    from utils.refine import refine_angle_bisection, refine_scale_x, refine_scale_y
+    from utils.refine import refine_angle, refine_angle_bisection, refine_scale_x, refine_scale_y
 
     if args.threads:
         torch.set_num_threads(args.threads)
@@ -60,12 +67,21 @@ def main():
     parameters = sum(v.numel() for v in model.parameters())
     buffers = sum(v.numel() for v in model.buffers())
 
-    # Decoding mirrors CoCo_Dataset: cv2 BGR -> RGB, template cropped image file.
-    image = cv2.cvtColor(cv2.imread(str(args.image), cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
-    template = cv2.cvtColor(cv2.imread(str(args.template), cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
-    normalise = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    mean, std = [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]
+    normalise = transforms.Normalize(mean=mean, std=std)
     to_image = transforms.Compose([transforms.ToTensor(), normalise])
-    to_template = transforms.Compose([transforms.Resize((th, tw)), transforms.ToTensor(), normalise])
+    if args.pipeline == 'test_single':
+        # CoCo_Dataset: cv2 BGR -> RGB, template resized by torchvision.
+        image = cv2.cvtColor(cv2.imread(str(args.image), cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
+        template = cv2.cvtColor(cv2.imread(str(args.template), cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
+        to_template = transforms.Compose([transforms.Resize((th, tw)), transforms.ToTensor(), normalise])
+    else:
+        # test.py: BGR straight from cv2.imread, template resized by cv2.resize.
+        image = cv2.imread(str(args.image))
+        template = cv2.imread(str(args.template))
+        template_source_shape = list(template.shape)
+        template = cv2.resize(template, (tw, th))
+        to_template = to_image
 
     with torch.no_grad():
         t1 = time.perf_counter()
@@ -84,18 +100,32 @@ def main():
             torch.mps.synchronize()
         infer_ms = (time.perf_counter() - t1) * 1e3
 
-        # test_single.py: denormalise with *0.5+0.5 and BGR2GRAY on the RGB tensor, as published.
         t2 = time.perf_counter()
-        search = (x[0].cpu() * 0.5 + 0.5).permute(1, 2, 0).numpy()
-        templ = (t[0].cpu() * 0.5 + 0.5).permute(1, 2, 0).numpy()
-        search = cv2.cvtColor(search, cv2.COLOR_BGR2GRAY)
-        templ = cv2.cvtColor(templ, cv2.COLOR_BGR2GRAY)
-        refined, refine_score = refine_angle_bisection(search, templ, pred_x, pred_y, sx, sy, angle)
-        rsx, _ = refine_scale_x(search, templ, pred_x, pred_y, sx, sy, refined, search_range=0.15, step_size=0.015)
-        rsy, _ = refine_scale_y(search, templ, pred_x, pred_y, rsx, sy, refined, search_range=0.15, step_size=0.015)
+        if args.pipeline == 'test_single':
+            # test_single.py: denormalise with *0.5+0.5 and BGR2GRAY on the RGB tensor, as published.
+            search = (x[0].cpu() * 0.5 + 0.5).permute(1, 2, 0).numpy()
+            templ = (t[0].cpu() * 0.5 + 0.5).permute(1, 2, 0).numpy()
+            search = cv2.cvtColor(search, cv2.COLOR_BGR2GRAY)
+            templ = cv2.cvtColor(templ, cv2.COLOR_BGR2GRAY)
+            refined, refine_score = refine_angle_bisection(search, templ, pred_x, pred_y, sx, sy, angle)
+            rsx, _ = refine_scale_x(search, templ, pred_x, pred_y, sx, sy, refined, search_range=0.15, step_size=0.015)
+            rsy, _ = refine_scale_y(search, templ, pred_x, pred_y, rsx, sy, refined, search_range=0.15, step_size=0.015)
+        else:
+            # test.py: ImageNet denormalisation, three-channel refinement, final refine_angle.
+            m, s = torch.tensor(mean).view(3, 1, 1), torch.tensor(std).view(3, 1, 1)
+            search = (x[0].cpu() * s + m).permute(1, 2, 0).numpy()
+            templ = (t[0].cpu() * s + m).permute(1, 2, 0).numpy()
+            refined, refine_score = refine_angle_bisection(search, templ, pred_x, pred_y, sx, sy, angle, initial_range=20)
+            rsx, _ = refine_scale_x(search, templ, pred_x, pred_y, sx, sy, refined)
+            rsy, _ = refine_scale_y(search, templ, pred_x, pred_y, rsx, sy, refined)
+            refined, refine_score = refine_angle(search, templ, pred_x, pred_y, rsx, rsy, refined, initial_range=5)
         refine_ms = (time.perf_counter() - t2) * 1e3
 
-    out = dict(method='tdcm', device=args.device, threads=torch.get_num_threads(), torch=torch.__version__,
+    memory = dict(peak_rss_bytes=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
+    if device.type == 'mps':
+        memory['mps_driver_allocated_bytes'] = torch.mps.driver_allocated_memory()
+    out = dict(method='tdcm', pipeline=args.pipeline, device=args.device, threads=torch.get_num_threads(),
+               torch=torch.__version__, memory=memory,
                numpy=np.__version__, opencv=cv2.__version__, parameters=parameters, buffers=buffers,
                image_shape=list(image.shape), template_shape=list(template.shape), template_input=[th, tw],
                score_map_shape=list(pred.shape), timing_ms=dict(load_model=load_ms, infer=infer_ms, refine=refine_ms),
@@ -105,6 +135,8 @@ def main():
                                 refine_score=float(refine_score), scale_reference=[tw, th])],
                deviations=['native-size search image (official eval resizes 224x224 crops, a no-op there)',
                            'single target per call: multi-target extraction is not published'])
+    if args.pipeline == 'test_py':
+        out['template_source_shape'] = template_source_shape
     text = json.dumps(out, indent=1)
     if args.output:
         args.output.write_text(text + '\n')

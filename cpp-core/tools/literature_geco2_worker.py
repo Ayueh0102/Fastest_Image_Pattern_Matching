@@ -14,20 +14,27 @@ instead of reaching the network. Steps copy the authors' code:
   NMS 0.5, clamp, drop centres in the padding, rescale to source pixels). The
   FSCD-147 evaluation threshold is 0.11; the Gradio demo default is 0.33.
 
-The one deviation is the deformable attention kernel: the official
-``MultiScaleDeformableAttention`` extension is CUDA-only, so on CPU/MPS the
-worker installs a module whose forward calls the reference
-``ms_deform_attn_core_pytorch`` from the same Deformable-DETR source file. Use
-``--deform-attn cuda`` on a CUDA machine with the compiled extension.
+Deviations, both recorded in the output:
+
+* the official ``MultiScaleDeformableAttention`` extension is CUDA-only, so on
+  CPU/MPS the worker installs a module whose forward calls the reference
+  ``ms_deform_attn_core_pytorch`` from the same Deformable-DETR source file. Use
+  ``--deform-attn cuda`` on a CUDA machine with the compiled extension;
+* ``models.query_generator.C_base`` computes its reference points only when its
+  CPU-built shape tensors move to another device, so the official code fails on
+  a pure CPU run. On CPU the worker sets the three reference-point tensors with
+  the class's own ``get_reference_points`` and the same arguments beforehand.
 
 Output: axis-aligned boxes in source pixels with scores, the count, and times
 (model load, preprocessing, forward, post-processing) excluding image decoding.
 """
 import argparse
+from collections import Counter
 import importlib
 import json
 import os
 from pathlib import Path
+import resource
 import sys
 import time
 import types
@@ -108,6 +115,13 @@ def main():
     state = {k[len('module.'):] if k.startswith('module.') else k: v for k, v in state.items()}
     missing, unexpected = model.load_state_dict(state, strict=False)
     model = model.to(device).eval()
+    deviations = ['reference deformable attention'] if args.deform_attn == 'reference' else []
+    if device.type == 'cpu':
+        q = model.adapt_features
+        q.reference_points1 = q.get_reference_points(q.spatial_shapes1, q.valid_ratios1, device='cpu')
+        q.reference_points2 = q.get_reference_points(q.spatial_shapes2, q.valid_ratios2, device='cpu')
+        q.reference_points = q.get_reference_points(q.spatial_shapes, q.valid_ratios, device='cpu')
+        deviations.append('CPU reference points set before forward (upstream sets them only on a device move)')
     sync()
     load_ms = (time.perf_counter() - t0) * 1e3
 
@@ -143,10 +157,14 @@ def main():
         keep_scores = keep_scores.cpu().tolist()
         t4 = time.perf_counter()
 
-    result = dict(method='geco2', device=args.device, deform_attn=args.deform_attn, threads=torch.get_num_threads(),
-                  torch=torch.__version__, numpy=np.__version__, threshold=args.threshold,
-                  weights=args.weights.name, missing_keys=len(missing), unexpected_keys=len(unexpected),
+    prefix = lambda keys: dict(Counter(k.split('.')[0] for k in keys))  # noqa: E731
+    result = dict(method='geco2', device=args.device, deform_attn=args.deform_attn, deviations=deviations,
+                  threads=torch.get_num_threads(), torch=torch.__version__, numpy=np.__version__,
+                  threshold=args.threshold, weights=args.weights.name, checkpoint_keys=len(state),
+                  missing_keys=len(missing), unexpected_keys=len(unexpected),
+                  missing_key_prefixes=prefix(missing), unexpected_key_prefixes=prefix(unexpected),
                   missing_key_examples=list(missing)[:8], unexpected_key_examples=list(unexpected)[:8],
+                  memory=dict(peak_rss_bytes=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss),
                   image_shape=list(image.shape), exemplars=exemplars, input_scale=float(scale),
                   timing_ms=dict(load_model=load_ms, preprocess=(t2 - t1) * 1e3, forward=(t3 - t2) * 1e3,
                                  postprocess=(t4 - t3) * 1e3),
@@ -154,7 +172,7 @@ def main():
                               for b, c in zip(keep_boxes, keep_scores)],
                   count=len(keep_boxes))
     if device.type == 'mps':
-        result['mps_allocated_bytes'] = torch.mps.driver_allocated_memory()
+        result['memory']['mps_driver_allocated_bytes'] = torch.mps.driver_allocated_memory()
     text = json.dumps(result, indent=1)
     if args.output:
         args.output.write_text(text + '\n')

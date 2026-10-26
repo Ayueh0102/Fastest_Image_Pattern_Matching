@@ -6,8 +6,8 @@
  "base_commit": "8f0e6a9",
  "host": "Apple M4 Pro, 48 GiB, macOS 27 (Darwin 27.0.0)",
  "timing_evidence": false,
- "timing_note": "Smoke runs only: one fresh process, no warm-up protocol, shared machine. No number here may be cited as a speed result.",
- "status": "partial: third-party smoke runs (TDCM, GeCo2) not executed; running their repository code in this session needs the user's approval",
+ "timing_note": "Smoke runs only: one fresh process, no warm-up protocol, shared machine. During the third-party runs (10:11-10:19Z) another session's headless Chromium used about 9 cores (1-minute load 6-22), and CPU workers were limited to 4 threads. No number here may be cited as a speed result.",
+ "status": "complete: every method ran on both pairs; the user approved executing the TDCM and GeCo2 repository code (limited to the clones and environments under build/stage50-external) on 2026-10-26",
  "external_root": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/stage50-external (git-ignored)",
  "methods": {
   "ours_core": {
@@ -42,20 +42,36 @@
     "bytes": 3224065,
     "archive_name": "model_epoch_30_soft_",
     "stored_float32_elements": 795301,
+    "loaded_parameters": 794333,
+    "loaded_buffers": 964,
     "paper_parameter_claim": "3.07M",
-    "note": "stored tensors (parameters plus BatchNorm buffers) are about 0.80M elements; the README/paper figure of 3.07M is not reproduced by this checkpoint and stays unexplained",
+    "note": "the loaded model has 794,333 parameters (plus 964 buffer elements); the README/paper figure of 3.07M is not reproduced by this checkpoint and stays unexplained",
     "template_input": "36x36 (template resized); scale heads sigmoid*1.5+0.5, so 0.5-2.0 relative to 36 px",
     "other_checkpoints": "none published (no S2.5-range or 12x12 / 28x52 / 124x124 template models of Table 3)"
    },
    "env": "build/stage50-external/envs/tdcm-py312: Python 3.12.12, torch 2.7.1, torchvision 0.22.1, timm 1.0.15, opencv-python-headless 4.11.0.86, numpy 1.26.4 (the repo pins no versions)",
    "device_plan": "M4 Pro CPU (same machine as ours); MPS as a secondary check",
-   "worker": "cpp-core/tools/literature_tdcm_worker.py (copies test_single.py: RGB, ImageNet normalisation, arg-max + get_center, angle bisection and scale refinement)",
-   "smoke": "not run: the session's permission classifier blocked executing third-party repository code; pending the user's approval",
+   "worker": "cpp-core/tools/literature_tdcm_worker.py: --pipeline test_single copies the evaluation script (RGB, torchvision resize, arg-max + get_center, angle bisection, scale refinement on its grey conversion); --pipeline test_py copies the README example (BGR, cv2.resize, three-channel refinement, final refine_angle)",
+   "smoke": {
+    "status": "ok on CPU and MPS, both pipelines, both pairs; CPU and MPS give the same pose on tdcm_demo and differ only in the third decimal of the refined scale_x on many128",
+    "tdcm_demo": {
+     "test_single": "centre (44.23, 94.09), angle -78.30 (unrefined -78.30; refinement score 0.899 < 0.9, so the angle is kept), scale 0.809/0.848: 1.19 px and 28.3 deg from the authors' GT",
+     "test_py": "centre (45.25, 94.75), angle -49.71 (unrefined -57.96), scale 0.903/0.838: 0.35 px and 0.29 deg from the authors' GT",
+     "reading": "the two official scripts disagree on the demo image; one image cannot say which is right"
+    },
+    "many128": "one output (single target): centre 16.6-16.7 px from the nearest GT, angle about 180 deg off (template symmetry), scale_y 2.04 at the head's upper limit while the objects are 100-175 px (3-5x of 36): sizes are outside the checkpoint's range",
+    "times_ms_not_evidence": {"tdcm_demo_cpu_infer": 46.0, "tdcm_demo_mps_infer": 150.3, "many128_cpu_infer": 43782.5, "many128_mps_infer": 1262.8},
+    "memory": {"tdcm_demo_cpu_peak_rss_bytes": 545210368, "many128_cpu_peak_rss_bytes": 19084328960,
+               "many128_mps_peak_rss_bytes": 1393049600, "many128_mps_driver_allocated_bytes": 13060063232,
+               "reading": "native 4096x4096 needs about 19 GB RSS on CPU or 13 GB of MPS allocation; a native 8192x8192 scene would need about 4x and cannot fit in 48 GiB"}
+   },
    "protocol_findings": [
     "published code is single-target (arg-max); res/result-multi.txt exists but its multi-target script is not in the repo",
     "official eval resizes search images to 224x224 (no-op for its 224x224 crops); arbitrary images need native-size inference",
     "only data/S2/val.csv (9,450 rows, COCO val2017) is published; test_single.py evaluates its first 1,000 samples with seed 42",
-    "test_single.py denormalises with *0.5+0.5 and converts RGB with COLOR_BGR2GRAY before refinement; the worker keeps this as published"
+    "test_single.py denormalises with *0.5+0.5 and converts RGB with COLOR_BGR2GRAY before refinement; the worker keeps this as published",
+    "the README example test.py feeds BGR while training (CoCo_Dataset) converts to RGB; the two scripts gave different angles on the demo image",
+    "the template must be 18-72 px (README); larger or smaller objects need the image and template rescaled first, which is an adaptation"
    ]
   },
   "geco2": {
@@ -77,11 +93,20 @@
      "sha256": "d0bb7f236400a49669ffdd1be617959a8b1d1065081789d7bbff88eded3a8071", "license": "Apache-2.0 (SAM 2 checkpoints)"}
    ],
    "weights_license": "Hugging Face asset repo has no dataset card or licence; treated as research use, not redistributed",
-   "env": "build/stage50-external/envs/geco2-py312: Python 3.12.12 (install.sh uses 3.10), torch 2.7.1, torchvision 0.22.1 (as install.sh), hydra-core 1.3.2, scikit-image 0.25.2, pycocotools 2.0.8, numpy 1.26.4; no gradio, no detectron2",
-   "device_plan": "M4 Pro CPU / MPS with the PyTorch reference deformable attention; CUDA (lab 2x RTX 6000 Ada) only if CPU/MPS fail or for a kernel-equivalence check",
+   "env": "build/stage50-external/envs/geco2-py312: Python 3.12.12 (install.sh uses 3.10), torch 2.7.1, torchvision 0.22.1 (as install.sh), hydra-core 1.3.2, scikit-image 0.25.2, pycocotools 2.0.8, numpy 1.26.4, scipy 1.16.3 (req.txt pins 1.15.2, whose _spropack extension macOS 27 dyld refuses to load); no gradio, no detectron2",
+   "device_plan": "M4 Pro CPU / MPS with the PyTorch reference deformable attention; CUDA (lab 2x RTX 6000 Ada) for the kernel-equivalence check and for timing",
    "worker": "cpp-core/tools/literature_geco2_worker.py (demo_gradio.py preprocessing, inference.py post-processing, threshold 0.11, NMS 0.5)",
-   "smoke": "not run: same permission block as TDCM; pending the user's approval",
+   "smoke": {
+    "status": "ok on CPU and MPS, both pairs, after two failed attempts (kept: phase1-smoke-attempt1-geco2-scipy.json, phase1-smoke-attempt2-geco2-cpu.json)",
+    "weights_load": "475 checkpoint keys; missing only sam_mask.* (149, initialised from the SAM2 checkpoint as in the official code), unexpected only class_embed_aux / bbox_embed_aux (8, training heads): every trained inference module loaded",
+    "many128": "128 boxes on CPU and on MPS: 128/128 at IoU >= 0.5, AP50 1.000, precision 1.000; box-centre error median 2.14 px (CPU) / 2.63 px (MPS); input scale 0.25 (4096 -> 1024)",
+    "tdcm_demo": "7 boxes on CPU, 8 on MPS: the GT box is found (IoU >= 0.5, centre error 6.4 / 5.9 px); the other boxes cannot be judged because the authors' GT marks one object only",
+    "cpu_vs_mps": "outputs differ (7 vs 8 boxes on tdcm_demo, different centre errors on many128) with the same reference kernel, so accuracy must be pinned to one device",
+    "times_ms_not_evidence": {"many128_cpu_forward": 4109.5, "many128_mps_forward": 4211.9, "tdcm_demo_cpu_forward": 2589.6, "tdcm_demo_mps_forward": 3079.5},
+    "memory": {"many128_cpu_peak_rss_bytes": 10661806080, "many128_mps_peak_rss_bytes": 2366095360, "many128_mps_driver_allocated_bytes": 9806905344}
+   },
    "protocol_findings": [
+    "upstream C_base computes its deformable-attention reference points only when its shape tensors move to another device, so the unmodified code fails on a pure CPU run; the worker sets them with the class's own method on CPU",
     "MultiScaleDeformableAttention is a CUDA-only extension; CPU/MPS needs ms_deform_attn_core_pytorch from the same Deformable-DETR file (numerically a reference, slower)",
     "official thresholds differ: inference.py (FSCD evaluation) keeps box_v > 0.11*max, the Gradio demo default is 0.33",
     "input resized so the longer side is 1024 px and the mean exemplar at most 80 px: 4096/8K scenes are shrunk 4-8x before detection",
@@ -156,13 +181,20 @@
    "handling": "stalled processes killed; downloads resumed (gdown resume, curl -C -) and verified by Content-Length, CRC and published hashes; environments reinstalled"},
   {"what": "timing-lock overlap", "effect": "one fpm_native_pipeline_runner smoke process (about 0.4 s construct, under 1 s total) ran at 09:50:07Z while round 49's dev_calibrate lock (from 09:48:35Z) existed",
    "handling": "disclosed to the round-49 session; literature_smoke.py now refuses to start any worker while a lock exists"},
-  {"what": "permission block", "effect": "executing TDCM / GeCo2 repository code was denied by the session's auto-mode classifier", "handling": "not worked around; smoke for both pending the user's approval"}
+  {"what": "permission block", "effect": "executing TDCM / GeCo2 repository code was denied by the session's auto-mode classifier", "handling": "not worked around; the user then approved it for the clones and environments under build/stage50-external, and the runs waited for round 49's formal lock (09:57:23Z-10:11:19Z) to clear"},
+  {"what": "GeCo2 attempt 1 (all four runs)", "effect": "ImportError: scipy 1.15.2 _spropack.cpython-312-darwin.so rejected by dyld (__DATA/__thread_bss zero-fill section with a nonzero offset) when utils.data imports scipy.ndimage",
+   "handling": "scipy upgraded to 1.16.3 in the GeCo2 environment only; record phase1-smoke-attempt1-geco2-scipy.json"},
+  {"what": "GeCo2 attempt 2 (CPU runs)", "effect": "AttributeError: 'C_base' object has no attribute 'reference_points' (upstream initialises it only on a device move); the MPS runs succeeded",
+   "handling": "worker sets the reference points on CPU with the class's own get_reference_points; record phase1-smoke-attempt2-geco2-cpu.json"}
  ],
  "disk_bytes_approx": {"external_total": "11 GB", "fsc147_extracted_density_maps_unused": "4.7 GB (removable, zip kept)", "envs": "1.3 GB", "stage50-ours build": "35 MB", "free_after": "95 GiB"},
  "phase2_recommendations": [
   "TDCM has official weights: no retraining for the 36x36 model; record the 0.80M vs 3.07M parameter mismatch",
   "H3 cannot be tested as written (12x12 template model not published): rewrite it as small objects under the official 36x36 checkpoint, retrain (COCO train2017 18 GB plus unreported GPU time), or drop it with the reason",
   "TDCM multi-object scenes (A, C) need a non-official peak extractor on its score map; label it TDCM-adapted, or limit TDCM to single-target pairs",
+  "TDCM pipeline: register test_single.py (the evaluation script, RGB as in training) as primary and test_py as a disclosed secondary, because they disagree on the demo image",
+  "TDCM object size: rescale image and template so the template lies in 18-72 px before inference (an adaptation), and for 8K scenes tile or downscale: native 4096x4096 already needs about 19 GB RSS on CPU",
+  "GeCo2: CPU and MPS outputs differ; pin accuracy to one device (preferably CUDA with the compiled kernel) and report the other only as a cross-check",
   "B1: run two template variants, the native crop and the 36x36 crop TDCM actually sees, with fpm searching isotropic scales over the setting's range; score anisotropic sx/sy separately",
   "B1: S2 from the published list; S1.5/S2.5 by the published rule; define S1 before registration; generate the 1,000-sample fixtures once with the authors' rotate_crop (seed 42) and freeze them",
   "B2: decide the FSCD-147 source (mirror with verification, user download from OpenDataLab, author request, or counting-only)",
