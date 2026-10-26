@@ -1,0 +1,982 @@
+{
+ "rule": "largest pooled strict F1 over the development scenes (TP, FP over positives and negatives, FN); tie -> higher threshold",
+ "grid": [
+  0.01,
+  0.05,
+  0.1,
+  0.2,
+  0.3,
+  0.5
+ ],
+ "pipeline": "test_py",
+ "scenes_sha256": "18047c468978afdb33966e407e69a27a52f186238fcda7f3805b8e5def0198b3",
+ "thresholds": {
+  "0.01": {
+   "tp": 16,
+   "fp": 1010,
+   "fn": 412,
+   "f1": 0.02200825309491059,
+   "cases": [
+    {
+     "case": "dev_many_dst8",
+     "status": "ok",
+     "gt": 36,
+     "predictions": 36,
+     "strict_tp": 0,
+     "association_tp": 36,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50000_clean",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 86,
+     "strict_tp": 1,
+     "association_tp": 49,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50000_noise",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 104,
+     "strict_tp": 0,
+     "association_tp": 49,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50000_empty",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 47,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 47
+    },
+    {
+     "case": "dev_proc50000_distractor",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 66,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 66
+    },
+    {
+     "case": "dev_proc50001_clean",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 79,
+     "strict_tp": 5,
+     "association_tp": 49,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50001_noise",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 95,
+     "strict_tp": 4,
+     "association_tp": 49,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50001_empty",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 51,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 51
+    },
+    {
+     "case": "dev_proc50001_distractor",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 49,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 49
+    },
+    {
+     "case": "dev_proc50002_clean",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 49,
+     "strict_tp": 3,
+     "association_tp": 49,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50002_noise",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 52,
+     "strict_tp": 1,
+     "association_tp": 49,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50002_empty",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 31,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 31
+    },
+    {
+     "case": "dev_proc50002_distractor",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 83,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 83
+    },
+    {
+     "case": "dev_proc50003_clean",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 49,
+     "strict_tp": 2,
+     "association_tp": 49,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50003_noise",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 49,
+     "strict_tp": 0,
+     "association_tp": 49,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50003_empty",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 0,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 0
+    },
+    {
+     "case": "dev_proc50003_distractor",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 100,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 100
+    }
+   ]
+  },
+  "0.05": {
+   "tp": 16,
+   "fp": 568,
+   "fn": 412,
+   "f1": 0.03162055335968379,
+   "cases": [
+    {
+     "case": "dev_many_dst8",
+     "status": "ok",
+     "gt": 36,
+     "predictions": 31,
+     "strict_tp": 0,
+     "association_tp": 31,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50000_clean",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 49,
+     "strict_tp": 1,
+     "association_tp": 49,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50000_noise",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 49,
+     "strict_tp": 0,
+     "association_tp": 49,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50000_empty",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 0,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 0
+    },
+    {
+     "case": "dev_proc50000_distractor",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 1,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 1
+    },
+    {
+     "case": "dev_proc50001_clean",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 49,
+     "strict_tp": 5,
+     "association_tp": 49,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50001_noise",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 48,
+     "strict_tp": 4,
+     "association_tp": 48,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50001_empty",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 0,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 0
+    },
+    {
+     "case": "dev_proc50001_distractor",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 13,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 13
+    },
+    {
+     "case": "dev_proc50002_clean",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 49,
+     "strict_tp": 3,
+     "association_tp": 49,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50002_noise",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 37,
+     "strict_tp": 1,
+     "association_tp": 37,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50002_empty",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 0,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 0
+    },
+    {
+     "case": "dev_proc50002_distractor",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 82,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 82
+    },
+    {
+     "case": "dev_proc50003_clean",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 49,
+     "strict_tp": 2,
+     "association_tp": 49,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50003_noise",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 46,
+     "strict_tp": 0,
+     "association_tp": 46,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50003_empty",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 0,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 0
+    },
+    {
+     "case": "dev_proc50003_distractor",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 81,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 81
+    }
+   ]
+  },
+  "0.1": {
+   "tp": 16,
+   "fp": 460,
+   "fn": 412,
+   "f1": 0.035398230088495575,
+   "cases": [
+    {
+     "case": "dev_many_dst8",
+     "status": "ok",
+     "gt": 36,
+     "predictions": 25,
+     "strict_tp": 0,
+     "association_tp": 25,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50000_clean",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 49,
+     "strict_tp": 1,
+     "association_tp": 49,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50000_noise",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 47,
+     "strict_tp": 0,
+     "association_tp": 47,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50000_empty",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 0,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 0
+    },
+    {
+     "case": "dev_proc50000_distractor",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 0,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 0
+    },
+    {
+     "case": "dev_proc50001_clean",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 48,
+     "strict_tp": 5,
+     "association_tp": 48,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50001_noise",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 48,
+     "strict_tp": 4,
+     "association_tp": 48,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50001_empty",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 0,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 0
+    },
+    {
+     "case": "dev_proc50001_distractor",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 0,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 0
+    },
+    {
+     "case": "dev_proc50002_clean",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 41,
+     "strict_tp": 3,
+     "association_tp": 41,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50002_noise",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 23,
+     "strict_tp": 1,
+     "association_tp": 23,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50002_empty",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 0,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 0
+    },
+    {
+     "case": "dev_proc50002_distractor",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 49,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 49
+    },
+    {
+     "case": "dev_proc50003_clean",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 48,
+     "strict_tp": 2,
+     "association_tp": 48,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50003_noise",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 44,
+     "strict_tp": 0,
+     "association_tp": 44,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50003_empty",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 0,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 0
+    },
+    {
+     "case": "dev_proc50003_distractor",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 54,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 54
+    }
+   ]
+  },
+  "0.2": {
+   "tp": 15,
+   "fp": 350,
+   "fn": 413,
+   "f1": 0.03783102143757881,
+   "cases": [
+    {
+     "case": "dev_many_dst8",
+     "status": "ok",
+     "gt": 36,
+     "predictions": 17,
+     "strict_tp": 0,
+     "association_tp": 17,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50000_clean",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 45,
+     "strict_tp": 1,
+     "association_tp": 45,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50000_noise",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 42,
+     "strict_tp": 0,
+     "association_tp": 42,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50000_empty",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 0,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 0
+    },
+    {
+     "case": "dev_proc50000_distractor",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 0,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 0
+    },
+    {
+     "case": "dev_proc50001_clean",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 45,
+     "strict_tp": 5,
+     "association_tp": 45,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50001_noise",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 42,
+     "strict_tp": 4,
+     "association_tp": 42,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50001_empty",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 0,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 0
+    },
+    {
+     "case": "dev_proc50001_distractor",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 0,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 0
+    },
+    {
+     "case": "dev_proc50002_clean",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 27,
+     "strict_tp": 3,
+     "association_tp": 27,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50002_noise",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 8,
+     "strict_tp": 0,
+     "association_tp": 8,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50002_empty",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 0,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 0
+    },
+    {
+     "case": "dev_proc50002_distractor",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 19,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 19
+    },
+    {
+     "case": "dev_proc50003_clean",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 44,
+     "strict_tp": 2,
+     "association_tp": 44,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50003_noise",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 43,
+     "strict_tp": 0,
+     "association_tp": 43,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50003_empty",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 0,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 0
+    },
+    {
+     "case": "dev_proc50003_distractor",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 33,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 33
+    }
+   ]
+  },
+  "0.3": {
+   "tp": 14,
+   "fp": 270,
+   "fn": 414,
+   "f1": 0.03932584269662921,
+   "cases": [
+    {
+     "case": "dev_many_dst8",
+     "status": "ok",
+     "gt": 36,
+     "predictions": 11,
+     "strict_tp": 0,
+     "association_tp": 11,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50000_clean",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 41,
+     "strict_tp": 1,
+     "association_tp": 41,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50000_noise",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 37,
+     "strict_tp": 0,
+     "association_tp": 37,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50000_empty",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 0,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 0
+    },
+    {
+     "case": "dev_proc50000_distractor",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 0,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 0
+    },
+    {
+     "case": "dev_proc50001_clean",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 39,
+     "strict_tp": 5,
+     "association_tp": 39,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50001_noise",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 39,
+     "strict_tp": 4,
+     "association_tp": 39,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50001_empty",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 0,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 0
+    },
+    {
+     "case": "dev_proc50001_distractor",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 0,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 0
+    },
+    {
+     "case": "dev_proc50002_clean",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 19,
+     "strict_tp": 2,
+     "association_tp": 19,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50002_noise",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 0,
+     "strict_tp": 0,
+     "association_tp": 0,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50002_empty",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 0,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 0
+    },
+    {
+     "case": "dev_proc50002_distractor",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 9,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 9
+    },
+    {
+     "case": "dev_proc50003_clean",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 40,
+     "strict_tp": 2,
+     "association_tp": 40,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50003_noise",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 32,
+     "strict_tp": 0,
+     "association_tp": 32,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50003_empty",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 0,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 0
+    },
+    {
+     "case": "dev_proc50003_distractor",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 17,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 17
+    }
+   ]
+  },
+  "0.5": {
+   "tp": 11,
+   "fp": 169,
+   "fn": 417,
+   "f1": 0.03618421052631579,
+   "cases": [
+    {
+     "case": "dev_many_dst8",
+     "status": "ok",
+     "gt": 36,
+     "predictions": 0,
+     "strict_tp": 0,
+     "association_tp": 0,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50000_clean",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 37,
+     "strict_tp": 1,
+     "association_tp": 37,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50000_noise",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 24,
+     "strict_tp": 0,
+     "association_tp": 24,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50000_empty",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 0,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 0
+    },
+    {
+     "case": "dev_proc50000_distractor",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 0,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 0
+    },
+    {
+     "case": "dev_proc50001_clean",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 37,
+     "strict_tp": 5,
+     "association_tp": 37,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50001_noise",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 34,
+     "strict_tp": 4,
+     "association_tp": 34,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50001_empty",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 0,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 0
+    },
+    {
+     "case": "dev_proc50001_distractor",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 0,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 0
+    },
+    {
+     "case": "dev_proc50002_clean",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 0,
+     "strict_tp": 0,
+     "association_tp": 0,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50002_noise",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 0,
+     "strict_tp": 0,
+     "association_tp": 0,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50002_empty",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 0,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 0
+    },
+    {
+     "case": "dev_proc50002_distractor",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 0,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 0
+    },
+    {
+     "case": "dev_proc50003_clean",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 26,
+     "strict_tp": 1,
+     "association_tp": 26,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50003_noise",
+     "status": "ok",
+     "gt": 49,
+     "predictions": 20,
+     "strict_tp": 0,
+     "association_tp": 20,
+     "false_positives": null
+    },
+    {
+     "case": "dev_proc50003_empty",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 0,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 0
+    },
+    {
+     "case": "dev_proc50003_distractor",
+     "status": "ok",
+     "gt": 0,
+     "predictions": 2,
+     "strict_tp": null,
+     "association_tp": null,
+     "false_positives": 2
+    }
+   ]
+  }
+ },
+ "choice": 0.3
+}

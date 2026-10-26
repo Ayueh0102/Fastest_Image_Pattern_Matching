@@ -126,6 +126,7 @@ class OwnLock:
 
 
 def run_worker(cmd, out, own_lock=None, timeout=3600, env=None):
+    out.parent.mkdir(parents=True, exist_ok=True)  # workers write --output themselves
     waited = wait_for_locks(own_lock)
     host = host_state()
     t = time.perf_counter()
@@ -135,7 +136,6 @@ def run_worker(cmd, out, own_lock=None, timeout=3600, env=None):
     except subprocess.TimeoutExpired as e:
         code, stdout, stderr = 'timeout', e.stdout or '', (e.stderr or '') if isinstance(e.stderr, str) else ''
     wall = (time.perf_counter() - t) * 1e3
-    out.parent.mkdir(parents=True, exist_ok=True)
     out.with_suffix('.stderr.txt').write_text(stderr if isinstance(stderr, str) else '')
     return dict(code=code, stdout=stdout if isinstance(stdout, str) else '', wall_ms=wall, host=host, lock_wait_s=waited,
                 cmd=[str(c) for c in cmd])
@@ -546,6 +546,556 @@ def dev_ours_b2(args):
     print('choice', best)
 
 
+# ---------------------------------------------------------------- measured runs
+
+SCENE_METHODS = ('ours_core', 'ours_hybrid_k0', 'ours_hybrid_k3', 'ours_fullgpu_k0', 'ours_fullgpu_k3', 'ours_small_shallow',
+                 'opencv', 'tdcm_adapted_cpu', 'tdcm_adapted_mps', 'geco2_mps', 'geco2_cpu')
+ONE_BLOCK = {'opencv', 'tdcm_adapted_mps', 'geco2_mps', 'geco2_cpu'}
+H4_SCENES = {'many128_pose', 'many512_pose', 'many8k_512'}
+# (warm-up calls, measured calls); TDCM-adapted refines every peak, so outside H4 one call is the budget.
+CALLS = dict(tdcm_h4=(1, 3), tdcm_other=(0, 1), geco2_mps=(1, 1), geco2_cpu=(0, 1))
+OPENCV_FULL_MAX_PIXELS = 2.5e6
+
+
+def applicable(case, method):
+    if method == 'ours_core':
+        if case['positive']:
+            tw, th = case['template_size']
+            return all(abs(t['width'] - tw) < 1e-6 and abs(t['height'] - th) < 1e-6 for t in case['truth'])
+        return case['search']['scales'] == [1.0]
+    if method == 'ours_small_shallow':
+        return case.get('family') == 'tiny'
+    if method == 'geco2_cpu':
+        return case['positive'] and case['group'] == 'A'
+    if method.startswith('geco2'):
+        return case['positive']
+    if method == 'tdcm_adapted_mps':
+        return case['name'] in H4_SCENES
+    return True
+
+
+def blocks_for(case, method, blocks):
+    if method in ONE_BLOCK or (method == 'tdcm_adapted_cpu' and case['name'] not in H4_SCENES):
+        return 1
+    return blocks
+
+
+def manifest_done(path):
+    done = set()
+    if path.exists():
+        for line in path.read_text().splitlines():
+            r = json.loads(line)
+            done.add((r['case'], r['method'], r['block']))
+    return done
+
+
+def execute(case, method, block, out_dir, cfg, own_lock):
+    stem = out_dir / method / f"{case['name']}-b{block}"
+    stem.parent.mkdir(parents=True, exist_ok=True)
+    out = stem.with_suffix('.json')
+    extra, parsed = {}, None
+    try:
+        if method == 'ours_core':
+            w = run_worker(ours_core_cmd(case, cfg.build), out, own_lock)
+            if w['code'] == 0:
+                out.write_text(w['stdout'])
+                parsed = parse_core(w['stdout'], case)
+        elif method in ARMS or method == 'ours_small_shallow':
+            arm = 'ours_hybrid_k0' if method == 'ours_small_shallow' else method
+            job, reused = runner_job(case, arm, cfg.repeats, cfg.warmup_seconds, shallow=method == 'ours_small_shallow')
+            job_path = stem.with_suffix('.job.json')
+            job_path.write_text(json.dumps(job, indent=1) + '\n')
+            w = run_worker([cfg.build / 'experiments/fpm_native_pipeline_runner', job_path], out, own_lock)
+            extra['job_from_round44'] = reused
+            if w['code'] == 0:
+                out.write_text(w['stdout'])
+                parsed = parse_runner(w['stdout'], case)
+        elif method == 'opencv':
+            iw, ih = image_size(case['source'])
+            max_maps = 6 if iw * ih > OPENCV_FULL_MAX_PIXELS else 0
+            w = run_worker(opencv_cmd(case, out, max_maps=max_maps), out, own_lock, timeout=4 * 3600)
+            if w['code'] == 0:
+                parsed = parse_opencv(out, case)
+        elif method.startswith('tdcm_adapted'):
+            warm, reps = CALLS['tdcm_h4' if case['name'] in H4_SCENES else 'tdcm_other']
+            w = run_worker(tdcm_cmd(case, out, method.split('_')[-1], cfg.tdcm_pipeline, cfg.tdcm_threshold, warmup=warm, repeats=reps),
+                           out, own_lock, timeout=6 * 3600)
+            if w['code'] == 0:
+                parsed = parse_worker(out, case)
+        elif method.startswith('geco2'):
+            warm, reps = CALLS[method]
+            w = run_worker(geco2_cmd(case, out, method.split('_')[-1], warmup=warm, repeats=reps), out, own_lock)
+            if w['code'] == 0:
+                parsed = parse_worker(out, case)
+        else:
+            raise ValueError(method)
+    except Exception as error:  # a parse failure is a failed worker, kept as such
+        w = dict(code='exception', stdout='', wall_ms=None, host=host_state(), lock_wait_s=None, cmd=[], error=repr(error))
+        parsed = None
+    record = dict(case=case['name'], group=case['group'], family=case.get('family'), method=method, block=block,
+                  status='ok' if parsed is not None else 'failed', output=str(out), returncode=w['code'], wall_ms=w['wall_ms'],
+                  host=w['host'], lock_wait_s=w['lock_wait_s'], cmd=w['cmd'], **extra)
+    if parsed is None:
+        err = out.with_suffix('.stderr.txt')
+        record['stderr_tail'] = err.read_text()[-1500:] if err.exists() else w.get('error')
+    else:
+        record.update({k: v for k, v in parsed.items() if k not in ('detections', 'first_matches')}, detections=len(parsed['detections']))
+    return record
+
+
+class RunConfig:
+    def __init__(self, args, protocol):
+        self.build = args.build
+        self.repeats, self.warmup_seconds = 3, 1.0
+        self.tdcm_pipeline = protocol['dev_selection']['tdcm_pipeline']['choice']
+        self.tdcm_threshold = protocol['dev_selection']['tdcm_adapted_peak_threshold']['choice']
+
+
+def run_scenes(args, cases, cfg):
+    out_dir = args.output
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / 'cases.json').write_text(json.dumps(cases, indent=1) + '\n')
+    manifest = out_dir / 'manifest.jsonl'
+    done = manifest_done(manifest)
+    lock = OwnLock(f'{args.group}-{args.phase}', f'{args.group} x {",".join(args.methods)} x {args.blocks} blocks',
+                   'several hours') if args.formal else None
+    own = lock.path if lock else None
+    if lock:
+        lock.__enter__()
+    try:
+        for block in range(args.blocks):
+            order = [(c, m) for c in cases for m in args.methods if applicable(c, m) and block < blocks_for(c, m, args.blocks)]
+            if block % 2:
+                order.reverse()
+            for c, m in order:
+                if (c['name'], m, block) in done:
+                    continue
+                r = execute(c, m, block, out_dir, cfg, own)
+                with open(manifest, 'a') as f:
+                    f.write(json.dumps(r) + '\n')
+                print(block, c['name'], m, r['status'], r.get('time_ms'), r.get('detections'), flush=True)
+    finally:
+        if lock:
+            lock.__exit__()
+
+
+def b1_scales(setting, variant):
+    if variant == 'native':
+        return [1.0]
+    lo, hi = dict(S1=(34 / 36, 38 / 36), S1_5=(.8, 1.5), S2=(.5, 2.), S2_5=(.4, 2.5))[setting]
+    n = math.ceil(math.log(hi / lo) / math.log(1.04)) + 1
+    return [lo * (hi / lo) ** (k / (n - 1)) for k in range(n)]
+
+
+def b1_opencv_scales(setting):
+    lo, hi = dict(S1=(34 / 36, 38 / 36), S1_5=(.8, 1.5), S2=(.5, 2.), S2_5=(.4, 2.5))[setting]
+    n = math.ceil(math.log(hi / lo) / math.log(1.10)) + 1
+    return [lo * (hi / lo) ** (k / (n - 1)) for k in range(n)]
+
+
+def run_b1(args, cfg, protocol):
+    pipelines = [cfg.tdcm_pipeline] + [p for p in ('test_single', 'test_py') if p != cfg.tdcm_pipeline]
+    manifest = args.output / 'manifest.jsonl'
+    args.output.mkdir(parents=True, exist_ok=True)
+    done = manifest_done(manifest)
+
+    def log(r):
+        with open(manifest, 'a') as f:
+            f.write(json.dumps(r) + '\n')
+        print(r['case'], r['method'], r['status'], r.get('time_ms'), flush=True)
+
+    for setting in args.settings:
+        fixtures = args.fixtures / f'{setting}-eval'
+        truth = json.loads((fixtures / 'truth.json').read_text())
+        for variant in ('t36', 'native'):
+            suffix = '_template36.png' if variant == 't36' else '_template.png'
+            items = [dict(id=t['index'], image=str(fixtures / f"{t['index']:04d}_search.png"),
+                          template=str(fixtures / f"{t['index']:04d}{suffix}")) for t in truth]
+            items_path = args.output / 'items' / f'{setting}-{variant}.json'
+            items_path.parent.mkdir(parents=True, exist_ok=True)
+            items_path.write_text(json.dumps(items) + '\n')
+            for pipeline in (pipelines if variant == 't36' else pipelines[:1]):
+                key = (f'{setting}-{variant}', f'tdcm_{pipeline}', 0)
+                if key in done:
+                    continue
+                out = args.output / f'tdcm_{pipeline}' / f'{setting}-{variant}.jsonl'
+                out.parent.mkdir(parents=True, exist_ok=True)
+                cmd = [EXTERNAL / 'envs/tdcm-py312/bin/python', '-I', TOOLS / 'literature_tdcm_worker.py', '--repo', EXTERNAL / 'repos/tdcm',
+                       '--weights', EXTERNAL / 'repos/tdcm/dict/model.pth', '--batch', items_path, '--device', 'cpu',
+                       '--pipeline', pipeline, '--threads', 8, '--output', out]
+                w = run_worker(cmd, out)
+                log(dict(case=key[0], method=key[1], block=0, status='ok' if w['code'] == 0 else 'failed', output=str(out),
+                         wall_ms=w['wall_ms'], host=w['host'], returncode=w['code']))
+            arms = ['ours_hybrid_k0', 'ours_fullgpu_k0'] + (['ours_core'] if variant == 'native' else [])
+            for t in truth:
+                image, template = items[t['index']]['image'], items[t['index']]['template']
+                tw, th = image_size(template)
+                case = dict(name=f"{setting}-{variant}-{t['index']:04d}", group='B1', source=image, template=template,
+                            template_size=[tw, th], positive=True, truth=[],
+                            search=dict(scales=b1_scales(setting, variant), angle=180, limit=1, score=.5, proposal_score=.3,
+                                        overlap=.2, stop_layer=0, subpixel=False))
+                for arm in arms:
+                    if (case['name'], arm, 0) in done:
+                        continue
+                    out = args.output / arm / f'{setting}-{variant}' / f"{t['index']:04d}.json"
+                    out.parent.mkdir(parents=True, exist_ok=True)
+                    if arm == 'ours_core':
+                        w = run_worker(ours_core_cmd(case, cfg.build), out)
+                    else:
+                        job, _ = runner_job(case, arm, 1, 0.)
+                        out.with_suffix('.job.json').write_text(json.dumps(job) + '\n')
+                        w = run_worker([cfg.build / 'experiments/fpm_native_pipeline_runner', out.with_suffix('.job.json')], out)
+                    if w['code'] == 0:
+                        out.write_text(w['stdout'])
+                    with open(manifest, 'a') as f:
+                        f.write(json.dumps(dict(case=case['name'], method=arm, block=0, status='ok' if w['code'] == 0 else 'failed',
+                                                output=str(out), wall_ms=w['wall_ms'], load1=w['host']['load1'],
+                                                returncode=w['code'])) + '\n')
+                if variant == 't36' and t['index'] < 200 and (case['name'], 'opencv', 0) not in done:
+                    out = args.output / 'opencv' / f'{setting}-{variant}' / f"{t['index']:04d}.json"
+                    out.parent.mkdir(parents=True, exist_ok=True)
+                    case_cv = dict(case, search=dict(case['search'], scales=b1_opencv_scales(setting), score=-1.))
+                    w = run_worker(opencv_cmd(case_cv, out, angle_step=2.), out)
+                    with open(manifest, 'a') as f:
+                        f.write(json.dumps(dict(case=case['name'], method='opencv', block=0, status='ok' if w['code'] == 0 else 'failed',
+                                                output=str(out), wall_ms=w['wall_ms'], load1=w['host']['load1'],
+                                                returncode=w['code'])) + '\n')
+            print(setting, variant, 'done', flush=True)
+
+
+def run_b2(args, cfg, protocol):
+    cases = fsc_cases('test', args.fsc_images, args.annotations)
+    manifest = args.output / 'manifest.jsonl'
+    args.output.mkdir(parents=True, exist_ok=True)
+    done = manifest_done(manifest)
+    tuned = protocol['dev_selection']['ours_b2_score']['choice']
+    arms = [('ours_fullgpu_k3', 'ours_fullgpu_k3', .8), ('ours_hybrid_k3', 'ours_hybrid_k3', .8),
+            (f'ours_fullgpu_k3_s{tuned}', 'ours_fullgpu_k3', tuned)]
+    items = []
+    for c in cases:
+        template, crop = fsc_template(c, args.output / 'templates')
+        ex = [[min(p[0] for p in q), min(p[1] for p in q), max(p[0] for p in q), max(p[1] for p in q)]
+              for q in c['annotation']['box_examples_coordinates'][:3]]
+        items.append(dict(id=c['name'], image=c['image'], exemplars=ex, template=str(template), crop=crop))
+    (args.output / 'items.json').write_text(json.dumps(items) + '\n')
+    for name, arm, sc in arms if 'ours' in args.methods else []:
+        for it in items:
+            if (it['id'], name, 0) in done:
+                continue
+            job, _ = b2_job(dict(image=it['image']), it['template'], arm, sc)
+            out = args.output / name / f"{it['id'].split('.')[0]}.json"
+            out.parent.mkdir(parents=True, exist_ok=True)
+            out.with_suffix('.job.json').write_text(json.dumps(job) + '\n')
+            w = run_worker([cfg.build / 'experiments/fpm_native_pipeline_runner', out.with_suffix('.job.json')], out)
+            if w['code'] == 0:
+                out.write_text(w['stdout'])
+            with open(manifest, 'a') as f:
+                f.write(json.dumps(dict(case=it['id'], method=name, block=0, status='ok' if w['code'] == 0 else 'failed',
+                                        output=str(out), wall_ms=w['wall_ms'], load1=w['host']['load1'], returncode=w['code'],
+                                        stderr_tail=None if w['code'] == 0 else out.with_suffix('.stderr.txt').read_text()[-600:])) + '\n')
+        print(name, 'done', flush=True)
+    for device in [m.split('_')[-1] for m in args.methods if m.startswith('geco2')]:
+        key = ('all', f'geco2_{device}', 0)
+        if key in done:
+            continue
+        out = args.output / f'geco2_{device}.jsonl'
+        cmd = [EXTERNAL / 'envs/geco2-py312/bin/python', '-I', TOOLS / 'literature_geco2_worker.py', '--repo', EXTERNAL / 'repos/geco2',
+               '--weights', EXTERNAL / 'data/geco2-weights-hf/GECO2FSCD.pth', '--torch-home', EXTERNAL / 'torch-home',
+               '--batch', args.output / 'items.json', '--threshold', .11, '--device', device, '--threads', 8, '--output', out]
+        w = run_worker(cmd, out, timeout=12 * 3600)
+        with open(manifest, 'a') as f:
+            f.write(json.dumps(dict(case='all', method=f'geco2_{device}', block=0, status='ok' if w['code'] == 0 else 'failed',
+                                    output=str(out), wall_ms=w['wall_ms'], host=w['host'], returncode=w['code'])) + '\n')
+        print('geco2', device, w['code'], flush=True)
+
+
+def run(args):
+    protocol = json.loads(args.protocol.read_text())
+    cfg = RunConfig(args, protocol)
+    if args.group == 'A':
+        run_scenes(args, cases_a(args.output), cfg)
+    elif args.group == 'C':
+        run_scenes(args, cases_c(args.scenes), cfg)
+    elif args.group == 'B1':
+        run_b1(args, cfg, protocol)
+    else:
+        run_b2(args, cfg, protocol)
+
+
+# ---------------------------------------------------------------- summaries
+
+def read_manifest(path):
+    return [json.loads(line) for line in path.read_text().splitlines()] if path.exists() else []
+
+
+def detections_of(entry, case):
+    out = Path(entry['output'])
+    m = entry['method']
+    if m == 'ours_core':
+        return parse_core(out.read_text(), case)['detections']
+    if m in ARMS or m == 'ours_small_shallow':
+        return parse_runner(out.read_text(), case)['detections']
+    if m == 'opencv':
+        return parse_opencv(out, case)['detections']
+    return parse_worker(out, case)['detections']
+
+
+def memory_of(entry):
+    if 'peak_rss_bytes' in entry:
+        return dict(peak_rss_bytes=entry['peak_rss_bytes'], named_metal_bytes=entry.get('full_gpu_bytes'),
+                    frame_gpu_bytes=entry.get('frame_gpu_bytes'), pose_gpu_bytes=entry.get('pose_gpu_bytes'))
+    return entry.get('memory')
+
+
+def summarize_scenes(run_dir):
+    """Per (case, method): accuracy from the lowest ok block, time = median over ok blocks, failures kept."""
+    cases = {c['name']: c for c in json.loads((run_dir / 'cases.json').read_text())}
+    by = {}
+    for e in read_manifest(run_dir / 'manifest.jsonl'):
+        by.setdefault((e['case'], e['method']), []).append(e)
+    table, failures, pairs = [], [], {}
+    for (name, method), es in sorted(by.items()):
+        case = cases[name]
+        ok = sorted((e for e in es if e['status'] == 'ok'), key=lambda e: e['block'])
+        failures += [dict(case=name, method=method, block=e['block'], returncode=e.get('returncode'), stderr_tail=e.get('stderr_tail'))
+                     for e in es if e['status'] != 'ok']
+        row = dict(case=name, group=case['group'], family=case.get('family'), positive=case['positive'], method=method,
+                   blocks=len(es), ok_blocks=len(ok))
+        if ok:
+            dets = detections_of(ok[0], case)
+            s = case_score(case, dets)
+            pairs[(name, method)] = s.pop('association_pairs', [])
+            row['score'] = s
+            row['blocks_identical'] = all(detections_of(e, case) == dets for e in ok[1:])
+            times = [e['time_ms'] for e in ok if e.get('time_ms') is not None]
+            row['time_ms'] = statistics.median(times) if times else None
+            row['time_ms_blocks'] = times
+            constructs = [e['construct_ms'] for e in ok if e.get('construct_ms') is not None]
+            row['construct_ms'] = statistics.median(constructs) if constructs else None
+            row['memory'] = memory_of(ok[0])
+            row['load1_median'] = statistics.median(e['host']['load1'] for e in ok)
+            for key in ('complete', 'extrapolated_ms', 'maps', 'planned_maps', 'job_from_round44', 'exact_repeat'):
+                if key in ok[0]:
+                    row[key] = ok[0][key]
+        table.append(row)
+    return cases, table, failures, pairs
+
+
+def identity_round44(run_dir):
+    out = []
+    for e in read_manifest(run_dir / 'manifest.jsonl'):
+        if e['status'] != 'ok' or e['method'] not in STAGE44_ARM or not e.get('job_from_round44'):
+            continue
+        ref = STAGE44 / 'results' / f"{e['case']}-{STAGE44_ARM[e['method']]}-b0.json"
+        if not ref.exists():
+            continue
+        ours = json.loads(Path(e['output']).read_text())['first']['matches']
+        theirs = json.loads(ref.read_text())['first']['matches']
+        out.append(dict(case=e['case'], method=e['method'], block=e['block'], equal=ours == theirs, ours=len(ours), round44=len(theirs)))
+    return out
+
+
+def row_of(table, case, method):
+    return next((r for r in table if r['case'] == case and r['method'] == method), None)
+
+
+def strict_recall(row):
+    s = (row or {}).get('score') or {}
+    return s['strict_tp'] / s['gt'] if s.get('gt') and s.get('strict_tp') is not None else None
+
+
+def pooled(table, names, method, key):
+    rows = [row_of(table, n, method) for n in names]
+    rows = [r for r in rows if r and r.get('score')]
+    gt = sum(r['score']['gt'] for r in rows)
+    if key == 'boxes':
+        tp = sum(r['score']['boxes']['tp'] for r in rows)
+    else:
+        tp = sum(r['score'].get(key) or 0 for r in rows)
+    return dict(cases=len(rows), of=len(names), gt=gt, tp=tp, recall=tp / gt if gt else None)
+
+
+def pooled_errors(pairs, names, method):
+    rows = [p for n in names for p in pairs.get((n, method), [])]
+    return dict(pairs=len(rows), position_px=score.summary([r['position_px'] for r in rows]),
+                angle_deg=score.summary([r['angle_deg'] for r in rows]))
+
+
+def hypotheses(a, c, b2, geco2_method):
+    out = {}
+    if a:
+        cases, table, _, pairs = a
+        positives = sorted(n for n, x in cases.items() if x['positive'])
+        rows = []
+        for n in positives:
+            ours, tdcm = strict_recall(row_of(table, n, 'ours_fullgpu_k3')), strict_recall(row_of(table, n, 'tdcm_adapted_cpu'))
+            cv = row_of(table, n, 'opencv')
+            cvr = strict_recall(cv) if cv and cv.get('complete') else None
+            rows.append(dict(case=n, ours=ours, tdcm_adapted=tdcm, opencv=cvr,
+                             ok=ours is not None and tdcm is not None and ours >= tdcm and (cvr is None or ours >= cvr)))
+        e_ours, e_tdcm = pooled_errors(pairs, positives, 'ours_fullgpu_k3'), pooled_errors(pairs, positives, 'tdcm_adapted_cpu')
+        b_ours, b_geco = pooled(table, positives, 'ours_fullgpu_k3', 'boxes'), pooled(table, positives, geco2_method, 'boxes')
+        med = lambda e, k: e[k].get('median')  # noqa: E731
+        b_ok = (e_ours['pairs'] and e_tdcm['pairs'] and med(e_ours, 'position_px') < med(e_tdcm, 'position_px')
+                and med(e_ours, 'angle_deg') < med(e_tdcm, 'angle_deg'))
+        c_ok = b_geco['recall'] is not None and b_ours['recall'] is not None and b_ours['recall'] >= b_geco['recall']
+        out['H1'] = dict(a=rows, a_pass=all(r['ok'] for r in rows), b=dict(ours=e_ours, tdcm_adapted=e_tdcm, pass_=bool(b_ok)),
+                         c=dict(ours=b_ours, geco2=b_geco, geco2_method=geco2_method, pass_=c_ok if b_geco['cases'] else None))
+        out['H1']['pass'] = (out['H1']['a_pass'] and bool(b_ok) and c_ok) if b_geco['cases'] else None
+        negatives = sorted(n for n, x in cases.items() if not x['positive'])
+        ours_arms = ('ours_core', 'ours_hybrid_k0', 'ours_hybrid_k3', 'ours_fullgpu_k0', 'ours_fullgpu_k3')
+        h5 = []
+        for n in negatives:
+            for m in ours_arms + ('tdcm_adapted_cpu', 'opencv'):
+                r = row_of(table, n, m)
+                if r and r.get('score'):
+                    h5.append(dict(case=n, method=m, false_positives=r['score']['false_positives']))
+        out['H5'] = dict(rows=h5, pass_=all(x['false_positives'] == 0 for x in h5 if x['method'] in ours_arms))
+    if c:
+        cases, table, _, pairs = c
+        tiny = sorted(n for n, x in cases.items() if x['positive'] and x.get('family') == 'tiny')
+        t, o = pooled(table, tiny, 'tdcm_adapted_cpu', 'strict_tp'), pooled(table, tiny, 'ours_fullgpu_k3', 'strict_tp')
+        out['H3'] = dict(tdcm_adapted=t, ours=o, association=dict(tdcm_adapted=pooled(table, tiny, 'tdcm_adapted_cpu', 'association_tp'),
+                                                                   ours=pooled(table, tiny, 'ours_fullgpu_k3', 'association_tp')),
+                         pass_=t['recall'] is not None and o['recall'] is not None and t['recall'] >= o['recall'])
+    rows = []
+    for tab, names in ((a, ('many128_pose', 'many512_pose')), (c, ('many8k_512',))):
+        if not tab:
+            continue
+        for n in names:
+            ours, tdcm = row_of(tab[1], n, 'ours_fullgpu_k3'), row_of(tab[1], n, 'tdcm_adapted_cpu')
+            rows.append(dict(case=n, ours_ms=(ours or {}).get('time_ms'), tdcm_adapted_cpu_ms=(tdcm or {}).get('time_ms'),
+                             tdcm_adapted_mps_ms=(row_of(tab[1], n, 'tdcm_adapted_mps') or {}).get('time_ms'),
+                             ok=bool(ours and tdcm and ours.get('time_ms') is not None and tdcm.get('time_ms') is not None
+                                     and ours['time_ms'] < tdcm['time_ms'])))
+    if rows:
+        out['H4'] = dict(rows=rows, pass_=len(rows) == 3 and all(r['ok'] for r in rows))
+    if b2:
+        g, o = b2['methods'].get(b2['geco2_method']), b2['methods'].get('ours_fullgpu_k3')
+        if g and o:
+            if b2['boxes_available']:
+                out['H2'] = dict(metric='AP50', geco2=g['boxes']['ap50'], ours=o['boxes']['ap50'], pass_=g['boxes']['ap50'] > o['boxes']['ap50'])
+            else:
+                out['H2'] = dict(metric='count MAE vs FSC points', geco2=g['count_points']['mae'], ours=o['count_points']['mae'],
+                                 pass_=g['count_points']['mae'] < o['count_points']['mae'])
+    return out
+
+
+def summarize_b1(run_dir, fixtures, settings):
+    entries = read_manifest(run_dir / 'manifest.jsonl')
+    status = {}
+    for e in entries:
+        status[(e['case'], e['method'])] = e
+    out = {}
+    for setting in settings:
+        truth = json.loads((fixtures / f'{setting}-eval' / 'truth.json').read_text())
+        gts = {t['index']: dict(kind='pose', cx=t['cx'], cy=t['cy'], angle_deg=t['angle'], width=36 * t['scale_x'],
+                                height=36 * t['scale_y']) for t in truth}
+        for variant in ('t36', 'native'):
+            methods = {}
+            for path in sorted(run_dir.glob(f'tdcm_*/{setting}-{variant}.jsonl')):
+                _, results, footer = read_batch(path)
+                methods[path.parent.name] = ({k: v['detections'] for k, v in results.items()},
+                                             [v['timing_ms']['call_ms'] for v in results.values()], footer)
+            for arm in ('ours_hybrid_k0', 'ours_fullgpu_k0', 'ours_core', 'opencv'):
+                d = run_dir / arm / f'{setting}-{variant}'
+                if not d.exists():
+                    continue
+                dets, times = {}, []
+                for t in truth:
+                    f = d / f"{t['index']:04d}.json"
+                    if not f.exists() or f.stat().st_size == 0:
+                        continue
+                    case = dict(template_size=list(image_size(fixtures / f'{setting}-eval' / (f"{t['index']:04d}_template36.png" if variant == 't36' else f"{t['index']:04d}_template.png"))))
+                    if arm == 'ours_core':
+                        p = parse_core(f.read_text(), case)
+                    elif arm == 'opencv':
+                        p = parse_opencv(f, case)
+                    else:
+                        p = parse_runner(f.read_text(), case)
+                    dets[t['index']], times = p['detections'][:1], times + [p['time_ms']]
+                methods[arm] = (dets, times, None)
+            rows = {}
+            for m, (dets, times, footer) in methods.items():
+                scored = [i for i in gts if i in dets] if m == 'opencv' else list(gts)
+                strict = assoc = 0
+                for i in scored:
+                    r = score.score_pose_image([gts[i]], dets.get(i, []))
+                    strict += r['strict_tp']
+                    assoc += r['association_tp']
+                paper = b1_paper_metrics([t for t in truth if t['index'] in scored],
+                                         {i: [dict(cx=x['cx'], cy=x['cy'], width=x['width'] if 'width' in x else x['scale_x'] * x['scale_reference'][0],
+                                                   height=x['height'] if 'height' in x else x['scale_y'] * x['scale_reference'][1],
+                                                   angle_deg=x['angle_deg'], score=x.get('score', 1.)) for x in dets.get(i, [])]
+                                          for i in scored})
+                rows[m] = dict(samples=len(scored), outputs=sum(1 for i in scored if dets.get(i)), strict_tp=strict, association_tp=assoc,
+                               strict_rate=strict / len(scored) if scored else None, paper=paper,
+                               time_ms=score.summary(times), memory=(footer or {}).get('memory'))
+            out[f'{setting}-{variant}'] = rows
+    return out
+
+
+def summarize_b2(run_dir, annotations, boxes_path):
+    items = {i['id']: i for i in json.loads((run_dir / 'items.json').read_text())}
+    a = json.loads((annotations / 'annotation_FSC147_384.json').read_text())
+    boxes = {}
+    if boxes_path and boxes_path.exists():
+        inst = json.loads(boxes_path.read_text())
+        names = {im['id']: im['file_name'] for im in inst['images']}
+        for x in inst['annotations']:
+            bx, by, bw, bh = x['bbox']
+            boxes.setdefault(names[x['image_id']], []).append((bx, by, bx + bw, by + bh))
+    methods = {}
+    for d in sorted(p for p in run_dir.iterdir() if p.is_dir() and p.name.startswith('ours')):
+        dets, times, failed = {}, [], 0
+        for name, it in items.items():
+            f = d / f"{name.split('.')[0]}.json"
+            if not f.exists() or f.stat().st_size == 0:
+                failed += 1
+                dets[name] = []
+                continue
+            tw, th = image_size(it['template'])
+            p = parse_runner(f.read_text(), dict(template_size=[tw, th]))
+            dets[name], times = p['detections'], times + [p['time_ms']]
+        methods[d.name] = (dets, times, failed, None)
+    for f in sorted(run_dir.glob('geco2_*.jsonl')):
+        _, results, footer = read_batch(f)
+        methods[f.stem] = ({k: v['detections'] for k, v in results.items()}, [v['timing_ms']['call_ms'] for v in results.values()],
+                           len(items) - len(results), footer)
+    out = {}
+    for m, (dets, times, failed, footer) in methods.items():
+        r = dict(images=len(items), failed=failed, time_ms=score.summary(times), memory=(footer or {}).get('memory'),
+                 count_points=score.count_errors([(len(a[n]['points']), len(dets.get(n, []))) for n in items]))
+        if boxes:
+            r['boxes'] = score.score_box_images([(boxes.get(n, []), dets.get(n, [])) for n in items])
+            r['count_boxes'] = score.count_errors([(len(boxes.get(n, [])), len(dets.get(n, []))) for n in items])
+        out[m] = r
+    return out
+
+
+def summarize(args):
+    protocol = json.loads(args.protocol.read_text())
+    summary = dict(protocol_sha256=sha(args.protocol), created=now())
+    a = summarize_scenes(args.a) if args.a else None
+    c = summarize_scenes(args.c) if args.c else None
+    geco2_method = args.geco2_accuracy
+    if a:
+        summary['A'] = dict(table=a[1], failures=a[2], identity_round44=identity_round44(args.a))
+    if c:
+        summary['C'] = dict(table=c[1], failures=c[2])
+    b2 = None
+    if args.b2:
+        methods = summarize_b2(args.b2, args.annotations, args.boxes)
+        summary['B2'] = methods
+        b2 = dict(methods=methods, geco2_method=geco2_method, boxes_available=bool(args.boxes and args.boxes.exists()))
+    if args.b1:
+        summary['B1'] = summarize_b1(args.b1, args.fixtures, args.settings)
+    summary['hypotheses'] = hypotheses(a, c, b2, geco2_method)
+    args.output.mkdir(parents=True, exist_ok=True)
+    (args.output / 'summary.json').write_text(json.dumps(summary, indent=1, default=float) + '\n')
+    print(json.dumps({k: {kk: vv for kk, vv in v.items() if kk in ('pass', 'pass_', 'a_pass')} for k, v in summary['hypotheses'].items()}, indent=1))
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     sub = p.add_subparsers(dest='command', required=True)
@@ -563,9 +1113,35 @@ def main():
     c.add_argument('--build', type=Path, required=True)
     c.add_argument('--arm', default='ours_fullgpu_k3', choices=tuple(ARMS))
     c.add_argument('--output', type=Path, required=True)
+    r = sub.add_parser('run')
+    r.add_argument('--group', required=True, choices=('A', 'C', 'B1', 'B2'))
+    r.add_argument('--protocol', type=Path, required=True)
+    r.add_argument('--build', type=Path, required=True)
+    r.add_argument('--output', type=Path, required=True)
+    r.add_argument('--methods', nargs='+', default=list(SCENE_METHODS))
+    r.add_argument('--blocks', type=int, default=3)
+    r.add_argument('--phase', default='formal')
+    r.add_argument('--formal', action='store_true', help='hold this round\'s timing lock for the whole run')
+    r.add_argument('--scenes', type=Path, help='group C scenes directory')
+    r.add_argument('--fixtures', type=Path, help='B1 fixtures directory')
+    r.add_argument('--settings', nargs='+', default=['S1', 'S1_5', 'S2', 'S2_5'])
+    r.add_argument('--fsc-images', type=Path)
+    r.add_argument('--annotations', type=Path)
+    m = sub.add_parser('summarize')
+    m.add_argument('--protocol', type=Path, required=True)
+    m.add_argument('--a', type=Path)
+    m.add_argument('--c', type=Path)
+    m.add_argument('--b1', type=Path)
+    m.add_argument('--b2', type=Path)
+    m.add_argument('--fixtures', type=Path)
+    m.add_argument('--settings', nargs='+', default=['S1', 'S1_5', 'S2', 'S2_5'])
+    m.add_argument('--annotations', type=Path)
+    m.add_argument('--boxes', type=Path, help='FSCD-147 instances_test.json')
+    m.add_argument('--geco2-accuracy', default='geco2_cuda', help='method name whose GeCo2 outputs carry accuracy')
+    m.add_argument('--output', type=Path, required=True)
     args = p.parse_args()
     dict(**{'dev-tdcm-pipeline': dev_tdcm_pipeline, 'dev-tdcm-threshold': dev_tdcm_threshold,
-            'dev-ours-b2': dev_ours_b2})[args.command](args)
+            'dev-ours-b2': dev_ours_b2, 'run': run, 'summarize': summarize})[args.command](args)
 
 
 if __name__ == '__main__':

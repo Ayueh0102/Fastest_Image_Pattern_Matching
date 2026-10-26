@@ -1,0 +1,67 @@
+{
+ "numpy": "1.26.4",
+ "torch": "2.7.1",
+ "torchvision": "0.22.1",
+ "opencv": "4.11.0",
+ "seed": 42,
+ "dev_seed": 4242,
+ "settings": {
+  "S1": {
+   "list": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/stage50-external/b1-prefreeze/lists/S1.csv",
+   "list_sha256": "2659aeb96d5be0ee35a9d25c6fffb51d22e789206052a6d8b5c00b4b96e06278",
+   "rows": 129,
+   "images": 117,
+   "dev_rows": 27,
+   "eval_rows": 102,
+   "dev_images": 23,
+   "eval_images": 94,
+   "eval": {
+    "samples": 1000,
+    "retried": 163,
+    "seed": 42,
+    "truth_sha256": "9f07aba5cad16d0004e45ddc8b8370d640bcea4a4c9606d5ae785207a97e8a18"
+   },
+   "dev": {
+    "samples": 200,
+    "retried": 19,
+    "seed": 4242,
+    "truth_sha256": "9d72cb2db04885345feefec0aa9a4c879993975d7d45ea38c20c6d82a7b71c81"
+   }
+  },
+  "S2": {
+   "list": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/stage50-external/repos/tdcm/data/S2/val.csv",
+   "list_sha256": "6efe9191642bb4057ff5b37c0dd8e4fd377a0e0cb59e5e09e0a525fdb29ca3c2",
+   "rows": 9450,
+   "images": 2557,
+   "eval": {
+    "samples": 1000,
+    "retried": 180,
+    "seed": 42,
+    "truth_sha256": "a4d4d6da2b1b5669a43144b0cbd056119d0f8573037ce0728e994e1ad4e0ff27"
+   },
+   "author_log_check": {
+    "compared": 990,
+    "mismatched": 964,
+    "first_mismatch": {
+     "index": 26,
+     "log": [
+      "\u6837\u672c 26 -- 000000296649.jpg ",
+      "\u72b6\u6001: \u5339\u914d\u6210\u529f(GT vs. Pred)",
+      "center: (40.48,73.80) vs (40.93,72.86) \u8bef\u5dee: 1.04",
+      "angle: 176.42\u00b0 vs 171.21\u00b0 \u8bef\u5dee: 5.21\u00b0",
+      "scale_x: 0.556 vs 0.535 \u8bef\u5dee: 0.020",
+      "scale_y: 0.722 vs 0.677 \u8bef\u5dee: 0.045"
+     ],
+     "ours": {
+      "name": "000000296649.jpg",
+      "cx": 188.68834228061587,
+      "cy": 177.0602354737088,
+      "angle": 6.59867485094523,
+      "scale_x": 0.5555555555555556,
+      "scale_y": 0.7222222222222222
+     }
+    }
+   }
+  }
+ }
+}

@@ -1,0 +1,115 @@
+{
+ "rule": "smaller sum of relative differences to the paper S1 row (mIoU, Succ, Loc.Err, Rot.Err); tie -> test_single",
+ "paper_s1": {
+  "loc_err": 0.44,
+  "rot_err": 1.03,
+  "miou": 0.955,
+  "succ": 99.6
+ },
+ "fixtures": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/stage50-external/b1-prefreeze/S1-dev",
+ "truth_sha256": "9d72cb2db04885345feefec0aa9a4c879993975d7d45ea38c20c6d82a7b71c81",
+ "pipelines": {
+  "test_single": {
+   "status": "ok",
+   "metrics": {
+    "samples": 200,
+    "successes": 200,
+    "succ": 100.0,
+    "miou": 0.9258715373797467,
+    "loc_err": 0.495084844026991,
+    "rot_err": 1.9763547477288599
+   },
+   "distance": 1.0785009167829065,
+   "worker": {
+    "code": 0,
+    "stdout": "",
+    "wall_ms": 17113.096084009157,
+    "host": {
+     "utc": "2026-10-26T12:42:40.983334+00:00",
+     "load1": 2.751953125,
+     "busy": []
+    },
+    "lock_wait_s": 0,
+    "cmd": [
+     "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/stage50-external/envs/tdcm-py312/bin/python",
+     "-I",
+     "/Users/Ayueh/Fastest_Image_Pattern_Matching/.claude/worktrees/round50-literature-comparison-e95d80/cpp-core/tools/literature_tdcm_worker.py",
+     "--repo",
+     "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/stage50-external/repos/tdcm",
+     "--weights",
+     "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/stage50-external/repos/tdcm/dict/model.pth",
+     "--batch",
+     "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/stage50-external/dev/tdcm-pipeline/items.json",
+     "--device",
+     "cpu",
+     "--pipeline",
+     "test_single",
+     "--threads",
+     "8",
+     "--output",
+     "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/stage50-external/dev/tdcm-pipeline/test_single.jsonl"
+    ]
+   },
+   "footer": {
+    "memory": {
+     "peak_rss_bytes": 608878592
+    },
+    "items": 200
+   },
+   "output_sha256": "4602d8fd1b13856ebfe7bc47cf08099cf33c537e7bdf6e4b307255f13ae8c3b7"
+  },
+  "test_py": {
+   "status": "ok",
+   "metrics": {
+    "samples": 200,
+    "successes": 200,
+    "succ": 100.0,
+    "miou": 0.9368883448449687,
+    "loc_err": 0.5676015565882105,
+    "rot_err": 0.8904362915517193
+   },
+   "distance": 0.44848343195576845,
+   "worker": {
+    "code": 0,
+    "stdout": "",
+    "wall_ms": 20241.24762500287,
+    "host": {
+     "utc": "2026-10-26T12:42:58.141994+00:00",
+     "load1": 2.8857421875,
+     "busy": []
+    },
+    "lock_wait_s": 0,
+    "cmd": [
+     "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/stage50-external/envs/tdcm-py312/bin/python",
+     "-I",
+     "/Users/Ayueh/Fastest_Image_Pattern_Matching/.claude/worktrees/round50-literature-comparison-e95d80/cpp-core/tools/literature_tdcm_worker.py",
+     "--repo",
+     "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/stage50-external/repos/tdcm",
+     "--weights",
+     "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/stage50-external/repos/tdcm/dict/model.pth",
+     "--batch",
+     "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/stage50-external/dev/tdcm-pipeline/items.json",
+     "--device",
+     "cpu",
+     "--pipeline",
+     "test_py",
+     "--threads",
+     "8",
+     "--output",
+     "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/stage50-external/dev/tdcm-pipeline/test_py.jsonl"
+    ]
+   },
+   "footer": {
+    "memory": {
+     "peak_rss_bytes": 610189312
+    },
+    "items": 200
+   },
+   "output_sha256": "21e909be8d9f542963536cd5e1d1eb59023a2295c0a0a5b7479dc23eae1ce1f5"
+  }
+ },
+ "choice": "test_py",
+ "secondary": [
+  "test_single"
+ ]
+}

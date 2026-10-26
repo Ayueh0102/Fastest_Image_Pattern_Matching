@@ -16,6 +16,7 @@ import argparse
 import json
 import math
 from pathlib import Path
+import resource
 import time
 
 import cv2
@@ -114,6 +115,7 @@ def main():
                candidates=len(candidates),
                timing_ms=dict(search=search_ms, nms=nms_ms, per_map_median=float(np.median(map_ms)) if map_ms else None,
                               extrapolated_full_search=float(np.median(map_ms)) * planned if map_ms else None),
+               memory=dict(peak_rss_bytes=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss),
                detections=kept, count=len(kept))
     text = json.dumps(out, indent=1)
     if args.output:
