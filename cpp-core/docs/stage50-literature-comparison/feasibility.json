@@ -1,0 +1,175 @@
+{
+ "round": 50,
+ "phase": "1-feasibility",
+ "date": "2026-10-26",
+ "branch": "claude/round50-literature-comparison-e95d80",
+ "base_commit": "8f0e6a9",
+ "host": "Apple M4 Pro, 48 GiB, macOS 27 (Darwin 27.0.0)",
+ "timing_evidence": false,
+ "timing_note": "Smoke runs only: one fresh process, no warm-up protocol, shared machine. No number here may be cited as a speed result.",
+ "status": "partial: third-party smoke runs (TDCM, GeCo2) not executed; running their repository code in this session needs the user's approval",
+ "external_root": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/stage50-external (git-ignored)",
+ "methods": {
+  "ours_core": {
+   "build": "build/stage50-ours (Release, GUI+experiments+OpenCV) from 8f0e6a9",
+   "entry": "fpm_cli --subpixel --angle 180 --overlap 0.2",
+   "device": "cpu (UDOT dot product)",
+   "smoke": "ok on both pairs; fixed scale only, so many128 (scales 0.72-1.25) finds 48/128, 13 strict"
+  },
+  "ours_research": {
+   "build": "build/stage50-ours",
+   "entry": "experiments/fpm_native_pipeline_runner, CURRENT_BEST round-44 job settings",
+   "arms": ["hybrid k0", "hybrid k3", "full_gpu peak2/fine4 k0", "full_gpu peak2/fine4 k3"],
+   "device": "Metal (full GPU) or CPU+Metal (hybrid)",
+   "smoke": "ok on both pairs; many128 128/128 strict (2 px / 1 deg / 2 %), 0 FP on every arm"
+  },
+  "opencv_matchtemplate": {
+   "tool": "cpp-core/tools/literature_opencv_worker.py (python-port/venv, OpenCV 4.13.0)",
+   "definition": "TM_CCOEFF_NORMED with a rotated-rectangle mask, template rotated per angle (1 deg grid) and scale, local maxima >= score, fpm-style rotated NMS",
+   "device": "cpu",
+   "smoke": "ok; tdcm_demo 360 maps 0.9 ms each; many128 6 of 1080 maps run, 1.1 s per 4096x4096 map, full search extrapolates to about 20 min per scene"
+  },
+  "tdcm": {
+   "repo": "https://github.com/ZhouJ6610/PoseMatch-TDCM",
+   "commit": "a6adc3a74fcf38ddbe4beb49e4bc76be07f848a2",
+   "commit_date": "2025-10-01",
+   "license": "MIT (repository LICENSE, covers dict/model.pth shipped in the repo)",
+   "paper": "arXiv 2510.01678, Expert Systems with Applications 2026",
+   "weights": {
+    "present": true,
+    "path": "dict/model.pth (in git, not a release asset)",
+    "sha256": "4bbd7178908332a7b036b2f3893d6a664c5fa144955b93a85f0a03524768dc02",
+    "bytes": 3224065,
+    "archive_name": "model_epoch_30_soft_",
+    "stored_float32_elements": 795301,
+    "paper_parameter_claim": "3.07M",
+    "note": "stored tensors (parameters plus BatchNorm buffers) are about 0.80M elements; the README/paper figure of 3.07M is not reproduced by this checkpoint and stays unexplained",
+    "template_input": "36x36 (template resized); scale heads sigmoid*1.5+0.5, so 0.5-2.0 relative to 36 px",
+    "other_checkpoints": "none published (no S2.5-range or 12x12 / 28x52 / 124x124 template models of Table 3)"
+   },
+   "env": "build/stage50-external/envs/tdcm-py312: Python 3.12.12, torch 2.7.1, torchvision 0.22.1, timm 1.0.15, opencv-python-headless 4.11.0.86, numpy 1.26.4 (the repo pins no versions)",
+   "device_plan": "M4 Pro CPU (same machine as ours); MPS as a secondary check",
+   "worker": "cpp-core/tools/literature_tdcm_worker.py (copies test_single.py: RGB, ImageNet normalisation, arg-max + get_center, angle bisection and scale refinement)",
+   "smoke": "not run: the session's permission classifier blocked executing third-party repository code; pending the user's approval",
+   "protocol_findings": [
+    "published code is single-target (arg-max); res/result-multi.txt exists but its multi-target script is not in the repo",
+    "official eval resizes search images to 224x224 (no-op for its 224x224 crops); arbitrary images need native-size inference",
+    "only data/S2/val.csv (9,450 rows, COCO val2017) is published; test_single.py evaluates its first 1,000 samples with seed 42",
+    "test_single.py denormalises with *0.5+0.5 and converts RGB with COLOR_BGR2GRAY before refinement; the worker keeps this as published"
+   ]
+  },
+  "geco2": {
+   "repo": "https://github.com/jerpelhan/GECO2",
+   "commit": "67d27e8a93f14226f94d1f2c5c6dab5b5dd7162b",
+   "commit_date": "2026-10-12",
+   "license": "MIT (root, with an additional notice); Deformable-DETR/ Apache-2.0; sam2/ Apache-2.0 plus LICENSE_cctorch BSD-3-Clause",
+   "paper": "AAAI 2026, arXiv 2511.08048",
+   "weights": [
+    {"name": "GECO2FSCD.pth", "role": "FSCD-147 benchmark weights (README links Google Drive 1OG6-tTP2Egvx-O5oK6lxPzvQO1LWgHbb)",
+     "source": "https://huggingface.co/datasets/jerpelhan/geco2-assets (author's asset repo) revision ed3c8ff3753e731fd7074862c0ea49d908785335",
+     "bytes": 301292745, "sha256": "945c5d838a058aa970582291b12325e0819bbf445768f433162b2c8b608f512b", "sha256_matches_hf_lfs_oid": true,
+     "google_drive_copy_compared": false},
+    {"name": "CNTQG_multitrain_ca44.pth", "role": "Gradio demo weights",
+     "source": "same Hugging Face revision", "bytes": 350785678,
+     "sha256": "7841dcfd2d0120e65b40a5c6dd1dfcb014df350a34f320d2fd000dc5f4c005e7", "sha256_matches_hf_lfs_oid": true},
+    {"name": "sam2_hiera_base_plus.pt", "role": "SAM2 backbone and mask decoder that GeCo2 fetches through torch.hub",
+     "source": "https://dl.fbaipublicfiles.com/segment_anything_2/072824/sam2_hiera_base_plus.pt", "bytes": 323493298,
+     "sha256": "d0bb7f236400a49669ffdd1be617959a8b1d1065081789d7bbff88eded3a8071", "license": "Apache-2.0 (SAM 2 checkpoints)"}
+   ],
+   "weights_license": "Hugging Face asset repo has no dataset card or licence; treated as research use, not redistributed",
+   "env": "build/stage50-external/envs/geco2-py312: Python 3.12.12 (install.sh uses 3.10), torch 2.7.1, torchvision 0.22.1 (as install.sh), hydra-core 1.3.2, scikit-image 0.25.2, pycocotools 2.0.8, numpy 1.26.4; no gradio, no detectron2",
+   "device_plan": "M4 Pro CPU / MPS with the PyTorch reference deformable attention; CUDA (lab 2x RTX 6000 Ada) only if CPU/MPS fail or for a kernel-equivalence check",
+   "worker": "cpp-core/tools/literature_geco2_worker.py (demo_gradio.py preprocessing, inference.py post-processing, threshold 0.11, NMS 0.5)",
+   "smoke": "not run: same permission block as TDCM; pending the user's approval",
+   "protocol_findings": [
+    "MultiScaleDeformableAttention is a CUDA-only extension; CPU/MPS needs ms_deform_attn_core_pytorch from the same Deformable-DETR file (numerically a reference, slower)",
+    "official thresholds differ: inference.py (FSCD evaluation) keeps box_v > 0.11*max, the Gradio demo default is 0.33",
+    "input resized so the longer side is 1024 px and the mean exemplar at most 80 px: 4096/8K scenes are shrunk 4-8x before detection",
+    "exemplars are boxes inside the query image (any number); there is no separate template image, so empty-scene and wrong-template controls are undefined for GeCo2",
+    "official AP evaluation (eval_bboxes.py) needs detectron2; the round uses literature_score.py instead"
+   ]
+  }
+ },
+ "downloads": [
+  {"item": "FSC-147 images (FSC147_384_V2.zip)", "source": "https://drive.google.com/file/d/1ymDYrGs9DSRicfZbSCDiOu0ikGDh5k6S (LearningToCountEverything README)",
+   "dir": "data/fsc147-images-gdrive", "bytes": 1533803725, "sha256": "4f9eff24c39f956d614abdb8888f9f7ae84cce92f81842e4159de45cd54d965f",
+   "integrity": "gdown resume after the network cut; unzip -t: no CRC errors; 6,146 images + 6,146 density maps",
+   "license": "code repo MIT; no image licence stated by the authors (photos collected from the web)"},
+  {"item": "FSC-147 annotations", "source": "github.com/cvlab-stonybrook/LearningToCountEverything @ 00ea1888c3a7c495ae06db0bddc3b90b7db8d52f data/",
+   "dir": "data/fsc147-annotations-github", "files": {
+    "annotation_FSC147_384.json": {"bytes": 45572561, "sha256": "6a1d0f43d12274219a5307cb35b24c85fb275a34b3d5acf5b67f2066f9e0bfe1", "git_blob": "bc97805951dab999aca083b4de1e5a28de940213"},
+    "Train_Test_Val_FSC_147.json": {"bytes": 133002, "sha256": "e281e2d9118cd9ae6f5a2852006b6a24e7a7ea5605d9a6e0fa946dcf93308271", "git_blob": "aaa929a5c59d23eef73484c5270fa0307f1ef0bf"},
+    "ImageClasses_FSC147.txt": {"bytes": 108423, "sha256": "ba1bc6c6a21875919625adb851eaee1aab0ad1f88ecf64d017bebda891b5815e", "git_blob": "0a64ab55f0308f597bb7a423153c24d2042ebdb4"}},
+   "integrity": "git blob SHA-1 equals the tree listing for every file", "license": "MIT (repository)"},
+  {"item": "COCO val2017 images", "source": "http://images.cocodataset.org/zips/val2017.zip", "dir": "data/coco-val2017-images",
+   "bytes": 815585330, "sha256": "4f7e2ccb2866ec5041993c9cf2a952bbed69647b115d0f74da7ce8f4bef82f05",
+   "integrity": "curl resume; size equals Content-Length; unzip -t: no CRC errors; 5,000 images",
+   "license": "images under Flickr terms of use (COCO terms)"},
+  {"item": "COCO 2017 train/val annotations", "source": "http://images.cocodataset.org/annotations/annotations_trainval2017.zip", "dir": "data/coco-annotations-trainval2017",
+   "bytes": 252907541, "sha256": "113a836d90195ee1f884e704da6304dfaaecff1f023f49b6ca93c4aaae470268",
+   "integrity": "curl resume; size equals Content-Length; unzip -t: no CRC errors",
+   "license": "CC BY 4.0 (COCO Consortium)", "reason": "B1 needs instances_val2017.json to regenerate S1.5/S2.5 lists and check S2"},
+  {"item": "GeCo2 weights and SAM2 checkpoint", "see": "methods.geco2.weights", "dir": "data/geco2-weights-hf, data/sam2-hiera-base-plus"}
+ ],
+ "not_downloaded": [
+  {"item": "FSCD-147 box annotations (Counting-DETR)", "reason": "both official Google Drive folders return 404 (14qzZaV4S8EBUj3yEkgrDQC7iErHxSPjl, 1tlHZIg6X3jp6qARTxKh0kMsNvuIQop9P); the GeCo README copy (1Jvr2Bu2cD_yn4W_DjKIW6YjdAiUsw_WA) requires a Google sign-in",
+   "terms": "research or educational use only, no redistribution in any form, cite the paper",
+   "alternatives": [
+    "third-party mirror https://huggingface.co/datasets/ChipmunkG4/FSCD-147_FSCD-LVIS_temp FSCD_147.zip, 1,552,158,410 bytes, LFS sha256 d40ab2224cb41a4ee0b4fd2babbd3a870452360bfb1abfdcf2421654b81c6c63, uploaded 2026-10-15, no README or licence (not approved; verification would need image identity with the official FSC-147 zip and a reproduction of GeCo2's published FSCD-147 numbers)",
+    "OpenDataLab FSCD-LVIS raw archive, said to contain FSCD_147.zip (needs an account; the user would download it)",
+    "ask the Counting-DETR authors for a working link",
+    "drop AP50 and keep counting plus point-based localisation on FSC-147"]},
+  {"item": "COCO train2017 (about 18 GB)", "reason": "only needed to retrain TDCM; not needed for the published 36x36 checkpoint"},
+  {"item": "GeCo2 FSCD weights from Google Drive", "reason": "the author's Hugging Face copy was used; comparing it with the Drive copy would cost another 301 MB and was skipped"}
+ ],
+ "b1_feasibility": {
+  "s2_list": "data/S2/val.csv ships with the repo (9,450 rows, 2,557 images; first 1,000 rows cover 261 images); data/S2/train.csv has 216,786 rows from 59,514 train2017 images",
+  "regeneration_check": "re-running filterData.py's rule (floor x,y; ceil w,h; 0.5 <= w/36, h/36 <= 2) on instances_val2017.json gives 9,459 rows: the same order plus 9 extra rows with no shared attribute (not crowd, not a scale or border case). Use the published file for S2.",
+  "s1_5_rows": 2469,
+  "s2_5_rows": 13567,
+  "s1": "undefined in code: the literal rule scale_range=(1,1) leaves 3 boxes, so the paper's S1 was built another way",
+  "pair_generation": "utils/get_imgR.rotate_crop (uniform angle in [-180,180), 224x224 crop containing the box, up to 10 attempts) via CoCo_Dataset, seeded random/numpy/torch 42 in test_single.py; deterministic for a fixed numpy version, so fixtures can be generated once with the authors' code and frozen",
+  "scale_semantics": "GT scale_x = w/36 and scale_y = h/36 of the template crop: anisotropic whenever w != h. fpm searches one isotropic scale list",
+  "template_sizes": "Table 3 (12x12, 28x52, 124x124) needs retrained checkpoints that are not published; with the 36x36 checkpoint a 12 px object is scale 0.33, below the 0.5 floor of the scale head",
+  "multi_instance": "paper protocol (320x320, 4x4 grid, pasted 36x36 templates) has no released code; it would be a reimplementation from the text",
+  "feasible": "S2 yes (official list); S1.5 and S2.5 by the published rule (S2.5 partly outside the checkpoint's scale range); S1 and Table 3 template sizes need a decision"
+ },
+ "b2_feasibility": {
+  "fsc147_test_images": 1190,
+  "image_height_px": 384,
+  "exemplars_per_image": [3, 4, 5],
+  "exemplar_boxes_out_of_bounds": 0,
+  "exemplar_min_side_px": {"min": 2, "p10": 19, "median": 46, "max": 184, "share_below_12": 0.0276, "share_below_16": 0.0573},
+  "points_per_image": {"min": 8, "median": 36.5, "max": 3701, "sum": 78836},
+  "format": "FSC-147 exemplars are 4-corner polygons [[x0,y0],[x0,y1],[x1,y1],[x1,y0]] on the 384-height images; FSCD-147 boxes would be COCO instances JSON (xywh). literature_score.py takes x0,y0,x1,y1 boxes, so both convert directly",
+  "without_fscd": "counting MAE/RMSE from FSC-147 points works now; box AP50 (H2) needs FSCD-147"
+ },
+ "scorer": {
+  "tool": "cpp-core/tools/literature_score.py (stdlib only)",
+  "tests": "cpp-core/tests/test_literature_score.py, 12 tests, pass",
+  "checks": ["pose corner convention equals the round-37 generator truth corners", "strict 2 px / 1 deg / 2 % per axis, inclusive", "one-to-one greedy matching by score", "COCO 101-point AP50", "count MAE/RMSE and empty-scene false positives"]
+ },
+ "angle_convention_check": "TDCM demo GT angle -50 (cv2.getRotationMatrix2D, counter-clockwise on screen); fpm reports -49.0 on the same image: same sign convention",
+ "smoke_summary": "phase1-smoke-summary.json",
+ "incidents": [
+  {"what": "network cut about 11:15-17:39 local time", "effect": "FSC-147, COCO images and annotations, GECO2FSCD and SAM2 downloads stalled or failed; both environment installs failed on DNS",
+   "handling": "stalled processes killed; downloads resumed (gdown resume, curl -C -) and verified by Content-Length, CRC and published hashes; environments reinstalled"},
+  {"what": "timing-lock overlap", "effect": "one fpm_native_pipeline_runner smoke process (about 0.4 s construct, under 1 s total) ran at 09:50:07Z while round 49's dev_calibrate lock (from 09:48:35Z) existed",
+   "handling": "disclosed to the round-49 session; literature_smoke.py now refuses to start any worker while a lock exists"},
+  {"what": "permission block", "effect": "executing TDCM / GeCo2 repository code was denied by the session's auto-mode classifier", "handling": "not worked around; smoke for both pending the user's approval"}
+ ],
+ "disk_bytes_approx": {"external_total": "11 GB", "fsc147_extracted_density_maps_unused": "4.7 GB (removable, zip kept)", "envs": "1.3 GB", "stage50-ours build": "35 MB", "free_after": "95 GiB"},
+ "phase2_recommendations": [
+  "TDCM has official weights: no retraining for the 36x36 model; record the 0.80M vs 3.07M parameter mismatch",
+  "H3 cannot be tested as written (12x12 template model not published): rewrite it as small objects under the official 36x36 checkpoint, retrain (COCO train2017 18 GB plus unreported GPU time), or drop it with the reason",
+  "TDCM multi-object scenes (A, C) need a non-official peak extractor on its score map; label it TDCM-adapted, or limit TDCM to single-target pairs",
+  "B1: run two template variants, the native crop and the 36x36 crop TDCM actually sees, with fpm searching isotropic scales over the setting's range; score anisotropic sx/sy separately",
+  "B1: S2 from the published list; S1.5/S2.5 by the published rule; define S1 before registration; generate the 1,000-sample fixtures once with the authors' rotate_crop (seed 42) and freeze them",
+  "B2: decide the FSCD-147 source (mirror with verification, user download from OpenDataLab, author request, or counting-only)",
+  "GeCo2: register GECO2FSCD.pth with threshold 0.11 as the official benchmark setting; exemplars = enclosing boxes of 3 GT instances in A/C scenes, and declare whether those 3 count; empty-scene and wrong-template controls N/A",
+  "GeCo2 on Mac uses the PyTorch reference deformable attention: check outputs against the CUDA kernel on the lab GPU before trusting Mac accuracy; time GeCo2 on CUDA and only juxtapose",
+  "OpenCV baseline costs about 20 min per 4096x4096 scene at 1 deg x 3 scales: run it fully on B1 crops and small scenes, extrapolate or cap large scenes",
+  "Report the stable core only on fixed-scale scenes",
+  "Add the round-49 option as an extra arm after it is merged into main"
+ ]
+}
