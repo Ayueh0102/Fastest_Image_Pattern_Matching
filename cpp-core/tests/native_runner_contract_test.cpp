@@ -5,6 +5,8 @@
 // fallback windows per level and per call. --sequence-gaps: source sequences
 // decode, skip or sleep between calls and can repeat one frame without
 // updating the source (CPU search, so no Metal device is needed).
+// --pyramid-rule: the opt-in rule reports one decision per scale model, keeps
+// the output without it, and rejects invalid or orphaned rule keys.
 #include "metal_device.hpp"
 #include <QCoreApplication>
 #include <QFile>
@@ -14,6 +16,7 @@
 #include <QJsonObject>
 #include <QTemporaryDir>
 #include <algorithm>
+#include <cmath>
 #include <cstdlib>
 #include <iostream>
 #include <random>
@@ -59,7 +62,7 @@ void jobKeys(const QString& runner,const QTemporaryDir& dir) {
         {"full_gpu_fine_mode",0},{"full_gpu_peak_batch",0},{"full_gpu_peak_mode",0},{"full_gpu_profiling",false},{"gray_load_mode","direct_gray8"},
         {"invert_source",false},{"limit",4},{"min_area",256},{"ncc_mode",0},{"overlap",.2},{"overlap_enabled",false},
         {"pose_input_mode",0},{"pose_resident_mode",0},{"pose_storage_mode",0},{"proposal_method","pyramid"},
-        {"proposal_score",.5},{"refine",false},{"refinement_backend",-1},{"repeats",1},{"run_resource_diagnostics",false},
+        {"proposal_score",.5},{"pyramid_rule",1},{"pyramid_rule_min_score",.5},{"refine",false},{"refinement_backend",-1},{"repeats",1},{"run_resource_diagnostics",false},
         {"scale_support_refine",false},{"scales",QJsonArray{1.}},{"score",.8},{"sequence_gap","sleep"},
         {"sequence_gap_sleep_ms",5.},{"sequence_mode","reuse"},{"soak_seconds",0},
         {"source",missing},{"source_frames",QJsonArray{missing}},{"sparse_angle_step",6.},{"sparse_candidate_limit",256},
@@ -203,19 +206,62 @@ void sequenceGaps(const QString& runner,const QTemporaryDir& dir) {
     reject("static-two-frames",{{"sequence_mode","static"},{"source_frames",QJsonArray{frame,frame}}},
         "Static sequences repeat exactly one source frame");
 }
+void pyramidRule(const QString& runner,const QTemporaryDir& dir) {
+    // Stripes with an 8 px period: depth 2 at min_area 256, aliased at the 11x8 top level.
+    QImage templ(44,30,QImage::Format_Grayscale8),source(140,80,QImage::Format_Grayscale8);
+    for(int y=0;y<templ.height();++y) for(int x=0;x<templ.width();++x)
+        templ.scanLine(y)[x]=uchar(std::clamp(int(std::lround(128+70*std::sin(.8*x+.6*y)+30*std::cos(.5*x-.7*y))),0,255));
+    source.fill(118);
+    for(int y=0;y<templ.height();++y) std::copy_n(templ.constScanLine(y),templ.width(),source.scanLine(y+12)+10);
+    require(templ.save(dir.filePath("rule-template.png")) && source.save(dir.filePath("rule-source.png")),"Cannot write runner images");
+    const QJsonObject base{{"source",dir.filePath("rule-source.png")},{"template",dir.filePath("rule-template.png")},
+        {"backend",0},{"refinement_backend",0},{"refine",false},{"angle",0},{"scales",QJsonArray{.95,1.}},{"limit",2},
+        {"score",.8},{"stop_layer",0},{"min_area",256},{"repeats",1},{"warmup_seconds",0}};
+    auto call=[&](const QString& name,QJsonObject changes,int code) {
+        auto job=base;for(auto it=changes.begin();it!=changes.end();++it) job[it.key()]=it.value();
+        const auto result=run(runner,dir,name,job);
+        require(result.code==code,name.toStdString()+": unexpected exit, stderr "+result.err.toStdString());
+        return std::make_pair(QJsonDocument::fromJson(result.out).object(),result.err.trimmed().toStdString());
+    };
+    const auto off=call("rule-off",{},0).first;
+    require(!off.contains("pyramid_rule"),"Rule-off output gained a pyramid_rule key");
+    const auto keep=call("rule-keep",{{"pyramid_rule",1},{"pyramid_rule_min_score",-1}},0).first;
+    require(keep["first"].toObject()["matches"]==off["first"].toObject()["matches"],"Unreachable rule changed the matches");
+    const auto on=call("rule-on",{{"pyramid_rule",1},{"pyramid_rule_min_score",.5}},0).first;
+    const auto report=on["pyramid_rule"].toObject();const auto models=report["models"].toArray();
+    require(report["min_score"].toDouble()==.5 && models.size()==2,"Rule report lacks its threshold or one model per scale");
+    for(int i=0;i<2;++i) {
+        const auto model=models[i].toObject();
+        require(model["scale"].toDouble()==(i?1.:.95),"Rule models are not in scale order");
+        require(model["predicted_scores"].toArray().size()==model["original_top"].toInt()+1,"Predicted scores do not cover every level");
+        require(model["selected_top"].toInt()<=model["original_top"].toInt(),"Rule deepened the pyramid");
+    }
+    const auto upright=models[1].toObject();
+    require(upright["original_top"].toInt()==2 && upright["selected_top"].toInt()<2 && upright["effective_min_area"].toInt()!=256,
+        "Fine stripes kept the original top level");
+    const std::string orphan="pyramid_rule_min_score requires pyramid_rule 1";
+    require(call("orphan",{{"pyramid_rule_min_score",.5}},1).second==orphan,"Orphaned threshold was not rejected");
+    require(call("orphan-zero",{{"pyramid_rule",0},{"pyramid_rule_min_score",.5}},1).second==orphan,"Threshold with rule 0 was not rejected");
+    require(call("bad-mode",{{"pyramid_rule",2}},1).second=="pyramid_rule must be 0 or 1","Invalid rule mode was not rejected");
+    require(call("bool-mode",{{"pyramid_rule",true}},1).second=="pyramid_rule must be 0 or 1","Boolean rule mode was not rejected");
+    require(call("bad-score",{{"pyramid_rule",1},{"pyramid_rule_min_score",2}},1).second=="pyramid_rule_min_score must be a number in [-1, 1]",
+        "Out-of-range threshold was not rejected");
+}
 }
 int main(int argc,char** argv) {
     QCoreApplication app(argc,argv);
     try {
         const std::string mode=argc==3 ? argv[1]:"";
-        require(mode=="--job-keys" || mode=="--fine-windows" || mode=="--sequence-gaps",
-            "Usage: native_runner_contract_test --job-keys|--fine-windows|--sequence-gaps runner");
+        require(mode=="--job-keys" || mode=="--fine-windows" || mode=="--sequence-gaps" || mode=="--pyramid-rule",
+            "Usage: native_runner_contract_test --job-keys|--fine-windows|--sequence-gaps|--pyramid-rule runner");
         if(mode=="--fine-windows" && !fpm_test::metalDeviceAvailable()) { std::cout<<"SKIP: no Metal device\n";return 77; }
         QTemporaryDir dir;require(dir.isValid(),"Cannot create temporary directory");
         const QString runner=QString::fromLocal8Bit(argv[2]);
-        if(mode=="--job-keys") jobKeys(runner,dir); else if(mode=="--fine-windows") fineWindows(runner,dir); else sequenceGaps(runner,dir);
+        if(mode=="--job-keys") jobKeys(runner,dir); else if(mode=="--fine-windows") fineWindows(runner,dir);
+        else if(mode=="--pyramid-rule") pyramidRule(runner,dir); else sequenceGaps(runner,dir);
         std::cout<<"Native runner "<<(mode=="--job-keys" ? "rejects unknown job keys before decoding and accepts every listed key":
             mode=="--fine-windows" ? "reports mode-4 SIMD32/fallback windows per level and per call":
+            mode=="--pyramid-rule" ? "reports opt-in pyramid rule decisions per scale and rejects invalid rule keys":
             "decodes, skips or sleeps between sequence calls and repeats a static frame without updating it")<<'\n';
         return 0;
     } catch(const std::exception& error) { std::cerr<<error.what()<<'\n';return 1; }

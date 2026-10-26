@@ -1,0 +1,748 @@
+{
+  "stage": 49,
+  "decision": {
+    "recommendation": "not recommended; kept as an opt-in research option (Settings::pyramidRule, default 0); no default changes",
+    "rule": "Recommend the rule as a research option only if H1, H2, H2r, H5 and H6 pass and at least one of H3/H7 passes. Otherwise keep it as a retained, not recommended option. Defaults never change.",
+    "verdicts": {
+      "H1": false,
+      "H2": false,
+      "H2r": false,
+      "H3": false,
+      "H4": false,
+      "H5": true,
+      "H7": false,
+      "H6": true
+    }
+  },
+  "verdict_details": {
+    "H1": {
+      "passed": false,
+      "missed_by_original": 111,
+      "recovered": 0,
+      "cases_worse_by_more_than_one": []
+    },
+    "H2": {
+      "passed": false,
+      "sufficient": 30,
+      "kept": 19,
+      "kept_identical": 19,
+      "changed": [
+        "fsc1944b1",
+        "fsc1944b2",
+        "fsc2928b1",
+        "fsc7222b2",
+        "fsc7263b0",
+        "fsc7263b1",
+        "fsc7417b0",
+        "fsc7417b1",
+        "fsc7417b2",
+        "proc49201",
+        "stage35_heldout"
+      ],
+      "time_ratio": 1.4052082627240308
+    },
+    "H2r": {
+      "passed": false,
+      "kept_depth": false,
+      "tp": 98,
+      "expected": 98,
+      "time_ratio": 1.4877894529476638
+    },
+    "H3": {
+      "passed": false,
+      "adaptive_tp": 3025,
+      "budget_tp": 3058,
+      "time_ratio": 0.9895365322246936
+    },
+    "H4": {
+      "passed": false,
+      "adaptive_tp": 3025,
+      "stage35_tp": 3130,
+      "time_ratio": 0.48172465227136885
+    },
+    "H5": {
+      "passed": true,
+      "negative_fp": {
+        "original": 0,
+        "stage35_manual": 0,
+        "adaptive": 0,
+        "budget": 0,
+        "fixed512": 0
+      }
+    },
+    "H7": {
+      "passed": false,
+      "adaptive_tp": 3025,
+      "fixed512_tp": 3040,
+      "time_ratio": 0.7779023938495699
+    },
+    "H6": {
+      "passed": true,
+      "positive_fp": {
+        "original": 0,
+        "stage35_manual": 0,
+        "adaptive": 0,
+        "budget": 0,
+        "fixed512": 0
+      }
+    }
+  },
+  "failures": [
+    {
+      "id": "H1",
+      "summary": "0 of 111 objects recovered on the two deficient holdout templates (fsc2931b0 2/98, fsc2931b1 83/98): the rule kept their depth (predicted 0.649/0.619 at the original top level)"
+    },
+    {
+      "id": "H2",
+      "summary": "the rule changed 11 of 30 sufficient templates; summed time on sufficient templates 1.405x the original; the 19 kept templates were output-identical"
+    },
+    {
+      "id": "H2r",
+      "summary": "the round-35 heldout template (FSC7417 exemplar 0) was moved from top 3 to top 2: still 98/98 but 1.488x the original time, the round-35 slow-down this round wanted to avoid"
+    },
+    {
+      "id": "H3",
+      "summary": "equal-time budget 0.40/200 found 3058 vs adaptive 3025 at 0.990x its time"
+    },
+    {
+      "id": "H4",
+      "summary": "round-35 manual setting found 3130 vs adaptive 3025 (tolerance 63); adaptive time 0.482x"
+    },
+    {
+      "id": "H7",
+      "summary": "template-agnostic fixed512 found 3040 vs adaptive 3025; adaptive time 0.778x"
+    },
+    {
+      "id": "dev_predictions",
+      "summary": "development predicted H1 fail (65% recovered), H2 fail, H7 tie; holdout: H1 0%, H2 fail, H7 fail (TP), so the development sweep was optimistic for H1"
+    },
+    {
+      "id": "objective_r0",
+      "summary": "the threshold objective committed before the sweep (R0) chose 0.75 at 8.2x development time; replaced by R1 (2x cap) before the holdout existed; R0 ran as adaptive_r0: 3136/3136 at 10.30x the original time"
+    },
+    {
+      "id": "dev_sweep_refused",
+      "summary": "first dev_sweep start refused by the host gate (mediaanalysisd 106% CPU, load 4.3); log kept as dev-sweep-refused-host.log in validation-logs"
+    },
+    {
+      "id": "pre_measurement_attempt1",
+      "summary": "first pre-measurement ctest/harness in build/stage49-release failed gui_workflow and 7 Python tests: the frozen tree lacked Test Images; rerun after extracting it from the same commit passed"
+    },
+    {
+      "id": "host_formal",
+      "summary": "formal window 2026-10-26T09:57:23.261860+00:00 to 2026-10-26T10:10:56.352310+00:00: no timing-lock waits; processes >=100% CPU before workers: {'mediaanalysisd': 1194, 'node': 340, 'chrome-headless-': 327, 'Codex (Renderer)': 192, 'com.apple.WebKit': 5, 'PerfPowerService': 2}; 1-minute load > 6 before 624 of 1396 workers (max 14.12); only 92 workers were quiet. Every failed verdict fails on a load-independent criterion (TP, kept depth); see validation host-sensitivity.json"
+    },
+    {
+      "id": "host_calibrate",
+      "summary": "dev_calibrate: mediaanalysisd before 311/400 workers; round 50 runner smoke at 09:50:07Z overlapped (3 workers saw fpm_native_pipeline_runner); three Python files were edited during the run (source fingerprint changed, binaries and inputs did not). Round 50 later confirmed one <1 s fpm_native_pipeline_runner smoke at ~09:50:07Z inside our lock. Post hoc (no rerun): without the two fsc1924b2 cases whose workers saw it the budget choice stays 0.40/200; without all 22 cases that ran 09:49:30-09:50:30Z it would be 0.35/200 (narrow margin, large cases). 0.35/200 was not run on the holdout (validation/calibrate-overlap-sensitivity.json)"
+    }
+  ],
+  "rule_changed_templates": [
+    {
+      "template": "fsc1944b1",
+      "original_top": 3,
+      "selected_top": 2,
+      "predicted": [
+        0.9624,
+        0.9035,
+        0.7285,
+        0.4899
+      ],
+      "deficient": false,
+      "original_tp": 98,
+      "adaptive_tp": 98,
+      "expected": 98,
+      "time_ratio": 2.449210116112613
+    },
+    {
+      "template": "fsc1944b2",
+      "original_top": 3,
+      "selected_top": 2,
+      "predicted": [
+        0.9628,
+        0.8893,
+        0.7745,
+        0.4667
+      ],
+      "deficient": false,
+      "original_tp": 98,
+      "adaptive_tp": 98,
+      "expected": 98,
+      "time_ratio": 2.896388931284306
+    },
+    {
+      "template": "fsc2928b1",
+      "original_top": 3,
+      "selected_top": 2,
+      "predicted": [
+        0.941,
+        0.8397,
+        0.5344,
+        0.114
+      ],
+      "deficient": false,
+      "original_tp": 98,
+      "adaptive_tp": 98,
+      "expected": 98,
+      "time_ratio": 1.834891106193396
+    },
+    {
+      "template": "fsc7222b2",
+      "original_top": 2,
+      "selected_top": 1,
+      "predicted": [
+        0.9183,
+        0.7568,
+        0.1816
+      ],
+      "deficient": false,
+      "original_tp": 98,
+      "adaptive_tp": 98,
+      "expected": 98,
+      "time_ratio": 3.5365686271924686
+    },
+    {
+      "template": "fsc7263b0",
+      "original_top": 2,
+      "selected_top": 1,
+      "predicted": [
+        0.9066,
+        0.6975,
+        0.3624
+      ],
+      "deficient": false,
+      "original_tp": 98,
+      "adaptive_tp": 98,
+      "expected": 98,
+      "time_ratio": 2.7745266048471575
+    },
+    {
+      "template": "fsc7263b1",
+      "original_top": 2,
+      "selected_top": 1,
+      "predicted": [
+        0.9137,
+        0.7244,
+        0.3065
+      ],
+      "deficient": false,
+      "original_tp": 97,
+      "adaptive_tp": 98,
+      "expected": 98,
+      "time_ratio": 3.2499163026118
+    },
+    {
+      "template": "fsc7417b0",
+      "original_top": 3,
+      "selected_top": 2,
+      "predicted": [
+        0.9409,
+        0.8123,
+        0.5704,
+        0.3412
+      ],
+      "deficient": false,
+      "original_tp": 98,
+      "adaptive_tp": 98,
+      "expected": 98,
+      "time_ratio": 1.3550170622783613
+    },
+    {
+      "template": "fsc7417b1",
+      "original_top": 3,
+      "selected_top": 2,
+      "predicted": [
+        0.9484,
+        0.8675,
+        0.5849,
+        0.2359
+      ],
+      "deficient": false,
+      "original_tp": 96,
+      "adaptive_tp": 98,
+      "expected": 98,
+      "time_ratio": 1.4602426556527062
+    },
+    {
+      "template": "fsc7417b2",
+      "original_top": 3,
+      "selected_top": 2,
+      "predicted": [
+        0.9485,
+        0.8574,
+        0.5491,
+        0.0921
+      ],
+      "deficient": false,
+      "original_tp": 98,
+      "adaptive_tp": 98,
+      "expected": 98,
+      "time_ratio": 1.6478988615139771
+    },
+    {
+      "template": "proc49201",
+      "original_top": 2,
+      "selected_top": 1,
+      "predicted": [
+        0.9243,
+        0.7825,
+        0.3523
+      ],
+      "deficient": false,
+      "original_tp": 98,
+      "adaptive_tp": 98,
+      "expected": 98,
+      "time_ratio": 5.567469883265578
+    },
+    {
+      "template": "stage35_heldout",
+      "original_top": 3,
+      "selected_top": 2,
+      "predicted": [
+        0.9409,
+        0.8123,
+        0.5704,
+        0.3412
+      ],
+      "deficient": false,
+      "original_tp": 98,
+      "adaptive_tp": 98,
+      "expected": 98,
+      "time_ratio": 1.4877894529476638
+    }
+  ],
+  "posthoc_background_contrast": {
+    "note": "Post-hoc diagnosis on the holdout (no verdict effect): distance of the scene background from the template mean in template standard deviations; the rule assumes 2 sd.",
+    "rows": [
+      {
+        "template": "dst3",
+        "background": 171.9,
+        "template_mean": 152.6,
+        "template_sd": 38.0,
+        "background_sd_distance": 0.51,
+        "rule_backgrounds": [
+          77,
+          229
+        ],
+        "deficient": false,
+        "rule_changed": false
+      },
+      {
+        "template": "dst4",
+        "background": 175.2,
+        "template_mean": 59.0,
+        "template_sd": 47.4,
+        "background_sd_distance": 2.45,
+        "rule_backgrounds": [
+          0,
+          154
+        ],
+        "deficient": false,
+        "rule_changed": false
+      },
+      {
+        "template": "fsc1921b0",
+        "background": 135.2,
+        "template_mean": 106.4,
+        "template_sd": 21.6,
+        "background_sd_distance": 1.33,
+        "rule_backgrounds": [
+          63,
+          150
+        ],
+        "deficient": false,
+        "rule_changed": false
+      },
+      {
+        "template": "fsc1921b1",
+        "background": 137.9,
+        "template_mean": 115.0,
+        "template_sd": 34.6,
+        "background_sd_distance": 0.66,
+        "rule_backgrounds": [
+          46,
+          184
+        ],
+        "deficient": false,
+        "rule_changed": false
+      },
+      {
+        "template": "fsc1921b2",
+        "background": 135.0,
+        "template_mean": 122.8,
+        "template_sd": 34.0,
+        "background_sd_distance": 0.36,
+        "rule_backgrounds": [
+          55,
+          191
+        ],
+        "deficient": false,
+        "rule_changed": false
+      },
+      {
+        "template": "fsc1944b0",
+        "background": 189.9,
+        "template_mean": 134.7,
+        "template_sd": 42.9,
+        "background_sd_distance": 1.28,
+        "rule_backgrounds": [
+          49,
+          221
+        ],
+        "deficient": false,
+        "rule_changed": false
+      },
+      {
+        "template": "fsc1944b1",
+        "background": 109.2,
+        "template_mean": 117.8,
+        "template_sd": 47.8,
+        "background_sd_distance": 0.18,
+        "rule_backgrounds": [
+          22,
+          213
+        ],
+        "deficient": false,
+        "rule_changed": true
+      },
+      {
+        "template": "fsc1944b2",
+        "background": 158.0,
+        "template_mean": 85.1,
+        "template_sd": 36.7,
+        "background_sd_distance": 1.98,
+        "rule_backgrounds": [
+          12,
+          159
+        ],
+        "deficient": false,
+        "rule_changed": true
+      },
+      {
+        "template": "fsc2928b0",
+        "background": 101.2,
+        "template_mean": 150.8,
+        "template_sd": 24.5,
+        "background_sd_distance": 2.03,
+        "rule_backgrounds": [
+          102,
+          200
+        ],
+        "deficient": false,
+        "rule_changed": false
+      },
+      {
+        "template": "fsc2928b1",
+        "background": 133.3,
+        "template_mean": 148.5,
+        "template_sd": 21.1,
+        "background_sd_distance": 0.72,
+        "rule_backgrounds": [
+          106,
+          191
+        ],
+        "deficient": false,
+        "rule_changed": true
+      },
+      {
+        "template": "fsc2928b2",
+        "background": 174.7,
+        "template_mean": 153.5,
+        "template_sd": 23.0,
+        "background_sd_distance": 0.92,
+        "rule_backgrounds": [
+          108,
+          200
+        ],
+        "deficient": false,
+        "rule_changed": false
+      },
+      {
+        "template": "fsc2931b0",
+        "background": 108.4,
+        "template_mean": 155.4,
+        "template_sd": 13.4,
+        "background_sd_distance": 3.51,
+        "rule_backgrounds": [
+          129,
+          182
+        ],
+        "deficient": true,
+        "rule_changed": false
+      },
+      {
+        "template": "fsc2931b1",
+        "background": 112.4,
+        "template_mean": 156.8,
+        "template_sd": 17.2,
+        "background_sd_distance": 2.59,
+        "rule_backgrounds": [
+          122,
+          191
+        ],
+        "deficient": true,
+        "rule_changed": false
+      },
+      {
+        "template": "fsc2931b2",
+        "background": 173.4,
+        "template_mean": 157.6,
+        "template_sd": 23.9,
+        "background_sd_distance": 0.66,
+        "rule_backgrounds": [
+          110,
+          205
+        ],
+        "deficient": false,
+        "rule_changed": false
+      },
+      {
+        "template": "fsc7222b0",
+        "background": 113.1,
+        "template_mean": 159.0,
+        "template_sd": 33.6,
+        "background_sd_distance": 1.37,
+        "rule_backgrounds": [
+          92,
+          226
+        ],
+        "deficient": false,
+        "rule_changed": false
+      },
+      {
+        "template": "fsc7222b1",
+        "background": 71.2,
+        "template_mean": 135.7,
+        "template_sd": 36.7,
+        "background_sd_distance": 1.76,
+        "rule_backgrounds": [
+          62,
+          209
+        ],
+        "deficient": false,
+        "rule_changed": false
+      },
+      {
+        "template": "fsc7222b2",
+        "background": 186.7,
+        "template_mean": 156.2,
+        "template_sd": 20.9,
+        "background_sd_distance": 1.46,
+        "rule_backgrounds": [
+          114,
+          198
+        ],
+        "deficient": false,
+        "rule_changed": true
+      },
+      {
+        "template": "fsc7263b0",
+        "background": 147.7,
+        "template_mean": 117.6,
+        "template_sd": 22.2,
+        "background_sd_distance": 1.36,
+        "rule_backgrounds": [
+          73,
+          162
+        ],
+        "deficient": false,
+        "rule_changed": true
+      },
+      {
+        "template": "fsc7263b1",
+        "background": 142.4,
+        "template_mean": 115.1,
+        "template_sd": 21.1,
+        "background_sd_distance": 1.29,
+        "rule_backgrounds": [
+          73,
+          157
+        ],
+        "deficient": false,
+        "rule_changed": true
+      },
+      {
+        "template": "fsc7263b2",
+        "background": 75.7,
+        "template_mean": 117.0,
+        "template_sd": 25.2,
+        "background_sd_distance": 1.64,
+        "rule_backgrounds": [
+          67,
+          167
+        ],
+        "deficient": false,
+        "rule_changed": false
+      },
+      {
+        "template": "fsc7417b0",
+        "background": 61.5,
+        "template_mean": 116.2,
+        "template_sd": 25.3,
+        "background_sd_distance": 2.17,
+        "rule_backgrounds": [
+          66,
+          167
+        ],
+        "deficient": false,
+        "rule_changed": true
+      },
+      {
+        "template": "fsc7417b1",
+        "background": 128.8,
+        "template_mean": 115.6,
+        "template_sd": 26.9,
+        "background_sd_distance": 0.49,
+        "rule_backgrounds": [
+          62,
+          169
+        ],
+        "deficient": false,
+        "rule_changed": true
+      },
+      {
+        "template": "fsc7417b2",
+        "background": 99.3,
+        "template_mean": 121.1,
+        "template_sd": 25.8,
+        "background_sd_distance": 0.84,
+        "rule_backgrounds": [
+          69,
+          173
+        ],
+        "deficient": false,
+        "rule_changed": true
+      },
+      {
+        "template": "proc49200",
+        "background": 188.4,
+        "template_mean": 128.0,
+        "template_sd": 39.9,
+        "background_sd_distance": 1.51,
+        "rule_backgrounds": [
+          48,
+          208
+        ],
+        "deficient": false,
+        "rule_changed": false
+      },
+      {
+        "template": "proc49201",
+        "background": 88.3,
+        "template_mean": 128.0,
+        "template_sd": 40.0,
+        "background_sd_distance": 0.99,
+        "rule_backgrounds": [
+          48,
+          208
+        ],
+        "deficient": false,
+        "rule_changed": true
+      },
+      {
+        "template": "proc49202",
+        "background": 89.0,
+        "template_mean": 128.0,
+        "template_sd": 40.0,
+        "background_sd_distance": 0.98,
+        "rule_backgrounds": [
+          48,
+          208
+        ],
+        "deficient": false,
+        "rule_changed": false
+      },
+      {
+        "template": "proc49203",
+        "background": 132.1,
+        "template_mean": 128.0,
+        "template_sd": 40.0,
+        "background_sd_distance": 0.1,
+        "rule_backgrounds": [
+          48,
+          208
+        ],
+        "deficient": false,
+        "rule_changed": false
+      },
+      {
+        "template": "proc49204",
+        "background": 79.5,
+        "template_mean": 128.0,
+        "template_sd": 40.0,
+        "background_sd_distance": 1.21,
+        "rule_backgrounds": [
+          48,
+          208
+        ],
+        "deficient": false,
+        "rule_changed": false
+      },
+      {
+        "template": "proc49205",
+        "background": 136.4,
+        "template_mean": 128.0,
+        "template_sd": 40.0,
+        "background_sd_distance": 0.21,
+        "rule_backgrounds": [
+          48,
+          208
+        ],
+        "deficient": false,
+        "rule_changed": false
+      },
+      {
+        "template": "proc49206",
+        "background": 74.6,
+        "template_mean": 128.0,
+        "template_sd": 40.0,
+        "background_sd_distance": 1.34,
+        "rule_backgrounds": [
+          48,
+          208
+        ],
+        "deficient": false,
+        "rule_changed": false
+      },
+      {
+        "template": "proc49207",
+        "background": 64.4,
+        "template_mean": 128.0,
+        "template_sd": 40.0,
+        "background_sd_distance": 1.59,
+        "rule_backgrounds": [
+          48,
+          208
+        ],
+        "deficient": false,
+        "rule_changed": false
+      },
+      {
+        "template": "stage35_heldout",
+        "background": 120.0,
+        "template_mean": 116.2,
+        "template_sd": 25.3,
+        "background_sd_distance": 0.15,
+        "rule_backgrounds": [
+          66,
+          167
+        ],
+        "deficient": false,
+        "rule_changed": true
+      }
+    ]
+  },
+  "posthoc_fsc2931_proposals": "fsc2931b0_clean\nL 2 refine True matches 1 strictTP 1 proposals 18 prop-near-GT(6px,8deg) 1 prop-near(2px,2deg) 1\nL 2 refine False matches 0 strictTP 0 proposals 0 prop-near-GT(6px,8deg) 0 prop-near(2px,2deg) 0\nL 1 refine True matches 49 strictTP 49 proposals 65 prop-near-GT(6px,8deg) 49 prop-near(2px,2deg) 47\nL 1 refine False matches 6 strictTP 6 proposals 6 prop-near-GT(6px,8deg) 6 prop-near(2px,2deg) 6\nfsc2931b1_clean\nL 2 refine True matches 41 strictTP 41 proposals 100 prop-near-GT(6px,8deg) 41 prop-near(2px,2deg) 29\nL 2 refine False matches 0 strictTP 0 proposals 0 prop-near-GT(6px,8deg) 0 prop-near(2px,2deg) 0\nL 1 refine True matches 49 strictTP 49 proposals 100 prop-near-GT(6px,8deg) 49 prop-near(2px,2deg) 36\nL 1 refine False matches 19 strictTP 8 proposals 19 prop-near-GT(6px,8deg) 19 prop-near(2px,2deg) 15\n",
+  "descriptive": {
+    "adaptive_r0": {
+      "tp": 3136,
+      "fp": 0,
+      "expected": 3136,
+      "search_ms": 22569.043793,
+      "negative_fp": 0,
+      "negative_search_ms": 21252.501497999998
+    },
+    "rule_construct_ms": "median 1.9 ms, max 8.35 ms per scale model (inside search_construct_ms)"
+  },
+  "defaults_changed": false
+}

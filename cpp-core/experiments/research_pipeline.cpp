@@ -120,6 +120,7 @@ struct Session::Impl {
     std::unique_ptr<FullGpuPipeline> fullGpu;
     bool poseInvert=false;
     uint64_t sourceGeneration=0;
+    std::vector<PyramidRuleDecision> pyramidRule;
     int refinementBackend() const { return settings.refinementBackend<0?settings.backend:settings.refinementBackend; }
     Impl(ImageView src,ImageView tmp,const Settings& s):source(src),templ(tmp),settings(s) {
         if(s.backend<0 || s.backend>1 || s.minReducedArea<1 || s.cpuThreads<1 || s.cpuThreads>256 || s.scales.empty() || s.scales.size()>64)
@@ -133,6 +134,10 @@ struct Session::Impl {
             throw std::invalid_argument("Shared pose storage requires Metal refinement");
         if(s.poseInputMode<0 || s.poseInputMode>1)
             throw std::invalid_argument("Invalid pose input mode");
+        if(s.pyramidRule<0 || s.pyramidRule>1 || !std::isfinite(s.pyramidRuleMinScore) || s.pyramidRuleMinScore<-1 || s.pyramidRuleMinScore>1)
+            throw std::invalid_argument("Pyramid rule must be 0 or 1 with a threshold in [-1, 1]");
+        if(s.pyramidRule && (s.fullGpu || s.sparseOrientation))
+            throw std::invalid_argument("Pyramid rule applies to the dense pyramid path, not fullGpu or sparse orientation");
         if(s.fullGpu) {
             if(s.backend!=1 || refinementBackend()!=1 || s.sparseOrientation)
                 throw std::invalid_argument("Complete GPU pipeline requires dense Metal search and refinement");
@@ -150,8 +155,13 @@ struct Session::Impl {
         char error[1024]{};
         for(double scale:s.scales) {
             auto resized=scaledTemplate(templ.view(),scale);fpm_coarse_handle* p=nullptr;FpmCoarseMetrics metrics{};
+            int minArea=s.minReducedArea;
+            if(s.pyramidRule) {
+                pyramidRule.push_back(decidePyramid(resized.view(),s.minReducedArea,s.pyramidRuleMinScore));
+                minArea=pyramidRule.back().effectiveMinArea;
+            }
             // Models only learn CPU pixels. The shared frame owns the sole GPU backend.
-            check(fpm_coarse_create_backend(view(resized.view()),s.minReducedArea,0,&p,&metrics,error,sizeof(error)),error);
+            check(fpm_coarse_create_backend(view(resized.view()),minArea,0,&p,&metrics,error,sizeof(error)),error);
             patterns.emplace_back(p,fpm_coarse_destroy);
         }
         FpmFrameConfigV1 config{};fpm_frame_default_config(&config);config.backend=s.backend;
@@ -186,6 +196,7 @@ Session::Session(ImageView source,ImageView templ,const Settings& settings) {
     validateImage(source);validateImage(templ);impl_=std::make_unique<Impl>(source,templ,settings);
 }
 Session::~Session()=default;
+const std::vector<PyramidRuleDecision>& Session::pyramidRule() const { return impl_->pyramidRule; }
 SourceUpdate Session::updateSource(ImageView source) {
     const auto start=Clock::now();validateImage(source);
     Image replacement(source); // Complete the potentially throwing copy before mutation.

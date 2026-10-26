@@ -1,0 +1,88 @@
+{
+  "stage": 49,
+  "path_base": "cpp-core/docs/stage49-adaptive-pyramid",
+  "artifacts": [
+    {
+      "path": "decision-and-failures.json",
+      "bytes": 20092,
+      "sha256": "a71d3ded6dd731b46b83f8303e775cb2fe66de25e82b460e0eec81145885c5f6"
+    },
+    {
+      "path": "dev-calibration.json",
+      "bytes": 2378,
+      "sha256": "79413303f2f672fc0a6c12f27339761cff4e862f10c06ff6574c3cd33f44d9e6"
+    },
+    {
+      "path": "dev-tuning-r0.json",
+      "bytes": 29501,
+      "sha256": "6ca051dedda10ce76c97264051bcac81ac0bf4dbd7b201b0b9a27d6b64ecfc8d"
+    },
+    {
+      "path": "dev-tuning.json",
+      "bytes": 29779,
+      "sha256": "c25588feee4e9eb274c05785ec384509df832bcda083652ff52f80df2e3a7257"
+    },
+    {
+      "path": "formal-summary.json",
+      "bytes": 814591,
+      "sha256": "4603f7ac88eb934560c85911c1ce1e62cedd11b8b45122093154cab00eafb1bf"
+    },
+    {
+      "path": "input-sha256.json",
+      "bytes": 52749,
+      "sha256": "5cab69d3263e21e92507c2edee8901c3acac2e4ca71fc4f36f09434feea0bea4"
+    },
+    {
+      "path": "protocol.json",
+      "bytes": 15910,
+      "sha256": "67422c55ec3657c4cd1e39d8d1dc377fb1f0c896fd888ecafe996ad2f77647eb"
+    },
+    {
+      "path": "raw-results-development.tar.gz",
+      "bytes": 7897723,
+      "sha256": "4d596fde0b0f8e26af59c8cdb1745e81b0d7c43d783ec5108f5a656c2fd0d809",
+      "regular_files": 2304
+    },
+    {
+      "path": "raw-results-formal.tar.gz",
+      "bytes": 14073059,
+      "sha256": "00f2760a33f2380cc26f221618e7fac2552ed63d7b5d1bdab08f119962b99670",
+      "regular_files": 5586
+    },
+    {
+      "path": "scene-metadata.tar.gz",
+      "bytes": 127363,
+      "sha256": "a1dec6a175a2d2d8c7ef782abc59266bad4e02bdf492472cbb0e1ea10e883726",
+      "regular_files": 4
+    },
+    {
+      "path": "source-sha256.json",
+      "bytes": 37501,
+      "sha256": "9e1e75672be5bea57e6fb8236aca7dacb8c941480e4b455d3835d87dbff24f47"
+    },
+    {
+      "path": "source-snapshot.tar.gz",
+      "bytes": 1010757,
+      "sha256": "9f2663186b88d16c03ba6496fded72686b97582770fcf32623dfb498287d4d61",
+      "regular_files": 325
+    },
+    {
+      "path": "validation-logs.tar.gz",
+      "bytes": 49691,
+      "sha256": "068d7dd8102910b5ac7bafc439aa139eec4aeebe9c317b74d7f9deca52a438cd",
+      "regular_files": 75
+    },
+    {
+      "path": "validation.json",
+      "bytes": 5790,
+      "sha256": "c5408a443dce89308f5e7c6b4108de8d7fd2c970a14a960a618e6932130f222d"
+    }
+  ],
+  "source_commit": "8f8bdb9e96174d7fc1ec034625ab936d3a74fcb8",
+  "source_files": 325,
+  "protocol_commit": "7c6f996",
+  "input_files": 281,
+  "inputs_archived": false,
+  "inputs_note": "FSC-derived scenes and templates stay local (round-35 policy); regenerate with stage49_scenes.py and the seeds in scene-metadata.tar.gz, verify with input-sha256.json",
+  "local_outputs": "build/stage49-adaptive-pyramid (scenes, runs), build/stage49-release, build/stage49-frozen-src, build/stage49-asan-scalar, build/stage49-asan-simd, build/stage49-mutants, build/stage49-validation, build/stage49-logs in the main checkout"
+}

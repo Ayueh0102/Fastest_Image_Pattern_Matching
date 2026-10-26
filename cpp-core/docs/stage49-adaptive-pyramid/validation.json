@@ -1,0 +1,138 @@
+{
+  "stage": 49,
+  "checks": [
+    {
+      "name": "tests_fail_first",
+      "result": "pass",
+      "detail": "red commit 5d21fc8: research_pyramid_rule (CPU, Metal), native_runner_job_keys, native_runner_pyramid_rule and color_verify test_pyramid_rule_reports_decisions failed (validation/logs/red-ctest.log, red-color-verify.log); after 0457625 all pass. The color_verify invalid-options test passed in red too (unknown keys were rejected anyway). Mutant M0 re-checks the final tests against the red stub: research_pyramid_rule fails."
+    },
+    {
+      "name": "compiled_mutants",
+      "result": "pass",
+      "detail": "12/12 killed in an isolated copy of 8f8bdb9 (validation/mutants.json): threshold ignored, best background, floor area, Session ignores effective area, no rotate-back, one-sd background, shallowest passing level, full GPU accepted, colour runner ignores pyramid_rule, native runner accepts orphan threshold, unchanged depth with a new area, red stub. Baseline and restored builds pass."
+    },
+    {
+      "name": "harness_negative_controls",
+      "result": "pass",
+      "detail": "cpp-core/tests/test_adaptive_pyramid_harness.py 17 tests"
+    },
+    {
+      "name": "pre_measurement_release",
+      "result": "pass",
+      "detail": "fresh build/stage49-release from 8f8bdb9 (build/stage49-frozen-src): ctest 87/87; python -m unittest discover -p test_*.py 751 OK (FPM_FINE_*_BUILD=build/stage49-release); other *_test.py 49 OK; color_verify_runner_test --metal 11 OK. First attempt without the Test Images folder failed (gui_workflow, 7 Python tests) and is kept."
+    },
+    {
+      "name": "asan_ubsan",
+      "result": "pass",
+      "detail": "Debug, FPM_SANITIZERS=ON, FPM_BUILD_EXPERIMENTS=ON (no GUI) from 8f8bdb9: scalar (FPM_DISABLE_SIMD=ON) ctest 80/80, SIMD ctest 80/80, both include research_pyramid_rule and research_pyramid_rule_metal; ASAN_OPTIONS=detect_leaks=0. The runners need Qt and are not in this configuration; their pyramid-rule paths are covered by the Release contract tests and mutants M9/M10."
+    },
+    {
+      "name": "independent_audit",
+      "result": "pass",
+      "detail": "validation/scripts/audit_stage49.py with system Python 3.9 -I, stdlib only, no harness import, no GPU: 1396 worker hashes, no truth in jobs, own one-to-one strict matching, 756 cells, 3054 numbers compared, 0 problems, verdicts identical (validation/audit-output.json)"
+    },
+    {
+      "name": "archive_replay",
+      "result": "pass",
+      "detail": "raw archives extracted and re-summarized with the frozen driver: formal-summary.json, dev-tuning.json, dev-calibration.json byte-identical (validation/replay.json)"
+    },
+    {
+      "name": "scene_regeneration",
+      "result": "pass",
+      "detail": "stage49_scenes.py regenerated development (98 cases) and holdout (126 cases): every input hash and truth identical (validation/scene-regeneration.json)"
+    },
+    {
+      "name": "output_identity",
+      "result": "pass",
+      "detail": "all 1396 formal workers exact_repeat; matches identical across blocks; the 19 sufficient templates whose depth the rule kept give ordered output identical to the original arm"
+    },
+    {
+      "name": "gt",
+      "result": "recorded",
+      "detail": "strict TP original 3022, stage35_manual 3130, adaptive 3025, budget 3058, fixed512 3040, adaptive_r0 3136 of 3136; FP 0 in every arm on positive and negative scenes"
+    },
+    {
+      "name": "host_sensitivity",
+      "result": "recorded",
+      "detail": "post hoc: 92 of 1396 formal workers quiet; on the few cases with quiet workers in both arms the time ratios differ from the all-block ratios by about 1% (validation/host-sensitivity.json); no verdict depends on it"
+    },
+    {
+      "name": "final_head_release",
+      "result": "pass",
+      "detail": "commit 40d0d15 (report commit; clean worktree before and after), git archive to build/stage49-final-src, fresh Release build/stage49-final with GUI, experiments and OpenCV (90 compile units): ctest 87/87; python -m unittest discover -p test_*.py 751 OK with FPM_FINE_*_BUILD=build/stage49-final; other *_test.py 49 OK; color_verify_runner_test --metal 11 OK; build_log_catalog.py --check OK (validation/final-head-logs). The later commit only records these results."
+    }
+  ],
+  "verdicts": {
+    "H1": {
+      "passed": false,
+      "missed_by_original": 111,
+      "recovered": 0,
+      "cases_worse_by_more_than_one": []
+    },
+    "H2": {
+      "passed": false,
+      "sufficient": 30,
+      "kept": 19,
+      "kept_identical": 19,
+      "changed": [
+        "fsc1944b1",
+        "fsc1944b2",
+        "fsc2928b1",
+        "fsc7222b2",
+        "fsc7263b0",
+        "fsc7263b1",
+        "fsc7417b0",
+        "fsc7417b1",
+        "fsc7417b2",
+        "proc49201",
+        "stage35_heldout"
+      ],
+      "time_ratio": 1.4052082627240308
+    },
+    "H2r": {
+      "passed": false,
+      "kept_depth": false,
+      "tp": 98,
+      "expected": 98,
+      "time_ratio": 1.4877894529476638
+    },
+    "H3": {
+      "passed": false,
+      "adaptive_tp": 3025,
+      "budget_tp": 3058,
+      "time_ratio": 0.9895365322246936
+    },
+    "H4": {
+      "passed": false,
+      "adaptive_tp": 3025,
+      "stage35_tp": 3130,
+      "time_ratio": 0.48172465227136885
+    },
+    "H5": {
+      "passed": true,
+      "negative_fp": {
+        "original": 0,
+        "stage35_manual": 0,
+        "adaptive": 0,
+        "budget": 0,
+        "fixed512": 0
+      }
+    },
+    "H7": {
+      "passed": false,
+      "adaptive_tp": 3025,
+      "fixed512_tp": 3040,
+      "time_ratio": 0.7779023938495699
+    },
+    "H6": {
+      "passed": true,
+      "positive_fp": {
+        "original": 0,
+        "stage35_manual": 0,
+        "adaptive": 0,
+        "budget": 0,
+        "fixed512": 0
+      }
+    }
+  }
+}

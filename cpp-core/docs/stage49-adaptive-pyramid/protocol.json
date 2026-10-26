@@ -1,0 +1,261 @@
+{
+  "stage": 49,
+  "date": "2026-10-26",
+  "title": "Information-driven coarse top level for small-template recall",
+  "question": "Round 35 recovered a 43x30 stamp template from 4/49 to 49/49 by keeping a higher pyramid level (min_area 512, proposal 0.25, limit 300) at four times the time, while a 58x71 template that was already 49/49 only got slower. Can a rule that reads only the template choose a shallower coarse top level where the reduced template loses its information, and keep the original depth (and time) where it does not?",
+  "round35_facts": {
+    "source": "cpp-core/docs/STAGE35_REAL_RGB_zh-TW.md, STAGE35_PYRAMID_DIAGNOSIS_zh-TW.md",
+    "development_template": "FSC2933 exemplar 0, 43x30, compressed .65x+45: 256/.5/100 4/49 (25.58 ms), 512/.25/300 49/49 (100.28 ms)",
+    "heldout_template": "FSC7417 exemplar 0, 58x71: 49/49 already at 256/.5/100 (32.61 -> 88.96 ms at 512/.25/300)"
+  },
+  "rule": {
+    "option": "research_pipeline Settings::pyramidRule=1, pyramidRuleMinScore; runner keys pyramid_rule, pyramid_rule_min_score",
+    "files": [
+      "cpp-core/experiments/pyramid_rule.hpp",
+      "cpp-core/experiments/pyramid_rule.cpp",
+      "cpp-core/experiments/research_pipeline.{hpp,cpp}",
+      "cpp-core/tools/color_verify_runner.cpp",
+      "cpp-core/tools/native_pipeline_runner.cpp"
+    ],
+    "definition": "For every candidate top level L (0..the min_area-256 top) the template is rendered by bilinear sampling at 8 fixed poses (search-grid angles near 20/65/110/155 degrees, a quarter coarse step and a quarter top-level pixel off the grid) on flat backgrounds at the template mean -/+ 2 standard deviations, reduced L times with the matcher pyrDown, rotated back with the matcher rotateCanvas and scored by the best NCC of the learned level-L template within one pixel of the object. predicted[L] = min over the two backgrounds of the mean over the 8 poses. The selected top is the deepest L with predicted[L] >= threshold; if none, the deepest maximum. Never deeper than min_area gives; an unchanged depth keeps min_area itself.",
+    "fixed_a_priori": [
+      "8 poses",
+      "quarter-step residuals",
+      "backgrounds mean -/+ 2 sd (after the dev check below)",
+      "mean over poses, min over backgrounds",
+      "one-pixel window",
+      "cap at the original depth"
+    ],
+    "tuned_on_development": "pyramid_rule_min_score only (grid 0.30..0.80 step 0.05)",
+    "scope": "Dense pyramid path (hybrid or CPU); fullGpu and sparseOrientation reject it. Defaults unchanged (rule off).",
+    "cost": "Session construction only (search_construct_ms includes it); reported, never inside search_ms"
+  },
+  "frozen": {
+    "pyramid_rule_min_score": 0.5,
+    "secondary_min_score_r0": 0.75,
+    "budget": {
+      "proposal_score": 0.4,
+      "limit": 200
+    }
+  },
+  "tuning": {
+    "sweep": "dev-sweep: every development positive at every forced top level (original 256/.5/100 otherwise), 1 block, warmups 1, repeats 3; plus one rule report per template (threshold -1)",
+    "needed_rule": "deepest top level whose summed strict TP is within 2% of the template objects of its best level",
+    "objective_r0": {
+      "text": "R0 (superseded): fewest templates started deeper than needed, then least summed development time, then smallest threshold",
+      "committed": "623d95c (before the sweep ran)",
+      "choice": 0.75,
+      "dev_tp": 2445,
+      "dev_search_ms": 11838.282744,
+      "time_ratio": 8.206636274835859,
+      "changed_templates": 15
+    },
+    "revision_r1": {
+      "text": "R1: most summed development strict TP among thresholds whose summed development search time is at most 2x the original depth's, then smallest threshold",
+      "committed": "a952aaf (after the sweep, before any holdout scene existed)",
+      "reason": "R0 orders by misses first and ignores time until ties; on the sweep it chose 0.75 at 8.2x the original development time and changed 15 of 25 templates, contradicting the round goal that templates found at the original depth keep it. The 2x cap is a judgement made after seeing the development curve; R0 still runs as a descriptive arm.",
+      "choice": 0.5,
+      "dev_tp": 2364,
+      "dev_search_ms": 2283.874161,
+      "time_ratio": 1.5832469068473967,
+      "changed_templates": 7
+    },
+    "development": {
+      "original_tp": 2216,
+      "oracle_tp": 2450,
+      "expected": 2450,
+      "original_search_ms": 1442.525579
+    },
+    "budget_calibration": {
+      "rule": "largest summed development search time not above the adaptive arm; cheapest if none",
+      "adaptive_dev_search_ms": 2174.704795,
+      "selected": {
+        "proposal_score": 0.4,
+        "limit": 200
+      },
+      "within_budget": true,
+      "grid": [
+        {
+          "proposal_score": 0.45,
+          "limit": 150,
+          "search_ms": 1643.435921,
+          "tp": 2234
+        },
+        {
+          "proposal_score": 0.4,
+          "limit": 200,
+          "search_ms": 1971.9574610000002,
+          "tp": 2259
+        },
+        {
+          "proposal_score": 0.35,
+          "limit": 200,
+          "search_ms": 2256.396501,
+          "tp": 2282
+        },
+        {
+          "proposal_score": 0.3,
+          "limit": 300,
+          "search_ms": 2653.9596300000003,
+          "tp": 2302
+        },
+        {
+          "proposal_score": 0.25,
+          "limit": 300,
+          "search_ms": 2919.4652499999993,
+          "tp": 2330
+        },
+        {
+          "proposal_score": 0.2,
+          "limit": 400,
+          "search_ms": 3206.667122999999,
+          "tp": 2350
+        }
+      ]
+    },
+    "files": [
+      "dev-tuning.json",
+      "dev-tuning-r0.json",
+      "dev-calibration.json",
+      "raw-results-development.tar.gz"
+    ]
+  },
+  "arms": {
+    "original": "min_area 256, proposal_score 0.5, limit 100 (round-35 geometry_original)",
+    "stage35_manual": "min_area 512, proposal_score 0.25, limit 300 (round-35 geometry)",
+    "adaptive": "original + pyramid_rule 1, pyramid_rule_min_score frozen.pyramid_rule_min_score",
+    "budget": "min_area 256 + frozen.budget proposal_score/limit: equal development time to adaptive, no template information",
+    "fixed512": "min_area 512, proposal_score 0.5, limit 100: template-agnostic shallower depth with the original candidate budget",
+    "adaptive_r0": "descriptive only, one block: original + pyramid_rule 1 at the superseded R0 threshold",
+    "common": "round-35 search: Metal coarse + Metal refinement, scales [1], angle 180, score 0.8, overlap 0.2, stop_layer 1, ncc_mode 2, fine_ncc_mode 2, fine_fused, fine_angle_reuse, pose u8/shared, resident 0, 8 CPU threads; fpm_color_verify_runner method geometry_only"
+  },
+  "data": {
+    "development": {
+      "fsc_photos": [
+        "2933",
+        "1913",
+        "2927",
+        "825",
+        "1924"
+      ],
+      "procedural_seeds": "49100-49107",
+      "test_images": [
+        "Dst10.jpg"
+      ],
+      "round35": [
+        "development_clean",
+        "development_exposure"
+      ],
+      "templates": 25,
+      "positive_cases": 50,
+      "negative_cases": 48
+    },
+    "holdout": {
+      "fsc_photos": [
+        "7417",
+        "2931",
+        "7222",
+        "7263",
+        "1921",
+        "1944",
+        "2928"
+      ],
+      "procedural_seeds": "49200-49207",
+      "test_images": [
+        "Dst4.bmp",
+        "Dst3.bmp"
+      ],
+      "round35": [
+        "heldout_clean",
+        "heldout_exposure"
+      ],
+      "templates": 32,
+      "positive_cases": 64,
+      "negative_cases": 62,
+      "regression_template": "stage35_heldout (FSC7417 exemplar 0, the round-35 template that was already 49/49)"
+    },
+    "selection": "Split by FSC photo, procedural seed range and Test Images file; every FSC exemplar box (3 per photo). Holdout scenes and truth are generated only after this protocol is committed (stage49_scenes.py refuses the holdout split unless this protocol freezes its SHA-256).",
+    "families": {
+      "fsc": "FSC147 exemplar crops compressed to .65x+45 (round-35 recipe), runner luma; photos stay local",
+      "procedural": "Gaussian-blurred white noise (sigma 1.0/1.6/2.5/4.0, two each), 24-72 px sides, mean 128 sd 40",
+      "test_images": "repo Test Images templates"
+    },
+    "scenes": "per template: clean (49 copies, 7x7 grid, angles U(-175,175), background U(60,190)), noise (clean + Gaussian sd 4), empty (background + noise), distractor (49 copies of an unrelated procedural texture + noise); round-35 RGB scenes reused unchanged with hash checks",
+    "truth": "analytic poses from the generator; independent of the C++ matcher (OpenCV warp renderer)"
+  },
+  "scenes": {
+    "generator": "cpp-core/tools/stage49_scenes.py",
+    "generator_sha256": "dd18e15c25a3d4e9139e6b88a34e6abfe626c952c2c6092bcc7c6ef0489d4ab8"
+  },
+  "measurement": {
+    "driver": "cpp-core/tools/benchmark_adaptive_pyramid.py",
+    "driver_sha256": "095a7f104c3c3f89219c64829d3564336e48eff11d44dfdebab85f82a60b2822",
+    "formal": "holdout positives 3 blocks, negatives 1 block, adaptive_r0 1 block; each worker a fresh process: call 0 (first) + 1 warm-up + 3 measured calls; block order reversed on odd blocks",
+    "time": "search_ms = Session::run wall per measured call; per worker the median of 3; per case the median over blocks. Totals are sums of per-case medians over the same case set. Decode and Session construction (incl. the rule) are reported separately and never inside search_ms. first_ms reported separately.",
+    "memory": "peak RSS per process; named GPU bytes (frame coarse, frame fine, pose) from the first call; never added",
+    "gt": "strict one-to-one: position <= 2 px, angle <= 1 deg, scale ratio in [0.98, 1.02] (many_object_accuracy.evaluate); every unpaired match is a FP; negative scenes have no truth",
+    "identity": "adaptive vs original: exact equality of the ordered search_matches of the first call in every case",
+    "host": "timed phases hold timing-lock-round49-<phase>.txt in the shared notes folder, wait while any other timing lock exists, and refuse to start with a build/benchmark tool or repository experiment script running or a 1-minute load > 6; processes at >= 100% CPU (system daemons) are recorded per worker, not blocking; every worker records its host state; none is dropped or rerun; host flags have no verdict effect"
+  },
+  "classes": {
+    "deficient": "holdout template whose original-arm strict TP over its positive cases is < 0.9 x expected",
+    "sufficient": "every other holdout template with positive cases"
+  },
+  "gates": {
+    "deficient_recall_below": 0.9,
+    "H1_recovered_fraction": 0.8,
+    "H2_kept_fraction": 0.9,
+    "H2_time_ratio": 1.05,
+    "H2r_template": "stage35_heldout",
+    "H3_time_ratio": 1.1,
+    "H4_time_ratio": 0.75,
+    "H4_tp_tolerance": 0.02,
+    "H6_fp_tolerance": 0.01,
+    "H7_time_ratio": 1.0,
+    "gate_values_committed": "623d95c test fixture (before the development sweep); H7 added here"
+  },
+  "hypotheses": {
+    "H1": "On deficient templates the adaptive arm recovers >= 80% of the objects the original misses, and no positive case loses more than one TP.",
+    "H2": "On sufficient templates the rule keeps the original depth for >= 90% of them, every kept template gives ordered output identical to the original, and summed adaptive time <= 1.05x the original.",
+    "H2r": "The round-35 heldout template keeps its depth, finds 49/49 in both cases and costs <= 1.05x the original time.",
+    "H3": "Against the equal-development-time budget arm: adaptive total TP >= budget TP and adaptive time <= 1.10x budget time.",
+    "H4": "Against the round-35 manual setting: adaptive time <= 0.75x and adaptive TP >= manual TP - 2% of the objects.",
+    "H5": "Negative scenes: adaptive FP == 0 and <= the original FP.",
+    "H6": "Positive scenes: adaptive FP <= original FP + 1% of the objects.",
+    "H7": "Against the template-agnostic fixed512 arm: adaptive TP >= fixed512 TP and adaptive time <= fixed512 time."
+  },
+  "decision": "Recommend the rule as a research option only if H1, H2, H2r, H5 and H6 pass and at least one of H3/H7 passes. Otherwise keep it as a retained, not recommended option. Defaults never change.",
+  "predictions_from_development": {
+    "note": "Computed from the development sweep at the frozen threshold; not holdout evidence.",
+    "H1": "fail expected: dev recovered 148 of 229 (65%); fsc2933b1 at top 1 stays 19/98 because 100 proposals (the limit) are taken by non-target peaks",
+    "H2": "fail expected: dev kept 18 of 22 sufficient templates, time 1.45x (the worse +2 sd/-2 sd background is pessimistic)",
+    "H7": "tie expected: dev fixed512 TP 2364 at 2256 ms vs adaptive 2364 at 2284 ms",
+    "H5_H6": "pass expected: dev positive FP 5 (all on the rotationally ambiguous dst10) for both original and adaptive"
+  },
+  "exploratory_disclosure": [
+    "Before any code: a GT-oracle diagnostic of true-pose coarse scores on the round-35 development scene (L2 0.24-0.32, L1 0.56-0.68) and on the round-35 heldout scene (L3 0.77-0.87, L2 0.82-0.91). The heldout scene is in this holdout as the regression case; its rule output was not computed before the freeze.",
+    "A Python prototype with a template-mean background predicted 0.51-0.76 at L2 for the development template, far above its real scores; the C++ rule first used the 10th/90th intensity percentiles as backgrounds, which still predicted 0.595 (development template only). Switching to mean -/+ 2 sd (0.351) was decided on that development template.",
+    "The first unit-test fixture (2.4 px stripes) already aliased at level 0; it moved to 8 px stripes in the implementation commit (0457625). The red commit 5d21fc8 has the first fixture.",
+    "The first dev-sweep start was refused by the host gate (mediaanalysisd 106% CPU, load 4.3); the start gate then moved to timed phases only and the load limit to 6 (a system ANECompilerService held ~90% of a core for days).",
+    "Threshold objective revision R1 (see tuning.revision_r1).",
+    "During the wait before dev_calibrate another session (round 50, stage50-external) ran pip/gdown with a load of ~8; dev_calibrate started after the load fell below 4.",
+    "dev_calibrate (the budget recipe source): mediaanalysisd was >= 100% CPU before 311 of 400 workers, another session ran fpm_native_pipeline_runner before 3 workers, and I edited three Python files (driver H7/host gate, its test, the archive script) during the run, so its source fingerprint changed (binaries and inputs did not). The budget choice (0.40/200 at 1972 ms vs adaptive 2175 ms; next recipe 2256 ms) was kept as calibrated. The formal start gate then stopped blocking on system processes at 100% CPU.",
+    "The first pre-measurement ctest/harness run in build/stage49-release failed gui_workflow and 7 Python tests because the frozen source tree lacked the repository Test Images folder; after extracting it from the same commit: ctest 87/87, harness test_*.py 751 OK, other *_test.py 49 OK, color_verify_runner_test --metal 11 OK. Both attempts are kept."
+  ],
+  "source": {
+    "frozen_commit": "8f8bdb9e96174d7fc1ec034625ab936d3a74fcb8",
+    "snapshot": "source-snapshot.tar.gz and source-sha256.json (committed bytes, stage-40/48 selection rule)",
+    "base": "main 8f0e6a9",
+    "red_commit": "5d21fc8",
+    "green_commit": "0457625"
+  },
+  "host": {
+    "machine": "Apple M4 Pro, 48 GiB, 8P+4E",
+    "os": "macOS 27.0.1",
+    "toolchain": "Apple clang (Xcode), CMake 4.x",
+    "build": "build/stage49-release from the frozen commit (build/stage49-frozen-src), Release, FPM_BUILD_GUI=ON, FPM_BUILD_EXPERIMENTS=ON, FPM_WITH_OPENCV=ON",
+    "development_runs_build": "build/stage49-dev (worktree at 0457625 C++ sources; later commits changed only Python files)",
+    "pre_measurement_validation": "ctest 87/87, harness test_*.py 751, other Python 49, color_verify_runner_test --metal 11, all before the holdout existed"
+  },
+  "revisions": []
+}

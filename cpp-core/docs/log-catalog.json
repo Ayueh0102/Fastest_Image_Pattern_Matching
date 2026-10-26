@@ -26,44 +26,44 @@
     "metadata": "Filesystem sidecar metadata",
     "other": "No recognized role; inspect manually"
   },
-  "artifact_count": 699,
-  "artifact_bytes": 2623068186,
+  "artifact_count": 715,
+  "artifact_bytes": 2647266429,
   "artifact_role_counts": {
-    "archive": 122,
-    "calibration": 4,
-    "failure_review": 25,
-    "false_gate": 57,
-    "formal": 46,
+    "archive": 127,
+    "calibration": 5,
+    "failure_review": 26,
+    "false_gate": 60,
+    "formal": 47,
     "input": 21,
-    "other": 53,
+    "other": 55,
     "pilot": 19,
-    "protocol": 49,
-    "provenance": 73,
-    "raw": 82,
-    "report": 76,
-    "source": 23,
-    "summary": 166,
-    "validation": 94,
+    "protocol": 50,
+    "provenance": 76,
+    "raw": 84,
+    "report": 77,
+    "source": 24,
+    "summary": 169,
+    "validation": 96,
     "visual": 68
   },
-  "archive_member_count": 48706,
+  "archive_member_count": 57000,
   "archive_member_role_counts": {
     "archive": 26,
     "binary": 47,
     "calibration": 1,
-    "failure_review": 34,
-    "formal": 25493,
-    "input": 608,
+    "failure_review": 36,
+    "formal": 32804,
+    "input": 609,
     "metadata": 6526,
-    "other": 3814,
+    "other": 4375,
     "pilot": 4301,
-    "protocol": 113,
-    "provenance": 123,
-    "raw": 12546,
-    "report": 87,
-    "source": 12116,
-    "summary": 1053,
-    "validation": 1113,
+    "protocol": 114,
+    "provenance": 128,
+    "raw": 16548,
+    "report": 88,
+    "source": 12440,
+    "summary": 1171,
+    "validation": 1190,
     "visual": 892
   },
   "artifacts": [
@@ -73,6 +73,16 @@
       "stage": null,
       "bytes": 13243,
       "sha256": "7c2c346377c8ed5cfd9ae61bd97f8a30811e6222577ae87ebb14ea30dc82742c",
+      "roles": [
+        "report"
+      ]
+    },
+    {
+      "path": "ADAPTIVE_PYRAMID_zh-TW.md",
+      "group": "root",
+      "stage": null,
+      "bytes": 20756,
+      "sha256": "ca5b322a75e4cd31fc94e4b53f5ed5510fd704b5fa53d6a45e9004def46a6148",
       "roles": [
         "report"
       ]
@@ -201,8 +211,8 @@
       "path": "CURRENT_BEST_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 16435,
-      "sha256": "188c08482892e4051744e1bba841a2d9b4fa9c0962f49a0138612afb49a40c93",
+      "bytes": 17882,
+      "sha256": "8b8eb6235612ec438a7274edaaf39bda53e7d592881d6871e16d8426c3b979d7",
       "roles": [
         "report"
       ]
@@ -252,8 +262,8 @@
       "path": "EXPERIMENT_REVIEW_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 92553,
-      "sha256": "8116fc4df9db098c61bd3984829b7eb48dee5aed9850245acac365f6d1fb1c9f",
+      "bytes": 96501,
+      "sha256": "cd93a9eeba252f166ec2dc835232a2ec3bd5e500b39d183169e180690846f059",
       "roles": [
         "report"
       ]
@@ -422,8 +432,8 @@
       "path": "LOG_CATALOG_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 19516,
-      "sha256": "3758fce7046239b1390677f21b3c27ee643749fd4dafbf70cb6a3bdf9b2e9bee",
+      "bytes": 20670,
+      "sha256": "397f8968f9587b6449afd7b6948d512e9df41b2c59d5ab67e6b8653c75d9a1e6",
       "roles": [
         "report"
       ]
@@ -593,8 +603,8 @@
       "path": "PROJECT_STATUS_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 14651,
-      "sha256": "12175f882c0e32395ce682b4a694a93df85c308a8e1d39053972dc6dd75a1ec1",
+      "bytes": 15664,
+      "sha256": "8c2983b64a1ff7fe02855e9877199137cf0f485d68a62e19d4720d0a0ef2a4a2",
       "roles": [
         "report"
       ]
@@ -9214,6 +9224,226 @@
       ]
     },
     {
+      "path": "stage49-adaptive-pyramid/archive.json",
+      "group": "stage49-adaptive-pyramid",
+      "stage": "49",
+      "bytes": 3041,
+      "sha256": "38f26f57190025ad89790c700b76a1d06739d6aeba2d179cc1f8229d31fcf805",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage49-adaptive-pyramid/decision-and-failures.json",
+      "group": "stage49-adaptive-pyramid",
+      "stage": "49",
+      "bytes": 20092,
+      "sha256": "a71d3ded6dd731b46b83f8303e775cb2fe66de25e82b460e0eec81145885c5f6",
+      "roles": [
+        "failure_review",
+        "false_gate"
+      ],
+      "explicit_false_gates": [
+        "/verdict_details/H1/passed",
+        "/verdict_details/H2/passed",
+        "/verdict_details/H2r/passed",
+        "/verdict_details/H3/passed",
+        "/verdict_details/H4/passed",
+        "/verdict_details/H7/passed"
+      ]
+    },
+    {
+      "path": "stage49-adaptive-pyramid/dev-calibration.json",
+      "group": "stage49-adaptive-pyramid",
+      "stage": "49",
+      "bytes": 2378,
+      "sha256": "79413303f2f672fc0a6c12f27339761cff4e862f10c06ff6574c3cd33f44d9e6",
+      "roles": [
+        "calibration"
+      ]
+    },
+    {
+      "path": "stage49-adaptive-pyramid/dev-tuning-r0.json",
+      "group": "stage49-adaptive-pyramid",
+      "stage": "49",
+      "bytes": 29501,
+      "sha256": "6ca051dedda10ce76c97264051bcac81ac0bf4dbd7b201b0b9a27d6b64ecfc8d",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "stage49-adaptive-pyramid/dev-tuning.json",
+      "group": "stage49-adaptive-pyramid",
+      "stage": "49",
+      "bytes": 29779,
+      "sha256": "c25588feee4e9eb274c05785ec384509df832bcda083652ff52f80df2e3a7257",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "stage49-adaptive-pyramid/formal-summary.json",
+      "group": "stage49-adaptive-pyramid",
+      "stage": "49",
+      "bytes": 814591,
+      "sha256": "4603f7ac88eb934560c85911c1ce1e62cedd11b8b45122093154cab00eafb1bf",
+      "roles": [
+        "false_gate",
+        "formal",
+        "summary"
+      ],
+      "explicit_false_gates": [
+        "/verdicts/H1/passed",
+        "/verdicts/H2/passed",
+        "/verdicts/H2r/passed",
+        "/verdicts/H3/passed",
+        "/verdicts/H4/passed",
+        "/verdicts/H7/passed"
+      ]
+    },
+    {
+      "path": "stage49-adaptive-pyramid/input-sha256.json",
+      "group": "stage49-adaptive-pyramid",
+      "stage": "49",
+      "bytes": 52749,
+      "sha256": "5cab69d3263e21e92507c2edee8901c3acac2e4ca71fc4f36f09434feea0bea4",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage49-adaptive-pyramid/protocol.json",
+      "group": "stage49-adaptive-pyramid",
+      "stage": "49",
+      "bytes": 15910,
+      "sha256": "67422c55ec3657c4cd1e39d8d1dc377fb1f0c896fd888ecafe996ad2f77647eb",
+      "roles": [
+        "protocol"
+      ]
+    },
+    {
+      "path": "stage49-adaptive-pyramid/raw-results-development.tar.gz",
+      "group": "stage49-adaptive-pyramid",
+      "stage": "49",
+      "bytes": 7897723,
+      "sha256": "4d596fde0b0f8e26af59c8cdb1745e81b0d7c43d783ec5108f5a656c2fd0d809",
+      "roles": [
+        "archive",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 2304,
+      "archive_role_counts": {
+        "formal": 1725,
+        "other": 550,
+        "provenance": 2,
+        "raw": 1152,
+        "summary": 100
+      }
+    },
+    {
+      "path": "stage49-adaptive-pyramid/raw-results-formal.tar.gz",
+      "group": "stage49-adaptive-pyramid",
+      "stage": "49",
+      "bytes": 14073059,
+      "sha256": "00f2760a33f2380cc26f221618e7fac2552ed63d7b5d1bdab08f119962b99670",
+      "roles": [
+        "archive",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 5586,
+      "archive_role_counts": {
+        "formal": 5586,
+        "provenance": 1,
+        "raw": 2793
+      }
+    },
+    {
+      "path": "stage49-adaptive-pyramid/scene-metadata.tar.gz",
+      "group": "stage49-adaptive-pyramid",
+      "stage": "49",
+      "bytes": 127363,
+      "sha256": "a1dec6a175a2d2d8c7ef782abc59266bad4e02bdf492472cbb0e1ea10e883726",
+      "roles": [
+        "archive"
+      ],
+      "archive_file_count": 4,
+      "archive_role_counts": {
+        "other": 2,
+        "provenance": 2
+      }
+    },
+    {
+      "path": "stage49-adaptive-pyramid/source-sha256.json",
+      "group": "stage49-adaptive-pyramid",
+      "stage": "49",
+      "bytes": 37501,
+      "sha256": "9e1e75672be5bea57e6fb8236aca7dacb8c941480e4b455d3835d87dbff24f47",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage49-adaptive-pyramid/source-snapshot.tar.gz",
+      "group": "stage49-adaptive-pyramid",
+      "stage": "49",
+      "bytes": 1010757,
+      "sha256": "9f2663186b88d16c03ba6496fded72686b97582770fcf32623dfb498287d4d61",
+      "roles": [
+        "archive",
+        "source"
+      ],
+      "archive_file_count": 325,
+      "archive_role_counts": {
+        "input": 1,
+        "other": 9,
+        "report": 1,
+        "source": 314,
+        "summary": 18,
+        "validation": 2
+      }
+    },
+    {
+      "path": "stage49-adaptive-pyramid/validation-logs.tar.gz",
+      "group": "stage49-adaptive-pyramid",
+      "stage": "49",
+      "bytes": 49691,
+      "sha256": "068d7dd8102910b5ac7bafc439aa139eec4aeebe9c317b74d7f9deca52a438cd",
+      "roles": [
+        "archive",
+        "validation"
+      ],
+      "archive_file_count": 75,
+      "archive_role_counts": {
+        "failure_review": 2,
+        "protocol": 1,
+        "raw": 57,
+        "source": 10,
+        "validation": 75
+      }
+    },
+    {
+      "path": "stage49-adaptive-pyramid/validation.json",
+      "group": "stage49-adaptive-pyramid",
+      "stage": "49",
+      "bytes": 5790,
+      "sha256": "c5408a443dce89308f5e7c6b4108de8d7fd2c970a14a960a618e6932130f222d",
+      "roles": [
+        "false_gate",
+        "validation"
+      ],
+      "explicit_false_gates": [
+        "/verdicts/H1/passed",
+        "/verdicts/H2/passed",
+        "/verdicts/H2r/passed",
+        "/verdicts/H3/passed",
+        "/verdicts/H4/passed",
+        "/verdicts/H7/passed"
+      ]
+    },
+    {
       "path": "validation-after-refinement.json",
       "group": "root",
       "stage": null,
@@ -9234,5 +9464,5 @@
       ]
     }
   ],
-  "archive_member_index_sha256": "9e1f41d7e2cbabd753bda73739c53b7a735b85cd42fd807fe7775487fb9ab367"
+  "archive_member_index_sha256": "3254fbb61b2f9c9935008f0194002dffa076e93c10b5fe57fba780c1f725e339"
 }
