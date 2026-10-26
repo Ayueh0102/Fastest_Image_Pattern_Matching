@@ -207,10 +207,10 @@ void sequenceGaps(const QString& runner,const QTemporaryDir& dir) {
         "Static sequences repeat exactly one source frame");
 }
 void pyramidRule(const QString& runner,const QTemporaryDir& dir) {
-    // Near-Nyquist stripes: depth 2 at min_area 256, flat at the 11x8 top level.
+    // Stripes with an 8 px period: depth 2 at min_area 256, aliased at the 11x8 top level.
     QImage templ(44,30,QImage::Format_Grayscale8),source(140,80,QImage::Format_Grayscale8);
     for(int y=0;y<templ.height();++y) for(int x=0;x<templ.width();++x)
-        templ.scanLine(y)[x]=uchar(std::clamp(int(std::lround(128+70*std::sin(2.6*x+1.9*y)+30*std::cos(1.3*x-2.4*y))),0,255));
+        templ.scanLine(y)[x]=uchar(std::clamp(int(std::lround(128+70*std::sin(.8*x+.6*y)+30*std::cos(.5*x-.7*y))),0,255));
     source.fill(118);
     for(int y=0;y<templ.height();++y) std::copy_n(templ.constScanLine(y),templ.width(),source.scanLine(y+12)+10);
     require(templ.save(dir.filePath("rule-template.png")) && source.save(dir.filePath("rule-source.png")),"Cannot write runner images");

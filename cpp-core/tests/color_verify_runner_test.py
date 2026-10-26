@@ -235,10 +235,10 @@ class WorkerContract(unittest.TestCase):
                     success=False)
 
     def pyramid_fixture(self):
-        """44x30 near-Nyquist stripes (depth 2 at min_area 256), two upright copies."""
+        """44x30 stripes with an 8 px period (depth 2 at min_area 256), two upright copies."""
         import math
         tw, th, width, height = 44, 30, 140, 80
-        template = [max(0, min(255, round(128 + 70*math.sin(2.6*x+1.9*y) + 30*math.cos(1.3*x-2.4*y))))
+        template = [max(0, min(255, round(128 + 70*math.sin(.8*x+.6*y) + 30*math.cos(.5*x-.7*y))))
                     for y in range(th) for x in range(tw)]
         source = [118] * width * height
         for left, top in ((10, 12), (80, 40)):

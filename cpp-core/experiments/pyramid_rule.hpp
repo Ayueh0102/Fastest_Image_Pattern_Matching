@@ -8,10 +8,11 @@ namespace fpm::research {
 // Round 49 research rule (opt-in): choose a template's coarse top level from its
 // own pixels. For each candidate top level L the template is rendered at eight
 // fixed poses that sit a quarter coarse angle step and a quarter top-level pixel
-// off the search grid, on two flat backgrounds (its 10th and 90th intensity
-// percentiles). Each canvas is reduced L times with the matcher's pyrDown,
-// rotated back on the coarse grid like the matcher, and the best NCC of the
-// learned level-L template within one pixel of the object is kept.
+// off the search grid, on two flat backgrounds two template standard
+// deviations below and above its mean (clamped to 0..255). Each canvas is
+// reduced L times with the matcher's pyrDown, rotated back on the coarse grid
+// like the matcher, and the best NCC of the learned level-L template within one
+// pixel of the object is kept.
 // predictedScores[L] is the worse background's mean over the eight poses.
 struct PyramidRuleDecision {
     int originalTop = 0;      // Top level that minReducedArea gives.

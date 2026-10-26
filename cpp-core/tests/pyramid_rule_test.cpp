@@ -31,12 +31,12 @@ void same(const Result& a,const Result& b,const char* why) {
     };
     compare(a.matches,b.matches);compare(a.proposals,b.proposals);require(a.scales==b.scales,why);
 }
-// Near-Nyquist stripes on a mid-gray plate: pyrDown removes them, so the 11x8
-// top level of this 44x30 template is almost flat while 22x15 still has them.
+// Stripes with an 8 px period: they alias at the 11x8 top level of this 44x30
+// template (2 px period) but survive the 22x15 level.
 Image fineTexture() {
     Image t(44,30);std::mt19937 random(49001);
     for(int y=0;y<30;++y) for(int x=0;x<44;++x)
-        t.row(y)[x]=uint8_t(std::clamp(128+70*std::sin(2.6*x+1.9*y)+30*std::cos(1.3*x-2.4*y)+int(random()%9)-4.,0.,255.));
+        t.row(y)[x]=uint8_t(std::clamp(128+70*std::sin(.8*x+.6*y)+30*std::cos(.5*x-.7*y)+int(random()%9)-4.,0.,255.));
     return t;
 }
 // One bright off-center disk and a gradient: survives every reduction.
@@ -89,13 +89,17 @@ void decisions() {
     require(u.selectedTop==u.originalTop && u.originalTop==depth(flat,256),"uniform template keeps its depth");
     for(double s:u.predictedScores) require(s==0,"uniform levels predict 0");
     require(u.lowBackground==77 && u.highBackground==77,"uniform backgrounds");
-    // Percentile backgrounds, nearest rank.
-    std::vector<uint8_t> values;
-    for(int y=0;y<30;++y) values.insert(values.end(),fine.row(y),fine.row(y)+44);
-    std::sort(values.begin(),values.end());
-    require(f.lowBackground==values[size_t(.1*(values.size()-1))] &&
-        f.highBackground==values[size_t(std::ceil(.9*(values.size()-1)))],"backgrounds are the 10th/90th percentiles");
+    // Backgrounds two standard deviations below and above the mean, clamped.
+    double sum=0,squares=0;
+    for(int y=0;y<30;++y) for(int x=0;x<44;++x) { sum+=fine.row(y)[x];squares+=double(fine.row(y)[x])*fine.row(y)[x]; }
+    const double mean=sum/1320,deviation=std::sqrt(squares/1320-mean*mean);
+    auto expected=[&](double sign) { return int(std::clamp(std::floor(mean+sign*2*deviation+.5),0.,255.)); };
+    require(std::abs(f.lowBackground-expected(-1))<=1 && std::abs(f.highBackground-expected(1))<=1,
+        "backgrounds are the mean -/+ two standard deviations");
     require(f.lowBackground<f.highBackground,"textured template backgrounds differ");
+    Image bright(20,20);for(int y=0;y<20;++y) for(int x=0;x<20;++x) bright.row(y)[x]=uint8_t((x+y)%2?255:180);
+    const auto clamped=decidePyramid(bright.view(),256,.5);
+    require(clamped.highBackground==255 && clamped.lowBackground==int(std::floor(217.5-2*37.5+.5)),"backgrounds clamp to 0..255");
     // Predicted score: worse background's mean, deterministic.
     const Pattern pattern(fine.view(),256);
     for(int level=0;level<=2;++level) {
