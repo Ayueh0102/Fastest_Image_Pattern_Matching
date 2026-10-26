@@ -335,5 +335,36 @@
   "fscd_instances_test_sha256": "f17e99d481c3a1f1dfa9e42d7d1dc0a96bb76498eda9d5440efb033d7763f5d2",
   "fsc_images_zip_sha256": "4f9eff24c39f956d614abdb8888f9f7ae84cce92f81842e4159de45cd54d965f"
  },
- "revisions": []
+ "revisions": [
+  {
+   "date": "2026-10-26",
+   "kind": "implementation matches protocol text",
+   "what": "literature_compare.py run_b2: the GeCo2 batch timeout set to the protocol's 3 hours (was 12) and the CPU batch restricted to the first 100 test images as the protocol states; changed before either batch ran"
+  },
+  {
+   "date": "2026-10-26",
+   "kind": "operational",
+   "what": "literature_compare.py run_b1: --methods filter (tdcm / ours / opencv) so the CPU-only TDCM batches could run while the GeCo2 MPS batch ran; both phases have descriptive time only, the overlap is recorded in their manifests' host fields"
+  },
+  {
+   "date": "2026-10-26",
+   "kind": "stricter host rule",
+   "what": "literature_compare.py OwnLock: formal phases also wait until no project or round-50 heavy process (our own workers included; clangd excluded) is running, so our own background work cannot overlap formal timing (lead-session request)"
+  },
+  {
+   "date": "2026-10-26",
+   "kind": "tool bug fix",
+   "what": "literature_geco2_fscd_eval.py: pycocotools summarize() hard-codes maxDets=100 for AP@[.5:.95] and returned -1; AP and AP50 now read the precision array at maxDets 10000 as the authors' COCOevalMaxDets does. AP50 was unaffected (69.41 both times); the first output is kept as gate-geco2-mps-attempt1-maxdets100-bug.json"
+  },
+  {
+   "date": "2026-10-26",
+   "kind": "stop condition met",
+   "what": "GeCo2 B2 authenticity gate on MPS failed: AP 40.45 (paper 46.81, -6.36), AP50 69.41 (paper 75.89, -6.48), count MAE vs FSC points 9.77 (paper 7.64); the batch itself finished without error in 101 min. Weights ruled out (README Google Drive FSCD checkpoint: same 475 tensors, plus optimizer/epoch 87). Descriptive CPU first-100 run with the same reference kernel: AP50 86.05 vs MPS 78.80, count MAE 3.49 vs 6.29, 0/100 identical outputs. The user chose (relayed verbatim): \"不要改用 CPU，GeCo2 精度直接等我提供 CUDA\". GeCo2 accuracy cells (H1c, H2, B2 GeCo2 boxes and counts as accuracy) are pending the CUDA run with the compiled kernel; CPU results stay descriptive; AP50 is retired only if CUDA also misses the gate."
+  },
+  {
+   "date": "2026-10-26",
+   "kind": "failed attempt kept",
+   "what": "formal A and C attempt 1 passed all method names as one shell word (zsh does not split $M), so every worker failed at once (A 75, C 360 manifest rows, no measurement ran); kept as runs/A-attempt1-method-string and runs/C-attempt1-method-string; literature_compare.py now refuses unknown method names (check_methods, MethodNameTest) and the runs were restarted with explicit names"
+  }
+ ]
 }

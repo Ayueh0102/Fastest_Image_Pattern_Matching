@@ -61,7 +61,15 @@ def main():
         ev.evaluate()
         ev.accumulate()
         ev.summarize()
-    ap, ap50 = float(ev.stats[0] * 100), float(ev.stats[1] * 100)
+    # pycocotools' summarize() hard-codes maxDets=100 for AP@[.5:.95]; the authors override it (COCOevalMaxDets).
+    # precision: [iou thresholds, recall points, classes, area ranges, maxDets]; area 'all' = 0, maxDets 10000 = last.
+    precision = ev.eval['precision'][:, :, 0, 0, -1]
+
+    def mean_valid(a):
+        a = a[a > -1]
+        return float(a.mean() * 100) if a.size else float('nan')
+    ap = mean_valid(precision)
+    ap50 = mean_valid(precision[int(np.argmin(np.abs(ev.params.iouThrs - .5)))])
     gt_boxes = {n: len(gt.getAnnIds(imgIds=[ids[n]])) for n in seen}
     err_points = [c - len(points[n]['points']) for n, c in counts]
     err_boxes = [c - gt_boxes[n] for n, c in counts]

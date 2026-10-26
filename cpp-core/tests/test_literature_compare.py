@@ -127,5 +127,28 @@ class WorkerDirectoryTest(unittest.TestCase):
             self.assertEqual(out.read_text(), '{}')
 
 
+class HeavyProcessTest(unittest.TestCase):
+    def test_formal_lock_sees_our_own_workers_but_not_clangd(self):
+        from unittest import mock
+        ps = ('101 /usr/bin/python -I literature_tdcm_worker.py --batch x\n'
+              '102 /Applications/Xcode.app/.../clangd --background-index\n'
+              '103 /bin/zsh\n'
+              '104 python literature_compare.py run --group A --formal\n')
+        with mock.patch.object(lc.subprocess, 'run', return_value=mock.Mock(stdout=ps)):
+            rows = lc.heavy_processes()
+        self.assertEqual(len(rows), 1)
+        self.assertIn('literature_tdcm_worker', rows[0])
+
+
+class MethodNameTest(unittest.TestCase):
+    def test_unknown_or_joined_method_names_are_refused(self):
+        with self.assertRaises(SystemExit):
+            lc.check_methods('A', ['ours_core ours_hybrid_k0'])
+        with self.assertRaises(SystemExit):
+            lc.check_methods('B1', ['ours_core'])
+        lc.check_methods('C', ['ours_core', 'tdcm_adapted_cpu'])
+        lc.check_methods('B2', ['ours', 'geco2_cpu'])
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -111,13 +111,33 @@ def wait_for_locks(own=None, poll=30):
     return waited
 
 
+HEAVY = ('literature_tdcm_worker', 'literature_geco2_worker', 'literature_opencv_worker', 'fpm_native_pipeline_runner',
+         'fpm_color_verify_runner', 'fpm_cli', 'benchmark_', 'ctest', 'cmake', 'clang')
+
+
+def heavy_processes():
+    """Project or round-50 work still running anywhere on the machine (our own background jobs included)."""
+    out = subprocess.run(['ps', '-A', '-o', 'pid=,command='], capture_output=True, text=True).stdout
+    rows = []
+    for line in out.splitlines():
+        pid, _, command = line.strip().partition(' ')
+        if (pid.isdigit() and int(pid) != os.getpid() and any(h in command for h in HEAVY) and 'literature_compare.py' not in command
+                and 'clangd' not in command):
+            rows.append(command[:160])
+    return rows
+
+
 class OwnLock:
     def __init__(self, phase, what, expected):
         self.path = LOCKS / 'local_1b4c2052-63a8-4a9f-94f8-77e6ad04fbca' / f'timing-lock-round50-{phase}.txt'
         self.text = f'round 50 (literature comparison) {phase}\nstart_utc {now()}\nwhat {what}\nexpected {expected}; deleted when done\n'
 
     def __enter__(self):
-        wait_for_locks()
+        while True:  # neither another session's lock nor any heavy work (ours included) may overlap formal timing
+            wait_for_locks()
+            if not heavy_processes():
+                break
+            time.sleep(30)
         self.path.write_text(self.text)
         return self
 
@@ -695,6 +715,7 @@ def b1_opencv_scales(setting):
 
 def run_b1(args, cfg, protocol):
     pipelines = [cfg.tdcm_pipeline] + [p for p in ('test_single', 'test_py') if p != cfg.tdcm_pipeline]
+    want = lambda key: any(m.startswith(key) for m in args.methods)  # noqa: E731  ('tdcm', 'ours', 'opencv')
     manifest = args.output / 'manifest.jsonl'
     args.output.mkdir(parents=True, exist_ok=True)
     done = manifest_done(manifest)
@@ -714,7 +735,7 @@ def run_b1(args, cfg, protocol):
             items_path = args.output / 'items' / f'{setting}-{variant}.json'
             items_path.parent.mkdir(parents=True, exist_ok=True)
             items_path.write_text(json.dumps(items) + '\n')
-            for pipeline in (pipelines if variant == 't36' else pipelines[:1]):
+            for pipeline in (pipelines if variant == 't36' else pipelines[:1]) if want('tdcm') else ():
                 key = (f'{setting}-{variant}', f'tdcm_{pipeline}', 0)
                 if key in done:
                     continue
@@ -726,7 +747,7 @@ def run_b1(args, cfg, protocol):
                 w = run_worker(cmd, out)
                 log(dict(case=key[0], method=key[1], block=0, status='ok' if w['code'] == 0 else 'failed', output=str(out),
                          wall_ms=w['wall_ms'], host=w['host'], returncode=w['code']))
-            arms = ['ours_hybrid_k0', 'ours_fullgpu_k0'] + (['ours_core'] if variant == 'native' else [])
+            arms = (['ours_hybrid_k0', 'ours_fullgpu_k0'] + (['ours_core'] if variant == 'native' else [])) if want('ours') else []
             for t in truth:
                 image, template = items[t['index']]['image'], items[t['index']]['template']
                 tw, th = image_size(template)
@@ -751,7 +772,7 @@ def run_b1(args, cfg, protocol):
                         f.write(json.dumps(dict(case=case['name'], method=arm, block=0, status='ok' if w['code'] == 0 else 'failed',
                                                 output=str(out), wall_ms=w['wall_ms'], load1=w['host']['load1'],
                                                 returncode=w['code'])) + '\n')
-                if variant == 't36' and t['index'] < 200 and (case['name'], 'opencv', 0) not in done:
+                if want('opencv') and variant == 't36' and t['index'] < 200 and (case['name'], 'opencv', 0) not in done:
                     out = args.output / 'opencv' / f'{setting}-{variant}' / f"{t['index']:04d}.json"
                     out.parent.mkdir(parents=True, exist_ok=True)
                     case_cv = dict(case, search=dict(case['search'], scales=b1_opencv_scales(setting), score=-1.))
@@ -799,17 +820,30 @@ def run_b2(args, cfg, protocol):
         if key in done:
             continue
         out = args.output / f'geco2_{device}.jsonl'
+        batch = args.output / 'items.json'
+        if device == 'cpu':  # descriptive: the first 100 test images in split order
+            batch = args.output / 'items-cpu-first100.json'
+            batch.write_text(json.dumps(items[:100]) + '\n')
         cmd = [EXTERNAL / 'envs/geco2-py312/bin/python', '-I', TOOLS / 'literature_geco2_worker.py', '--repo', EXTERNAL / 'repos/geco2',
                '--weights', EXTERNAL / 'data/geco2-weights-hf/GECO2FSCD.pth', '--torch-home', EXTERNAL / 'torch-home',
-               '--batch', args.output / 'items.json', '--threshold', .11, '--device', device, '--threads', 8, '--output', out]
-        w = run_worker(cmd, out, timeout=12 * 3600)
+               '--batch', batch, '--threshold', .11, '--device', device, '--threads', 8, '--output', out]
+        w = run_worker(cmd, out, timeout=3 * 3600)  # protocol geco2_mps_stop: MPS must finish within 3 hours
         with open(manifest, 'a') as f:
             f.write(json.dumps(dict(case='all', method=f'geco2_{device}', block=0, status='ok' if w['code'] == 0 else 'failed',
                                     output=str(out), wall_ms=w['wall_ms'], host=w['host'], returncode=w['code'])) + '\n')
         print('geco2', device, w['code'], flush=True)
 
 
+def check_methods(group, methods):
+    # Attempt 1 of the formal A/C runs passed every method as one string (shell quoting) and failed 435 workers.
+    known = SCENE_METHODS if group in ('A', 'C') else ('tdcm', 'ours', 'opencv', 'geco2_mps', 'geco2_cpu')
+    unknown = [m for m in methods if m not in known]
+    if unknown:
+        raise SystemExit(f'unknown method(s) for group {group}: {unknown}')
+
+
 def run(args):
+    check_methods(args.group, args.methods)
     protocol = json.loads(args.protocol.read_text())
     cfg = RunConfig(args, protocol)
     if args.group == 'A':
