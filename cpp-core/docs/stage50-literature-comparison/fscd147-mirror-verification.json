@@ -1,0 +1,219 @@
+{
+ "mirror_images": 6146,
+ "official_images": 6146,
+ "images_only_in_mirror": [],
+ "images_only_in_official": [],
+ "images_byte_identical": 6146,
+ "images_differing": [],
+ "annotation_files": {
+  "annotation_FSC147_384.json": {
+   "official_sha256": "6a1d0f43d12274219a5307cb35b24c85fb275a34b3d5acf5b67f2066f9e0bfe1",
+   "copies": [
+    {
+     "path": "FSC147_384_V2/annotation_FSC147_384.json",
+     "equal": true
+    },
+    {
+     "path": "annotation_FSC147_384.json",
+     "equal": true
+    },
+    {
+     "path": "annotations/annotation_FSC147_384.json",
+     "equal": true
+    }
+   ]
+  },
+  "Train_Test_Val_FSC_147.json": {
+   "official_sha256": "e281e2d9118cd9ae6f5a2852006b6a24e7a7ea5605d9a6e0fa946dcf93308271",
+   "copies": [
+    {
+     "path": "FSC147_384_V2/Train_Test_Val_FSC_147.json",
+     "equal": true
+    },
+    {
+     "path": "Train_Test_Val_FSC_147.json",
+     "equal": true
+    },
+    {
+     "path": "annotations/Train_Test_Val_FSC_147.json",
+     "equal": true
+    }
+   ]
+  }
+ },
+ "splits": {
+  "test": 1190,
+  "test_coco": 282,
+  "train": 3659,
+  "val": 1286,
+  "val_coco": 277
+ },
+ "split_classes": {
+  "train": 89,
+  "val": 29,
+  "test": 29
+ },
+ "classes_total": 147,
+ "paper_table1": {
+  "classes": 147,
+  "images": 6135,
+  "train": 3659,
+  "val": 1286,
+  "test": 1190
+ },
+ "instances": {
+  "val": {
+   "file": "instances_val.json",
+   "sha256": "543f31ff8c1064423e00bd8d61c1c92cac272347c869e0b75f7969b0c683e692",
+   "bytes": 11075155,
+   "images": 1286,
+   "duplicate_file_names": 0,
+   "images_equal_split": true,
+   "annotations": 79955,
+   "categories": [
+    "fg"
+   ],
+   "image_size_mismatches": 0,
+   "boxes_outside_image": 0,
+   "degenerate_boxes": 0,
+   "split_points": 82042,
+   "images_box_count_equals_points": 834,
+   "images_box_count_differs": 452,
+   "largest_differences": [
+    {
+     "image": "935.jpg",
+     "boxes_minus_points": -493
+    },
+    {
+     "image": "865.jpg",
+     "boxes_minus_points": -213
+    },
+    {
+     "image": "5860.jpg",
+     "boxes_minus_points": -98
+    },
+    {
+     "image": "7549.jpg",
+     "boxes_minus_points": -70
+    },
+    {
+     "image": "6969.jpg",
+     "boxes_minus_points": -62
+    },
+    {
+     "image": "840.jpg",
+     "boxes_minus_points": -59
+    },
+    {
+     "image": "931.jpg",
+     "boxes_minus_points": 53
+    },
+    {
+     "image": "3428.jpg",
+     "boxes_minus_points": -49
+    },
+    {
+     "image": "215.jpg",
+     "boxes_minus_points": -45
+    },
+    {
+     "image": "1983.jpg",
+     "boxes_minus_points": -37
+    }
+   ],
+   "total_boxes_minus_points": -2087
+  },
+  "test": {
+   "file": "instances_test.json",
+   "sha256": "f17e99d481c3a1f1dfa9e42d7d1dc0a96bb76498eda9d5440efb033d7763f5d2",
+   "bytes": 10714047,
+   "images": 1190,
+   "duplicate_file_names": 0,
+   "images_equal_split": true,
+   "annotations": 77236,
+   "categories": [
+    "fg"
+   ],
+   "image_size_mismatches": 0,
+   "boxes_outside_image": 1539,
+   "degenerate_boxes": 0,
+   "split_points": 78836,
+   "images_box_count_equals_points": 655,
+   "images_box_count_differs": 535,
+   "largest_differences": [
+    {
+     "image": "6647.jpg",
+     "boxes_minus_points": -191
+    },
+    {
+     "image": "2243.jpg",
+     "boxes_minus_points": -130
+    },
+    {
+     "image": "2219.jpg",
+     "boxes_minus_points": 88
+    },
+    {
+     "image": "6732.jpg",
+     "boxes_minus_points": 73
+    },
+    {
+     "image": "6281.jpg",
+     "boxes_minus_points": -66
+    },
+    {
+     "image": "2213.jpg",
+     "boxes_minus_points": -65
+    },
+    {
+     "image": "2229.jpg",
+     "boxes_minus_points": -52
+    },
+    {
+     "image": "2166.jpg",
+     "boxes_minus_points": -44
+    },
+    {
+     "image": "687.jpg",
+     "boxes_minus_points": -43
+    },
+    {
+     "image": "1053.jpg",
+     "boxes_minus_points": -43
+    }
+   ],
+   "total_boxes_minus_points": -1600
+  }
+ },
+ "duplicate_instances_files": {
+  "val": [
+   {
+    "path": "annotations/instances_val.json",
+    "sha256": "543f31ff8c1064423e00bd8d61c1c92cac272347c869e0b75f7969b0c683e692"
+   },
+   {
+    "path": "instances_val.json",
+    "sha256": "543f31ff8c1064423e00bd8d61c1c92cac272347c869e0b75f7969b0c683e692"
+   }
+  ],
+  "test": [
+   {
+    "path": "annotations/instances_test.json",
+    "sha256": "f17e99d481c3a1f1dfa9e42d7d1dc0a96bb76498eda9d5440efb033d7763f5d2"
+   },
+   {
+    "path": "instances_test.json",
+    "sha256": "f17e99d481c3a1f1dfa9e42d7d1dc0a96bb76498eda9d5440efb033d7763f5d2"
+   }
+  ]
+ },
+ "checks": {
+  "images_identical": true,
+  "annotation_copies_identical": true,
+  "split_sizes_match_paper": true,
+  "classes_match_paper": true,
+  "instances_cover_splits": true,
+  "instances_geometry_valid": false,
+  "duplicate_instances_identical": true
+ }
+}

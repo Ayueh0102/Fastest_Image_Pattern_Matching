@@ -12,14 +12,24 @@ both. Three result kinds share one record format (see ``normalise``):
           enclosing box for box-only comparisons.
 * count - the number of kept detections (or a method's own count).
 
-Strict pose matching: centre error <= tol_px, angle error <= tol_deg (modulo the
-declared symmetry period) and relative width and height error <= tol_scale.
-Greedy one-to-one matching in descending score, nearest centre first, so a method
-cannot score twice on one object. Box matching uses IoU >= 0.5 the same way, and
-AP50 is the COCO 101-point interpolated precision over a pooled ranking. Errors of
-matched pairs are reported separately from the counts, never folded into them.
+Primary metrics, fixed in the round-50 protocol:
+
+* pose-capable methods: strict pose matches (centre <= 2 px, angle <= 1 deg modulo
+  the declared symmetry period, width and height ratio in [0.98, 1.02]) by
+  maximum-cardinality bipartite matching, as many_object_accuracy.evaluate does;
+* box-only comparisons: IoU >= 0.5, matched greedily in descending score as in
+  COCO, precision, recall and COCO 101-point AP50 pooled over images.
+
+Descriptive only: a 20 px association radius (localisation recall and the
+errors of those pairs), TDCM's paper metrics (rotated-rectangle IoU in its own
+angle convention, Succ. = IoU > 0.1). Errors of matched pairs are reported apart
+from the counts, never folded into them.
 """
 import math
+import sys
+
+STRICT = dict(position_px=2., angle_deg=1., relative_size=.02)
+ASSOCIATION_RADIUS_PX = 20.
 
 
 def angle_error(a, b, period=360.):
@@ -59,10 +69,12 @@ def normalise(det):
         out.update(cx=float(det['cx']), cy=float(det['cy']), angle=float(det['angle_deg']), width=width, height=height)
         corners = det.get('corners') or pose_corners(out['cx'], out['cy'], width, height, out['angle'])
         out['box'] = enclosing_box(corners)
+        out['valid'] = all(math.isfinite(v) for v in (out['cx'], out['cy'], out['angle'], width, height)) and width > 0 and height > 0
     elif kind == 'box':
         out['box'] = (float(det['x0']), float(det['y0']), float(det['x1']), float(det['y1']))
         out['cx'] = (out['box'][0] + out['box'][2]) / 2
         out['cy'] = (out['box'][1] + out['box'][3]) / 2
+        out['valid'] = all(math.isfinite(v) for v in out['box'])
     else:
         raise ValueError('Unknown detection kind: ' + str(kind))
     return out
@@ -76,61 +88,145 @@ def iou(a, b):
     return inter / union if union > 0 else 0.
 
 
-def _ranked(preds):
-    return sorted(range(len(preds)), key=lambda i: -preds[i]['score'])
+def _polygon_area(points):
+    return abs(sum(points[i][0] * points[i - 1][1] - points[i - 1][0] * points[i][1] for i in range(len(points)))) / 2
 
 
-def match_poses(gt, preds, tol_px=2., tol_deg=1., tol_scale=.02, period=360.):
-    """Strict pose matching. gt and preds are normalised pose records."""
-    used, pairs = set(), []
-    for i in _ranked(preds):
-        p, best = preds[i], None
-        for j, g in enumerate(gt):
-            if j in used:
-                continue
-            d = math.hypot(p['cx'] - g['cx'], p['cy'] - g['cy'])
-            if d > tol_px or angle_error(p['angle'], g['angle'], period) > tol_deg:
-                continue
-            if abs(p['width'] / g['width'] - 1) > tol_scale or abs(p['height'] / g['height'] - 1) > tol_scale:
-                continue
-            if best is None or d < best[0]:
-                best = (d, j)
-        if best is not None:
-            used.add(best[1])
-            pairs.append((i, best[1]))
-    return pairs
+def _clip(subject, clipper):
+    """Sutherland-Hodgman clipping of a convex polygon by a convex polygon (both counter-clockwise in maths axes)."""
+    def inside(p, a, b):
+        return (b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0]) >= 0
+
+    def cross_point(p, q, a, b):
+        x1, y1, x2, y2, x3, y3, x4, y4 = *p, *q, *a, *b
+        den = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
+        t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / den
+        return x1 + t * (x2 - x1), y1 + t * (y2 - y1)
+
+    output = list(subject)
+    for i in range(len(clipper)):
+        a, b = clipper[i - 1], clipper[i]
+        points, output = output, []
+        for j in range(len(points)):
+            p, q = points[j - 1], points[j]
+            if inside(q, a, b):
+                if not inside(p, a, b):
+                    output.append(cross_point(p, q, a, b))
+                output.append(q)
+            elif inside(p, a, b):
+                output.append(cross_point(p, q, a, b))
+        if not output:
+            return []
+    return output
 
 
-def match_centres(gt, preds, radius):
-    """Loose localisation: one-to-one within radius pixels, used to split failure causes."""
-    used, pairs = set(), []
-    for i in _ranked(preds):
-        p, best = preds[i], None
-        for j, g in enumerate(gt):
-            if j in used:
+def _counter_clockwise(points):
+    signed = sum(points[i - 1][0] * points[i][1] - points[i][0] * points[i - 1][1] for i in range(len(points)))
+    return points if signed > 0 else points[::-1]
+
+
+def rotated_iou(corners_a, corners_b):
+    """IoU of two convex quadrilaterals given by their corners."""
+    a, b = _counter_clockwise(list(corners_a)), _counter_clockwise(list(corners_b))
+    inter = _clip(a, b)
+    area_i = _polygon_area(inter) if len(inter) >= 3 else 0.
+    union = _polygon_area(a) + _polygon_area(b) - area_i
+    return area_i / union if union > 0 else 0.
+
+
+def tdcm_paper_iou(gt, pred, reference=(36, 36)):
+    """TDCM's getIOU: rectangles (cx, cy, sx*tw, sy*th) rotated by its rotated_rect convention.
+
+    Its rotated_rect turns corners by +angle in y-down image coordinates, i.e. our
+    pose_corners at -angle; gt and pred are dicts with cx, cy, scale_x, scale_y, angle_deg.
+    """
+    tw, th = reference
+    corners = [pose_corners(d['cx'], d['cy'], d['scale_x'] * tw, d['scale_y'] * th, -d['angle_deg']) for d in (gt, pred)]
+    return rotated_iou(*corners)
+
+
+def _maximum_matching(edges, n_left):
+    """Kuhn augmenting paths; edges[i] lists right indices in a fixed order. Returns right index -> left index."""
+    match_right = {}
+
+    def augment(i, seen):
+        for j in edges[i]:
+            if j in seen:
                 continue
-            d = math.hypot(p['cx'] - g['cx'], p['cy'] - g['cy'])
-            if d <= radius and (best is None or d < best[0]):
-                best = (d, j)
-        if best is not None:
-            used.add(best[1])
-            pairs.append((i, best[1]))
-    return pairs
+            seen.add(j)
+            if j not in match_right or augment(match_right[j], seen):
+                match_right[j] = i
+                return True
+        return False
+
+    limit = sys.getrecursionlimit()
+    sys.setrecursionlimit(max(limit, 10 * n_left + 100))
+    try:
+        for i in range(n_left):
+            augment(i, set())
+    finally:
+        sys.setrecursionlimit(limit)
+    return match_right
+
+
+def _neighbours(gt, preds, radius):
+    """For each truth, prediction indices whose centre lies within radius (grid buckets, deterministic order)."""
+    cell = max(radius, 1.)
+    grid = {}
+    for j, p in enumerate(preds):
+        if p['valid']:
+            grid.setdefault((math.floor(p['cx'] / cell), math.floor(p['cy'] / cell)), []).append(j)
+    out = []
+    for g in gt:
+        gx, gy = math.floor(g['cx'] / cell), math.floor(g['cy'] / cell)
+        near = []
+        for dx in (-1, 0, 1):
+            for dy in (-1, 0, 1):
+                for j in grid.get((gx + dx, gy + dy), ()):
+                    if math.hypot(preds[j]['cx'] - g['cx'], preds[j]['cy'] - g['cy']) <= radius:
+                        near.append(j)
+        out.append(sorted(near))
+    return out
+
+
+def _strict_edge(g, p, period):
+    return (math.hypot(p['cx'] - g['cx'], p['cy'] - g['cy']) <= STRICT['position_px']
+            and angle_error(p['angle'], g['angle'], period) <= STRICT['angle_deg']
+            and abs(p['width'] / g['width'] - 1) <= STRICT['relative_size'] + 1e-12
+            and abs(p['height'] / g['height'] - 1) <= STRICT['relative_size'] + 1e-12)
+
+
+def match_poses(gt, preds, period=360.):
+    """Strict pose pairs (truth index, prediction index) by maximum-cardinality matching."""
+    near = _neighbours(gt, preds, STRICT['position_px'])
+    edges = [[j for j in near[i] if _strict_edge(gt[i], preds[j], period)] for i in range(len(gt))]
+    return sorted((i, j) for j, i in _maximum_matching(edges, len(gt)).items())
+
+
+def match_centres(gt, preds, radius=ASSOCIATION_RADIUS_PX):
+    """Descriptive localisation pairs within radius, maximum-cardinality matching."""
+    edges = _neighbours(gt, preds, radius)
+    return sorted((i, j) for j, i in _maximum_matching(edges, len(gt)).items())
 
 
 def match_boxes(gt_boxes, preds, threshold=.5):
+    """COCO-style: predictions in descending score take the unmatched truth of highest IoU >= threshold."""
     used, flags = set(), []
-    for i in _ranked(preds):
-        best = None
-        for j, g in enumerate(gt_boxes):
-            if j in used:
-                continue
-            v = iou(preds[i]['box'], g)
-            if v >= threshold and (best is None or v > best[0]):
-                best = (v, j)
+    centres = [((g[0] + g[2]) / 2, (g[1] + g[3]) / 2, max(g[2] - g[0], g[3] - g[1])) for g in gt_boxes]
+    reach = max((c[2] for c in centres), default=0.)
+    for i in sorted(range(len(preds)), key=lambda k: -preds[k]['score']):
+        p, best = preds[i], None
+        if p['valid']:
+            span = max(p['box'][2] - p['box'][0], p['box'][3] - p['box'][1])
+            for j, g in enumerate(gt_boxes):
+                if j in used or abs(centres[j][0] - p['cx']) > reach + span or abs(centres[j][1] - p['cy']) > reach + span:
+                    continue
+                v = iou(p['box'], g)
+                if v >= threshold and (best is None or v > best[0]):
+                    best = (v, j)
         if best is not None:
             used.add(best[1])
-        flags.append((preds[i]['score'], best is not None, None if best is None else best[1], i))
+        flags.append((p['score'], best is not None, None if best is None else best[1], i))
     return flags
 
 
@@ -160,7 +256,7 @@ def average_precision(ranked_flags, total_gt):
 def pose_errors(gt, preds, pairs, period=360.):
     rows = []
     for i, j in pairs:
-        p, g = preds[i], gt[j]
+        g, p = gt[i], preds[j]
         rows.append(dict(position_px=math.hypot(p['cx'] - g['cx'], p['cy'] - g['cy']),
                          angle_deg=angle_error(p['angle'], g['angle'], period),
                          width_rel=p['width'] / g['width'] - 1, height_rel=p['height'] / g['height'] - 1))
@@ -173,20 +269,24 @@ def summary(values):
         return dict(n=0)
     mid = len(values) // 2
     median = values[mid] if len(values) % 2 else (values[mid - 1] + values[mid]) / 2
-    return dict(n=len(values), mean=sum(values) / len(values), median=median, max=values[-1])
+    return dict(n=len(values), mean=sum(values) / len(values), median=median,
+                p90=values[min(len(values) - 1, int(math.ceil(.9 * len(values))) - 1)], max=values[-1])
 
 
-def score_pose_image(gt, preds, tol_px=2., tol_deg=1., tol_scale=.02, period=360., loose_radius=None):
+def error_summary(rows):
+    return {k: summary([abs(r[k]) for r in rows]) for k in ('position_px', 'angle_deg', 'width_rel', 'height_rel')}
+
+
+def score_pose_image(gt, preds, period=360.):
     """Score one image for a pose-capable method; gt and preds are raw records."""
     g = [normalise(x) for x in gt]
     p = [normalise(x) for x in preds]
-    pairs = match_poses(g, p, tol_px, tol_deg, tol_scale, period)
-    out = dict(gt=len(g), predictions=len(p), strict_tp=len(pairs), strict_fp=len(p) - len(pairs),
-               strict_fn=len(g) - len(pairs), errors=pose_errors(g, p, pairs, period))
-    if loose_radius is not None:
-        loose = match_centres(g, p, loose_radius)
-        out.update(loose_tp=len(loose), loose_errors=pose_errors(g, p, loose, period))
-    return out
+    pairs = match_poses(g, p, period)
+    loose = match_centres(g, p)
+    return dict(gt=len(g), predictions=len(p), invalid_predictions=sum(not x['valid'] for x in p),
+                strict_tp=len(pairs), strict_fp=len(p) - len(pairs), strict_fn=len(g) - len(pairs),
+                strict_errors=pose_errors(g, p, pairs, period),
+                association_tp=len(loose), association_errors=pose_errors(g, p, loose, period))
 
 
 def score_box_images(images, threshold=.5):

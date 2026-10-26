@@ -1,0 +1,116 @@
+{
+ "stage": 50,
+ "status": "DRAFT committed before any development selection ran. The three development selections below run after this commit; their results and every remaining field are then frozen as protocol.json, committed with a source snapshot before any group-C scene, B1/B2 evaluation output or measured run exists.",
+ "date": "2026-10-26",
+ "title": "Measured comparison with 2024-2026 template-matching, pose and few-shot counting methods",
+ "question": "Where does this project's NCC matcher (stable core and research pipeline) beat or lose to PoseMatch-TDCM, GeCo2 and an OpenCV matchTemplate baseline on the same inputs, scored by one independent scorer, with accuracy, time and memory kept apart?",
+ "base": {"main": "af7c97a (rounds 1-49)", "phase1": "48c7cf9 feasibility record; merge c9daa4f"},
+
+ "user_decisions_2026_10_26": {
+  "relayed_by": "session local_1b4c2052 (project lead session), quoting the user",
+  "fscd147": "FSCD-147 may come from the unofficial Hugging Face mirror, with hashes checked and the source disclosed",
+  "h3": "rewrite H3 as a small-object test under the official weights; no retraining, no COCO train2017; the paper's 12x12 numbers are cited only",
+  "s1": "use the TDCM paper or code definition if one exists; otherwise boxes with both sides in 34-38 px, stated as our operational definition",
+  "geco2_accuracy": "pinned to CUDA on the lab server with the officially compiled kernel; M4 Pro CPU/MPS outputs descriptive only, their disagreement disclosed; times juxtaposed per hardware, never divided",
+  "tdcm_primary_pipeline": "chosen on the 200 unscored S1 development pairs: whichever script is closer to the paper's S1 accuracy becomes primary before the freeze, the other a disclosed secondary",
+  "b1_template": "36x36 primary (the paper's standard), native crop secondary",
+  "association_radius": "20 px only as the association radius of a descriptive localisation recall; primary metrics stay strict 2 px / 1 deg / 2 % for pose methods and IoU >= 0.5 for box methods",
+  "pending": "two follow-ups sent 2026-10-26 ~11:40Z: (1) proceed with the FSCD mirror given the box-count findings and an extra GeCo2 reproduction check; (2) the lab server is unreachable from the current network (Tailscale ping ok, SSH 22 blocked)"
+ },
+
+ "round49_input": "pyramid_rule=1 failed its holdout (ADAPTIVE_PYRAMID_zh-TW.md) and is not enabled in any arm; tiny templates use CURRENT_BEST settings",
+
+ "methods": {
+  "ours_core": {"what": "stable fixed-scale core, fpm_cli", "settings": "--angle 180 --overlap 0.2 --subpixel; target count and score from the case", "scope": "cases whose truth scale is 1 for every object (fixed-scale) and B1 native variant"},
+  "ours_hybrid_k0": {"what": "research hybrid, round-44 hybrid_best job (Metal coarse + Metal refinement)", "dedup": 0},
+  "ours_hybrid_k3": {"what": "ours_hybrid_k0 with candidate_dedup_top_k 3 (radius 0.5, angle_steps 3)"},
+  "ours_fullgpu_k0": {"what": "full GPU, full_gpu_peak_mode 2, full_gpu_fine_mode 4, full_gpu_peak_batch 8, dedup 0"},
+  "ours_fullgpu_k3": {"what": "CURRENT_BEST many-object recommendation: ours_fullgpu_k0 with candidate_dedup_top_k 3; the 'ours' arm of every hypothesis"},
+  "ours_small_shallow": {"what": "group-C tiny templates only, descriptive: hybrid k0 with the round-35 manual shallow pyramid (min_area 512, proposal_score 0.25, limit 300)"},
+  "job_source": "A cases that round 44 archived (many128_pose, many512_pose, controlled6, 8k_t256_angle180_3scales) reuse the round-44 static job files with only repeats, warm-up and profiling changed, so their first-call matches can be compared with the round-44 archive; other cases use the same keys with the case's scales, angle, limit, scores, overlap and stop_layer",
+  "opencv_mt": {"what": "literature_opencv_worker.py: OpenCV 4.13 matchTemplate TM_CCOEFF_NORMED, rotated-rectangle mask, template rotated per (angle, scale), local maxima >= the case score, fpm-style rotated NMS", "grid": "1 deg x the case's scales"},
+  "tdcm": {"what": "PoseMatch-TDCM official weights dict/model.pth (sha256 4bbd7178...68dc02, commit a6adc3a; 794,333 parameters, the paper states 3.07M)", "official_scope": "B1 single-target 224x224 pairs", "pipelines": "test_single (evaluation script) and test_py (README example), primary chosen by dev_selection.tdcm_pipeline"},
+  "tdcm_adapted": {"what": "TDCM outside its published scope, labelled 'TDCM-adapted': image and template resized by k = 36 / max(template w, h) (INTER_AREA if k < 1 else INTER_LINEAR), every 3x3 local maximum of the score map >= the development-chosen peak threshold, at most 2 x limit by score, each refined by the primary pipeline's refinement, poses mapped back by 1/k, fpm-style rotated NMS at the case overlap, at most limit", "devices": "M4 Pro CPU 8 threads (primary, same-machine time) and MPS (descriptive)"},
+  "geco2": {"what": "GeCo2 GECO2FSCD.pth (sha256 945c5d83...512b) + SAM2 hiera-B+ (sha256 d0bb7f23...8071), threshold 0.11 and NMS 0.5 (inference.py), demo_gradio.py preprocessing", "exemplars": "B2: the first 3 FSC exemplar boxes; A/C: enclosing boxes of the first 3 GT instances in GT order (all when fewer); they are not removed from scoring", "accuracy_device": "CUDA, compiled MultiScaleDeformableAttention (pending reachability, see user_decisions.pending)", "descriptive_devices": "M4 Pro MPS and CPU with the reference deformable attention, CPU reference points set before forward, scipy 1.16.3", "not_applicable": "empty-scene, constant-scene and wrong-template controls"},
+  "excluded": {"CountGD": "out of scope (user)", "HALCON": "no licence; public documentation cited only"}
+ },
+
+ "dev_selection": {
+  "tdcm_pipeline": {"data": "S1 development pairs: 200 samples, rows of 23 images disjoint from the 94 evaluation images, rotate_crop draws with seed 4242", "template": "native crop (each script resizes it its own way)", "device": "CPU, 8 threads", "metrics": "test_single.py definitions: success = peak score > 0.01 and TDCM getIOU > 0.1; Loc.Err, Rot.Err and mIoU averaged over successes", "rule": "distance = |mIoU-0.955|/0.955 + |Succ-99.6|/99.6 + |Loc.Err-0.44|/0.44 + |Rot.Err-1.03|/1.03 against the paper's S1 'Ours' row; smaller distance is primary; tie -> test_single"},
+  "tdcm_adapted_peak_threshold": {"data": "development scenes from literature_scenes.py --split dev (one Dst8 crowded scene, 36 objects, seed 50001; four procedural tiny templates 12-24 px, seeds 50000-50003, clean/noise/empty/distractor)", "grid": [0.01, 0.05, 0.1, 0.2, 0.3, 0.5], "pipeline": "the primary pipeline from tdcm_pipeline", "device": "MPS (CPU and MPS gave identical TDCM poses in phase 1)", "rule": "largest pooled strict F1 (TP and FN over positive scenes, FP over all scenes); tie -> higher threshold"},
+  "ours_b2_score": {"data": "300 FSC-147 val images drawn with random.Random(5050).sample, our counts against FSC points", "arm": "ours_fullgpu_k3", "grid": [0.5, 0.6, 0.7, 0.8, 0.9], "rule": "lowest count MAE; tie -> higher score", "use": "secondary B2 arm only; the primary B2 arm keeps the untuned CURRENT_BEST score 0.8"}
+ },
+
+ "groups": {
+  "A_home": {
+   "purpose": "same-appearance objects, precise pose",
+   "positives": ["round 37: many128_pose, many512_pose, controlled6, heldout12, small_fullres, 8k_t256_angle180_3scales, boundary_one", "round 35 semi-synthetic 49-object controls: development and heldout x clean, exposure, white_balance (local only, FSC-derived pixels)", "test-bed v1 Blender grey frontal: bl_gray_crowded (scales 0.8/1/1.25), bl_gray_gloss_shadow, bl_sym_scene (angle period 180)"],
+   "negatives": ["empty_scene", "constant_source", "wrong template: every round-37 positive searched with Dst9 converted to grey and resized (INTER_AREA) to that case's template size"],
+   "settings": "each case's own scales, angle, limit, score, proposal score, overlap and stop layer from its source manifest; test-bed scenes use testbed_evaluate.py's settings (score 0.65, limit 64)"
+  },
+  "B1_tdcm_coco": {
+   "lists": {"S2": "repo data/S2/val.csv (9,450 rows, sha256 6efe9191...29ca3c2)", "S1_5": "data.filterData.filter_data on instances_val2017.json, scale_range (0.8, 1.5): 2,469 rows", "S2_5": "same, (0.4, 2.5): 13,567 rows", "S1": "operational definition (the paper only says 'rotation only (scale fixed at 1)', the code has none): filter_data with scale_range (34/36, 38/36): 129 rows, 117 images; split by image, every fifth image in first-appearance order is development (27 rows, 23 images), the rest evaluation (102 rows, 94 images); rows repeated in order to 1,000 evaluation and 200 development samples, each a fresh rotate_crop draw"},
+   "samples": "literature_b1_fixtures.py: CoCo_Dataset.__getitem__ copied line for line with raw arrays kept, seeds as test_single.py (42; development 4242); first 1,000 samples per list",
+   "generator_check": "against the authors' res/result-single.txt (S2, first 1,000): samples 0-25 identical (name, centre, angle, scales), the stream diverges at sample 26 and never resynchronises (cause not identified; rotate_crop's accept/reject tests depend on platform numerics). The fixtures are a same-list, same-code, same-seed draw, not the authors' exact pairs.",
+   "prefreeze_generation": "S1-eval, S1-dev and S2-eval were generated before the freeze for the generator check and the pipeline selection only; no method ran on any evaluation pair. Post-freeze regeneration must reproduce truth sha256 S1-eval 9f07aba5...8a18, S1-dev 9d72cb2d...1c81, S2-eval a4d4d6da...ff27",
+   "variants": {"t36": "primary: the crop resized to 36x36 by torchvision (exactly what test_single.py feeds the model), given to every method", "native": "secondary: the crop at its native size"},
+   "our_arms": "ours_hybrid_k0 and ours_fullgpu_k0 on both variants, ours_core on native; limit 1, score 0.5, proposal score 0.3, angle 180; scales: native [1.0]; t36 a geometric grid over the setting's range with ratio <= 1.04 (S1 4 scales over 34/36-38/36, S1.5 18 over 0.8-1.5, S2 37 over 0.5-2, S2.5 48 over 0.4-2.5)",
+   "tdcm_arms": "primary pipeline (official mode) on both variants, secondary pipeline on t36; CPU, batch mode (model loaded once per list, one call per pair after one discarded warm-up call)",
+   "opencv": "first 200 samples of each list, t36 only, 2 deg x the setting's grid with ratio <= 1.10",
+   "truth": "centre, angle (counter-clockwise on screen), scale_x = w/36, scale_y = h/36 (anisotropic)",
+   "metrics": "strict pose (per-axis size), TDCM paper metrics (Succ., mIoU, Loc.Err, Rot.Err with TDCM's getIOU convention), association within 20 px"
+  },
+  "B2_fscd147": {
+   "images": "FSC-147 test split, 1,190 images, official Google Drive zip (sha256 4f9eff24...965f)",
+   "boxes": "instances_test.json from the unofficial mirror huggingface.co/datasets/ChipmunkG4/FSCD-147_FSCD-LVIS_temp at revision 48b4cb3daf6aedd266429c95d88f1d245202bf42, FSCD_147.zip 1,552,158,410 bytes, sha256 d40ab222...6c63 (equals the LFS oid); instances_test.json sha256 f17e99d4...f5d2",
+   "mirror_verification": "fscd147-mirror-verification.json: 6,146 images byte-identical to the official zip; FSC annotation and split copies identical to the author's GitHub blobs; 147 classes and 3,659/1,286/1,190 images equal Counting-DETR Table 1; instances_test covers exactly the 1,190 test images; 77,236 boxes vs 78,836 FSC points (-2.0%), 655 images equal, 180 more boxes than points, 355 fewer; 1,539 boxes exceed the image by 1-4 px. The paper publishes no box total.",
+   "exemplars": "first 3 of box_examples_coordinates",
+   "our_template": "crop of exemplar 0 (floor/ceil of its polygon) from the same image, saved once and given to every template method",
+   "our_arms": "ours_fullgpu_k3 primary (CURRENT_BEST score 0.8, untuned), ours_hybrid_k3 secondary, ours_fullgpu_k3 with the development-chosen score secondary; scales [0.75, 1, 1.25], angle 180, limit 4000, proposal 0.5, overlap 0.2, stop_layer 1",
+   "geco2": "official inference on the 1,190 test images (accuracy device per methods.geco2)",
+   "metrics": "box precision, recall, AP50 (COCO 101-point) pooled; count MAE/RMSE against FSC points and against FSCD boxes; box-centre error"
+  },
+  "C_hard": {
+   "tiny_templates": "literature_scenes.py --split c: 16 procedural templates (seeds 50100-50115, sides 12-24 px) and Dst5/Dst7/Dst8/Dst9 resized to 16 and 24 px; each with clean and noise 49-object positives (scale 1, angles U(-175,175)) and empty and distractor negatives",
+   "challenge": "challenge_coverage_scenes.py occlusion / distractors (altered identity) / contact with templates Dst3 (seed 2026105001) and Dst5 (seed 2026105002)",
+   "large_many": "many8k_512: 8192x8192, 512 Dst3 copies from many_object_scenes.make_placements (32x32 cells of 256 px, seed 20261050, noise seed 2026105003), plus A's many128_pose and many512_pose for H4",
+   "illumination": "test-bed v1 synthetic red/teal x 7 non-neutral lights (32 objects each; all objects and same-colour objects reported separately) and Blender bl_rgb_white, bl_rgb_warm3200, bl_rgb_mixed",
+   "ours_arms": "all four research arms and the core where fixed-scale; tiny templates also ours_small_shallow",
+   "generation": "after the freeze; the generator refuses the c split unless protocol.json records its sha256"
+  }
+ },
+
+ "scoring": {
+  "tool": "literature_score.py, stdlib only, one copy for every method",
+  "pose_strict": "position <= 2 px, angle <= 1 deg modulo the case period (360; 180 for bl_sym_scene), width and height ratio in [0.98, 1.02]; maximum-cardinality bipartite matching (counts equal many_object_accuracy.evaluate, tested on 20 random trials)",
+  "association": "descriptive: maximum matching within 20 px; recall and errors of those pairs",
+  "boxes": "rotated poses -> enclosing axis-aligned boxes; COCO greedy matching in descending score at IoU >= 0.5; precision, recall, 101-point AP50 pooled",
+  "counts": "MAE, RMSE; false positives on negative scenes",
+  "identity": "ours first-call matches on the four round-44 cases compared exactly with the round-44 archive (separate gate from GT)"
+ },
+
+ "measurement": {
+  "time": "per worker a fresh process; method-reported call time excluding decoding and model/Session construction (reported apart). Ours research: runner warm-up 1 s then 3 measured calls, median; ours core: fpm_cli's single match call; TDCM and GeCo2: 1 warm-up call, 3 measured calls, median; OpenCV: one call. Per case the median over blocks.",
+  "blocks": "A and C: ours arms and TDCM-adapted CPU 3 blocks (order reversed on odd blocks); TDCM-adapted MPS, GeCo2 and OpenCV 1 block. B1/B2: 1 block, descriptive time",
+  "threads": "8 for every CPU method (ours cpu_threads, torch.set_num_threads, cv2.setNumThreads)",
+  "memory": "peak RSS per process; ours named Metal allocations; MPS driver allocation; CUDA max allocated/reserved; never added",
+  "host": "timed phases hold timing-lock-round50-<phase>.txt in the shared notes folder for their whole duration, wait while another session's lock exists, record load and >=50% CPU processes per worker (recorded, not gated)",
+  "budgets": {"opencv_large": "scenes above 2.5 Mpx run 6 maps and report the extrapolated full-search time; their accuracy is N/A", "tdcm_native_large": "official-mode TDCM is not run outside B1"}
+ },
+
+ "hypotheses": {
+  "H1": "Group A positives: (a) ours_fullgpu_k3 strict recall >= TDCM-adapted (primary pipeline, CPU) strict recall on every case, and >= OpenCV's on every case OpenCV completed; (b) on pooled A positives the median position and angle errors of ours_fullgpu_k3's association pairs are below TDCM-adapted's; (c) pooled box recall at IoU >= 0.5 of ours_fullgpu_k3 >= GeCo2's. H1 passes when (a), (b) and (c) pass.",
+  "H2": "B2: GeCo2 AP50 > ours_fullgpu_k3 AP50 on the FSCD-147 test boxes (falls back to count MAE against FSC points if the mirror is not used).",
+  "H3": "C tiny templates under the official 36x36 weights (rewritten per the user; the paper's 12x12 result is cited, not reproduced): TDCM-adapted pooled strict recall on the tiny-template positives >= ours_fullgpu_k3's.",
+  "H4": "On >= 4096x4096 multi-object scenes (many128_pose, many512_pose, many8k_512), same M4 Pro: ours_fullgpu_k3 per-image call time < TDCM-adapted CPU per-image call time on each scene.",
+  "H5": "A negatives (empty_scene, constant_source, 7 wrong-template scenes): every ours arm reports 0 false positives; competitors' false positives reported, GeCo2 N/A."
+ },
+ "decision": "Measurement and comparison round: no default, GUI or CURRENT_BEST recommendation changes. The report states each hypothesis and lists where each method wins by group; failures, N/A cells and every failed worker stay in the tables.",
+
+ "exploratory_disclosure": [
+  "Phase 1 ran every method on two smoke pairs (tdcm_demo, many128); those outputs shaped the adapters (TDCM size range and single target, GeCo2 CPU fix, scipy) and are not phase-2 data.",
+  "While the tools were written (before this draft), TDCM-adapted ran once on many128 with a 0.5 peak threshold (4 targets, CPU and MPS identical); that is why the threshold is now chosen on development scenes. many128 is a scored A case. The refactored TDCM and GeCo2 workers were regression-checked on tdcm_demo and many128 (outputs identical to phase 1).",
+  "Phase 1 runner smoke overlapped round 49's dev_calibrate lock at 09:50:07Z (<1 s), disclosed in both rounds.",
+  "The S2 list regenerated by the published rule has 9 more rows than the published file; the published file is used."
+ ]
+}

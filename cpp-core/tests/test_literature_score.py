@@ -1,5 +1,6 @@
 import math
 from pathlib import Path
+import random
 import sys
 import unittest
 
@@ -37,26 +38,79 @@ class GeometryTest(unittest.TestCase):
         for got, want in zip(n['box'], (-10., -20., 10., 20.)):
             self.assertAlmostEqual(got, want)
 
+    def test_rotated_iou(self):
+        a = score.pose_corners(0, 0, 40, 20, 0)
+        self.assertAlmostEqual(score.rotated_iou(a, a), 1.)
+        self.assertEqual(score.rotated_iou(a, score.pose_corners(100, 0, 40, 20, 0)), 0.)
+        b = score.pose_corners(10, 0, 40, 20, 0)
+        self.assertAlmostEqual(score.rotated_iou(a, b), score.iou((-20, -10, 20, 10), (-10, -10, 30, 10)))
+        # A 40x20 rectangle and itself turned 90 deg share a 20x20 square: 400 / (800 + 800 - 400).
+        self.assertAlmostEqual(score.rotated_iou(a, score.pose_corners(0, 0, 40, 20, 90)), 1 / 3)
+        # Two squares at 45 deg: octagon intersection, area 2*(sqrt2-1)*s^2 for unit half-size s.
+        sq, diamond = score.pose_corners(0, 0, 2, 2, 0), score.pose_corners(0, 0, 2, 2, 45)
+        inter = 8 * (math.sqrt(2) - 1)
+        self.assertAlmostEqual(score.rotated_iou(sq, diamond), inter / (8 - inter))
+
+    def test_tdcm_paper_iou_uses_mirrored_angle(self):
+        g = dict(cx=50, cy=50, scale_x=1., scale_y=.5, angle_deg=30)
+        self.assertAlmostEqual(score.tdcm_paper_iou(g, g), 1.)
+        mirrored = score.rotated_iou(score.pose_corners(50, 50, 36, 18, -30), score.pose_corners(52, 47, 36, 18, -40))
+        self.assertAlmostEqual(score.tdcm_paper_iou(g, dict(cx=52, cy=47, scale_x=1., scale_y=.5, angle_deg=40)), mirrored)
+
 
 class PoseMatchTest(unittest.TestCase):
     def test_strict_tolerances_are_inclusive_and_separate(self):
         gt = [pose(100, 100, 0)]
         self.assertEqual(score.score_pose_image(gt, [pose(102, 100, 1)])['strict_tp'], 1)
+        self.assertEqual(score.score_pose_image(gt, [pose(100, 100, 0, width=40.8)])['strict_tp'], 1)
         self.assertEqual(score.score_pose_image(gt, [pose(102.1, 100, 0)])['strict_tp'], 0)
         self.assertEqual(score.score_pose_image(gt, [pose(100, 100, 1.1)])['strict_tp'], 0)
         self.assertEqual(score.score_pose_image(gt, [pose(100, 100, 0, width=40.9)])['strict_tp'], 0)
+        self.assertEqual(score.score_pose_image(gt, [pose(100, 100, 0, height=19.5)])['strict_tp'], 0)
 
     def test_one_object_cannot_score_twice(self):
         gt = [pose(100, 100, 0)]
         r = score.score_pose_image(gt, [pose(100, 100, 0, s=.9), pose(100.5, 100, 0, s=.8)])
         self.assertEqual((r['strict_tp'], r['strict_fp'], r['strict_fn']), (1, 1, 0))
-        self.assertEqual(r['errors'][0]['position_px'], 0.)
 
-    def test_loose_radius_separates_localisation_from_precision(self):
+    def test_maximum_matching_beats_greedy(self):
+        # The high-score prediction can match either truth; greedy would take truth 0 and leave truth 1 unmatched.
+        gt = [pose(100, 100, 0), pose(103, 100, 0)]
+        preds = [pose(101.5, 100, 0, s=.9), pose(99, 100, 0, s=.5)]
+        self.assertEqual(score.score_pose_image(gt, preds)['strict_tp'], 2)
+
+    def test_association_radius_is_descriptive(self):
         gt = [pose(100, 100, 0)]
-        r = score.score_pose_image(gt, [pose(104, 100, 20)], loose_radius=10)
-        self.assertEqual((r['strict_tp'], r['loose_tp']), (0, 1))
-        self.assertAlmostEqual(r['loose_errors'][0]['angle_deg'], 20.)
+        r = score.score_pose_image(gt, [pose(115, 100, 20)])
+        self.assertEqual((r['strict_tp'], r['association_tp']), (0, 1))
+        self.assertAlmostEqual(r['association_errors'][0]['angle_deg'], 20.)
+        self.assertEqual(score.score_pose_image(gt, [pose(121, 100, 0)])['association_tp'], 0)
+
+    def test_nonfinite_prediction_is_an_unmatched_false_positive(self):
+        r = score.score_pose_image([pose(0, 0, 0)], [pose(float('nan'), 0, 0)])
+        self.assertEqual((r['strict_tp'], r['strict_fp'], r['invalid_predictions']), (0, 1, 1))
+
+    def test_counts_equal_many_object_accuracy(self):
+        try:
+            from many_object_accuracy import evaluate
+        except ImportError as error:  # numpy lives in python-port/venv
+            self.skipTest(str(error))
+        rng = random.Random(50)
+        for trial in range(20):
+            truths, preds = [], []
+            for k in range(30):
+                x, y, a, s = rng.uniform(0, 300), rng.uniform(0, 300), rng.uniform(-180, 180), rng.uniform(.7, 1.3)
+                truths.append(dict(pos_x=x, pos_y=y, angle=a, scale=s))
+                for _ in range(rng.randint(0, 2)):
+                    preds.append(dict(pos_x=x + rng.gauss(0, 1.2), pos_y=y + rng.gauss(0, 1.2), angle=a + rng.gauss(0, .7),
+                                      scale=s * (1 + rng.gauss(0, .015)), score=rng.random()))
+            for _ in range(10):
+                preds.append(dict(pos_x=rng.uniform(0, 300), pos_y=rng.uniform(0, 300), angle=0, scale=1, score=rng.random()))
+            ref = evaluate(preds, truths)
+            to = lambda d: pose(d['pos_x'], d['pos_y'], d['angle'], 40 * d['scale'], 20 * d['scale'], d.get('score', 1.))  # noqa: E731
+            mine = score.score_pose_image([to(t) for t in truths], [to(p) for p in preds])
+            self.assertEqual(mine['strict_tp'], ref['strict']['tp'], trial)
+            self.assertEqual(mine['association_tp'], ref['localization']['tp'], trial)
 
 
 class BoxAndCountTest(unittest.TestCase):
@@ -79,6 +133,11 @@ class BoxAndCountTest(unittest.TestCase):
                  dict(kind='box', x0=0, y0=0, x1=10, y1=10, score=.5)]
         # Precision at recall 1 is 1/2 after the higher-scored false positive.
         self.assertAlmostEqual(score.score_box_images([(boxes, preds)])['ap50'], .5)
+
+    def test_box_matching_finds_large_far_boxes(self):
+        boxes = [(0, 0, 400, 400)]
+        preds = [dict(kind='box', x0=10, y0=10, x1=390, y1=390, score=.9)]
+        self.assertEqual(score.score_box_images([(boxes, preds)])['tp'], 1)
 
     def test_pose_converts_to_enclosing_box(self):
         boxes = [(80, 90, 120, 110)]
