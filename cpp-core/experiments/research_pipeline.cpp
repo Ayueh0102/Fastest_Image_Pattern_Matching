@@ -120,6 +120,7 @@ struct Session::Impl {
     std::unique_ptr<FullGpuPipeline> fullGpu;
     bool poseInvert=false;
     uint64_t sourceGeneration=0;
+    std::vector<PyramidRuleDecision> pyramidRule;
     int refinementBackend() const { return settings.refinementBackend<0?settings.backend:settings.refinementBackend; }
     Impl(ImageView src,ImageView tmp,const Settings& s):source(src),templ(tmp),settings(s) {
         if(s.backend<0 || s.backend>1 || s.minReducedArea<1 || s.cpuThreads<1 || s.cpuThreads>256 || s.scales.empty() || s.scales.size()>64)
@@ -186,6 +187,7 @@ Session::Session(ImageView source,ImageView templ,const Settings& settings) {
     validateImage(source);validateImage(templ);impl_=std::make_unique<Impl>(source,templ,settings);
 }
 Session::~Session()=default;
+const std::vector<PyramidRuleDecision>& Session::pyramidRule() const { return impl_->pyramidRule; }
 SourceUpdate Session::updateSource(ImageView source) {
     const auto start=Clock::now();validateImage(source);
     Image replacement(source); // Complete the potentially throwing copy before mutation.
