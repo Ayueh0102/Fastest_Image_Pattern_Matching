@@ -1,0 +1,571 @@
+{
+ "stage": 50,
+ "decision": "Measurement and comparison round: no default, GUI or CURRENT_BEST recommendation change.",
+ "hypotheses": {
+  "H1": {
+   "verdict": "fail",
+   "reason": "(a) fails on the three round-35 development scenes (43x30 stamp template): ours_fullgpu_k3 strict recall 4/49, 21/49, 8/49 vs OpenCV 35/49 each; the other 13 positive cases pass; (b) passes (median position 0.025 vs 1.532 px, angle 0.013 vs 1.271 deg); (c) pending GeCo2 CUDA, it cannot change the verdict",
+   "a": [
+    {
+     "case": "8k_t256_angle180_3scales",
+     "ours": 1.0,
+     "tdcm_adapted": 0.0,
+     "opencv": null,
+     "ok": true
+    },
+    {
+     "case": "bl_gray_crowded",
+     "ours": 1.0,
+     "tdcm_adapted": 0.0,
+     "opencv": 0.1388888888888889,
+     "ok": true
+    },
+    {
+     "case": "bl_gray_gloss_shadow",
+     "ours": 0.8888888888888888,
+     "tdcm_adapted": 0.0,
+     "opencv": 0.8888888888888888,
+     "ok": true
+    },
+    {
+     "case": "bl_sym_scene",
+     "ours": 1.0,
+     "tdcm_adapted": 0.0,
+     "opencv": 1.0,
+     "ok": true
+    },
+    {
+     "case": "boundary_one",
+     "ours": 1.0,
+     "tdcm_adapted": 0.0,
+     "opencv": 0.0,
+     "ok": true
+    },
+    {
+     "case": "controlled6",
+     "ours": 1.0,
+     "tdcm_adapted": 0.0,
+     "opencv": 0.5,
+     "ok": true
+    },
+    {
+     "case": "heldout12",
+     "ours": 1.0,
+     "tdcm_adapted": 0.0,
+     "opencv": 0.3333333333333333,
+     "ok": true
+    },
+    {
+     "case": "many128_pose",
+     "ours": 1.0,
+     "tdcm_adapted": 0.0,
+     "opencv": null,
+     "ok": true
+    },
+    {
+     "case": "many512_pose",
+     "ours": 1.0,
+     "tdcm_adapted": 0.0,
+     "opencv": null,
+     "ok": true
+    },
+    {
+     "case": "r35_development_clean",
+     "ours": 0.08163265306122448,
+     "tdcm_adapted": 0.0,
+     "opencv": 0.7142857142857143,
+     "ok": false
+    },
+    {
+     "case": "r35_development_exposure",
+     "ours": 0.42857142857142855,
+     "tdcm_adapted": 0.0,
+     "opencv": 0.7142857142857143,
+     "ok": false
+    },
+    {
+     "case": "r35_development_white_balance",
+     "ours": 0.16326530612244897,
+     "tdcm_adapted": 0.0,
+     "opencv": 0.7142857142857143,
+     "ok": false
+    },
+    {
+     "case": "r35_heldout_clean",
+     "ours": 1.0,
+     "tdcm_adapted": 0.061224489795918366,
+     "opencv": 0.9591836734693877,
+     "ok": true
+    },
+    {
+     "case": "r35_heldout_exposure",
+     "ours": 1.0,
+     "tdcm_adapted": 0.02040816326530612,
+     "opencv": 0.9591836734693877,
+     "ok": true
+    },
+    {
+     "case": "r35_heldout_white_balance",
+     "ours": 1.0,
+     "tdcm_adapted": 0.10204081632653061,
+     "opencv": 0.9591836734693877,
+     "ok": true
+    },
+    {
+     "case": "small_fullres",
+     "ours": 1.0,
+     "tdcm_adapted": 0.0,
+     "opencv": 1.0,
+     "ok": true
+    }
+   ],
+   "b": {
+    "ours": {
+     "pairs": 901,
+     "position_px": {
+      "n": 901,
+      "mean": 0.08940216798383933,
+      "median": 0.02478360138325958,
+      "p90": 0.0648094687338871,
+      "max": 5.275477086435268
+     },
+     "angle_deg": {
+      "n": 901,
+      "mean": 0.216914444691268,
+      "median": 0.012907669326267524,
+      "p90": 0.0315762870841354,
+      "max": 179.3906957715471
+     }
+    },
+    "tdcm_adapted": {
+     "pairs": 352,
+     "position_px": {
+      "n": 352,
+      "mean": 2.8643983908687196,
+      "median": 1.532072770327839,
+      "p90": 6.986782241453979,
+      "max": 19.606417599878377
+     },
+     "angle_deg": {
+      "n": 352,
+      "mean": 5.821257634966084,
+      "median": 1.2712460176770577,
+      "p90": 9.487736958779806,
+      "max": 178.89502400984483
+     }
+    },
+    "pass_": true
+   },
+   "c": {
+    "ours": {
+     "cases": 16,
+     "of": 16,
+     "gt": 1015,
+     "tp": 901,
+     "recall": 0.8876847290640394
+    },
+    "geco2": {
+     "cases": 0,
+     "of": 16,
+     "gt": 0,
+     "tp": 0,
+     "recall": null
+    },
+    "geco2_method": "geco2_cuda",
+    "pass_": null
+   }
+  },
+  "H2": {
+   "verdict": "pending",
+   "reason": "GeCo2 accuracy waits for CUDA (user); MPS failed the authenticity gate; descriptive MPS AP50 0.6926 vs ours_fullgpu_k3 0.1096 on the mirror boxes"
+  },
+  "H3": {
+   "verdict": "fail",
+   "reason": "TDCM-adapted (official 36x36 weights) pooled strict recall on tiny-template positives 76/2352 (3.2%) vs ours_fullgpu_k3 2286/2352 (97.2%); association within 20 px 68.4% vs 100%",
+   "tdcm_adapted": {
+    "cases": 48,
+    "of": 48,
+    "gt": 2352,
+    "tp": 76,
+    "recall": 0.03231292517006803
+   },
+   "ours": {
+    "cases": 48,
+    "of": 48,
+    "gt": 2352,
+    "tp": 2286,
+    "recall": 0.9719387755102041
+   },
+   "association": {
+    "tdcm_adapted": {
+     "cases": 48,
+     "of": 48,
+     "gt": 2352,
+     "tp": 1609,
+     "recall": 0.6840986394557823
+    },
+    "ours": {
+     "cases": 48,
+     "of": 48,
+     "gt": 2352,
+     "tp": 2352,
+     "recall": 1.0
+    }
+   }
+  },
+  "H4": {
+   "verdict": "pass",
+   "rows": [
+    {
+     "case": "many128_pose",
+     "ours_ms": 372.909667,
+     "tdcm_adapted_cpu_ms": 6386.259999999311,
+     "tdcm_adapted_mps_ms": 5486.7491670302115,
+     "ok": true
+    },
+    {
+     "case": "many512_pose",
+     "ours_ms": 1134.137542,
+     "tdcm_adapted_cpu_ms": 14663.41483296128,
+     "tdcm_adapted_mps_ms": 13444.540750002488,
+     "ok": true
+    },
+    {
+     "case": "many8k_512",
+     "ours_ms": 1476.404208,
+     "tdcm_adapted_cpu_ms": 72996.7649159953,
+     "tdcm_adapted_mps_ms": 70181.38274998637,
+     "ok": true
+    }
+   ]
+  },
+  "H5": {
+   "verdict": "pass",
+   "reason": "every ours arm reported 0 false positives on empty_scene, constant_source and the 7 wrong-template scenes",
+   "rows": [
+    {
+     "case": "8k_t256_angle180_3scales_wrongtemplate",
+     "method": "ours_hybrid_k0",
+     "false_positives": 0
+    },
+    {
+     "case": "8k_t256_angle180_3scales_wrongtemplate",
+     "method": "ours_hybrid_k3",
+     "false_positives": 0
+    },
+    {
+     "case": "8k_t256_angle180_3scales_wrongtemplate",
+     "method": "ours_fullgpu_k0",
+     "false_positives": 0
+    },
+    {
+     "case": "8k_t256_angle180_3scales_wrongtemplate",
+     "method": "ours_fullgpu_k3",
+     "false_positives": 0
+    },
+    {
+     "case": "8k_t256_angle180_3scales_wrongtemplate",
+     "method": "tdcm_adapted_cpu",
+     "false_positives": 0
+    },
+    {
+     "case": "8k_t256_angle180_3scales_wrongtemplate",
+     "method": "opencv",
+     "false_positives": 0
+    },
+    {
+     "case": "boundary_one_wrongtemplate",
+     "method": "ours_core",
+     "false_positives": 0
+    },
+    {
+     "case": "boundary_one_wrongtemplate",
+     "method": "ours_hybrid_k0",
+     "false_positives": 0
+    },
+    {
+     "case": "boundary_one_wrongtemplate",
+     "method": "ours_hybrid_k3",
+     "false_positives": 0
+    },
+    {
+     "case": "boundary_one_wrongtemplate",
+     "method": "ours_fullgpu_k0",
+     "false_positives": 0
+    },
+    {
+     "case": "boundary_one_wrongtemplate",
+     "method": "ours_fullgpu_k3",
+     "false_positives": 0
+    },
+    {
+     "case": "boundary_one_wrongtemplate",
+     "method": "tdcm_adapted_cpu",
+     "false_positives": 0
+    },
+    {
+     "case": "boundary_one_wrongtemplate",
+     "method": "opencv",
+     "false_positives": 0
+    },
+    {
+     "case": "constant_source",
+     "method": "ours_core",
+     "false_positives": 0
+    },
+    {
+     "case": "constant_source",
+     "method": "ours_hybrid_k0",
+     "false_positives": 0
+    },
+    {
+     "case": "constant_source",
+     "method": "ours_hybrid_k3",
+     "false_positives": 0
+    },
+    {
+     "case": "constant_source",
+     "method": "ours_fullgpu_k0",
+     "false_positives": 0
+    },
+    {
+     "case": "constant_source",
+     "method": "ours_fullgpu_k3",
+     "false_positives": 0
+    },
+    {
+     "case": "constant_source",
+     "method": "tdcm_adapted_cpu",
+     "false_positives": 0
+    },
+    {
+     "case": "constant_source",
+     "method": "opencv",
+     "false_positives": 0
+    },
+    {
+     "case": "controlled6_wrongtemplate",
+     "method": "ours_hybrid_k0",
+     "false_positives": 0
+    },
+    {
+     "case": "controlled6_wrongtemplate",
+     "method": "ours_hybrid_k3",
+     "false_positives": 0
+    },
+    {
+     "case": "controlled6_wrongtemplate",
+     "method": "ours_fullgpu_k0",
+     "false_positives": 0
+    },
+    {
+     "case": "controlled6_wrongtemplate",
+     "method": "ours_fullgpu_k3",
+     "false_positives": 0
+    },
+    {
+     "case": "controlled6_wrongtemplate",
+     "method": "tdcm_adapted_cpu",
+     "false_positives": 0
+    },
+    {
+     "case": "controlled6_wrongtemplate",
+     "method": "opencv",
+     "false_positives": 0
+    },
+    {
+     "case": "empty_scene",
+     "method": "ours_core",
+     "false_positives": 0
+    },
+    {
+     "case": "empty_scene",
+     "method": "ours_hybrid_k0",
+     "false_positives": 0
+    },
+    {
+     "case": "empty_scene",
+     "method": "ours_hybrid_k3",
+     "false_positives": 0
+    },
+    {
+     "case": "empty_scene",
+     "method": "ours_fullgpu_k0",
+     "false_positives": 0
+    },
+    {
+     "case": "empty_scene",
+     "method": "ours_fullgpu_k3",
+     "false_positives": 0
+    },
+    {
+     "case": "empty_scene",
+     "method": "tdcm_adapted_cpu",
+     "false_positives": 0
+    },
+    {
+     "case": "empty_scene",
+     "method": "opencv",
+     "false_positives": 0
+    },
+    {
+     "case": "heldout12_wrongtemplate",
+     "method": "ours_hybrid_k0",
+     "false_positives": 0
+    },
+    {
+     "case": "heldout12_wrongtemplate",
+     "method": "ours_hybrid_k3",
+     "false_positives": 0
+    },
+    {
+     "case": "heldout12_wrongtemplate",
+     "method": "ours_fullgpu_k0",
+     "false_positives": 0
+    },
+    {
+     "case": "heldout12_wrongtemplate",
+     "method": "ours_fullgpu_k3",
+     "false_positives": 0
+    },
+    {
+     "case": "heldout12_wrongtemplate",
+     "method": "tdcm_adapted_cpu",
+     "false_positives": 0
+    },
+    {
+     "case": "heldout12_wrongtemplate",
+     "method": "opencv",
+     "false_positives": 0
+    },
+    {
+     "case": "many128_pose_wrongtemplate",
+     "method": "ours_hybrid_k0",
+     "false_positives": 0
+    },
+    {
+     "case": "many128_pose_wrongtemplate",
+     "method": "ours_hybrid_k3",
+     "false_positives": 0
+    },
+    {
+     "case": "many128_pose_wrongtemplate",
+     "method": "ours_fullgpu_k0",
+     "false_positives": 0
+    },
+    {
+     "case": "many128_pose_wrongtemplate",
+     "method": "ours_fullgpu_k3",
+     "false_positives": 0
+    },
+    {
+     "case": "many128_pose_wrongtemplate",
+     "method": "tdcm_adapted_cpu",
+     "false_positives": 0
+    },
+    {
+     "case": "many128_pose_wrongtemplate",
+     "method": "opencv",
+     "false_positives": 0
+    },
+    {
+     "case": "many512_pose_wrongtemplate",
+     "method": "ours_hybrid_k0",
+     "false_positives": 0
+    },
+    {
+     "case": "many512_pose_wrongtemplate",
+     "method": "ours_hybrid_k3",
+     "false_positives": 0
+    },
+    {
+     "case": "many512_pose_wrongtemplate",
+     "method": "ours_fullgpu_k0",
+     "false_positives": 0
+    },
+    {
+     "case": "many512_pose_wrongtemplate",
+     "method": "ours_fullgpu_k3",
+     "false_positives": 0
+    },
+    {
+     "case": "many512_pose_wrongtemplate",
+     "method": "tdcm_adapted_cpu",
+     "false_positives": 0
+    },
+    {
+     "case": "many512_pose_wrongtemplate",
+     "method": "opencv",
+     "false_positives": 0
+    },
+    {
+     "case": "small_fullres_wrongtemplate",
+     "method": "ours_core",
+     "false_positives": 0
+    },
+    {
+     "case": "small_fullres_wrongtemplate",
+     "method": "ours_hybrid_k0",
+     "false_positives": 0
+    },
+    {
+     "case": "small_fullres_wrongtemplate",
+     "method": "ours_hybrid_k3",
+     "false_positives": 0
+    },
+    {
+     "case": "small_fullres_wrongtemplate",
+     "method": "ours_fullgpu_k0",
+     "false_positives": 0
+    },
+    {
+     "case": "small_fullres_wrongtemplate",
+     "method": "ours_fullgpu_k3",
+     "false_positives": 0
+    },
+    {
+     "case": "small_fullres_wrongtemplate",
+     "method": "tdcm_adapted_cpu",
+     "false_positives": 0
+    },
+    {
+     "case": "small_fullres_wrongtemplate",
+     "method": "opencv",
+     "false_positives": 0
+    }
+   ]
+  }
+ },
+ "stop_conditions": {
+  "geco2_mps_gate": {
+   "met": true,
+   "ap": 40.454439551775536,
+   "ap50": 69.41352291493463,
+   "gap": {
+    "ap": -6.355560448224466,
+    "ap50": -6.476477085065369
+   },
+   "user_decision": "不要改用 CPU，GeCo2 精度直接等我提供 CUDA",
+   "status": "GeCo2 accuracy (H1c, H2, B2 GeCo2 boxes) pending CUDA with the compiled kernel"
+  }
+ },
+ "worker_failures": {
+  "A": 0,
+  "C": 0,
+  "B1": 0,
+  "B2": 0
+ },
+ "attempts_kept": [
+  "dev-tdcm-threshold attempt 1 (output directory created too late; dev-tdcm-threshold-attempt1.json)",
+  "formal A/C attempt 1: all method names passed as one shell word, 435 workers failed at once (raw-results-A, raw-results-C-other: *-attempt1-method-string)",
+  "GeCo2 FSCD gate attempt 1 with the maxDets=100 AP bug (gate-geco2-mps-attempt1-maxdets100-bug.json; AP50 unchanged)",
+  "phase 1: GeCo2 smoke attempt 1 (scipy 1.15.2 dyld) and attempt 2 (CPU reference points) (phase1-smoke-attempt*.json)"
+ ],
+ "weaknesses_found": [
+  "round-35 development stamp template (clean / exposure / white balance): our CURRENT_BEST settings find 4 / 21 / 8 of 49 (strict = within 20 px); OpenCV brute force 35 of 49 strict on each (49 within 20 px) and TDCM-adapted 49 / 46 / 31 within 20 px (no strict pose)",
+  "tiny-template negative scenes: ours 338 false positives over 48 empty/distractor scenes vs OpenCV 198 and TDCM-adapted 93",
+  "B1 36x36 template with large anisotropic scale: success 82.6% (S2) and 74.7% (S2.5) vs TDCM 99.6% and 98.0%",
+  "B2 natural images (FSC-147 categories): AP50 0.11 and count MAE about 55 vs GeCo2 MPS 0.69 and 9.8",
+  "full-GPU candidate arena: one FSC val image exceeds 2M explicit slots at limit 4000 (development only)"
+ ]
+}

@@ -107,12 +107,21 @@ class ScoringTest(unittest.TestCase):
                  row('empty_scene', 'ours_hybrid_k0', fp=0), row('empty_scene', 'ours_fullgpu_k3', fp=1)]
         c_cases = {'many8k_512': dict(positive=True)}
         c_table = [row('many8k_512', 'ours_fullgpu_k3', 50, gt=4, tp=4), row('many8k_512', 'tdcm_adapted_cpu', 500, gt=4, tp=0)]
-        h = lc.hypotheses((a_cases, table, [], {}), (c_cases, c_table, [], {}), None, 'geco2_cuda')
+        pairs = {('many128_pose', 'ours_fullgpu_k3'): [dict(position_px=.1, angle_deg=.1)],
+                 ('many128_pose', 'tdcm_adapted_cpu'): [dict(position_px=1., angle_deg=1.)]}
+        h = lc.hypotheses((a_cases, table, [], pairs), (c_cases, c_table, [], {}), None, 'geco2_cuda')
         self.assertFalse(h['H4']['pass_'])  # many512: 300 ms is not below 200 ms
         self.assertEqual([r['ok'] for r in h['H4']['rows']], [True, False, True])
         self.assertFalse(h['H5']['pass_'])  # one ours false positive fails H5
         self.assertTrue(h['H1']['a_pass'])
-        self.assertIsNone(h['H1']['pass'])  # GeCo2 accuracy outputs missing -> not judged
+        self.assertIsNone(h['H1']['pass'])  # (a) and (b) pass, GeCo2 accuracy outputs missing -> not judged
+        table.append(row('many128_pose', 'opencv', gt=4, tp=4))
+        table[-1]['complete'] = True
+        table[1]['score']['strict_tp'] = 1
+        table[0]['score']['strict_tp'] = 0  # ours below a competitor: H1 fails without waiting for GeCo2
+        h = lc.hypotheses((a_cases, table, [], pairs), None, None, 'geco2_cuda')
+        self.assertFalse(h['H1']['a_pass'])
+        self.assertIs(h['H1']['pass'], False)
 
 
 class WorkerDirectoryTest(unittest.TestCase):

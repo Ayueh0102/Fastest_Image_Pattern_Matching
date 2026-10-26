@@ -324,6 +324,12 @@ def parse_runner(stdout, case):
     def dets(matches):
         return [dict(kind='pose', cx=m['pos_x'], cy=m['pos_y'], angle_deg=m['angle'], width=tw * m['scale'],
                      height=th * m['scale'], corners=m['corners'], score=m['score']) for m in matches]
+    if 'compacted' in d:  # literature_archive.py compact: first-call matches (equal to every run, exact_repeat) and times
+        return dict(detections=dets(d['first']['matches']), first_matches=d['first']['matches'],
+                    time_ms=statistics.median(r['total_ms'] for r in runs), times_ms=[r['total_ms'] for r in runs],
+                    first_ms=d['first']['total_ms'], construct_ms=d['construct_ms'], exact_repeat=d['exact_repeat'],
+                    peak_rss_bytes=(d.get('final_memory') or {}).get('peak_rss_bytes'), full_gpu_bytes=None,
+                    frame_gpu_bytes=None, pose_gpu_bytes=None)
     return dict(detections=dets(call['matches']), first_matches=d['first']['matches'],
                 time_ms=statistics.median(r['total_ms'] for r in runs), times_ms=[r['total_ms'] for r in runs],
                 first_ms=d['first']['total_ms'], construct_ms=d['construct_ms'], exact_repeat=d['exact_repeat'],
@@ -862,8 +868,18 @@ def read_manifest(path):
     return [json.loads(line) for line in path.read_text().splitlines()] if path.exists() else []
 
 
+REMAP = []  # (old prefix, new prefix) for replaying archived runs at another location
+
+
+def remapped(path):
+    for old, new in REMAP:
+        if str(path).startswith(old):
+            return Path(new + str(path)[len(old):])
+    return Path(path)
+
+
 def detections_of(entry, case):
-    out = Path(entry['output'])
+    out = remapped(entry['output'])
     m = entry['method']
     if m == 'ours_core':
         return parse_core(out.read_text(), case)['detections']
@@ -923,7 +939,7 @@ def identity_round44(run_dir):
         ref = STAGE44 / 'results' / f"{e['case']}-{STAGE44_ARM[e['method']]}-b0.json"
         if not ref.exists():
             continue
-        ours = json.loads(Path(e['output']).read_text())['first']['matches']
+        ours = json.loads(remapped(e['output']).read_text())['first']['matches']
         theirs = json.loads(ref.read_text())['first']['matches']
         out.append(dict(case=e['case'], method=e['method'], block=e['block'], equal=ours == theirs, ours=len(ours), round44=len(theirs)))
     return out
@@ -975,7 +991,11 @@ def hypotheses(a, c, b2, geco2_method):
         c_ok = b_geco['recall'] is not None and b_ours['recall'] is not None and b_ours['recall'] >= b_geco['recall']
         out['H1'] = dict(a=rows, a_pass=all(r['ok'] for r in rows), b=dict(ours=e_ours, tdcm_adapted=e_tdcm, pass_=bool(b_ok)),
                          c=dict(ours=b_ours, geco2=b_geco, geco2_method=geco2_method, pass_=c_ok if b_geco['cases'] else None))
-        out['H1']['pass'] = (out['H1']['a_pass'] and bool(b_ok) and c_ok) if b_geco['cases'] else None
+        # Any failed part decides H1; only when (a) and (b) pass does it wait for GeCo2's (c).
+        if not out['H1']['a_pass'] or not b_ok:
+            out['H1']['pass'] = False
+        else:
+            out['H1']['pass'] = c_ok if b_geco['cases'] else None
         negatives = sorted(n for n, x in cases.items() if not x['positive'])
         ours_arms = ('ours_core', 'ours_hybrid_k0', 'ours_hybrid_k3', 'ours_fullgpu_k0', 'ours_fullgpu_k3')
         h5 = []
@@ -1092,22 +1112,32 @@ def summarize_b2(run_dir, annotations, boxes_path):
             p = parse_runner(f.read_text(), dict(template_size=[tw, th]))
             dets[name], times = p['detections'], times + [p['time_ms']]
         methods[d.name] = (dets, times, failed, None)
+    subsets = {}
     for f in sorted(run_dir.glob('geco2_*.jsonl')):
         _, results, footer = read_batch(f)
         methods[f.stem] = ({k: v['detections'] for k, v in results.items()}, [v['timing_ms']['call_ms'] for v in results.values()],
-                           len(items) - len(results), footer)
+                           0, footer)
+        subsets[f.stem] = [n for n in items if n in results]  # the CPU batch covers the first 100 test images only
+
+    def scored(dets, names):
+        r = dict(images=len(names), count_points=score.count_errors([(len(a[n]['points']), len(dets.get(n, []))) for n in names]))
+        if boxes:
+            r['boxes'] = score.score_box_images([(boxes.get(n, []), dets.get(n, [])) for n in names])
+            r['count_boxes'] = score.count_errors([(len(boxes.get(n, [])), len(dets.get(n, []))) for n in names])
+        return r
     out = {}
     for m, (dets, times, failed, footer) in methods.items():
-        r = dict(images=len(items), failed=failed, time_ms=score.summary(times), memory=(footer or {}).get('memory'),
-                 count_points=score.count_errors([(len(a[n]['points']), len(dets.get(n, []))) for n in items]))
-        if boxes:
-            r['boxes'] = score.score_box_images([(boxes.get(n, []), dets.get(n, [])) for n in items])
-            r['count_boxes'] = score.count_errors([(len(boxes.get(n, [])), len(dets.get(n, []))) for n in items])
-        out[m] = r
+        names = subsets.get(m, list(items))
+        out[m] = dict(scored(dets, names), failed=failed, time_ms=score.summary(times), memory=(footer or {}).get('memory'))
+        if len(names) < len(items):
+            out[m]['subset'] = f'first {len(names)} test images'
+            out[m]['same_subset'] = {k: scored(methods[k][0], names) for k in methods if k != m}
     return out
 
 
 def summarize(args):
+    for pair in args.remap or []:
+        REMAP.append(tuple(pair.split('=', 1)))
     protocol = json.loads(args.protocol.read_text())
     summary = dict(protocol_sha256=sha(args.protocol), created=now())
     a = summarize_scenes(args.a) if args.a else None
@@ -1172,6 +1202,7 @@ def main():
     m.add_argument('--annotations', type=Path)
     m.add_argument('--boxes', type=Path, help='FSCD-147 instances_test.json')
     m.add_argument('--geco2-accuracy', default='geco2_cuda', help='method name whose GeCo2 outputs carry accuracy')
+    m.add_argument('--remap', nargs='*', help='OLD=NEW output-path prefixes for replaying archived runs')
     m.add_argument('--output', type=Path, required=True)
     args = p.parse_args()
     dict(**{'dev-tdcm-pipeline': dev_tdcm_pipeline, 'dev-tdcm-threshold': dev_tdcm_threshold,

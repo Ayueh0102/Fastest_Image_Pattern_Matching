@@ -1,6 +1,6 @@
 # Template Matching 研究總索引與人工審查指南
 
-更新：2026-10-26。此頁按第1–49輪列出問題、證據與採用決定。數字是各輪的證據快照，不是同一套輸入的連續加速曲線；不同輪次倍率不能相乘。最新輪次見頁末，第一次閱讀先看[外部導覽](../../docs/PROJECT_GUIDE_zh-TW.md)。
+更新：2026-10-26。此頁按第1–50輪列出問題、證據與採用決定。數字是各輪的證據快照，不是同一套輸入的連續加速曲線；不同輪次倍率不能相乘。最新輪次見頁末，第一次閱讀先看[外部導覽](../../docs/PROJECT_GUIDE_zh-TW.md)。
 
 ## 目前推薦方案
 
@@ -15,6 +15,7 @@
 | 新場景、Blender、新影格與穩定性 | [第34輪](STAGE34_CLOSURE_zh-TW.md) |
 | 密集實拍、RGB與顏色不同物件 | [第35輪](STAGE35_REAL_RGB_zh-TW.md)與[小模板候選漏失診斷](STAGE35_PYRAMID_DIAGNOSIS_zh-TW.md) |
 | 小模板粗搜尋召回（依模板選頂層） | [第49輪](ADAPTIVE_PYRAMID_zh-TW.md)；規則未通過，保留失敗 |
+| 與2024–2026新方法實測比較（TDCM、GeCo2、OpenCV） | [第50輪](LITERATURE_COMPARISON_zh-TW.md)；GeCo2精度待CUDA |
 | 原始Log、失敗與完整源碼 | [分類索引](LOG_CATALOG_zh-TW.md)與各輪封存 |
 
 ## 先辨認比較的是哪一層
@@ -538,3 +539,13 @@ Release 54/54、相關ASan／UBSan 2/2及Python工具75項通過。正式／有�
 - 驗證：紅燈commit先失敗、實作後通過；12個編譯突變（含最終測試對紅燈空殼）全殺；量測工具17項負控制；凍結commit全新Release建置ctest 87／87、Python harness 751、其他Python 49、color verify `--metal` 11；不匯入harness的stdlib獨立稽核比對3054個數值零不符；摘要由封存重算逐位相同，224個場景由產生器逐位重建；含experiments的ASan／UBSan scalar與SIMD各80/80；報告commit `40d0d15` 全新Release研究建置ctest 87／87、Python 751、其他Python 49、color 11。
 - 決定：不推薦；規則保留為預設關閉的研究選項，不改GUI、核心或研究預設。下一步若要再試，背景應取自實際影格、預測分數要對比該層真正的接受分數並納入候選上限，且需要新的事前登錄與保留集。
 - 證據：[完整報告](ADAPTIVE_PYRAMID_zh-TW.md)、[protocol](stage49-adaptive-pyramid/protocol.json)、[正式摘要](stage49-adaptive-pyramid/formal-summary.json)、[判定與失敗](stage49-adaptive-pyramid/decision-and-failures.json)、[驗證](stage49-adaptive-pyramid/validation.json)、[封存](stage49-adaptive-pyramid/archive.json)。
+
+### 50. 與2024–2026新方法的實測比較（2026-10-26～27，量測輪；GeCo2精度待CUDA）
+
+- 問題：本專案的NCC比對器在哪些情境勝過或輸給PoseMatch-TDCM（ESWA 2026，學習式模板比對＋平面位姿）、GeCo2（AAAI 2026，少樣本計數與偵測）與OpenCV `matchTemplate`暴力旋轉？
+- 方法：同一張影像、同一個模板檔，同一支獨立評分程式（嚴格2px／1°／2%，最大基數配對；20px關聯只作描述；外接框IoU≥0.5、AP50；計數MAE）。四組：A本專案主場（第37輪7場景、第35輪控制、Blender灰階、9個負控制）、B1 TDCM的COCO合成協定（作者`rotate_crop`、種子42、S1／S1.5／S2／S2.5各1000組，36×36為主要變體）、B2 FSCD-147（非官方HF鏡像標註，經使用者同意並揭露）、C難題（微小模板、遮擋／干擾、照明、8192²／512物件）。三條開發選擇規則先提交（`ebcbecc`）再跑，結果寫入凍結的protocol（`73b926e`）：TDCM主要流程為README的`test.py`、TDCM改編峰值門檻0.3、我們的B2次要分數0.9。
+- 結果：A組第37輪7場景我們嚴格667/667，TDCM改編0、OpenCV 9；誤差中位數0.025px／0.013°對TDCM改編1.53px／1.27°。大圖多物件完整GPU k3每張373／1134／1476ms，TDCM改編CPU 6.4／14.7／73.0s。照明17場景484/484（OpenCV 112）。弱點：第35輪開發集43×30郵票模板我們只找到4／21／8個（OpenCV各35個）；微小模板負場景誤判338（TDCM改編93）；B1的36×36模板在大尺度時成功率82.6％（S2）、74.7％（S2.5），TDCM為99.6％、98.0％；B2自然影像AP50 0.11對GeCo2（MPS描述性）0.69。
+- 判定：H1否（(a)在第35輪開發集失敗）、H3否（微小模板我們較好）、H4是、H5是；H2與H1(c)待GeCo2的CUDA。GeCo2在MPS上未過事前真偽關卡（AP 40.45／AP50 69.41，論文46.81／75.89），權重已排除，前100張CPU描述性結果AP50 0.861、MPS 0.788；使用者選擇等CUDA、不改用CPU。
+- 驗證：評分與驅動單元測試32項；與第44輪封存48筆輸出逐位相同；從壓縮檔重算全部摘要相同；B1樣本凍結後重建GT雜湊相同；保留門檻第1次、A／C第1次（方法名稱錯誤）與GeCo2關卡第1次（maxDets bug）。
+- 決定：量測輪，不改預設、GUI或CURRENT_BEST。
+- 證據：[完整報告](LITERATURE_COMPARISON_zh-TW.md)、[protocol](stage50-literature-comparison/protocol.json)、[正式摘要](stage50-literature-comparison/formal-summary.json)、[判定與失敗](stage50-literature-comparison/decision-and-failures.json)、[驗證](stage50-literature-comparison/validation.json)、[封存](stage50-literature-comparison/archive.json)、[第1階段可行性](stage50-literature-comparison/feasibility.md)。
