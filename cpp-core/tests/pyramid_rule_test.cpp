@@ -63,6 +63,30 @@ void areaMapping() {
     invalid([] { minAreaForTop(0,4,0); },"zero width accepted");
     invalid([] { minAreaForTop(4,4,-1); },"negative level accepted");
 }
+// Predicted scores pinned at the round-49 head (to 1e-9, which absorbs FMA and
+// platform rounding): each is the 8-pose mean of the best NCC within +/-1 pixel
+// on a canvas with a 4-pixel background margin. The coarse fixture's high
+// background is the worse one, so the decision must take the minimum of both.
+void pinnedScores() {
+    struct Pin { double low,high; };
+    auto check=[](const Image& t,int low,int high,const std::vector<Pin>& pins,const std::string& name) {
+        const auto d=decidePyramid(t.view(),256,.5);
+        require(d.lowBackground==low && d.highBackground==high,name+" backgrounds moved");
+        require(d.predictedScores.size()==pins.size(),name+" level count moved");
+        const Pattern pattern(t.view(),256);
+        for(size_t level=0;level<pins.size();++level) {
+            const double l=predictedTopScore(pattern,int(level),low),h=predictedTopScore(pattern,int(level),high);
+            require(std::abs(l-pins[level].low)<=1e-9 && std::abs(h-pins[level].high)<=1e-9,
+                name+" predicted score moved at level "+std::to_string(level));
+            require(std::abs(d.predictedScores[level]-std::min(pins[level].low,pins[level].high))<=1e-9,
+                name+" decision does not take the worse background at level "+std::to_string(level));
+        }
+    };
+    check(fineTexture(),20,235,{{0.94308541152414149,0.94442056664540885},{0.72381002149166329,0.74769337659168567},
+        {0.046710943695413142,0.17564773765743846}},"fine texture");
+    check(coarseStructure(),7,220,{{0.98588784755524916,0.98252211149297386},{0.9797461943107898,0.96422879599576361},
+        {0.96554000169903331,0.9231645628054479}},"coarse structure");
+}
 void decisions() {
     const auto fine=fineTexture(),coarse=coarseStructure();
     const auto f=decidePyramid(fine.view(),256,.5);
@@ -211,6 +235,7 @@ int main(int argc,char** argv) {
         const bool metal=argc>1 && std::string(argv[1])=="--metal";
         areaMapping();
         decisions();
+        pinnedScores();
         session(metal);
         std::cout<<"Pyramid rule: exact area mapping, never deeper, fine texture higher up, unchanged when off\n";
         return 0;
