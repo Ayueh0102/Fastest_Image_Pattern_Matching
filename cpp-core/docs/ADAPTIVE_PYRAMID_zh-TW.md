@@ -13,7 +13,7 @@
 3. 用比對器本身的 `pyrDown` 縮L次、`rotateCanvas` 依粗角度格點轉回，取已學習的第L層模板在物件附近±1像素內的最佳NCC。
 4. 預測分數＝兩種背景中較差者的8姿態平均。選預測分數 ≥ 門檻的最深一層；都不到則取分數最高的最深一層；從不比原頂層深，深度不變時沿用原 `min_area`（所以輸出逐位與原設定相同）。
 
-只作用於密集金字塔路徑（混合或CPU），`fullGpu` 與 `sparseOrientation` 會拒絕。成本只在建立Session時：每個尺度模型中位1.9ms、最大8.35ms，算在 `search_construct_ms`，不在搜尋時間內。
+只作用於密集金字塔路徑（混合或CPU），`fullGpu` 與 `sparseOrientation` 會拒絕。成本只在建立Session時：每個尺度模型中位1.9ms、最大8.51ms（全部380個跑規則的worker；只看block 0是8.35ms），算在 `search_construct_ms`，不在搜尋時間內。
 
 ## 設計
 
@@ -94,7 +94,7 @@
 
 ## 量測方法與界線
 
-- **主機：** 正式期間沒有其他session的計時鎖，也沒有建置或benchmark程序；但系統的 `mediaanalysisd` 在1194個worker前佔滿一核，`node`／`chrome-headless` 約330個、`Codex (Renderer)` 192個；1分鐘負載在624個worker前超過6（最高14.1）。只有92個worker屬於安靜狀態。protocol規定主機狀態只記錄、不影響判定；事後在少數共同的安靜案例上，安靜worker的時間比與全部block的時間比相差約1%（[host-sensitivity](stage49-adaptive-pyramid/validation.json)）。計時數字因此比前幾輪雜訊大，未通過的判定則不受影響。
+- **主機：** 正式期間沒有其他session的計時鎖，也沒有本專案的建置或benchmark程序（有1個worker前出現TypeScript編譯器`tsc`，見文末補充）；但系統的 `mediaanalysisd` 在1194個worker前佔滿一核，`node` 337個、`chrome-headless` 324個、`Codex (Renderer)` 189個worker；1分鐘負載在624個worker前超過6（最高14.1）。只有92個worker屬於安靜狀態。protocol規定主機狀態只記錄、不影響判定；事後在少數共同的安靜案例上，安靜worker的時間比與全部block的時間比相差約1%（[host-sensitivity](stage49-adaptive-pyramid/validation.json)）。計時數字因此比前幾輪雜訊大，未通過的判定則不受影響。
 - **開發集校準期間：** `mediaanalysisd` 在400個worker中的311個前佔滿一核；第50輪session在09:50:07Z的一次runner冒煙與校準重疊（3個worker記錄到 `fpm_native_pipeline_runner`）；我在校準進行中改了3個Python檔，所以該phase的源碼指紋前後不同（binary與輸入不變）。等時間預算的選擇照校準結果保留。第50輪事後確認那是一次不到1秒的runner冒煙（約09:50:07Z）。事後敏感度（不重跑）：只排除實際偵測到它的兩個fsc1924b2場景，選擇仍是0.40／200；把09:49:30–09:50:30間跑過的22個場景全部排除則會選0.35／200，原因是下一檔只比adaptive多81.7ms、這些場景又較大，不是重疊本身。0.35／200沒有在保留集跑過；凍結的0.40／200已經比規則多找到33個物件。
 - **其他揭露：** 第一次開發集掃描被主機gate拒絕（mediaanalysisd 106%、負載4.3），之後只有計時phase會拒絕，負載上限改為6（系統的ANECompilerService已連續數天佔約90%一核）；第一次量測前驗證因凍結源碼樹缺少 `Test Images` 而失敗（gui_workflow與7個Python測試），補上同一commit的資料夾後全部通過；第一版單元測試的條紋週期2.4px在第0層就已混疊，實作commit改成8px。全部記錄在protocol的 `exploratory_disclosure`。
 - 只有一台M4 Pro；場景是半合成的平坦背景、尺度固定1；FSC範例框不是同一模板的身份GT，本輪只用它們當模板。
@@ -121,3 +121,21 @@
 ## 未涵蓋
 
 完整GPU路徑、多尺度、實拍場景、非平坦背景、其他Metal裝置、Windows／Linux都沒有測；規則只決定頂層，不調整候選預算。
+
+## 2026-10-26 合併驗收補充
+
+合併到 main 前，在本輪 head `c332930` 的乾淨 worktree 重新驗收（前後工作樹都乾淨）。驗收沒有改變任何判定或數字，只補一個測試與幾處揭露。
+
+- **重跑 gate：** 全新 Release 研究建置，ctest 87/87、Python harness 751、color verify `--metal` 11、其他 Python 49；含 experiments 的 ASan／UBSan，scalar 80/80、SIMD 80/80；Metal validation（`MTL_SHADER_VALIDATION=1`，規則、完整 GPU、去重、色彩、runner 契約）32/32。
+- **規則關閉時和 main（`8f0e6a9`）輸出相同：** 核心 CLI 17 個案例 × 各模式共 170 次、既有色彩方法 57 個 job、第44輪封存的 32 個正式 job，全部逐位相同，負控制有抓到。
+- **封存重播：** 用本輪工具從封存重算正式摘要、開發集調參與校準，三份都和封存逐位相同。
+- **第三方重算：** 只用 stdlib、不匯入本輪工具，從封存重算 TP／FP、時間、RSS、GPU 與 H1–H7，756 個 cell、10980 個數值零不符，判定與發佈相同。改用 Chebyshev 距離、貪婪配對或 180° 對稱折疊，TP 都不變（正場景最大誤差 0.138 px、0.396°）。
+- **補一個測試：** 另外編譯 6 個與本輪 12 個不同的突變，其中 4 個在原測試下存活：鄰域搜尋 ±1 改成 0、8 個姿態的平均改成最大值、背景邊界改成 0、只用低背景。`pyramid_rule_test.cpp` 新增 `pinnedScores`，把兩個 fixture 每一層、兩種背景的預測分數鎖到 1e-9，並要求決策取較差的背景（coarse fixture 的高背景較差）。加上之後 6 個突變全部被抓到，head 仍通過。
+- **揭露補充（第三方指出，作者核對屬實；封存檔保留原文，以本節為準）：**
+  1. 源碼指紋改變的不只開發集校準：dev-sweep 期間（03:02–03:13Z）`cpp-core/tests/test_adaptive_pyramid_harness.py` 也改過，manifest 為 `unchanged=false`；兩個開發 phase 用的 driver 都不是凍結版本。binary 與輸入不變，第三方從原始結果重算的值全部相符。
+  2. 規則成本最大值是 8.51 ms，不是 8.35 ms；原數字只看了 block 0。
+  3. 「peak RSS 中位數」與 GPU 配置中位數的範圍是正場景、每個場景先取各 block 中位數；改用全部 worker 時，adaptive 是 40.17 MiB、fixed512 是 44.15 MiB。
+  4. 正式期間的主機程序另有 `ffmpeg`（2 個 worker 前，628–682% CPU）、`tsc`（1 個）與 `Claude Helper`（2 個）；`Codex (Renderer)`、`node`、`chrome-headless` 依 worker 計是 189、337、324。
+  5. 等時間預算的選擇餘裕很窄：輸出相同時，兩個開發 phase 的時間差 4–5%（original 1442.5 對 1383.2 ms，adaptive 2283.9 對 2174.7 ms）。若用 sweep 的 adaptive 時間，會選到 0.35／200（開發集 TP 2282）。依事前規則選 0.40／200 沒有錯，0.35／200 沒有在保留集跑過；H3 是敗在 TP，不是時間。
+  6. GT 角度的週期與對稱只定義在 `many_object_accuracy.evaluate` 裡，protocol 沒有寫成文字；本輪的誤差離門檻很遠，不影響計數。
+

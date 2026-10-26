@@ -27,7 +27,7 @@
     "other": "No recognized role; inspect manually"
   },
   "artifact_count": 715,
-  "artifact_bytes": 2647263149,
+  "artifact_bytes": 2647266429,
   "artifact_role_counts": {
     "archive": 127,
     "calibration": 5,
@@ -81,8 +81,8 @@
       "path": "ADAPTIVE_PYRAMID_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 17476,
-      "sha256": "f26de2c20d8b18594bfa956aa409a082b07ce8da010a9f76c91396466edab1a4",
+      "bytes": 20756,
+      "sha256": "ca5b322a75e4cd31fc94e4b53f5ed5510fd704b5fa53d6a45e9004def46a6148",
       "roles": [
         "report"
       ]
