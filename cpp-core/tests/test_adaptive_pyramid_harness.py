@@ -59,7 +59,7 @@ def rule(original, selected, scores):
                                            predicted_scores=scores, low_background=10, high_background=200, ms=1.)])
 
 
-PROTOCOL = dict(frozen=dict(pyramid_rule_min_score=.5, budget=dict(proposal_score=.3, limit=300)),
+PROTOCOL = dict(frozen=dict(pyramid_rule_min_score=.5, secondary_min_score_r0=.75, budget=dict(proposal_score=.3, limit=300)),
                 gates=dict(deficient_recall_below=.9, H1_recovered_fraction=.8, H2_kept_fraction=.9, H2_time_ratio=1.05,
                            H2r_template='keep', H3_time_ratio=1.1, H4_time_ratio=.75, H4_tp_tolerance=.02, H6_fp_tolerance=.01))
 
@@ -91,9 +91,12 @@ class DepthMirror(unittest.TestCase):
         self.assertEqual([arm for _, arm, _, _ in sweep], ['depth0', 'depth1', 'depth2', 'rule_report', 'depth0', 'depth1', 'depth2'])
         self.assertEqual(sweep[2][2]['min_area'], 256)
         formal = harness.phase_plan('formal', [dict(c, split='holdout') for c in cases], protocol=PROTOCOL)
-        self.assertEqual(len(formal), 15)
+        self.assertEqual(len(formal), 18)
         self.assertEqual({rows for c, _, _, rows in formal if not c['positive']}, {1})
-        self.assertEqual({rows for c, _, _, rows in formal if c['positive']}, {3})
+        self.assertEqual({rows for c, arm, _, rows in formal if c['positive'] and arm != 'adaptive_r0'}, {3})
+        self.assertEqual({rows for _, arm, _, rows in formal if arm == 'adaptive_r0'}, {1})
+        r0 = [search for _, arm, search, _ in formal if arm == 'adaptive_r0'][0]
+        self.assertEqual((r0['pyramid_rule'], r0['pyramid_rule_min_score']), (1, .75))
         adaptive = [search for _, arm, search, _ in formal if arm == 'adaptive'][0]
         self.assertEqual((adaptive['pyramid_rule'], adaptive['pyramid_rule_min_score'], adaptive['min_area']), (1, .5, 256))
         budget = [search for _, arm, search, _ in formal if arm == 'budget'][0]
@@ -164,7 +167,7 @@ class Offline(unittest.TestCase):
         self.assertEqual(tuned['templates']['coarse']['needed_top'], 2)
         # .30 keeps fine at depth 2 (a miss); .35-.60 start fine at 1 and keep coarse at 2 (25 ms);
         # .65-.70 start fine at 0 (55 ms); .75+ also moves coarse higher. The smallest fastest wins.
-        self.assertEqual(tuned['selected_min_score'], .35)
+        self.assertEqual(tuned['selected_min_score_r0'], .35)
         by = {row['min_score']: row for row in tuned['candidates']}
         self.assertEqual(by[.3]['misses'], ['fine'])
         self.assertEqual(by[.6]['dev_search_ms'], 25.)
@@ -172,6 +175,25 @@ class Offline(unittest.TestCase):
         self.assertEqual(by[.8]['shallower_than_needed'], ['coarse', 'fine'])
         self.assertEqual(tuned['oracle_tp'], 20)
         self.assertEqual(tuned['original_tp'], 12)
+        # R1 caps time at 2x the original 10 ms: .35-.60 (25 ms) exceed it, so it keeps
+        # the most TP within 20 ms, the thresholds .30 and below -> .30 (TP 12).
+        self.assertEqual(tuned['original_search_ms'], 10.)
+        self.assertEqual(tuned['selected_min_score'], .3)
+
+    def test_r1_prefers_recovery_within_the_time_cap(self):
+        objects = truth(10)
+        cases = [case('fine_clean', 'fine', objects, split='development'), case('coarse_clean', 'coarse', objects, split='development')]
+        fake = Fake(self.root, cases)
+        # fine needs depth 0 (expensive) and depth 1 recovers most: R0 pays for depth 0, R1 stops at depth 1.
+        for level, missing, ms in ((0, 0, 100.), (1, 1, 12.), (2, 8, 5.)):
+            fake.add(cases[0], f'depth{level}', found(objects, missing), ms)
+            fake.add(cases[1], f'depth{level}', found(objects), ms)
+        fake.add(cases[0], 'rule_report', [], 1., rule=rule(2, 2, [.9, .6, .3]))
+        fake.add(cases[1], 'rule_report', [], 1., rule=rule(2, 2, [.95, .9, .7]))
+        tuned = harness.tune(fake.manifest(), self.root)
+        self.assertEqual(tuned['templates']['fine']['needed_top'], 0)
+        self.assertEqual(tuned['selected_min_score_r0'], .65)  # only fine at depth 0 removes the miss
+        self.assertEqual(tuned['selected_min_score'], .35)  # 17 ms <= 2 x 10 ms, TP 19
 
     def test_tune_rejects_altered_workers(self):
         objects = truth(2)
@@ -212,8 +234,8 @@ class Offline(unittest.TestCase):
         cases = [case('small_clean', 'small', objects), case('small_empty', 'small', [], 'empty'),
                  case('keep_clean', 'keep', objects), case('keep_empty', 'keep', [], 'empty')]
         fake = Fake(self.root, cases)
-        times = dict(original=10., stage35_manual=40., adaptive=20., budget=19., fixed512=25.)
-        for arm in harness.FORMAL_ARMS:
+        times = dict(original=10., stage35_manual=40., adaptive=20., budget=19., fixed512=25., adaptive_r0=60.)
+        for arm in harness.FORMAL_ARMS+harness.SECONDARY_ARMS:
             small_missing = dict(original=6, adaptive=adaptive_missing).get(arm, 0)
             fake.add(cases[0], arm, found(objects, small_missing), times[arm], rule=rule(2, 1, [.9, .7, .2]) if arm == 'adaptive' else None)
             fake.add(cases[1], arm, found([], extra=negative_fp if arm == 'adaptive' else 0), 1.,

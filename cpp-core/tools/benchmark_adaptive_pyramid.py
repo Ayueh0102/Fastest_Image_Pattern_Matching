@@ -45,6 +45,7 @@ FIXED512 = dict(min_area=512, proposal_score=.5, limit=100)
 BUDGET_GRID = ((.45, 150), (.40, 200), (.35, 200), (.30, 300), (.25, 300), (.20, 400))
 TAU_GRID = tuple(round(.30+.05*k, 2) for k in range(11))
 NEEDED_TOLERANCE = .02  # needed depth: deepest level within 2% of the template's objects of its best depth
+TIME_CAP = 2.  # R1: development time at most twice the original depth's
 PHASES = dict(dev_sweep=dict(warmups=1, repeats=3, blocks=1, lock=False),
               dev_calibrate=dict(warmups=1, repeats=3, blocks=1, lock=True),
               formal=dict(warmups=1, repeats=3, blocks=3, negative_blocks=1, lock=True))
@@ -81,6 +82,8 @@ def arm_search(name, protocol=None):
         return dict(FIXED512)
     if name == 'adaptive':
         return dict(ORIGINAL, pyramid_rule=1, pyramid_rule_min_score=protocol['frozen']['pyramid_rule_min_score'])
+    if name == 'adaptive_r0':
+        return dict(ORIGINAL, pyramid_rule=1, pyramid_rule_min_score=protocol['frozen']['secondary_min_score_r0'])
     if name == 'budget':
         recipe = protocol['frozen']['budget']
         return dict(ORIGINAL, proposal_score=recipe['proposal_score'], limit=recipe['limit'])
@@ -88,6 +91,8 @@ def arm_search(name, protocol=None):
 
 
 FORMAL_ARMS = ('original', 'stage35_manual', 'adaptive', 'budget', 'fixed512')
+# Descriptive only (one block, no verdict): the threshold the superseded R0 objective chose.
+SECONDARY_ARMS = ('adaptive_r0',)
 
 
 def job(case, search, warmups, repeats):
@@ -121,6 +126,8 @@ def phase_plan(phase, cases, tuning=None, protocol=None):
         for case in cases:
             for arm in FORMAL_ARMS:
                 plan.append((case, arm, arm_search(arm, protocol), spec['blocks'] if case['positive'] else spec['negative_blocks']))
+            for arm in SECONDARY_ARMS:
+                plan.append((case, arm, arm_search(arm, protocol), 1))
     else:
         raise ValueError('Unknown phase '+phase)
     return plan
@@ -338,10 +345,19 @@ def tune(manifest, root):
         tp = sum(out[name]['depths'][str(level)]['tp'] for name, level in chosen.items())
         candidates.append(dict(min_score=threshold, misses=misses, shallower_than_needed=shallower,
                                dev_search_ms=time_ms, dev_tp=tp, selected_tops=chosen))
-    best = min(candidates, key=lambda c: (len(c['misses']), c['dev_search_ms'], c['min_score']))
-    return dict(objective='fewest templates started deeper than needed, then least summed development time, then smallest threshold',
+    original_ms = sum(entry['depths'][str(entry['original_top'])]['search_ms'] for entry in out.values())
+    # R0, committed before the sweep (623d95c): misses first. It ignores time until
+    # ties, so revision R1 (before any holdout scene existed) replaces it as the
+    # selection and keeps R0's choice as a descriptive secondary arm.
+    r0 = min(candidates, key=lambda c: (len(c['misses']), c['dev_search_ms'], c['min_score']))
+    capped = [c for c in candidates if c['dev_search_ms'] <= TIME_CAP*original_ms]
+    r1 = min(capped, key=lambda c: (-c['dev_tp'], c['min_score']))
+    return dict(objective=f'R1: most summed development strict TP among thresholds whose summed development search time is '
+                          f'at most {TIME_CAP:g}x the original depth\'s, then smallest threshold',
+                objective_r0='R0 (superseded): fewest templates started deeper than needed, then least summed development time, then smallest threshold',
                 needed_rule=f'deepest top level whose summed strict TP is within {NEEDED_TOLERANCE:.0%} of the template objects of its best level',
-                templates=out, candidates=candidates, selected_min_score=best['min_score'],
+                templates=out, candidates=candidates, selected_min_score=r1['min_score'], selected_min_score_r0=r0['min_score'],
+                original_search_ms=original_ms, time_cap=TIME_CAP,
                 expected_total=sum(entry['expected'] for entry in out.values()),
                 oracle_tp=sum(entry['depths'][str(entry['needed_top'])]['tp'] for entry in out.values()),
                 original_tp=sum(entry['depths'][str(entry['original_top'])]['tp'] for entry in out.values()))
@@ -373,7 +389,7 @@ def summarize(manifest, root, protocol):
     for name in templates:
         cases = sorted({row['case'] for row in rows if row['template'] == name})
         entry = dict(cases=cases)
-        for arm in FORMAL_ARMS:
+        for arm in FORMAL_ARMS+SECONDARY_ARMS:
             pos = [table[(case, arm)] for case in cases if (case, arm) in table and table[(case, arm)]['expected']]
             neg = [table[(case, arm)] for case in cases if (case, arm) in table and not table[(case, arm)]['expected']]
             entry[arm] = dict(tp=sum(c['tp'] for c in pos), fp=sum(c['fp'] for c in pos), expected=sum(c['expected'] for c in pos),
@@ -389,7 +405,7 @@ def summarize(manifest, root, protocol):
             table[(case, 'adaptive')]['matches'] == table[(case, 'original')]['matches'] for case in cases)
         per_template[name] = entry
     totals = {}
-    for arm in FORMAL_ARMS:
+    for arm in FORMAL_ARMS+SECONDARY_ARMS:
         totals[arm] = {key: sum(per_template[name][arm][key] for name in templates)
                        for key in ('tp', 'fp', 'expected', 'search_ms', 'negative_fp', 'negative_search_ms')}
     deficient = [name for name in templates if per_template[name]['deficient']]
