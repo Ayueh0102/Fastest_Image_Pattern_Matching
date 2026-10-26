@@ -178,13 +178,19 @@ def create_catalog(docs):
     }, {"schema_version": 1, "path_base": "cpp-core/docs", "members": members}
 
 
+def compress_members(members):
+    data = gzip.compress(json.dumps(members, ensure_ascii=False, separators=(",", ":")).encode("utf-8"), mtime=0)
+    # Python 3.12 writes the gzip OS byte as 0x13 on macOS and 3.14 as 0xff; pin it so --check is interpreter-independent.
+    return data[:9] + b"\xff" + data[10:]
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--docs", type=Path, default=Path(__file__).resolve().parents[1] / "docs")
     parser.add_argument("--check", action="store_true", help="Verify indexes without changing them")
     args = parser.parse_args()
     catalog, members = create_catalog(args.docs)
-    member_bytes = gzip.compress(json.dumps(members, ensure_ascii=False, separators=(",", ":")).encode("utf-8"), mtime=0)
+    member_bytes = compress_members(members)
     catalog["archive_member_index_sha256"] = hashlib.sha256(member_bytes).hexdigest()
     outputs = {"log-catalog.json": (json.dumps(catalog, ensure_ascii=False, indent=2) + "\n").encode("utf-8"),
                "log-archive-members.json.gz": member_bytes}
