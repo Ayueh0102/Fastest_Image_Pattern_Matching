@@ -3,6 +3,11 @@
   "path_base": "cpp-core/docs/stage50-literature-comparison",
   "artifacts": [
     {
+      "path": "acceptance-b1-paper-iou-correction.json",
+      "bytes": 18780,
+      "sha256": "bdda68d4a414c489130601317a54b8ca5a6a8a2bfc03c4c10bceec6039d9f758"
+    },
+    {
       "path": "b1-prefreeze-fixtures.json",
       "bytes": 1914,
       "sha256": "3e5a7c369e4379ba371279447d4aede0824e886426d9a0f6591e6767cf5410be"

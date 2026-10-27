@@ -26,8 +26,8 @@
     "metadata": "Filesystem sidecar metadata",
     "other": "No recognized role; inspect manually"
   },
-  "artifact_count": 747,
-  "artifact_bytes": 2813225172,
+  "artifact_count": 748,
+  "artifact_bytes": 2813244883,
   "artifact_role_counts": {
     "archive": 138,
     "calibration": 5,
@@ -35,7 +35,7 @@
     "false_gate": 63,
     "formal": 48,
     "input": 21,
-    "other": 62,
+    "other": 63,
     "pilot": 19,
     "protocol": 51,
     "provenance": 79,
@@ -262,8 +262,8 @@
       "path": "EXPERIMENT_REVIEW_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 99417,
-      "sha256": "0d6c430ecb477e9329a2cf82d7caeab72097beca9a61cbea5af79ce586d2b3b5",
+      "bytes": 99833,
+      "sha256": "9e52ce679276a966bee420704d7ca2919c214e192979c8338595986f7db1855b",
       "roles": [
         "report"
       ]
@@ -432,8 +432,8 @@
       "path": "LITERATURE_COMPARISON_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 19163,
-      "sha256": "30985a39bfd2e694182ac55b1a97306745a5211b9ca6df9cb2a13515b0757937",
+      "bytes": 19481,
+      "sha256": "a45da5759a4d3025b4857bdb8680a3d23045e30dc663d7e0511cbed7af94ffee",
       "roles": [
         "report"
       ]
@@ -613,8 +613,8 @@
       "path": "PROJECT_STATUS_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 16556,
-      "sha256": "02e993456578fefb84acc84aa711101d2961beea202b6bb408d7d248f057db8d",
+      "bytes": 16578,
+      "sha256": "78a37a489acc0aaff1076ed7be14ec9dfa5d6f3a2439cd637dfbba0ce86d9564",
       "roles": [
         "report"
       ]
@@ -9454,11 +9454,21 @@
       ]
     },
     {
+      "path": "stage50-literature-comparison/acceptance-b1-paper-iou-correction.json",
+      "group": "stage50-literature-comparison",
+      "stage": "50",
+      "bytes": 18780,
+      "sha256": "bdda68d4a414c489130601317a54b8ca5a6a8a2bfc03c4c10bceec6039d9f758",
+      "roles": [
+        "other"
+      ]
+    },
+    {
       "path": "stage50-literature-comparison/archive.json",
       "group": "stage50-literature-comparison",
       "stage": "50",
-      "bytes": 5253,
-      "sha256": "1dca112d027e5da3ab94d6eb7183d45de9d952ae08b0e2249c677df1d8fff003",
+      "bytes": 5428,
+      "sha256": "10f03d697326b16bd577ead0fde1205b4ed8b90507001120b043f8b26a769bc9",
       "roles": [
         "provenance"
       ]

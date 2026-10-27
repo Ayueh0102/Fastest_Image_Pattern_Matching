@@ -1,0 +1,800 @@
+{
+ "stage": 50,
+ "kind": "merge acceptance correction (2026-10-27)",
+ "what": "literature_score.tdcm_paper_iou drew both rectangles mirrored (pose_corners at -angle); TDCM getIOU draws rotated_rect(-r), i.e. counter-clockwise by r on screen. Fixed in the acceptance branch; this file recomputes the descriptive B1 paper metrics (Succ, mIoU, Loc.Err, Rot.Err over successes) and the development pipeline distance from the archived outputs. Strict counts, hypotheses, boxes and counts do not use this IoU.",
+ "found_by": "independent stdlib recount during merge acceptance",
+ "tools_commit": "ac9f3e0 (literature_score.tdcm_paper_iou fixed; red test 8cf39a8)",
+ "inputs": "raw-results-B1.tar.gz and raw-results-development.tar.gz from this directory; B1 truth and template sizes from the local fixtures (scene-metadata.tar.gz holds the truth); development truth SHA-256 checked against dev-tdcm-pipeline.json",
+ "unchanged": "samples, outputs, strict_tp, association_tp and strict_rate of every B1 row; the development pipeline choice (test_py)",
+ "pipeline_selection": {
+  "rule": "smaller sum of relative differences to the paper S1 row (mIoU, Succ, Loc.Err, Rot.Err); tie -> test_single",
+  "archived_choice": "test_py",
+  "corrected_choice": "test_py",
+  "pipelines": {
+   "test_single": {
+    "archived_distance": 1.0785009167829065,
+    "corrected_metrics": {
+     "samples": 200,
+     "successes": 200,
+     "succ": 100.0,
+     "miou": 0.9254048559337464,
+     "loc_err": 0.495084844026991,
+     "rot_err": 1.9763547477288599
+    },
+    "corrected_distance": 1.0789895884541112,
+    "output_sha256_matches": true
+   },
+   "test_py": {
+    "archived_distance": 0.44848343195576845,
+    "corrected_metrics": {
+     "samples": 200,
+     "successes": 200,
+     "succ": 100.0,
+     "miou": 0.9362118890580333,
+     "loc_err": 0.5676015565882105,
+     "rot_err": 0.8904362915517193
+    },
+    "corrected_distance": 0.44919176262271654,
+    "output_sha256_matches": true
+   }
+  }
+ },
+ "b1": [
+  {
+   "setting": "S1-t36",
+   "method": "tdcm_test_py",
+   "archived": {
+    "samples": 1000,
+    "successes": 1000,
+    "succ": 100.0,
+    "miou": 0.9357233178217873,
+    "loc_err": 0.5465724254463946,
+    "rot_err": 1.3081387612888753
+   },
+   "corrected": {
+    "samples": 1000,
+    "successes": 1000,
+    "succ": 100.0,
+    "miou": 0.93642306185432,
+    "loc_err": 0.5465724254463946,
+    "rot_err": 1.3081387612888753
+   },
+   "other_fields_equal": true
+  },
+  {
+   "setting": "S1-t36",
+   "method": "tdcm_test_single",
+   "archived": {
+    "samples": 1000,
+    "successes": 998,
+    "succ": 99.8,
+    "miou": 0.9264257786022959,
+    "loc_err": 0.5192199593222102,
+    "rot_err": 1.9781823256282247
+   },
+   "corrected": {
+    "samples": 1000,
+    "successes": 998,
+    "succ": 99.8,
+    "miou": 0.9270311777848592,
+    "loc_err": 0.5192199593222102,
+    "rot_err": 1.9781823256282247
+   },
+   "other_fields_equal": true
+  },
+  {
+   "setting": "S1-t36",
+   "method": "ours_hybrid_k0",
+   "archived": {
+    "samples": 1000,
+    "successes": 998,
+    "succ": 99.8,
+    "miou": 0.957202397567127,
+    "loc_err": 0.11671054592294773,
+    "rot_err": 0.41440216394881296
+   },
+   "corrected": {
+    "samples": 1000,
+    "successes": 998,
+    "succ": 99.8,
+    "miou": 0.9572766225223946,
+    "loc_err": 0.11671054592294773,
+    "rot_err": 0.41440216394881296
+   },
+   "other_fields_equal": true
+  },
+  {
+   "setting": "S1-t36",
+   "method": "ours_fullgpu_k0",
+   "archived": {
+    "samples": 1000,
+    "successes": 998,
+    "succ": 99.8,
+    "miou": 0.9572020653281281,
+    "loc_err": 0.11673077864473258,
+    "rot_err": 0.41442858502424423
+   },
+   "corrected": {
+    "samples": 1000,
+    "successes": 998,
+    "succ": 99.8,
+    "miou": 0.9572765199668418,
+    "loc_err": 0.11673077864473258,
+    "rot_err": 0.41442858502424423
+   },
+   "other_fields_equal": true
+  },
+  {
+   "setting": "S1-t36",
+   "method": "opencv",
+   "archived": {
+    "samples": 200,
+    "successes": 200,
+    "succ": 100.0,
+    "miou": 0.9276717160977874,
+    "loc_err": 0.7442252646973472,
+    "rot_err": 0.9383527305000355
+   },
+   "corrected": {
+    "samples": 200,
+    "successes": 200,
+    "succ": 100.0,
+    "miou": 0.9269243799653449,
+    "loc_err": 0.7442252646973472,
+    "rot_err": 0.9383527305000355
+   },
+   "other_fields_equal": true
+  },
+  {
+   "setting": "S1-native",
+   "method": "tdcm_test_py",
+   "archived": {
+    "samples": 1000,
+    "successes": 1000,
+    "succ": 100.0,
+    "miou": 0.9360341658352723,
+    "loc_err": 0.5468491895308693,
+    "rot_err": 1.3166974452308016
+   },
+   "corrected": {
+    "samples": 1000,
+    "successes": 1000,
+    "succ": 100.0,
+    "miou": 0.9365639342243715,
+    "loc_err": 0.5468491895308693,
+    "rot_err": 1.3166974452308016
+   },
+   "other_fields_equal": true
+  },
+  {
+   "setting": "S1-native",
+   "method": "ours_hybrid_k0",
+   "archived": {
+    "samples": 1000,
+    "successes": 990,
+    "succ": 99.0,
+    "miou": 0.9973794109128891,
+    "loc_err": 0.02963706819319272,
+    "rot_err": 0.07566928332891476
+   },
+   "corrected": {
+    "samples": 1000,
+    "successes": 990,
+    "succ": 99.0,
+    "miou": 0.9973920177740377,
+    "loc_err": 0.02963706819319272,
+    "rot_err": 0.07566928332891476
+   },
+   "other_fields_equal": true
+  },
+  {
+   "setting": "S1-native",
+   "method": "ours_fullgpu_k0",
+   "archived": {
+    "samples": 1000,
+    "successes": 990,
+    "succ": 99.0,
+    "miou": 0.9973787002846637,
+    "loc_err": 0.02963728817073504,
+    "rot_err": 0.0757032099366673
+   },
+   "corrected": {
+    "samples": 1000,
+    "successes": 990,
+    "succ": 99.0,
+    "miou": 0.9973910905379062,
+    "loc_err": 0.02963728817073504,
+    "rot_err": 0.0757032099366673
+   },
+   "other_fields_equal": true
+  },
+  {
+   "setting": "S1-native",
+   "method": "ours_core",
+   "archived": {
+    "samples": 1000,
+    "successes": 990,
+    "succ": 99.0,
+    "miou": 0.9931851525131294,
+    "loc_err": 0.05476193499220284,
+    "rot_err": 0.2895432228174518
+   },
+   "corrected": {
+    "samples": 1000,
+    "successes": 990,
+    "succ": 99.0,
+    "miou": 0.9931934823931463,
+    "loc_err": 0.05476193499220284,
+    "rot_err": 0.2895432228174518
+   },
+   "other_fields_equal": true
+  },
+  {
+   "setting": "S1_5-t36",
+   "method": "tdcm_test_py",
+   "archived": {
+    "samples": 1000,
+    "successes": 998,
+    "succ": 99.8,
+    "miou": 0.934887103924645,
+    "loc_err": 0.6041871422703712,
+    "rot_err": 1.2021649215643637
+   },
+   "corrected": {
+    "samples": 1000,
+    "successes": 998,
+    "succ": 99.8,
+    "miou": 0.9354124935805657,
+    "loc_err": 0.6041871422703712,
+    "rot_err": 1.2021649215643637
+   },
+   "other_fields_equal": true
+  },
+  {
+   "setting": "S1_5-t36",
+   "method": "tdcm_test_single",
+   "archived": {
+    "samples": 1000,
+    "successes": 997,
+    "succ": 99.7,
+    "miou": 0.9241379041887771,
+    "loc_err": 0.562455881307151,
+    "rot_err": 2.007527616230677
+   },
+   "corrected": {
+    "samples": 1000,
+    "successes": 997,
+    "succ": 99.7,
+    "miou": 0.9244717372837286,
+    "loc_err": 0.562455881307151,
+    "rot_err": 2.007527616230677
+   },
+   "other_fields_equal": true
+  },
+  {
+   "setting": "S1_5-t36",
+   "method": "ours_hybrid_k0",
+   "archived": {
+    "samples": 1000,
+    "successes": 975,
+    "succ": 97.5,
+    "miou": 0.8320156581506128,
+    "loc_err": 1.0828160346028533,
+    "rot_err": 2.1484408732682243
+   },
+   "corrected": {
+    "samples": 1000,
+    "successes": 975,
+    "succ": 97.5,
+    "miou": 0.8380054960838731,
+    "loc_err": 1.0828160346028533,
+    "rot_err": 2.1484408732682243
+   },
+   "other_fields_equal": true
+  },
+  {
+   "setting": "S1_5-t36",
+   "method": "ours_fullgpu_k0",
+   "archived": {
+    "samples": 1000,
+    "successes": 975,
+    "succ": 97.5,
+    "miou": 0.8320167124510035,
+    "loc_err": 1.0828592137698838,
+    "rot_err": 2.1488163725045024
+   },
+   "corrected": {
+    "samples": 1000,
+    "successes": 975,
+    "succ": 97.5,
+    "miou": 0.8380066882749538,
+    "loc_err": 1.0828592137698838,
+    "rot_err": 2.1488163725045024
+   },
+   "other_fields_equal": true
+  },
+  {
+   "setting": "S1_5-t36",
+   "method": "opencv",
+   "archived": {
+    "samples": 200,
+    "successes": 189,
+    "succ": 94.5,
+    "miou": 0.8092348689021563,
+    "loc_err": 1.5762722579895623,
+    "rot_err": 2.315506362069619
+   },
+   "corrected": {
+    "samples": 200,
+    "successes": 189,
+    "succ": 94.5,
+    "miou": 0.815913168691137,
+    "loc_err": 1.5762722579895623,
+    "rot_err": 2.315506362069619
+   },
+   "other_fields_equal": true
+  },
+  {
+   "setting": "S1_5-native",
+   "method": "tdcm_test_py",
+   "archived": {
+    "samples": 1000,
+    "successes": 999,
+    "succ": 99.9,
+    "miou": 0.9350240457466409,
+    "loc_err": 0.6019861226946848,
+    "rot_err": 1.1946473834762434
+   },
+   "corrected": {
+    "samples": 1000,
+    "successes": 999,
+    "succ": 99.9,
+    "miou": 0.9356828710837655,
+    "loc_err": 0.6019861226946848,
+    "rot_err": 1.1946473834762434
+   },
+   "other_fields_equal": true
+  },
+  {
+   "setting": "S1_5-native",
+   "method": "ours_hybrid_k0",
+   "archived": {
+    "samples": 1000,
+    "successes": 999,
+    "succ": 99.9,
+    "miou": 0.9967507385814801,
+    "loc_err": 0.05434455604113809,
+    "rot_err": 0.24161139578615806
+   },
+   "corrected": {
+    "samples": 1000,
+    "successes": 999,
+    "succ": 99.9,
+    "miou": 0.9968403940229016,
+    "loc_err": 0.05434455604113809,
+    "rot_err": 0.24161139578615806
+   },
+   "other_fields_equal": true
+  },
+  {
+   "setting": "S1_5-native",
+   "method": "ours_fullgpu_k0",
+   "archived": {
+    "samples": 1000,
+    "successes": 999,
+    "succ": 99.9,
+    "miou": 0.9967497878116643,
+    "loc_err": 0.054362211587084396,
+    "rot_err": 0.24165319912055092
+   },
+   "corrected": {
+    "samples": 1000,
+    "successes": 999,
+    "succ": 99.9,
+    "miou": 0.9968392926272606,
+    "loc_err": 0.054362211587084396,
+    "rot_err": 0.24165319912055092
+   },
+   "other_fields_equal": true
+  },
+  {
+   "setting": "S1_5-native",
+   "method": "ours_core",
+   "archived": {
+    "samples": 1000,
+    "successes": 999,
+    "succ": 99.9,
+    "miou": 0.9937779696790464,
+    "loc_err": 0.07249663872868786,
+    "rot_err": 0.40127986930562765
+   },
+   "corrected": {
+    "samples": 1000,
+    "successes": 999,
+    "succ": 99.9,
+    "miou": 0.9938785314418159,
+    "loc_err": 0.07249663872868786,
+    "rot_err": 0.40127986930562765
+   },
+   "other_fields_equal": true
+  },
+  {
+   "setting": "S2-t36",
+   "method": "tdcm_test_py",
+   "archived": {
+    "samples": 1000,
+    "successes": 996,
+    "succ": 99.6,
+    "miou": 0.923434957783643,
+    "loc_err": 0.6956734222930843,
+    "rot_err": 1.368615241246382
+   },
+   "corrected": {
+    "samples": 1000,
+    "successes": 996,
+    "succ": 99.6,
+    "miou": 0.9259751992406986,
+    "loc_err": 0.6956734222930843,
+    "rot_err": 1.368615241246382
+   },
+   "other_fields_equal": true
+  },
+  {
+   "setting": "S2-t36",
+   "method": "tdcm_test_single",
+   "archived": {
+    "samples": 1000,
+    "successes": 991,
+    "succ": 99.1,
+    "miou": 0.9103731706980136,
+    "loc_err": 0.7085058980190396,
+    "rot_err": 2.1097672042930387
+   },
+   "corrected": {
+    "samples": 1000,
+    "successes": 991,
+    "succ": 99.1,
+    "miou": 0.9120660445988279,
+    "loc_err": 0.7085058980190396,
+    "rot_err": 2.1097672042930387
+   },
+   "other_fields_equal": true
+  },
+  {
+   "setting": "S2-t36",
+   "method": "ours_hybrid_k0",
+   "archived": {
+    "samples": 1000,
+    "successes": 826,
+    "succ": 82.6,
+    "miou": 0.7352407046436022,
+    "loc_err": 2.170916887006223,
+    "rot_err": 4.488507785775311
+   },
+   "corrected": {
+    "samples": 1000,
+    "successes": 828,
+    "succ": 82.8,
+    "miou": 0.7474646025172751,
+    "loc_err": 2.2171729318843405,
+    "rot_err": 4.474633063763376
+   },
+   "other_fields_equal": true
+  },
+  {
+   "setting": "S2-t36",
+   "method": "ours_fullgpu_k0",
+   "archived": {
+    "samples": 1000,
+    "successes": 826,
+    "succ": 82.6,
+    "miou": 0.7352583539507013,
+    "loc_err": 2.1701474294612524,
+    "rot_err": 4.488628932432299
+   },
+   "corrected": {
+    "samples": 1000,
+    "successes": 828,
+    "succ": 82.8,
+    "miou": 0.7474770101371392,
+    "loc_err": 2.2164063766483264,
+    "rot_err": 4.474756046286092
+   },
+   "other_fields_equal": true
+  },
+  {
+   "setting": "S2-t36",
+   "method": "opencv",
+   "archived": {
+    "samples": 200,
+    "successes": 162,
+    "succ": 81.0,
+    "miou": 0.7045760990504087,
+    "loc_err": 2.6853564629018893,
+    "rot_err": 6.113972956677215
+   },
+   "corrected": {
+    "samples": 200,
+    "successes": 163,
+    "succ": 81.5,
+    "miou": 0.7158249654509291,
+    "loc_err": 2.7697330720164595,
+    "rot_err": 6.106049193744796
+   },
+   "other_fields_equal": true
+  },
+  {
+   "setting": "S2-native",
+   "method": "tdcm_test_py",
+   "archived": {
+    "samples": 1000,
+    "successes": 997,
+    "succ": 99.7,
+    "miou": 0.9225651431156539,
+    "loc_err": 0.6980505780880992,
+    "rot_err": 1.3815963248374077
+   },
+   "corrected": {
+    "samples": 1000,
+    "successes": 997,
+    "succ": 99.7,
+    "miou": 0.9249109842383137,
+    "loc_err": 0.6980505780880992,
+    "rot_err": 1.3815963248374077
+   },
+   "other_fields_equal": true
+  },
+  {
+   "setting": "S2-native",
+   "method": "ours_hybrid_k0",
+   "archived": {
+    "samples": 1000,
+    "successes": 999,
+    "succ": 99.9,
+    "miou": 0.9968967287373801,
+    "loc_err": 0.03296149762380657,
+    "rot_err": 0.07982209370379294
+   },
+   "corrected": {
+    "samples": 1000,
+    "successes": 999,
+    "succ": 99.9,
+    "miou": 0.9969157542984929,
+    "loc_err": 0.03296149762380657,
+    "rot_err": 0.07982209370379294
+   },
+   "other_fields_equal": true
+  },
+  {
+   "setting": "S2-native",
+   "method": "ours_fullgpu_k0",
+   "archived": {
+    "samples": 1000,
+    "successes": 999,
+    "succ": 99.9,
+    "miou": 0.9968979953163322,
+    "loc_err": 0.03294646341936965,
+    "rot_err": 0.0797401079348191
+   },
+   "corrected": {
+    "samples": 1000,
+    "successes": 999,
+    "succ": 99.9,
+    "miou": 0.9969173459903087,
+    "loc_err": 0.03294646341936965,
+    "rot_err": 0.0797401079348191
+   },
+   "other_fields_equal": true
+  },
+  {
+   "setting": "S2-native",
+   "method": "ours_core",
+   "archived": {
+    "samples": 1000,
+    "successes": 999,
+    "succ": 99.9,
+    "miou": 0.9932605444030459,
+    "loc_err": 0.05487727451865565,
+    "rot_err": 0.2450222131981552
+   },
+   "corrected": {
+    "samples": 1000,
+    "successes": 999,
+    "succ": 99.9,
+    "miou": 0.9932870249030396,
+    "loc_err": 0.05487727451865565,
+    "rot_err": 0.2450222131981552
+   },
+   "other_fields_equal": true
+  },
+  {
+   "setting": "S2_5-t36",
+   "method": "tdcm_test_py",
+   "archived": {
+    "samples": 1000,
+    "successes": 980,
+    "succ": 98.0,
+    "miou": 0.8862186673214124,
+    "loc_err": 1.099157109363994,
+    "rot_err": 2.3179988529688864
+   },
+   "corrected": {
+    "samples": 1000,
+    "successes": 980,
+    "succ": 98.0,
+    "miou": 0.8895092970210341,
+    "loc_err": 1.1123711519895174,
+    "rot_err": 2.4159362256362606
+   },
+   "other_fields_equal": true
+  },
+  {
+   "setting": "S2_5-t36",
+   "method": "tdcm_test_single",
+   "archived": {
+    "samples": 1000,
+    "successes": 985,
+    "succ": 98.5,
+    "miou": 0.8658350307135702,
+    "loc_err": 1.036507874921094,
+    "rot_err": 3.2999738863955956
+   },
+   "corrected": {
+    "samples": 1000,
+    "successes": 985,
+    "succ": 98.5,
+    "miou": 0.8688526242073126,
+    "loc_err": 1.036507874921094,
+    "rot_err": 3.2999738863955956
+   },
+   "other_fields_equal": true
+  },
+  {
+   "setting": "S2_5-t36",
+   "method": "ours_hybrid_k0",
+   "archived": {
+    "samples": 1000,
+    "successes": 747,
+    "succ": 74.7,
+    "miou": 0.7182245663086128,
+    "loc_err": 2.4491053482478207,
+    "rot_err": 4.423238638818559
+   },
+   "corrected": {
+    "samples": 1000,
+    "successes": 755,
+    "succ": 75.5,
+    "miou": 0.7267720709617543,
+    "loc_err": 2.6858288209201486,
+    "rot_err": 5.134390172923624
+   },
+   "other_fields_equal": true
+  },
+  {
+   "setting": "S2_5-t36",
+   "method": "ours_fullgpu_k0",
+   "archived": {
+    "samples": 1000,
+    "successes": 747,
+    "succ": 74.7,
+    "miou": 0.718217796436775,
+    "loc_err": 2.44974087257686,
+    "rot_err": 4.42154346087815
+   },
+   "corrected": {
+    "samples": 1000,
+    "successes": 755,
+    "succ": 75.5,
+    "miou": 0.7267691641296775,
+    "loc_err": 2.6864549175312753,
+    "rot_err": 5.132731287890768
+   },
+   "other_fields_equal": true
+  },
+  {
+   "setting": "S2_5-t36",
+   "method": "opencv",
+   "archived": {
+    "samples": 200,
+    "successes": 127,
+    "succ": 63.5,
+    "miou": 0.7000766160892195,
+    "loc_err": 2.558002206060405,
+    "rot_err": 5.789286747707735
+   },
+   "corrected": {
+    "samples": 200,
+    "successes": 131,
+    "succ": 65.5,
+    "miou": 0.6962444100234408,
+    "loc_err": 3.185016076266559,
+    "rot_err": 7.130154134285198
+   },
+   "other_fields_equal": true
+  },
+  {
+   "setting": "S2_5-native",
+   "method": "tdcm_test_py",
+   "archived": {
+    "samples": 1000,
+    "successes": 982,
+    "succ": 98.2,
+    "miou": 0.8882573739245488,
+    "loc_err": 1.031402628718582,
+    "rot_err": 2.0481071183381387
+   },
+   "corrected": {
+    "samples": 1000,
+    "successes": 983,
+    "succ": 98.3,
+    "miou": 0.8909125581961187,
+    "loc_err": 1.068469732000008,
+    "rot_err": 2.220111902259571
+   },
+   "other_fields_equal": true
+  },
+  {
+   "setting": "S2_5-native",
+   "method": "ours_hybrid_k0",
+   "archived": {
+    "samples": 1000,
+    "successes": 998,
+    "succ": 99.8,
+    "miou": 0.9967465356145827,
+    "loc_err": 0.032452695131288165,
+    "rot_err": 0.07616099697021485
+   },
+   "corrected": {
+    "samples": 1000,
+    "successes": 998,
+    "succ": 99.8,
+    "miou": 0.9967693641410604,
+    "loc_err": 0.032452695131288165,
+    "rot_err": 0.07616099697021485
+   },
+   "other_fields_equal": true
+  },
+  {
+   "setting": "S2_5-native",
+   "method": "ours_fullgpu_k0",
+   "archived": {
+    "samples": 1000,
+    "successes": 998,
+    "succ": 99.8,
+    "miou": 0.9967473763354618,
+    "loc_err": 0.03245385042943008,
+    "rot_err": 0.07615654014392714
+   },
+   "corrected": {
+    "samples": 1000,
+    "successes": 998,
+    "succ": 99.8,
+    "miou": 0.9967696706654918,
+    "loc_err": 0.03245385042943008,
+    "rot_err": 0.07615654014392714
+   },
+   "other_fields_equal": true
+  },
+  {
+   "setting": "S2_5-native",
+   "method": "ours_core",
+   "archived": {
+    "samples": 1000,
+    "successes": 999,
+    "succ": 99.9,
+    "miou": 0.9930877029287193,
+    "loc_err": 0.05292114451120316,
+    "rot_err": 0.2314871015031351
+   },
+   "corrected": {
+    "samples": 1000,
+    "successes": 999,
+    "succ": 99.9,
+    "miou": 0.9930806283049538,
+    "loc_err": 0.05292114451120316,
+    "rot_err": 0.2314871015031351
+   },
+   "other_fields_equal": true
+  }
+ ]
+}
