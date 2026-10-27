@@ -1164,6 +1164,21 @@ def summarize_b1(run_dir, fixtures, settings):
     return out
 
 
+def geco2_agreement(run_dir):
+    """Per-image agreement between the GeCo2 devices on the images both ran (disclosed, not scored)."""
+    runs = {f.stem: read_batch(f)[1] for f in sorted(run_dir.glob('geco2_*.jsonl'))}
+    out = {}
+    for a in runs:
+        for b in runs:
+            if a >= b:
+                continue
+            names = sorted(set(runs[a]) & set(runs[b]))
+            diffs = [len(runs[a][n]['detections']) - len(runs[b][n]['detections']) for n in names]
+            out[f'{a} vs {b}'] = dict(images=len(names), identical=sum(runs[a][n]['detections'] == runs[b][n]['detections'] for n in names),
+                                      same_count=sum(d == 0 for d in diffs), count_difference=score.summary([abs(d) for d in diffs]))
+    return out
+
+
 def summarize_b2(run_dir, annotations, boxes_path):
     items = {i['id']: i for i in json.loads((run_dir / 'items.json').read_text())}
     a = json.loads((annotations / 'annotation_FSC147_384.json').read_text())
@@ -1226,6 +1241,7 @@ def summarize(args):
     if args.b2:
         methods = summarize_b2(args.b2, args.annotations, args.boxes)
         summary['B2'] = methods
+        summary['B2_geco2_agreement'] = geco2_agreement(args.b2)
         b2 = dict(methods=methods, geco2_method=geco2_method, boxes_available=bool(args.boxes and args.boxes.exists()))
     if args.b1:
         summary['B1'] = summarize_b1(args.b1, args.fixtures, args.settings)
