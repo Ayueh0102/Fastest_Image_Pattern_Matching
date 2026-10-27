@@ -107,6 +107,9 @@ QJsonObject record(const Result& r,bool outputs) {
     o["candidate_dedup"]=QJsonObject{{"top_k",r.candidateDedupTopK},{"available",dedupAvailable},{"models",dedupModels},
         {"input_candidates",dedupAvailable?QJsonValue(double(dedupInput)):QJsonValue(QJsonValue::Null)},
         {"kept_candidates",dedupAvailable?QJsonValue(double(dedupKept)):QJsonValue(QJsonValue::Null)}};
+    if(r.verifyEnabled)
+        o["match_verify"]=QJsonObject{{"after_nms",r.verifyAfterNms},{"checked",double(r.verifyChecked)},{"border",double(r.verifyBorder)},
+            {"rejected_border",double(r.verifyRejectedBorder)},{"rejected_size",double(r.verifyRejectedSize)},{"ms",r.verifyMs}};
     o["scale_support_enabled"]=r.scaleSupportEnabled;
     o["scale_support_refine_ms"]=r.scaleSupportMs;
     o["scale_support_eligible"]=double(r.scaleSupportEligible);
@@ -205,14 +208,14 @@ QJsonObject record(const Result& r,bool outputs) {
 }
 // Every key main() reads. Any other key fails before images are decoded, so a
 // misspelled or unsupported option cannot silently keep its default.
-const char* const jobKeys[]={"angle","backend","candidate_dedup_angle_steps","candidate_dedup_radius",
+const char* const jobKeys[]={"angle","backend","border_min_inside","candidate_dedup_angle_steps","candidate_dedup_radius",
     "candidate_dedup_top_k","coarse_peak_mode","cpu_threads","fine_angle_reuse","fine_fused",
     "fine_ncc_mode","fine_profiling","full_gpu","full_gpu_fine_mode","full_gpu_peak_batch","full_gpu_peak_mode","full_gpu_profiling",
     "gray_load_mode","invert_source","limit","min_area","ncc_mode","overlap","overlap_enabled","pose_input_mode",
     "pose_resident_mode","pose_storage_mode","proposal_method","proposal_score","pyramid_rule","pyramid_rule_min_score",
     "refine","refinement_backend",
     "repeats","run_resource_diagnostics","scale_support_refine","scales","score","sequence_gap",
-    "sequence_gap_sleep_ms","sequence_mode","soak_seconds",
+    "sequence_gap_sleep_ms","sequence_mode","small_template_area","soak_seconds",
     "source","source_frames","sparse_angle_step","sparse_candidate_limit","sparse_cpu_gradient_mode",
     "sparse_features","sparse_metal_submission_mode","sparse_min_gradient","sparse_response_mode",
     "sparse_search_backend","sparse_spread","sparse_stride","sparse_threshold","stop_layer","stream_path",
@@ -336,6 +339,11 @@ int main(int argc,char** argv) {
         o.candidateDedupTopK=j["candidate_dedup_top_k"].toInt(0);
         o.candidateDedupRadius=j["candidate_dedup_radius"].toDouble(o.candidateDedupRadius);
         o.candidateDedupAngleSteps=j["candidate_dedup_angle_steps"].toDouble(o.candidateDedupAngleSteps);
+        // Round 52 opt-in match verification; absent keys keep both checks off.
+        for(const char* key:{"border_min_inside","small_template_area"})
+            if(j.contains(key) && (!j[key].isDouble() || !std::isfinite(j[key].toDouble()))) throw std::invalid_argument(std::string(key)+" must be a number");
+        o.verify.borderMinInside=j["border_min_inside"].toDouble(0);
+        o.verify.smallTemplateArea=j["small_template_area"].toDouble(0);
         const int repeats=j["repeats"].toInt(5);const double warm=j["warmup_seconds"].toDouble(1.),soak=j["soak_seconds"].toDouble(0);
         if(repeats<1 || repeats>10000 || !std::isfinite(warm) || warm<0 || warm>60 || !std::isfinite(soak) || soak<0 || soak>3600) throw std::invalid_argument("Invalid repetitions or duration");
         const bool resourceDiagnostics=j["run_resource_diagnostics"].toBool(false);

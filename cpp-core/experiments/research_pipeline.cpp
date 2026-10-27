@@ -89,10 +89,19 @@ void validateOptions(const Options& o,int backend) {
     if(o.candidateDedupTopK<0 || o.candidateDedupTopK>65536 || !std::isfinite(o.candidateDedupRadius) || o.candidateDedupRadius<0 ||
        o.candidateDedupRadius>4 || !std::isfinite(o.candidateDedupAngleSteps) || o.candidateDedupAngleSteps<0 || o.candidateDedupAngleSteps>1000)
         throw std::invalid_argument("Candidate dedup requires top_k 0..65536, radius 0..4 and angle steps 0..1000");
+    if(!std::isfinite(o.verify.borderMinInside) || o.verify.borderMinInside<0 || o.verify.borderMinInside>1 ||
+       !std::isfinite(o.verify.smallTemplateArea) || o.verify.smallTemplateArea<0)
+        throw std::invalid_argument("Match verification needs border_min_inside 0..1 and small_template_area >= 0");
     if(c.coarseNccPruning) throw std::invalid_argument("Research frame does not support coarse pruning");
     for(auto r:c.angleRanges) if(!std::isfinite(r.min) || !std::isfinite(r.max) || r.min>r.max || r.min< -180 || r.max>180)
         throw std::invalid_argument("Angle range must be ordered within -180..180");
 }
+}
+// Round 52: one Options::verify decision for a candidate, counted in the result.
+bool verifyOne(const Image& source,const Image& templ,const Options& o,Result& r,const Match& m,double scale) {
+    const auto d=verifyMatch(source.view(),templ.view(),m.center,m.angle,scale,m.score,o.match.minScore,o.match.invertSource,o.verify);
+    ++r.verifyChecked;r.verifyBorder+=d.border;r.verifyRejectedBorder+=d.rejectedBorder;r.verifyRejectedSize+=d.rejectedSize;
+    return d.keep;
 }
 Image scaledTemplate(ImageView source,double scale) {
     validateImage(source);
@@ -212,7 +221,18 @@ SourceUpdate Session::updateSource(ImageView source) {
 }
 Result Session::run(const Options& o) {
     auto& s=*impl_;validateOptions(o,s.settings.backend);Result r;char error[1024]{};const auto start=Clock::now();
-    if(s.fullGpu) { r=s.fullGpu->run(o); r.sourceGeneration=s.sourceGeneration; return r; }
+    if(s.fullGpu) {
+        r=s.fullGpu->run(o); r.sourceGeneration=s.sourceGeneration;
+        if(o.verify.enabled()) {
+            // NMS already ran on the GPU, so a rejected match is dropped, not replaced.
+            const auto t=Clock::now();r.verifyEnabled=r.verifyAfterNms=true;
+            std::vector<Match> kept;std::vector<double> keptScales;
+            for(size_t i=0;i<r.matches.size();++i)
+                if(verifyOne(s.source,s.templ,o,r,r.matches[i],r.scales[i])) {kept.push_back(r.matches[i]);keptScales.push_back(r.scales[i]);}
+            r.matches=std::move(kept);r.scales=std::move(keptScales);r.verifyMs=ms(t);
+        }
+        return r;
+    }
     if(o.fullGpuPeakMode || o.fullGpuFineMode || o.fullGpuProfiling)
         throw std::invalid_argument("Full GPU peak/fine selection/profiling requires full_gpu=true");
     r.scaleSupportEnabled=o.scaleSupportRefine;
@@ -332,8 +352,14 @@ Result Session::run(const Options& o) {
         if(a.score!=b.score) return a.score>b.score;if(a.center.y!=b.center.y) return a.center.y<b.center.y;
         if(a.center.x!=b.center.x) return a.center.x<b.center.x;return a.angle<b.angle;
     });
+    r.verifyEnabled=o.verify.enabled();
     for(size_t i:order) {
         const auto& m=candidates[i];if(m.score<o.match.minScore || !allowed(m.angle,o.match)) continue;
+        // Round 52 checks run before NMS here, so a rejected candidate never suppresses or displaces another.
+        if(r.verifyEnabled) {
+            const auto t=Clock::now();const bool keep=verifyOne(s.source,s.templ,o,r,m,scales[i]);r.verifyMs+=ms(t);
+            if(!keep) continue;
+        }
         bool accept=true;for(auto& previous:r.matches) if(overlap(previous,m)>o.match.maxOverlap+1e-10) {accept=false;break;}
         if(accept) { r.matches.push_back(m);r.scales.push_back(scales[i]);if(r.matches.size()>=size_t(o.match.maxTargets)) break; }
     }

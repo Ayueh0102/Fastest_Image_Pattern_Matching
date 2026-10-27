@@ -7,6 +7,8 @@
 // updating the source (CPU search, so no Metal device is needed).
 // --pyramid-rule: the opt-in rule reports one decision per scale model, keeps
 // the output without it, and rejects invalid or orphaned rule keys.
+// --match-verify: the round-52 checks add a match_verify report only when on,
+// drop a smooth ramp's border false positives, and reject invalid values.
 #include "metal_device.hpp"
 #include <QCoreApplication>
 #include <QFile>
@@ -56,7 +58,7 @@ void jobKeys(const QString& runner,const QTemporaryDir& dir) {
     require(message.find("Cannot decode image")==std::string::npos,"Unknown keys were checked after image decoding");
     // Every accepted key, with a value of its type: the job passes the key gate
     // and stops at decoding the missing image.
-    const QJsonObject accepted{{"angle",0},{"backend",1},{"candidate_dedup_angle_steps",3.},{"candidate_dedup_radius",.5},
+    const QJsonObject accepted{{"angle",0},{"backend",1},{"border_min_inside",0.},{"candidate_dedup_angle_steps",3.},{"candidate_dedup_radius",.5},
         {"candidate_dedup_top_k",0},{"coarse_peak_mode",1},{"cpu_threads",8},
         {"fine_angle_reuse",false},{"fine_fused",false},{"fine_ncc_mode",0},{"fine_profiling",false},{"full_gpu",false},
         {"full_gpu_fine_mode",0},{"full_gpu_peak_batch",0},{"full_gpu_peak_mode",0},{"full_gpu_profiling",false},{"gray_load_mode","direct_gray8"},
@@ -64,7 +66,7 @@ void jobKeys(const QString& runner,const QTemporaryDir& dir) {
         {"pose_input_mode",0},{"pose_resident_mode",0},{"pose_storage_mode",0},{"proposal_method","pyramid"},
         {"proposal_score",.5},{"pyramid_rule",1},{"pyramid_rule_min_score",.5},{"refine",false},{"refinement_backend",-1},{"repeats",1},{"run_resource_diagnostics",false},
         {"scale_support_refine",false},{"scales",QJsonArray{1.}},{"score",.8},{"sequence_gap","sleep"},
-        {"sequence_gap_sleep_ms",5.},{"sequence_mode","reuse"},{"soak_seconds",0},
+        {"sequence_gap_sleep_ms",5.},{"sequence_mode","reuse"},{"small_template_area",0.},{"soak_seconds",0},
         {"source",missing},{"source_frames",QJsonArray{missing}},{"sparse_angle_step",6.},{"sparse_candidate_limit",256},
         {"sparse_cpu_gradient_mode",0},{"sparse_features",128},{"sparse_metal_submission_mode",0},{"sparse_min_gradient",8.},
         {"sparse_response_mode",0},{"sparse_search_backend",0},{"sparse_spread",2},{"sparse_stride",4},{"sparse_threshold",.75},
@@ -247,21 +249,53 @@ void pyramidRule(const QString& runner,const QTemporaryDir& dir) {
     require(call("bad-score",{{"pyramid_rule",1},{"pyramid_rule_min_score",2}},1).second=="pyramid_rule_min_score must be a number in [-1, 1]",
         "Out-of-range threshold was not rejected");
 }
+void matchVerify(const QString& runner,const QTemporaryDir& dir) {
+    // Round-50 proc50105 failure: a smooth ramp on flat noise matches the padded image border.
+    QImage templ(20,14,QImage::Format_Grayscale8),source(256,256,QImage::Format_Grayscale8);
+    std::mt19937 random(52010);std::normal_distribution<double> noise(0,6);
+    for(int y=0;y<templ.height();++y) for(int x=0;x<templ.width();++x) templ.scanLine(y)[x]=uchar(40+180*x/19);
+    for(int y=0;y<source.height();++y) for(int x=0;x<source.width();++x) source.scanLine(y)[x]=uchar(std::clamp(128+noise(random),0.,255.));
+    require(templ.save(dir.filePath("verify-template.png")) && source.save(dir.filePath("verify-source.png")),"Cannot write runner images");
+    const QJsonObject base{{"source",dir.filePath("verify-source.png")},{"template",dir.filePath("verify-template.png")},
+        {"backend",0},{"refinement_backend",0},{"angle",180},{"limit",100},{"score",.8},{"stop_layer",1},{"min_area",256},
+        {"repeats",1},{"warmup_seconds",0}};
+    auto call=[&](const QString& name,QJsonObject changes,int code) {
+        auto job=base;for(auto it=changes.begin();it!=changes.end();++it) job[it.key()]=it.value();
+        const auto result=run(runner,dir,name,job);
+        require(result.code==code,name.toStdString()+": unexpected exit, stderr "+result.err.toStdString());
+        return std::make_pair(QJsonDocument::fromJson(result.out).object(),result.err.trimmed().toStdString());
+    };
+    const auto off=call("verify-off",{},0).first;
+    require(!off["first"].toObject().contains("match_verify"),"Verification-off output gained a match_verify key");
+    require(!off["first"].toObject()["matches"].toArray().isEmpty(),"Ramp fixture lost its border false positives");
+    const auto zero=call("verify-zero",{{"border_min_inside",0.},{"small_template_area",0.}},0).first;
+    require(!zero["first"].toObject().contains("match_verify") && zero["first"].toObject()["matches"]==off["first"].toObject()["matches"],"Zero rules changed the output");
+    const auto on=call("verify-on",{{"border_min_inside",.5}},0).first;
+    const auto report=on["first"].toObject()["match_verify"].toObject();
+    require(!report["after_nms"].toBool() && report["rejected_border"].toDouble()>0 && report["checked"].toDouble()>=report["border"].toDouble(),
+        "Verification report is missing or wrong");
+    require(on["first"].toObject()["matches"].toArray().isEmpty(),"Border false positives survived verification");
+    const std::string bounds="Match verification needs border_min_inside 0..1 and small_template_area >= 0";
+    require(call("verify-high",{{"border_min_inside",1.5}},1).second==bounds,"Border fraction above 1 was accepted");
+    require(call("verify-negative",{{"small_template_area",-1.}},1).second==bounds,"Negative area was accepted");
+    require(call("verify-text",{{"border_min_inside","0.5"}},1).second=="border_min_inside must be a number","Text border fraction was accepted");
+}
 }
 int main(int argc,char** argv) {
     QCoreApplication app(argc,argv);
     try {
         const std::string mode=argc==3 ? argv[1]:"";
-        require(mode=="--job-keys" || mode=="--fine-windows" || mode=="--sequence-gaps" || mode=="--pyramid-rule",
-            "Usage: native_runner_contract_test --job-keys|--fine-windows|--sequence-gaps|--pyramid-rule runner");
+        require(mode=="--job-keys" || mode=="--fine-windows" || mode=="--sequence-gaps" || mode=="--pyramid-rule" || mode=="--match-verify",
+            "Usage: native_runner_contract_test --job-keys|--fine-windows|--sequence-gaps|--pyramid-rule|--match-verify runner");
         if(mode=="--fine-windows" && !fpm_test::metalDeviceAvailable()) { std::cout<<"SKIP: no Metal device\n";return 77; }
         QTemporaryDir dir;require(dir.isValid(),"Cannot create temporary directory");
         const QString runner=QString::fromLocal8Bit(argv[2]);
         if(mode=="--job-keys") jobKeys(runner,dir); else if(mode=="--fine-windows") fineWindows(runner,dir);
-        else if(mode=="--pyramid-rule") pyramidRule(runner,dir); else sequenceGaps(runner,dir);
+        else if(mode=="--pyramid-rule") pyramidRule(runner,dir); else if(mode=="--match-verify") matchVerify(runner,dir); else sequenceGaps(runner,dir);
         std::cout<<"Native runner "<<(mode=="--job-keys" ? "rejects unknown job keys before decoding and accepts every listed key":
             mode=="--fine-windows" ? "reports mode-4 SIMD32/fallback windows per level and per call":
             mode=="--pyramid-rule" ? "reports opt-in pyramid rule decisions per scale and rejects invalid rule keys":
+            mode=="--match-verify" ? "reports opt-in match verification only when on and drops ramp border false positives":
             "decodes, skips or sleeps between sequence calls and repeats a static frame without updating it")<<'\n';
         return 0;
     } catch(const std::exception& error) { std::cerr<<error.what()<<'\n';return 1; }
