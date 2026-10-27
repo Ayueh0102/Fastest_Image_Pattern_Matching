@@ -85,6 +85,18 @@ class GeometryTest(unittest.TestCase):
                 sys.argv = sys_argv
 
 
+class HostCheckTest(unittest.TestCase):
+    def test_own_process_chain_is_not_heavy(self):
+        import os
+        me, shell = os.getpid(), 999001
+        ps = [f'{me} {shell} python round52_compare.py run --runner /b/fpm_native_pipeline_runner',
+              f'{shell} 1 /bin/zsh -c R=/b/fpm_native_pipeline_runner; python round52_compare.py run',
+              '999002 1 /b/fpm_native_pipeline_runner job.json',
+              '999003 1 /Applications/Xcode.app/clangd --background-index',
+              '999004 1 /bin/zsh']
+        self.assertEqual(r52.heavy_others(ps), ['/b/fpm_native_pipeline_runner job.json'])
+
+
 class HypothesisTest(unittest.TestCase):
     def holdout(self, border_fp_after, interior_after, tp_border, tp_both, edge_after=3, t_both=10.4):
         rows = []

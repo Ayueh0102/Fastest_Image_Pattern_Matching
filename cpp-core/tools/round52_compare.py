@@ -15,7 +15,9 @@ Host rules as in round 50: every worker waits while another session's timing loc
 """
 import argparse
 import json
+import os
 import statistics
+import subprocess
 from pathlib import Path
 import sys
 import time
@@ -29,6 +31,27 @@ DEV_TP_LOSS = .005  # of the development positives' truths
 BACKENDS = ('ours_hybrid_k3', 'ours_fullgpu_k3')
 RUNNER = lc.BUILD / 'stage52-dev/experiments/fpm_native_pipeline_runner'
 LOCK_DIR = lc.LOCKS / 'round52-main'
+
+
+def heavy_others(ps=None):
+    """Project heavy processes (literature_compare.HEAVY) other than this driver and the shells above it.
+
+    Attempt 1 of the formal holdout run waited 51 minutes here: lc.heavy_processes matched this driver and
+    its parent shell, whose command lines name the runner path.
+    """
+    lines = ps if ps is not None else subprocess.run(['ps', '-A', '-o', 'pid=,ppid=,command='], capture_output=True,
+                                                     text=True).stdout.splitlines()
+    parent, command = {}, {}
+    for line in lines:
+        fields = line.split(None, 2)
+        if len(fields) == 3 and fields[0].isdigit() and fields[1].isdigit():
+            parent[int(fields[0])], command[int(fields[0])] = int(fields[1]), fields[2]
+    ancestors, pid = set(), os.getpid()
+    while pid in parent and pid not in ancestors:
+        ancestors.add(pid)
+        pid = parent[pid]
+    ancestors.add(pid)
+    return [c[:160] for p, c in sorted(command.items()) if p not in ancestors and 'clangd' not in c and any(h in c for h in lc.HEAVY)]
 
 
 def variants(a0):
@@ -189,7 +212,7 @@ def run(args):
     if args.formal:
         LOCK_DIR.mkdir(parents=True, exist_ok=True)
         lock = LOCK_DIR / f'timing-lock-round52-{args.group}.txt'
-        while lc.foreign_locks(lock) or lc.heavy_processes():  # nothing heavy, ours included, may overlap formal timing
+        while lc.foreign_locks(lock) or heavy_others():  # nothing heavy may overlap formal timing
             time.sleep(30)
         lock.write_text(f'round 52 (small-template match verification) {args.group}\nstart_utc {lc.now()}\ndeleted when done\n')
     try:

@@ -85,7 +85,15 @@
   "cpp-core/tools/literature_scenes.py": "99ab2707b67d923a729fc325449cb7fbe4ab22a7747764f4cd192f02d923832c",
   "cpp-core/tools/stage49_scenes.py": "dd18e15c25a3d4e9139e6b88a34e6abfe626c952c2c6092bcc7c6ef0489d4ab8"
  },
- "revisions": [],
+ "revisions": [
+  {
+   "date": "2026-10-27",
+   "kind": "failed attempt kept; tool bug fix before any formal measurement",
+   "what": "Attempt 1 of the formal holdout run (started about 15:55 local) waited 51 minutes in the host check and was stopped: literature_compare.heavy_processes matched this driver and its parent shell, whose command lines name the runner path. No worker ran and nothing was written under runs/. round52_compare.heavy_others now excludes the driver's own process ancestry (HostCheckTest); everything else in the run is unchanged and the formal runs restart from scratch.",
+   "round52_compare_sha256_before": "cf612ac304c4ed37ac189d49a8053933f0371abe9ee1169f8ef73a4a2348c037",
+   "round52_compare_sha256_after": "f2fddabdd7bcf30d6c08b5b28eb728b176450a969d3084d9eabf3aeb34a76edf"
+  }
+ ],
  "selection": {
   "border_min_inside": 0.5,
   "small_template_area": 576,
