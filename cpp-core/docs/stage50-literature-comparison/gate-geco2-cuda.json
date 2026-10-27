@@ -1,0 +1,52 @@
+{
+ "images": 1190,
+ "expected_images": 1190,
+ "predictions": 80613,
+ "ap": 46.83569600165779,
+ "ap50": 76.08111326940204,
+ "paper": {
+  "ap": 46.81,
+  "ap50": 75.89,
+  "mae": 7.64,
+  "rmse": 39.39
+ },
+ "gap": {
+  "ap": 0.02569600165778496,
+  "ap50": 0.1911132694020381
+ },
+ "tolerance": 2.0,
+ "gate_pass": true,
+ "count_vs_points": {
+  "mae": 7.68655462184874,
+  "rmse": 40.01005125816102
+ },
+ "count_vs_boxes": {
+  "mae": 7.794117647058823,
+  "rmse": 40.21522977532707
+ },
+ "device": "cuda",
+ "deform_attn": "cuda",
+ "footer": {
+  "memory": {
+   "peak_rss_bytes": 2623782912,
+   "platform": "win32",
+   "cuda_max_allocated_bytes": 5785177600,
+   "cuda_max_reserved_bytes": 9531555840
+  },
+  "items": 1190
+ },
+ "cocoeval_summary": [
+  " Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = -1.000",
+  " Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=10000 ] = 0.761",
+  " Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=10000 ] = 0.507",
+  " Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=10000 ] = 0.322",
+  " Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=10000 ] = 0.607",
+  " Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=10000 ] = 0.418",
+  " Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=10000 ] = 0.541",
+  " Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=10000 ] = 0.541",
+  " Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=10000 ] = 0.541",
+  " Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=10000 ] = 0.432",
+  " Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=10000 ] = 0.678",
+  " Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=10000 ] = 0.439"
+ ]
+}

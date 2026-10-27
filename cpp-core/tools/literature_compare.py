@@ -12,6 +12,8 @@ Subcommands
   dev-ours-b2         FSC-147 val subset, our minimum-score grid (secondary B2 arm)
   run                 one group (A, C, B1, B2) x methods x blocks into an output dir
   summarize           score every run, check hypotheses, write summaries
+  export-geco2-cuda   package images, exemplar boxes and tools for the lab PC's CUDA run
+  ingest-geco2-cuda   copy its outputs back into the run dirs as method geco2_cuda
 
 Host rules: before every worker the parent checks the shared notes folder for
 other sessions' timing locks and waits while one exists; ``run --formal`` holds
@@ -840,6 +842,78 @@ def run_b2(args, cfg, protocol):
         print('geco2', device, w['code'], flush=True)
 
 
+# ---------------------------------------------------------------- GeCo2 on the lab PC's CUDA
+
+CUDA_TOOLS = ('literature_geco2_worker.py', 'literature_geco2_cuda_setup.ps1', 'literature_geco2_cuda_precheck.py',
+              'literature_geco2_cuda_run.py')
+
+
+def export_geco2_cuda(args):
+    """Package for literature_geco2_cuda_run.py: images, exemplar boxes and tools only (truth stays here)."""
+    pkg = args.output
+    if pkg.exists():
+        raise SystemExit(f'{pkg} exists; export into a new directory')
+    jobs = {}
+    for group, run_dir in (('A', args.a), ('C', args.c)):
+        jobs[group] = []
+        for case in json.loads((run_dir / 'cases.json').read_text()):
+            if not applicable(case, 'geco2_cuda'):
+                continue
+            image = Path('images') / group / (case['name'] + Path(case['source']).suffix)
+            (pkg / image).parent.mkdir(parents=True, exist_ok=True)
+            (pkg / image).write_bytes(Path(case['source']).read_bytes())
+            jobs[group].append(dict(case=case['name'], image=str(image), exemplars=exemplars_for(case)))
+    jobs['B2'] = []
+    for it in json.loads((args.b2 / 'items.json').read_text()):
+        image = Path('images/B2') / it['id']
+        (pkg / image).parent.mkdir(parents=True, exist_ok=True)
+        (pkg / image).write_bytes(Path(it['image']).read_bytes())
+        jobs['B2'].append(dict(id=it['id'], image=str(image), exemplars=it['exemplars']))
+    (pkg / 'tools').mkdir()
+    for name in CUDA_TOOLS:
+        (pkg / 'tools' / name).write_bytes((TOOLS / name).read_bytes())
+    (pkg / 'jobs.json').write_text(json.dumps(jobs, indent=1) + '\n')
+    files = sorted(p for p in pkg.rglob('*') if p.is_file())
+    (pkg / 'package.json').write_text(json.dumps(dict(created=now(), jobs={k: len(v) for k, v in jobs.items()},
+                                                      files={str(p.relative_to(pkg)): sha(p) for p in files}), indent=1) + '\n')
+    print({k: len(v) for k, v in jobs.items()}, len(files), 'files')
+
+
+def ingest_geco2_cuda(args):
+    """Copy the lab PC's outputs into the run directories and append manifest rows (method geco2_cuda)."""
+    rows = read_manifest(args.results / 'manifest.jsonl')
+    for group, run_dir in (('A', args.a), ('C', args.c), ('B2', args.b2)):
+        if run_dir is None:
+            continue
+        manifest = run_dir / 'manifest.jsonl'
+        done = manifest_done(manifest)
+        cases = {c['name']: c for c in json.loads((run_dir / 'cases.json').read_text())} if group != 'B2' else {}
+        for r in (r for r in rows if r['group'] == group):
+            key = (r['case'], 'geco2_cuda', 0)
+            if key in done:
+                continue
+            src = args.results / r['output']
+            dst = run_dir / ('geco2_cuda.jsonl' if group == 'B2' else f"geco2_cuda/{r['case']}-b0.json")
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            for a, b in ((src, dst), (src.with_suffix('.stderr.txt'), dst.with_suffix('.stderr.txt'))):
+                if a.exists():
+                    b.write_bytes(a.read_bytes())
+            record = dict(case=r['case'], method='geco2_cuda', block=0, status=r['status'], output=str(dst), returncode=r['returncode'],
+                          wall_ms=r['wall_ms'], host=r['host'], lock_wait_s=None, cmd=r['cmd'], attempt=r['attempt'],
+                          remote_output=r['output'])
+            if group != 'B2':
+                case = cases[r['case']]
+                record.update(group=group, family=case.get('family'))
+                if r['status'] == 'ok':
+                    parsed = parse_worker(dst, case)
+                    record.update({k: v for k, v in parsed.items() if k != 'detections'}, detections=len(parsed['detections']))
+                else:
+                    record['stderr_tail'] = r.get('stderr_tail')
+            with open(manifest, 'a') as f:
+                f.write(json.dumps(record) + '\n')
+            print(group, r['case'], r['status'], flush=True)
+
+
 def check_methods(group, methods):
     # Attempt 1 of the formal A/C runs passed every method as one string (shell quoting) and failed 435 workers.
     known = SCENE_METHODS if group in ('A', 'C') else ('tdcm', 'ours', 'opencv', 'geco2_mps', 'geco2_cpu')
@@ -923,7 +997,8 @@ def summarize_scenes(run_dir):
             constructs = [e['construct_ms'] for e in ok if e.get('construct_ms') is not None]
             row['construct_ms'] = statistics.median(constructs) if constructs else None
             row['memory'] = memory_of(ok[0])
-            row['load1_median'] = statistics.median(e['host']['load1'] for e in ok)
+            loads = [e['host']['load1'] for e in ok if e['host'].get('load1') is not None]  # the Windows lab PC has none
+            row['load1_median'] = statistics.median(loads) if loads else None
             for key in ('complete', 'extrapolated_ms', 'maps', 'planned_maps', 'job_from_round44', 'exact_repeat'):
                 if key in ok[0]:
                     row[key] = ok[0][key]
@@ -1089,6 +1164,21 @@ def summarize_b1(run_dir, fixtures, settings):
     return out
 
 
+def geco2_agreement(run_dir):
+    """Per-image agreement between the GeCo2 devices on the images both ran (disclosed, not scored)."""
+    runs = {f.stem: read_batch(f)[1] for f in sorted(run_dir.glob('geco2_*.jsonl'))}
+    out = {}
+    for a in runs:
+        for b in runs:
+            if a >= b:
+                continue
+            names = sorted(set(runs[a]) & set(runs[b]))
+            diffs = [len(runs[a][n]['detections']) - len(runs[b][n]['detections']) for n in names]
+            out[f'{a} vs {b}'] = dict(images=len(names), identical=sum(runs[a][n]['detections'] == runs[b][n]['detections'] for n in names),
+                                      same_count=sum(d == 0 for d in diffs), count_difference=score.summary([abs(d) for d in diffs]))
+    return out
+
+
 def summarize_b2(run_dir, annotations, boxes_path):
     items = {i['id']: i for i in json.loads((run_dir / 'items.json').read_text())}
     a = json.loads((annotations / 'annotation_FSC147_384.json').read_text())
@@ -1151,6 +1241,7 @@ def summarize(args):
     if args.b2:
         methods = summarize_b2(args.b2, args.annotations, args.boxes)
         summary['B2'] = methods
+        summary['B2_geco2_agreement'] = geco2_agreement(args.b2)
         b2 = dict(methods=methods, geco2_method=geco2_method, boxes_available=bool(args.boxes and args.boxes.exists()))
     if args.b1:
         summary['B1'] = summarize_b1(args.b1, args.fixtures, args.settings)
@@ -1204,9 +1295,20 @@ def main():
     m.add_argument('--geco2-accuracy', default='geco2_cuda', help='method name whose GeCo2 outputs carry accuracy')
     m.add_argument('--remap', nargs='*', help='OLD=NEW output-path prefixes for replaying archived runs')
     m.add_argument('--output', type=Path, required=True)
+    x = sub.add_parser('export-geco2-cuda')
+    x.add_argument('--a', type=Path, required=True)
+    x.add_argument('--c', type=Path, required=True)
+    x.add_argument('--b2', type=Path, required=True)
+    x.add_argument('--output', type=Path, required=True)
+    g = sub.add_parser('ingest-geco2-cuda')
+    g.add_argument('--results', type=Path, required=True, help='literature_geco2_cuda_run.py --output, copied back')
+    g.add_argument('--a', type=Path)
+    g.add_argument('--c', type=Path)
+    g.add_argument('--b2', type=Path)
     args = p.parse_args()
     dict(**{'dev-tdcm-pipeline': dev_tdcm_pipeline, 'dev-tdcm-threshold': dev_tdcm_threshold,
-            'dev-ours-b2': dev_ours_b2, 'run': run, 'summarize': summarize})[args.command](args)
+            'dev-ours-b2': dev_ours_b2, 'run': run, 'summarize': summarize,
+            'export-geco2-cuda': export_geco2_cuda, 'ingest-geco2-cuda': ingest_geco2_cuda})[args.command](args)
 
 
 if __name__ == '__main__':

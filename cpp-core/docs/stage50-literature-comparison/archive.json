@@ -14,8 +14,8 @@
     },
     {
       "path": "decision-and-failures.json",
-      "bytes": 13844,
-      "sha256": "4206619a083b0195a66abb0afa13b4cdd37bc2fa1be41b5aa27ad2b251de6425"
+      "bytes": 16392,
+      "sha256": "d7e29a4b7a844b71f3276011f3add8fbe84f05a28297e7a8fa87b4e21d7f7b6d"
     },
     {
       "path": "dev-ours-b2.json",
@@ -48,6 +48,11 @@
       "sha256": "bdc1d788a02f0a0783157d96fb4e3effb099ac3466a18582f638e693349a38c7"
     },
     {
+      "path": "formal-summary-geco2-cuda.json",
+      "bytes": 1922236,
+      "sha256": "2a7a6b035d29135e94a7756d7ec3b73df9444e03b99c40066740e59d85234e25"
+    },
+    {
       "path": "formal-summary.json",
       "bytes": 1835974,
       "sha256": "b73aae9e333a8f92e2de2a08bd91db807641cf5d29d1cc39d2b960aa42714eb6"
@@ -58,6 +63,11 @@
       "sha256": "4377fb160516aed58df43d1f38e28f6e7953e803b11141a4508f17d88bb3685c"
     },
     {
+      "path": "gate-geco2-cuda.json",
+      "bytes": 1780,
+      "sha256": "ef63df54fb80b3d9e9ceaac4db42dea51f0c8b18f12d6193ff20897951c77479"
+    },
+    {
       "path": "gate-geco2-mps-attempt1-maxdets100-bug.json",
       "bytes": 1701,
       "sha256": "02270eec8b360fdeb0464acac8274bc5412cbc91fdd6fa65a9a0552d7ffc0ef1"
@@ -66,6 +76,11 @@
       "path": "gate-geco2-mps.json",
       "bytes": 1724,
       "sha256": "425c4514d8cfbb3c63358ff0d0fa2ac0cc191110ed25091149f9131be6c051ef"
+    },
+    {
+      "path": "geco2-cuda-environment.json",
+      "bytes": 6527,
+      "sha256": "f86c650762a88974cb3cfab4d265c8a489b996e3fd426177125f32ee684c95c5"
     },
     {
       "path": "phase1-download-sha256.txt",
@@ -89,8 +104,8 @@
     },
     {
       "path": "protocol.json",
-      "bytes": 27246,
-      "sha256": "b75c00abe880f9a93141550d2964e10547fae0a7b84d6013278125231cc29d70"
+      "bytes": 31949,
+      "sha256": "80f24e310a3d54c9039b82360fcc4b3c4bb2727456ddfb793b6ed6e68813fc05"
     },
     {
       "path": "raw-results-A.tar.gz",
@@ -141,6 +156,12 @@
       "regular_files": 4742
     },
     {
+      "path": "raw-results-geco2-cuda.tar.gz",
+      "bytes": 2861633,
+      "sha256": "de64f7c1b89d926be871de8fc7898ae77c3bc22df4b1b7bb71a720fc22c37cbe",
+      "regular_files": 201
+    },
+    {
       "path": "raw-results-phase1-smoke.tar.gz",
       "bytes": 123345,
       "sha256": "20941c520294d5321ba5996b5776e9dbcf1a355e2ea41bb1449af0d1d9cf90c3",
@@ -153,9 +174,20 @@
       "regular_files": 21
     },
     {
+      "path": "source-sha256-geco2-cuda.json",
+      "bytes": 39356,
+      "sha256": "c07bffeff168ab90130f3a3d50f9ab51fb5491bb0e219c9adf9d434a6dc6df78"
+    },
+    {
       "path": "source-sha256.json",
       "bytes": 38991,
       "sha256": "cf14f51728216a6b8144c969b33380ebaa7b23965d49def6fc84d76c48cc6357"
+    },
+    {
+      "path": "source-snapshot-geco2-cuda.tar.gz",
+      "bytes": 1073030,
+      "sha256": "209406bddbdb9a737f6b338f4008f48a93af99972419a99a6b55364fd2c056b3",
+      "regular_files": 341
     },
     {
       "path": "source-snapshot.tar.gz",
@@ -165,8 +197,8 @@
     },
     {
       "path": "validation.json",
-      "bytes": 1929,
-      "sha256": "05c1122e820292eb809347f75900a0416faf76cec8561de82bc5a89420af151b"
+      "bytes": 4283,
+      "sha256": "c5a840f84ca73243b011ad3930311849d479702989e94249c67bd96ba5d9b669"
     }
   ]
 }

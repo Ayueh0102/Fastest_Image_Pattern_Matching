@@ -44,7 +44,65 @@
  },
  "geco2_gate_cross_check": {
   "cocoeval_ap50": 69.41352291493463,
-  "literature_score_ap50": 69.26374141417861
+  "literature_score_ap50": 69.26374141417861,
+  "cuda": {
+   "cocoeval_ap50": 76.08111326940204,
+   "literature_score_ap50": 75.16869713659125
+  }
  },
- "host": "formal A 2026-10-26 15:06-15:36Z, C 15:36-17:37Z under timing-lock-round50-{A,C}-formal.txt, no lock waits; per-worker load and busy processes in the manifests"
+ "host": "formal A 2026-10-26 15:06-15:36Z, C 15:36-17:37Z under timing-lock-round50-{A,C}-formal.txt, no lock waits; per-worker load and busy processes in the manifests",
+ "unit_tests_geco2_cuda": "python-port/venv: test_literature_score.py + test_literature_compare.py = 43, OK (the acceptance added 8; the CUDA tools added 3: export without truth, runner keeps failures and skips them on restart with idempotent ingest, Windows host without load average); with test_log_catalog.py 45, OK; build_log_catalog.py --check passes",
+ "geco2_cuda": {
+  "precheck": "all four pass (geco2-cuda-environment.json: cuda sm_120; compiled .pyd vs float64 reference max |diff| 1.8e-7; one image 6 finite boxes; 149 sam_mask keys identical across two init seeds)",
+  "package": {
+   "tar_sha256": "2bb3b47fc877cd1a6e7a94ae28c773cbf7d6d2fc39a45f6b5c1a087f79ef48b3",
+   "checked_on_lab_pc": true,
+   "tools_equal_commit": "64e28d2 (setup script replaced by b0ccd17, sha256 2a529a5b... checked on the lab PC)"
+  },
+  "results_tar_sha256": {
+   "b2": "22eeb35cb29a20a0092f287fc4740afd768b867a9aca41f42825cbbf0dc91848",
+   "all": "d2d5ced19086d61037d0e7ab57201c7f22de8d75bea74a9bbf15d1b24cba4cbf",
+   "equal_on_both_ends": true
+  },
+  "device_agreement": {
+   "geco2_cpu vs geco2_cuda": {
+    "images": 100,
+    "identical": 0,
+    "same_count": 97,
+    "count_difference": {
+     "n": 100,
+     "mean": 0.03,
+     "median": 0.0,
+     "p90": 0,
+     "max": 1
+    }
+   },
+   "geco2_cpu vs geco2_mps": {
+    "images": 100,
+    "identical": 0,
+    "same_count": 27,
+    "count_difference": {
+     "n": 100,
+     "mean": 5.76,
+     "median": 2.0,
+     "p90": 10,
+     "max": 186
+    }
+   },
+   "geco2_cuda vs geco2_mps": {
+    "images": 1190,
+    "identical": 0,
+    "same_count": 345,
+    "count_difference": {
+     "n": 1190,
+     "mean": 6.685714285714286,
+     "median": 2.0,
+     "p90": 13,
+     "max": 357
+    }
+   }
+  },
+  "other_results_unchanged": "summary with --geco2-accuracy geco2_cuda vs formal-summary.json: A (167) and C (913) non-GeCo2 rows, failures, identity_round44, H3, H4 and H5 identical; B2 differs only by geco2_cuda in geco2_cpu.same_subset; B1 differs only in the 66 paper fields of the acceptance IoU correction",
+  "archive_replay": "raw-results-geco2-cuda.tar.gz extracted to a new directory: all 89 lab outputs (B2 batch + 88 A/C cases) byte-identical to the files summarize read; lab manifest 89 rows, all ok"
+ }
 }

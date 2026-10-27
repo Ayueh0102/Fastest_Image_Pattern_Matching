@@ -1,0 +1,206 @@
+{
+ "stage": 50,
+ "date": "2026-10-27",
+ "what": "GeCo2 CUDA run environment on the lab PC (native Windows) and its four pre-checks",
+ "host": {
+  "name": "PTRI-PRO-4000",
+  "os": "Microsoft Windows 10.0.26300.9711",
+  "cpu": "Intel Core Ultra 9 285K, 24 cores",
+  "ram_gib": 63.5,
+  "gpu": "NVIDIA RTX PRO 4000 Blackwell 24 GB, compute capability 12.0",
+  "driver": "596.71 before and after the installs"
+ },
+ "toolchain": {
+  "visual_studio": "Build Tools 2022 17.14.43, C++ desktop workload",
+  "msvc": "Microsoft (R) C/C++ Optimizing Compiler Version 19.44.35229 for x64",
+  "nvcc": "Cuda compilation tools, release 12.8, V12.8.93",
+  "python": "3.12.10 (python.org build, venv)",
+  "torch": "2.7.1+cu128 / torchvision 0.22.1+cu128",
+  "pip_freeze": [
+   "antlr4-python3-runtime==4.9.3",
+   "colorama==0.4.6",
+   "contourpy==1.3.3",
+   "cycler==0.12.1",
+   "einops==0.8.1",
+   "filelock==3.32.3",
+   "fonttools==4.67.0",
+   "fsspec==2026.7.0",
+   "hydra-core==1.3.2",
+   "ImageIO==2.38.1",
+   "Jinja2==3.1.6",
+   "kiwisolver==1.5.1",
+   "lazy-loader==0.6",
+   "MarkupSafe==3.0.3",
+   "matplotlib==3.11.2",
+   "mpmath==1.3.0",
+   "MultiScaleDeformableAttention @ file:///C:/r50/geco2/Deformable-DETR/models/ops",
+   "networkx==3.6.1",
+   "ninja==1.13.2",
+   "numpy==1.26.4",
+   "omegaconf==2.3.1",
+   "packaging==26.3",
+   "pillow==10.4.0",
+   "pycocotools==2.0.8",
+   "pyparsing==3.3.3",
+   "python-dateutil==3.0.0",
+   "PyYAML==6.0.3",
+   "scikit-image==0.25.2",
+   "scipy==1.16.3",
+   "setuptools==84.2.1",
+   "six==1.17.0",
+   "sympy==1.14.0",
+   "tifffile==2026.3.3",
+   "torch==2.7.1+cu128",
+   "torchvision==0.22.1+cu128",
+   "tqdm==4.67.1",
+   "typing_extensions==4.16.0",
+   "tzdata==2026.5",
+   "wheel==0.48.0"
+  ]
+ },
+ "installers": {
+  "visual_studio": {
+   "path": "C:\\r50\\installers\\vs_buildtools.exe",
+   "bytes": 4474120,
+   "sha256": "4aad1082e180f558598c346eb105b465b4908148cb9f7f0511aa1105620e0c30",
+   "md5": "8cdb258dc479adabce26c2a2dd391bdd",
+   "signature": "Valid CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US"
+  },
+  "cuda": {
+   "path": "C:\\r50\\installers\\cuda_12.8.1_windows_network.exe",
+   "bytes": 14404064,
+   "sha256": "779bee8ff557255c1cf5f36e0230f081675b9bb41e44be38839920cd5209bdeb",
+   "md5": "96911b8d667218e610f7f720b6c5579b",
+   "signature": "Valid CN=NVIDIA Corporation, OU=2-J, O=NVIDIA Corporation, L=Santa Clara, S=California, C=US"
+  },
+  "cuda_subpackages": "nvcc cudart cuda_profiler_api cublas(+dev) cufft(+dev) curand(+dev) cusolver(+dev) cusparse(+dev) nvrtc(+dev) nvtx thrust nvjitlink nvml_dev cuobjdump cuxxfilt nvdisasm nvfatbin nvprune (12.8); no Display.Driver",
+  "exit_codes": {
+   "vs_buildtools": 0,
+   "cuda": 0
+  },
+  "reboot_flags": {
+   "before": "PendingFileRename(68), present before any install",
+   "after_tools": "PendingFileRename(78)",
+   "new_cbs_or_windows_update_flag": false,
+   "note": "no installer asked for a reboot; nvcc and the extension build ran without one"
+  }
+ },
+ "extension_build": {
+  "gencode": "-gencode=arch=compute_120,code=sm_120",
+  "module": "MultiScaleDeformableAttention.cp312-win_amd64.pyd, 765,952 bytes",
+  "errors": 0,
+  "warnings": {
+   "C4996_deprecated": 212,
+   "nvcc_177_unused": 32,
+   "nvcc_221": 1
+  },
+  "log_sha256": "ce78a42e05bdb96823c5b3cbe8aaaf8fb98c41239c88b4021921b95699258df4"
+ },
+ "geco2_source": {
+  "commit": "67d27e8a93f14226f94d1f2c5c6dab5b5dd7162b",
+  "git_diff_bytes": 0,
+  "git_diff_note": "C:\\r50\\logs\\geco2-git-diff.txt is 0 bytes on the lab PC (Get-Item); the empty file did not come back in the tar",
+  "untracked": [
+   "?? models/ops/functions/__init__.py",
+   "?? models/ops/functions/ms_deform_attn_func.py",
+   "?? models/ops/make.sh",
+   "?? models/ops/modules/__init__.py",
+   "?? models/ops/modules/ms_deform_attn.py",
+   "?? models/ops/setup.py",
+   "?? models/ops/src/cpu/ms_deform_attn_cpu.cpp",
+   "?? models/ops/src/cpu/ms_deform_attn_cpu.h",
+   "?? models/ops/src/cuda/ms_deform_attn_cuda.cu",
+   "?? models/ops/src/cuda/ms_deform_attn_cuda.h",
+   "?? models/ops/src/cuda/ms_deform_im2col_cuda.cuh",
+   "?? models/ops/src/ms_deform_attn.h",
+   "?? models/ops/src/vision.cpp",
+   "?? models/ops/test.py"
+  ],
+  "verdict": "no tracked file changed; the untracked files are the models/ops copy that install.sh makes; no protocol deviation for Windows"
+ },
+ "setup": {
+  "tools": "2026-10-27T02:34:24.3491486Z done (driver 596.71; reboot flags before 'PendingFileRename(68)', after 'PendingFileRename(78)')",
+  "python": "2026-10-27T03:38:06.7514193Z done"
+ },
+ "precheck": {
+  "torch": "2.7.1+cu128",
+  "torch_cuda": "12.8",
+  "cuda": {
+   "available": true,
+   "device": "NVIDIA RTX PRO 4000 Blackwell",
+   "capability": [
+    12,
+    0
+   ],
+   "arch_list": [
+    "sm_50",
+    "sm_60",
+    "sm_61",
+    "sm_70",
+    "sm_75",
+    "sm_80",
+    "sm_86",
+    "sm_90",
+    "sm_100",
+    "sm_120"
+   ],
+   "pass": true
+  },
+  "msda": {
+   "module": "C:\\r50\\venv\\Lib\\site-packages\\MultiScaleDeformableAttention.cp312-win_amd64.pyd",
+   "max_abs_diff_vs_reference_fp64": 1.8141113145020427e-07,
+   "output_shape": [
+    2,
+    300,
+    256
+   ],
+   "pass": true
+  },
+  "one_image": {
+   "returncode": 0,
+   "stderr_tail": [
+    "C:\\r50\\geco2\\models\\ops\\modules\\ms_deform_attn.py:83: SyntaxWarning: invalid escape sequence '\\s'",
+    "  :param input_flatten               (N, \\sum_{l=0}^{L-1} H_l \\cdot W_l, C)",
+    "... (SDPA fallback warnings: float32 inputs, flash attention not compiled on Windows)"
+   ],
+   "count": 6,
+   "finite": true,
+   "msda_module": "C:\\r50\\venv\\Lib\\site-packages\\MultiScaleDeformableAttention.cp312-win_amd64.pyd",
+   "gpu": "NVIDIA RTX PRO 4000 Blackwell",
+   "gpu_capability": [
+    12,
+    0
+   ],
+   "call_median_ms": 203.8880999898538,
+   "memory": {
+    "peak_rss_bytes": 2835460096,
+    "platform": "win32",
+    "cuda_max_allocated_bytes": 1950365184,
+    "cuda_max_reserved_bytes": 2483027968
+   },
+   "missing_key_prefixes": {
+    "sam_mask": 149
+   },
+   "unexpected_key_prefixes": {
+    "class_embed_aux": 2,
+    "bbox_embed_aux": 6
+   },
+   "pass": true
+  },
+  "sam_mask": {
+   "missing_prefixes": {
+    "sam_mask": 149
+   },
+   "unexpected_prefixes": {
+    "class_embed_aux": 2,
+    "bbox_embed_aux": 6
+   },
+   "sam_mask_keys": 149,
+   "identical_across_seeds": 149,
+   "seed_dependent": [],
+   "pass": true
+  },
+  "all_pass": true
+ },
+ "launch": "every long process started through Win32_Process.Create (outside the SSH job object): setup phases, pre-check, B2 batch, A/C runner"
+}

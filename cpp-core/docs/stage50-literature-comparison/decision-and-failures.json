@@ -173,11 +173,38 @@
     },
     "geco2_method": "geco2_cuda",
     "pass_": null
-   }
+   },
+   "c_geco2_cuda": {
+    "ours": {
+     "cases": 16,
+     "of": 16,
+     "gt": 1015,
+     "tp": 901,
+     "recall": 0.8876847290640394
+    },
+    "geco2": {
+     "cases": 16,
+     "of": 16,
+     "gt": 1015,
+     "tp": 1015,
+     "recall": 1.0
+    },
+    "geco2_method": "geco2_cuda",
+    "pass_": false
+   },
+   "update": "2026-10-27 GeCo2 CUDA rerun (branch claude/round50-geco2-cuda): (c) also fails, group A positive box recall geco2_cuda 1015/1015 vs ours_fullgpu_k3 901/1015 (the gap is the round-35 stamp template, 294 vs 180); the verdict stays fail. The original 'c' entry above is the frozen MPS-era record."
   },
   "H2": {
-   "verdict": "pending",
-   "reason": "GeCo2 accuracy waits for CUDA (user); MPS failed the authenticity gate; descriptive MPS AP50 0.6926 vs ours_fullgpu_k3 0.1096 on the mirror boxes"
+   "verdict": "pass",
+   "metric": "AP50",
+   "geco2": 0.7516869713659124,
+   "ours": 0.10962589806541972,
+   "geco2_method": "geco2_cuda",
+   "reason": "2026-10-27 GeCo2 CUDA rerun (branch claude/round50-geco2-cuda): the CUDA authenticity gate passed, so AP50 is kept and H2 is judged as written: geco2_cuda AP50 0.7517 > ours_fullgpu_k3 0.1096 (literature_score, pooled 101-point, IoU 0.5)",
+   "previous": {
+    "verdict": "pending",
+    "reason": "GeCo2 accuracy waits for CUDA (user); MPS failed the authenticity gate; descriptive MPS AP50 0.6926 vs ours_fullgpu_k3 0.1096 on the mirror boxes"
+   }
   },
   "H3": {
    "verdict": "fail",
@@ -546,26 +573,54 @@
     "ap50": -6.476477085065369
    },
    "user_decision": "不要改用 CPU，GeCo2 精度直接等我提供 CUDA",
-   "status": "GeCo2 accuracy (H1c, H2, B2 GeCo2 boxes) pending CUDA with the compiled kernel"
+   "status": "GeCo2 accuracy (H1c, H2, B2 GeCo2 boxes) pending CUDA with the compiled kernel",
+   "status_update": "2026-10-27 GeCo2 CUDA rerun (branch claude/round50-geco2-cuda): resolved by the CUDA run (geco2_cuda_gate)"
+  },
+  "geco2_cuda_gate": {
+   "met": false,
+   "gate_pass": true,
+   "ap": 46.83569600165779,
+   "ap50": 76.08111326940204,
+   "gap": {
+    "ap": 0.02569600165778496,
+    "ap50": 0.1911132694020381
+   },
+   "count_vs_points": {
+    "mae": 7.68655462184874,
+    "rmse": 40.01005125816102
+   },
+   "device": "RTX PRO 4000 Blackwell, native Windows, compiled MultiScaleDeformableAttention (sm_120)",
+   "consequence": "AP50 kept; H2 judged by AP50; A/C geco2_cuda runs proceeded as pre-registered"
   }
  },
  "worker_failures": {
   "A": 0,
   "C": 0,
   "B1": 0,
-  "B2": 0
+  "B2": 0,
+  "geco2_cuda": {
+   "B2_batches": 0,
+   "A": 0,
+   "C": 0,
+   "retries": 0,
+   "rows": 89
+  }
  },
  "attempts_kept": [
   "dev-tdcm-threshold attempt 1 (output directory created too late; dev-tdcm-threshold-attempt1.json)",
   "formal A/C attempt 1: all method names passed as one shell word, 435 workers failed at once (raw-results-A, raw-results-C-other: *-attempt1-method-string)",
   "GeCo2 FSCD gate attempt 1 with the maxDets=100 AP bug (gate-geco2-mps-attempt1-maxdets100-bug.json; AP50 unchanged)",
-  "phase 1: GeCo2 smoke attempt 1 (scipy 1.15.2 dyld) and attempt 2 (CPU reference points) (phase1-smoke-attempt*.json)"
+  "phase 1: GeCo2 smoke attempt 1 (scipy 1.15.2 dyld) and attempt 2 (CPU reference points) (phase1-smoke-attempt*.json)",
+  "GeCo2 CUDA: the WSL2 plan (commit 15b4807) was superseded before any remote step (wsl --install was blocked by the tool's safety classifier and never ran; the user then chose native Windows)",
+  "GeCo2 CUDA: the first Windows setup stop rule treated the 68 pending file renames that predated any install as a reboot need; changed to installer 3010 or a new CBS/Windows Update flag (b0ccd17) before the tools phase ran",
+  "GeCo2 CUDA: a remote PowerShell syntax check over stdin hung (PID 18308, no action taken) and was ended after the user's approval"
  ],
  "weaknesses_found": [
   "round-35 development stamp template (clean / exposure / white balance): our CURRENT_BEST settings find 4 / 21 / 8 of 49 (strict = within 20 px); OpenCV brute force 35 of 49 strict on each (49 within 20 px) and TDCM-adapted 49 / 46 / 31 within 20 px (no strict pose)",
   "tiny-template negative scenes: ours 338 false positives over 48 empty/distractor scenes vs OpenCV 198 and TDCM-adapted 93",
   "B1 36x36 template with large anisotropic scale: success 82.6% (S2) and 74.7% (S2.5) vs TDCM 99.6% and 98.0%",
-  "B2 natural images (FSC-147 categories): AP50 0.11 and count MAE about 55 vs GeCo2 MPS 0.69 and 9.8",
-  "full-GPU candidate arena: one FSC val image exceeds 2M explicit slots at limit 4000 (development only)"
+  "B2 natural images (FSC-147 categories): AP50 0.11 and count MAE about 55 vs GeCo2 MPS 0.69 and 9.8; with GeCo2 on CUDA (gate passed): AP50 0.75 and count MAE 7.7",
+  "full-GPU candidate arena: one FSC val image exceeds 2M explicit slots at limit 4000 (development only)",
+  "group A box recall when GeCo2 gets three ground-truth exemplar boxes: ours 901/1015 vs GeCo2 1015/1015, all of the gap on the round-35 stamp template (180 vs 294)"
  ]
 }

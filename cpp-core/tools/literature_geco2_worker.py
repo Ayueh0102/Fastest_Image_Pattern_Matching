@@ -34,7 +34,6 @@ import importlib
 import json
 import os
 from pathlib import Path
-import resource
 import sys
 import time
 import types
@@ -56,6 +55,30 @@ def install_reference_deform_attn(repo):
     shim.ms_deform_attn_backward = backward
     sys.modules['MultiScaleDeformableAttention'] = shim
     return ops_dir
+
+
+def peak_rss_bytes():
+    """Peak resident memory of this process: ru_maxrss (bytes on macOS, KiB on Linux), peak working set on Windows."""
+    if sys.platform == 'win32':
+        import ctypes
+        from ctypes import wintypes
+
+        class Counters(ctypes.Structure):
+            _fields_ = [('cb', wintypes.DWORD), ('PageFaultCount', wintypes.DWORD)] + [
+                (n, ctypes.c_size_t) for n in ('PeakWorkingSetSize', 'WorkingSetSize', 'QuotaPeakPagedPoolUsage',
+                                              'QuotaPagedPoolUsage', 'QuotaPeakNonPagedPoolUsage', 'QuotaNonPagedPoolUsage',
+                                              'PagefileUsage', 'PeakPagefileUsage')]
+        c = Counters(cb=ctypes.sizeof(Counters))
+        kernel32 = ctypes.WinDLL('kernel32')
+        kernel32.GetCurrentProcess.restype = wintypes.HANDLE
+        psapi = ctypes.WinDLL('psapi', use_last_error=True)
+        psapi.GetProcessMemoryInfo.argtypes = [wintypes.HANDLE, ctypes.POINTER(Counters), wintypes.DWORD]
+        if not psapi.GetProcessMemoryInfo(kernel32.GetCurrentProcess(), ctypes.byref(c), c.cb):
+            raise OSError(ctypes.get_last_error())
+        return c.PeakWorkingSetSize
+    import resource
+    rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    return rss if sys.platform == 'darwin' else rss * 1024
 
 
 def register_ops_package(ops_dir):
@@ -165,7 +188,7 @@ def main():
         return detections, timing
 
     def memory():
-        out = dict(peak_rss_bytes=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
+        out = dict(peak_rss_bytes=peak_rss_bytes(), platform=sys.platform)
         if device.type == 'mps':
             out['mps_driver_allocated_bytes'] = torch.mps.driver_allocated_memory()
         elif device.type == 'cuda':
@@ -174,10 +197,14 @@ def main():
         return out
 
     prefix = lambda keys: dict(Counter(k.split('.')[0] for k in keys))  # noqa: E731
+    msda = sys.modules.get('MultiScaleDeformableAttention')
+    msda_file = getattr(msda, '__file__', None) or 'reference shim (ms_deform_attn_core_pytorch)'
     head = dict(method='geco2', device=args.device, deform_attn=args.deform_attn, deviations=deviations,
                 threads=torch.get_num_threads(), torch=torch.__version__, numpy=np.__version__,
                 cuda=torch.version.cuda if device.type == 'cuda' else None,
                 gpu=torch.cuda.get_device_name(device) if device.type == 'cuda' else None,
+                gpu_capability=list(torch.cuda.get_device_capability(device)) if device.type == 'cuda' else None,
+                msda_module=msda_file,
                 threshold=args.threshold, weights=args.weights.name, checkpoint_keys=len(state),
                 missing_keys=len(missing), unexpected_keys=len(unexpected),
                 missing_key_prefixes=prefix(missing), unexpected_key_prefixes=prefix(unexpected),
