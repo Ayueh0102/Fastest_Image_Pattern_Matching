@@ -1,0 +1,85 @@
+{
+ "stage": 52,
+ "cases": 112,
+ "failures": [],
+ "selection": {
+  "rule": "Frozen rule: border check on; among A0 whose positive strict-TP loss vs A0 off is <= 0.5% of the\n    positives' truths, the fewest negative false positives; ties go to the smaller A0; none -> 0 (size check unused).",
+  "border": {
+   "positives": {
+    "cases": 56,
+    "gt": 2744,
+    "strict_tp": 2678,
+    "edge_gt": 0,
+    "edge_tp": 0,
+    "extra": 168
+   },
+   "negatives": {
+    "cases": 56,
+    "false_positives": 149,
+    "border_fp": 0,
+    "interior_fp": 149
+   }
+  },
+  "grid": [
+   {
+    "a0": 256,
+    "strict_tp": 2678,
+    "tp_loss": 0,
+    "false_positives": 109,
+    "eligible": true
+   },
+   {
+    "a0": 400,
+    "strict_tp": 2678,
+    "tp_loss": 0,
+    "false_positives": 50,
+    "eligible": true
+   },
+   {
+    "a0": 576,
+    "strict_tp": 2678,
+    "tp_loss": 0,
+    "false_positives": 0,
+    "eligible": true
+   },
+   {
+    "a0": 784,
+    "strict_tp": 2678,
+    "tp_loss": 0,
+    "false_positives": 0,
+    "eligible": true
+   },
+   {
+    "a0": 1024,
+    "strict_tp": 2676,
+    "tp_loss": 2,
+    "false_positives": 0,
+    "eligible": true
+   },
+   {
+    "a0": 1600,
+    "strict_tp": 2676,
+    "tp_loss": 2,
+    "false_positives": 0,
+    "eligible": true
+   }
+  ],
+  "chosen": 576
+ },
+ "off": {
+  "positives": {
+   "cases": 56,
+   "gt": 2744,
+   "strict_tp": 2678,
+   "edge_gt": 0,
+   "edge_tp": 0,
+   "extra": 270
+  },
+  "negatives": {
+   "cases": 56,
+   "false_positives": 338,
+   "border_fp": 189,
+   "interior_fp": 149
+  }
+ }
+}

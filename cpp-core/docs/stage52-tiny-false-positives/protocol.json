@@ -1,6 +1,6 @@
 {
  "stage": 52,
- "status": "pre-registered development rules; the protocol is frozen (with the selected A0 and the holdout generator hash) only after the development selection runs",
+ "status": "frozen after the development selection; holdout scenes and every formal output are produced after this commit",
  "date": "2026-10-27",
  "title": "Small-template false positives: image-border rescoring and a size-aware acceptance threshold",
  "question": "Round 50 group C: our 338 false positives on tiny-template negative scenes (full GPU k3) split into 189 whose footprint leaves the image (all from the smooth template proc50105; the source outside the image is padded black or white, image.cpp:50) and 149 on distractors scoring 0.84-0.92, while true matches score a median 0.986. Do two opt-in checks remove them on new scenes without losing true matches or changing other results?",
@@ -74,7 +74,9 @@
   "H6": "Holdout, each backend: median over cases of time(both)/time(off) - 1 <= 5%."
  },
  "decision": "Border check: research option for small templates if H1, H2 and H5 pass. Size check: research option if H3, H4, H5 and H6 pass. No default changes either way; failures and every failed worker stay in the report.",
- "generators": {},
+ "generators": {
+  "round52_scenes.py": "a5e3e59506441528cf216ea0405b1d681a01fe56b52bc0038a998a4cac2eccbf"
+ },
  "tools": {
   "cpp-core/tools/round52_compare.py": "cf612ac304c4ed37ac189d49a8053933f0371abe9ee1169f8ef73a4a2348c037",
   "cpp-core/tools/round52_scenes.py": "a5e3e59506441528cf216ea0405b1d681a01fe56b52bc0038a998a4cac2eccbf",
@@ -83,5 +85,90 @@
   "cpp-core/tools/literature_scenes.py": "99ab2707b67d923a729fc325449cb7fbe4ab22a7747764f4cd192f02d923832c",
   "cpp-core/tools/stage49_scenes.py": "dd18e15c25a3d4e9139e6b88a34e6abfe626c952c2c6092bcc7c6ef0489d4ab8"
  },
- "revisions": []
+ "revisions": [],
+ "selection": {
+  "border_min_inside": 0.5,
+  "small_template_area": 576,
+  "development": {
+   "cases": 112,
+   "failures": 0,
+   "off": {
+    "positives": {
+     "cases": 56,
+     "gt": 2744,
+     "strict_tp": 2678,
+     "edge_gt": 0,
+     "edge_tp": 0,
+     "extra": 270
+    },
+    "negatives": {
+     "cases": 56,
+     "false_positives": 338,
+     "border_fp": 189,
+     "interior_fp": 149
+    }
+   },
+   "border": {
+    "positives": {
+     "cases": 56,
+     "gt": 2744,
+     "strict_tp": 2678,
+     "edge_gt": 0,
+     "edge_tp": 0,
+     "extra": 168
+    },
+    "negatives": {
+     "cases": 56,
+     "false_positives": 149,
+     "border_fp": 0,
+     "interior_fp": 149
+    }
+   },
+   "grid": [
+    {
+     "a0": 256,
+     "strict_tp": 2678,
+     "tp_loss": 0,
+     "false_positives": 109,
+     "eligible": true
+    },
+    {
+     "a0": 400,
+     "strict_tp": 2678,
+     "tp_loss": 0,
+     "false_positives": 50,
+     "eligible": true
+    },
+    {
+     "a0": 576,
+     "strict_tp": 2678,
+     "tp_loss": 0,
+     "false_positives": 0,
+     "eligible": true
+    },
+    {
+     "a0": 784,
+     "strict_tp": 2678,
+     "tp_loss": 0,
+     "false_positives": 0,
+     "eligible": true
+    },
+    {
+     "a0": 1024,
+     "strict_tp": 2676,
+     "tp_loss": 2,
+     "false_positives": 0,
+     "eligible": true
+    },
+    {
+     "a0": 1600,
+     "strict_tp": 2676,
+     "tp_loss": 2,
+     "false_positives": 0,
+     "eligible": true
+    }
+   ]
+  },
+  "record": "dev-selection.json (raw outputs in raw-results-development.tar.gz)"
+ }
 }
