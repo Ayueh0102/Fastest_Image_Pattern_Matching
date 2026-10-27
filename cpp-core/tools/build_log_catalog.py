@@ -40,6 +40,7 @@ STAGES = {
     "stage48-frame-overheads": "48",
     "stage49-adaptive-pyramid": "49",
     "stage50-literature-comparison": "50",
+    "stage52-tiny-false-positives": "52",
 }
 ROLE_DESCRIPTIONS = {
     "protocol": "Settings, workload definition, budgets and acceptance gates",

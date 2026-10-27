@@ -1,6 +1,6 @@
 # Template Matching 研究總索引與人工審查指南
 
-更新：2026-10-27。此頁按第1–50輪列出問題、證據與採用決定。數字是各輪的證據快照，不是同一套輸入的連續加速曲線；不同輪次倍率不能相乘。最新輪次見頁末，第一次閱讀先看[外部導覽](../../docs/PROJECT_GUIDE_zh-TW.md)。
+更新：2026-10-27。此頁按第1–50輪與第52輪列出問題、證據與採用決定（第51輪保留給小模板金字塔深度，尚未進行）。數字是各輪的證據快照，不是同一套輸入的連續加速曲線；不同輪次倍率不能相乘。最新輪次見頁末，第一次閱讀先看[外部導覽](../../docs/PROJECT_GUIDE_zh-TW.md)。
 
 ## 目前推薦方案
 
@@ -16,6 +16,7 @@
 | 密集實拍、RGB與顏色不同物件 | [第35輪](STAGE35_REAL_RGB_zh-TW.md)與[小模板候選漏失診斷](STAGE35_PYRAMID_DIAGNOSIS_zh-TW.md) |
 | 小模板粗搜尋召回（依模板選頂層） | [第49輪](ADAPTIVE_PYRAMID_zh-TW.md)；規則未通過，保留失敗 |
 | 與2024–2026新方法實測比較（TDCM、GeCo2、OpenCV） | [第50輪](LITERATURE_COMPARISON_zh-TW.md)；GeCo2精度來自實驗室CUDA補跑 |
+| 小模板誤判（影像邊界、干擾物） | [第52輪](SMALL_TEMPLATE_VERIFY_zh-TW.md)；兩個預設關閉的檢查通過保留集 |
 | 原始Log、失敗與完整源碼 | [分類索引](LOG_CATALOG_zh-TW.md)與各輪封存 |
 
 ## 先辨認比較的是哪一層
@@ -551,3 +552,13 @@ Release 54/54、相關ASan／UBSan 2/2及Python工具75項通過。正式／有�
 - GeCo2 CUDA補跑（2026-10-27，分支`claude/round50-geco2-cuda`）：使用者先指定WSL2，後改為Windows原生；WSL從未執行。實驗室PRO 4000（RTX PRO 4000 Blackwell sm_120、driver 596.71不變），VS Build Tools 2022＋CUDA 12.8.1 toolkit（無顯示驅動）、torch 2.7.1+cu128，官方kernel以MSVC編成sm_120，GeCo2原始碼零修改。四項前置檢查全過（kernel與float64參考差1.8e-7；149個sam_mask鍵全由SAM2載入）。B2真偽關卡通過：AP 46.84／AP50 76.08，計數MAE 7.69。前100張CUDA與CPU框數97張相同、MPS只有345/1190，所以MPS的落差來自數值。A／C 88個正場景0失敗：H1(c) GeCo2外接框1015/1015對我們901/1015（差距全在第35輪郵票模板），C組3376/3380對3370/3380，GeCo2照明組多報60個（28個落在色卡上）。其他方法的數字與判定都沒變。
 - 合併驗收（2026-10-27）：exact head重現單元測試與索引檢查、封存雜湊、凍結快照、摘要由封存重算逐位相同（`created`除外）；`build/stage50-ours`實際在`8f0e6a9`建置（原文誤寫為af7c97a），在C++等於af7c97a的新建置上重跑A、C組787個job逐位相同，ctest 87/87；第三方stdlib重算15項主要數字14項相符，不符的一項查出B1論文IoU把矩形畫成鏡像，已紅燈→修正並重算（B1表改用重算值、開發選擇不變，判定不變）；28個評分與判定規則突變原本14個存活，補8項測試後全殺；揭露H1判定程式在凍結後修正但未列入revisions。
 - 證據：[完整報告](LITERATURE_COMPARISON_zh-TW.md)、[protocol](stage50-literature-comparison/protocol.json)、[正式摘要](stage50-literature-comparison/formal-summary.json)、[判定與失敗](stage50-literature-comparison/decision-and-failures.json)、[驗證](stage50-literature-comparison/validation.json)、[封存](stage50-literature-comparison/archive.json)、[第1階段可行性](stage50-literature-comparison/feasibility.md)。
+
+### 52. 小模板誤判：影像邊界重算與依尺寸的接受門檻（2026-10-27）
+
+- 問題：第50輪C組微小模板負場景，完整GPU k3有338個誤判：189個貼著影像邊框（全部來自平滑漸層模板proc50105；影像外補純黑／白，`image.cpp:50`），149個在干擾物上（分數0.84–0.92，真目標中位數0.986）。兩個預設關閉的檢查能否在新場景上消掉它們而不傷真目標？
+- 方法：`border_min_inside`（固定0.5，不調參）只對模板超出影像的候選，用影像內像素重算NCC（座標換算在第50輪4510個內部匹配上重現回報分數，最大差0.0018）；`small_template_area` A0讓面積小於A0的模板要求分數≥1−(1−最低分數)·√(面積/A0)。混合／CPU在NMS之前檢查，完整GPU對最後輸出過濾。A0在第50輪112個微小模板案例（開發集）上依事前規則選出576（`43f7e59`先提交規則，`bcd409d`凍結）；保留集（`round52_scenes.py`，32個新模板×乾淨／雜訊／空白／干擾／邊界切割，160案例）在凍結後產生；回歸集是第50輪A組與C組非微小模板49案例。
+- 結果：混合k3負場景誤判648（邊界405／內部243）→只開邊界243（0／243）→兩個都開0；嚴格命中4251→4237（−0.30%），被邊界切到的真目標82→77；完整GPU k3相同（648→0，4252→4238）。逐案時間中位數+0.12%／+0.09%。回歸集4710個候選無一超出影像或被剔除，輸出49/49逐位相同。
+- 判定：H1–H6在兩種後端都通過；兩個檢查列為小模板研究設定。
+- 驗證：紅燈`c36da3d`三種模式失敗、綠燈`ef854b2`通過；凍結commit全新Release建置ctest 91/91；`test_round52.py` 10項；封存重算正式摘要（`created`除外）與開發選擇都逐位相同；worker失敗0；保留第1次正式量測（主機檢查把自己的驅動程式當重工作，空等51分鐘、沒有worker執行）。
+- 決定：研究選項，GUI、核心、預設與CURRENT_BEST的預設不變；CURRENT_BEST加入小模板的研究設定。
+- 證據：[完整報告](SMALL_TEMPLATE_VERIFY_zh-TW.md)、[protocol](stage52-tiny-false-positives/protocol.json)、[正式摘要](stage52-tiny-false-positives/formal-summary.json)、[判定與失敗](stage52-tiny-false-positives/decision-and-failures.json)、[驗證](stage52-tiny-false-positives/validation.json)、[封存](stage52-tiny-false-positives/archive.json)。

@@ -1,0 +1,77 @@
+{
+  "stage": 52,
+  "path_base": "cpp-core/docs/stage52-tiny-false-positives",
+  "artifacts": [
+    {
+      "path": "decision-and-failures.json",
+      "bytes": 6541,
+      "sha256": "965d0c3d172850b8502201ad4110d1d327608be3af992f79715d608df00d9a74"
+    },
+    {
+      "path": "dev-selection.json",
+      "bytes": 1528,
+      "sha256": "f9e39023f39cce2ca905ca2cd497a62efaa2f4e84f94983360599b00b5d3e783"
+    },
+    {
+      "path": "formal-build.json",
+      "bytes": 1954,
+      "sha256": "4a953345464bf18bd73ec8de9f6d536bfb574648491dec2549a33cf4c240be89"
+    },
+    {
+      "path": "formal-summary.json",
+      "bytes": 732386,
+      "sha256": "e9c2bfa2c20722b939ae4dd5e5e1836c3be8cdc24c9abb091e94724aeafafce3"
+    },
+    {
+      "path": "protocol.json",
+      "bytes": 9178,
+      "sha256": "85e0b01ec8af6f644e5c316ac5c5e851241bfdb20150026d7359d935b477cb6b"
+    },
+    {
+      "path": "raw-results-development.tar.gz",
+      "bytes": 18417377,
+      "sha256": "9b55faf71b7a51a2fcebc382995fa00bcc03140019aa8166f937e1ff52e7b840",
+      "regular_files": 2691
+    },
+    {
+      "path": "raw-results-holdout.tar.gz",
+      "bytes": 55780074,
+      "sha256": "39c79e5bc9e93284c4391dd2ac7a2b438684acd4c0546261a44937751132cb46",
+      "regular_files": 3842
+    },
+    {
+      "path": "raw-results-regression.tar.gz",
+      "bytes": 7330199,
+      "sha256": "0b4cc2a92fb5410b933a154be23271b3b5b087dcfe92ea418e353327a25f1506",
+      "regular_files": 594
+    },
+    {
+      "path": "raw-results-scenes-holdout.tar.gz",
+      "bytes": 10811177,
+      "sha256": "799a18b8379364495ab5e655989148ab58c880979337087f4f49db9d5d820bb2",
+      "regular_files": 194
+    },
+    {
+      "path": "raw-results-validation-logs.tar.gz",
+      "bytes": 768155,
+      "sha256": "e10e76b6e1ddeff2b5f957055492763bd55e3ac7dfcaed2116dda5f835302b78",
+      "regular_files": 88
+    },
+    {
+      "path": "source-sha256.json",
+      "bytes": 40017,
+      "sha256": "8e11f09e0a5e59ee990e30a8f488a339d6f249a51fda48f91e079f12e8b304cd"
+    },
+    {
+      "path": "source-snapshot.tar.gz",
+      "bytes": 1089981,
+      "sha256": "6d3e38f90b02a2672abc161f9c8f158b3371c78301b07a1dde813262928ad9e3",
+      "regular_files": 347
+    },
+    {
+      "path": "validation.json",
+      "bytes": 1407,
+      "sha256": "e4b875bcfcd002d1ddac64aab0fef3587752eec5765c1f3c2dbc6f46d058af4f"
+    }
+  ]
+}

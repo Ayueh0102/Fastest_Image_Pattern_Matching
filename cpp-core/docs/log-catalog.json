@@ -26,45 +26,45 @@
     "metadata": "Filesystem sidecar metadata",
     "other": "No recognized role; inspect manually"
   },
-  "artifact_count": 754,
-  "artifact_bytes": 2819180968,
+  "artifact_count": 769,
+  "artifact_bytes": 2914192175,
   "artifact_role_counts": {
-    "archive": 140,
+    "archive": 146,
     "calibration": 5,
-    "failure_review": 31,
+    "failure_review": 32,
     "false_gate": 64,
-    "formal": 49,
+    "formal": 51,
     "input": 21,
-    "other": 64,
+    "other": 65,
     "pilot": 19,
-    "protocol": 51,
-    "provenance": 81,
-    "raw": 94,
-    "report": 79,
-    "source": 26,
-    "summary": 182,
-    "validation": 97,
+    "protocol": 52,
+    "provenance": 83,
+    "raw": 99,
+    "report": 80,
+    "source": 27,
+    "summary": 188,
+    "validation": 99,
     "visual": 68
   },
-  "archive_member_count": 138484,
+  "archive_member_count": 146240,
   "archive_member_role_counts": {
     "archive": 26,
     "binary": 47,
     "calibration": 1,
     "failure_review": 122,
     "formal": 32805,
-    "input": 611,
+    "input": 616,
     "metadata": 6526,
-    "other": 56333,
+    "other": 61143,
     "pilot": 4301,
     "protocol": 114,
-    "provenance": 141,
-    "raw": 45342,
-    "report": 90,
-    "source": 13096,
-    "summary": 1213,
-    "validation": 1194,
-    "visual": 892
+    "provenance": 146,
+    "raw": 47748,
+    "report": 91,
+    "source": 13431,
+    "summary": 1233,
+    "validation": 1199,
+    "visual": 1088
   },
   "artifacts": [
     {
@@ -211,8 +211,8 @@
       "path": "CURRENT_BEST_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 18822,
-      "sha256": "ff0d2fd2f00d1cfc36b341b6ea0596e33d38f17911783ab3a0ab984e169cf597",
+      "bytes": 20098,
+      "sha256": "2f4892509c2eccde3a0e914de6031ccdcf4c53793d494c897491ff21e63ca1ee",
       "roles": [
         "report"
       ]
@@ -262,8 +262,8 @@
       "path": "EXPERIMENT_REVIEW_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 100970,
-      "sha256": "8ebbfbed0bb076b293afa0b2650daeb95e536e89566d52d0849f66c17085bd37",
+      "bytes": 103629,
+      "sha256": "92b4f127b448960fb6f2ba3047981ea619482a28976a6dfd9087dbdab1741e4c",
       "roles": [
         "report"
       ]
@@ -442,8 +442,8 @@
       "path": "LOG_CATALOG_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 22029,
-      "sha256": "ae67574e6510aecdfcfa696c92ba214cfe03ed4e9e410121d754df12f707761c",
+      "bytes": 23020,
+      "sha256": "8ed601e18cfe800c488e874dd50b75cce5b0e7966be9568e33639514893211c0",
       "roles": [
         "report"
       ]
@@ -613,8 +613,8 @@
       "path": "PROJECT_STATUS_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 16824,
-      "sha256": "8be220c98389e311b769032d72d6fc31a30b841d6927fcd0b3ae8d22920316c3",
+      "bytes": 17688,
+      "sha256": "ec5ae2d504f2317e67175ed431975abf741f73f9ac3ff075d6b3429e8fc94c67",
       "roles": [
         "report"
       ]
@@ -666,6 +666,16 @@
       "stage": null,
       "bytes": 17756,
       "sha256": "c88ad79548a6d76d984e014281fb76c990703e7c8e7f7e5b4b2fe3f76113d040",
+      "roles": [
+        "report"
+      ]
+    },
+    {
+      "path": "SMALL_TEMPLATE_VERIFY_zh-TW.md",
+      "group": "root",
+      "stage": null,
+      "bytes": 13096,
+      "sha256": "7bafde760e34f0c1a25c2f13f08afb7e0c682299402b501244d8305c1b1902c8",
       "roles": [
         "report"
       ]
@@ -9963,6 +9973,202 @@
       ]
     },
     {
+      "path": "stage52-tiny-false-positives/archive.json",
+      "group": "stage52-tiny-false-positives",
+      "stage": "52",
+      "bytes": 2347,
+      "sha256": "adf6694032d2026761469cde1ade80ad4c81ec2d9eedfbd00d26ea2145dae548",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage52-tiny-false-positives/decision-and-failures.json",
+      "group": "stage52-tiny-false-positives",
+      "stage": "52",
+      "bytes": 6541,
+      "sha256": "965d0c3d172850b8502201ad4110d1d327608be3af992f79715d608df00d9a74",
+      "roles": [
+        "failure_review"
+      ]
+    },
+    {
+      "path": "stage52-tiny-false-positives/dev-selection.json",
+      "group": "stage52-tiny-false-positives",
+      "stage": "52",
+      "bytes": 1528,
+      "sha256": "f9e39023f39cce2ca905ca2cd497a62efaa2f4e84f94983360599b00b5d3e783",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "stage52-tiny-false-positives/formal-build.json",
+      "group": "stage52-tiny-false-positives",
+      "stage": "52",
+      "bytes": 1954,
+      "sha256": "4a953345464bf18bd73ec8de9f6d536bfb574648491dec2549a33cf4c240be89",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "stage52-tiny-false-positives/formal-summary.json",
+      "group": "stage52-tiny-false-positives",
+      "stage": "52",
+      "bytes": 732386,
+      "sha256": "e9c2bfa2c20722b939ae4dd5e5e1836c3be8cdc24c9abb091e94724aeafafce3",
+      "roles": [
+        "formal",
+        "summary"
+      ]
+    },
+    {
+      "path": "stage52-tiny-false-positives/protocol.json",
+      "group": "stage52-tiny-false-positives",
+      "stage": "52",
+      "bytes": 9178,
+      "sha256": "85e0b01ec8af6f644e5c316ac5c5e851241bfdb20150026d7359d935b477cb6b",
+      "roles": [
+        "protocol"
+      ]
+    },
+    {
+      "path": "stage52-tiny-false-positives/raw-results-development.tar.gz",
+      "group": "stage52-tiny-false-positives",
+      "stage": "52",
+      "bytes": 18417377,
+      "sha256": "9b55faf71b7a51a2fcebc382995fa00bcc03140019aa8166f937e1ff52e7b840",
+      "roles": [
+        "archive",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 2691,
+      "archive_role_counts": {
+        "other": 1794,
+        "provenance": 1,
+        "raw": 896
+      }
+    },
+    {
+      "path": "stage52-tiny-false-positives/raw-results-holdout.tar.gz",
+      "group": "stage52-tiny-false-positives",
+      "stage": "52",
+      "bytes": 55780074,
+      "sha256": "39c79e5bc9e93284c4391dd2ac7a2b438684acd4c0546261a44937751132cb46",
+      "roles": [
+        "archive",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 3842,
+      "archive_role_counts": {
+        "other": 2561,
+        "provenance": 1,
+        "raw": 1280
+      }
+    },
+    {
+      "path": "stage52-tiny-false-positives/raw-results-regression.tar.gz",
+      "group": "stage52-tiny-false-positives",
+      "stage": "52",
+      "bytes": 7330199,
+      "sha256": "0b4cc2a92fb5410b933a154be23271b3b5b087dcfe92ea418e353327a25f1506",
+      "roles": [
+        "archive",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 594,
+      "archive_role_counts": {
+        "input": 4,
+        "other": 393,
+        "provenance": 1,
+        "raw": 196,
+        "visual": 4
+      }
+    },
+    {
+      "path": "stage52-tiny-false-positives/raw-results-scenes-holdout.tar.gz",
+      "group": "stage52-tiny-false-positives",
+      "stage": "52",
+      "bytes": 10811177,
+      "sha256": "799a18b8379364495ab5e655989148ab58c880979337087f4f49db9d5d820bb2",
+      "roles": [
+        "archive",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 194,
+      "archive_role_counts": {
+        "other": 1,
+        "provenance": 1,
+        "visual": 192
+      }
+    },
+    {
+      "path": "stage52-tiny-false-positives/raw-results-validation-logs.tar.gz",
+      "group": "stage52-tiny-false-positives",
+      "stage": "52",
+      "bytes": 768155,
+      "sha256": "e10e76b6e1ddeff2b5f957055492763bd55e3ac7dfcaed2116dda5f835302b78",
+      "roles": [
+        "archive",
+        "raw",
+        "summary",
+        "validation"
+      ],
+      "archive_file_count": 88,
+      "archive_role_counts": {
+        "other": 51,
+        "provenance": 1,
+        "raw": 34,
+        "summary": 1,
+        "validation": 3
+      }
+    },
+    {
+      "path": "stage52-tiny-false-positives/source-sha256.json",
+      "group": "stage52-tiny-false-positives",
+      "stage": "52",
+      "bytes": 40017,
+      "sha256": "8e11f09e0a5e59ee990e30a8f488a339d6f249a51fda48f91e079f12e8b304cd",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage52-tiny-false-positives/source-snapshot.tar.gz",
+      "group": "stage52-tiny-false-positives",
+      "stage": "52",
+      "bytes": 1089981,
+      "sha256": "6d3e38f90b02a2672abc161f9c8f158b3371c78301b07a1dde813262928ad9e3",
+      "roles": [
+        "archive",
+        "source"
+      ],
+      "archive_file_count": 347,
+      "archive_role_counts": {
+        "input": 1,
+        "other": 10,
+        "report": 1,
+        "source": 335,
+        "summary": 19,
+        "validation": 2
+      }
+    },
+    {
+      "path": "stage52-tiny-false-positives/validation.json",
+      "group": "stage52-tiny-false-positives",
+      "stage": "52",
+      "bytes": 1407,
+      "sha256": "e4b875bcfcd002d1ddac64aab0fef3587752eec5765c1f3c2dbc6f46d058af4f",
+      "roles": [
+        "validation"
+      ]
+    },
+    {
       "path": "validation-after-refinement.json",
       "group": "root",
       "stage": null,
@@ -9983,5 +10189,5 @@
       ]
     }
   ],
-  "archive_member_index_sha256": "4d9f34d37e34da474b008256d059d78d1a0d9f6ed731e3a9a140098d63f72785"
+  "archive_member_index_sha256": "0b448fd4a8a042874fe071f5100b0afe405980b1e3825025306a118df55ab4f4"
 }
