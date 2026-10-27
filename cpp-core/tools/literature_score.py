@@ -137,11 +137,13 @@ def rotated_iou(corners_a, corners_b):
 def tdcm_paper_iou(gt, pred, reference=(36, 36)):
     """TDCM's getIOU: rectangles (cx, cy, sx*tw, sy*th) rotated by its rotated_rect convention.
 
-    Its rotated_rect turns corners by +angle in y-down image coordinates, i.e. our
-    pose_corners at -angle; gt and pred are dicts with cx, cy, scale_x, scale_y, angle_deg.
+    Its rotated_rect turns corners by +angle in y-down image coordinates (clockwise on
+    screen), and getIOU passes -r, so each rectangle turns counter-clockwise by r: our
+    pose_corners at +angle. (Until the round-50 merge acceptance this used -angle and drew
+    both rectangles mirrored.) gt and pred are dicts with cx, cy, scale_x, scale_y, angle_deg.
     """
     tw, th = reference
-    corners = [pose_corners(d['cx'], d['cy'], d['scale_x'] * tw, d['scale_y'] * th, -d['angle_deg']) for d in (gt, pred)]
+    corners = [pose_corners(d['cx'], d['cy'], d['scale_x'] * tw, d['scale_y'] * th, d['angle_deg']) for d in (gt, pred)]
     return rotated_iou(*corners)
 
 
