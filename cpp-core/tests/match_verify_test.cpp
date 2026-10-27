@@ -89,6 +89,14 @@ void unitChecks() {
     // Same footprint over flat noise: the in-image part does not resemble the template.
     d=verifyMatch(source.view(),templ.view(),{8,120},0,1,.9,.8,false,border);
     require(d.border && !d.keep && d.rejectedBorder && d.insideScore<.5,"border false positive kept");
+    // A footprint whose extreme pixels land exactly on the last pixel centres is interior.
+    Image edge=noise(256,192,128,52010);paste(edge,templ,236,177,0);
+    d=verifyMatch(edge.view(),templ.view(),{236,177},0,1,.99,.8,false,border);
+    require(d.keep && !d.border && d.insideScore==2,"last pixel centre treated as outside");
+    // A perfectly flat in-image part has no correlation: NCC 0, so the candidate is rejected.
+    Image constant(256,192);for(int y=0;y<192;++y) std::fill_n(constant.row(y),256,uint8_t(128));
+    d=verifyMatch(constant.view(),templ.view(),{8,96},0,1,.9,.8,false,border);
+    require(d.border && d.insideFraction>.5 && d.insideScore==0 && !d.keep && d.rejectedBorder,"flat border region kept");
     // Less than half inside is rejected even when the visible part matches.
     d=verifyMatch(source.view(),templ.view(),{-4,150},0,1,.9,.8,false,border);
     require(std::abs(d.insideFraction-16./40)<1e-12 && d.insideScore>.999 && !d.keep && d.rejectedBorder,"mostly outside candidate kept");
