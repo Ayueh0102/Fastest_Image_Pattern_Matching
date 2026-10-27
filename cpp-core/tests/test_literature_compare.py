@@ -208,5 +208,80 @@ class MethodNameTest(unittest.TestCase):
         lc.check_methods('B2', ['ours', 'geco2_cpu'])
 
 
+FAKE_WORKER = '''import json, sys
+a = sys.argv[1:]
+out = a[a.index('--output') + 1]
+if '--batch' in a:
+    open(out, 'w').write(json.dumps(dict(header={})) + '\\n' + json.dumps(dict(footer={})) + '\\n')
+    sys.exit(0)
+if 'bad' in a[a.index('--image') + 1]:
+    sys.exit('boom')
+open(out, 'w').write(json.dumps(dict(detections=[dict(kind='box', x0=0, y0=0, x1=4, y1=4, score=.9)], exact_repeat=True,
+                                     memory=dict(peak_rss_bytes=1), timing_ms=dict(call_median=5., calls=[5.], load_model=9.))))
+'''
+
+
+class GeCo2CudaPackageTest(unittest.TestCase):
+    def setUp(self):
+        import tempfile
+        self.tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self.tmp.name)
+        image = self.root / 'src.png'
+        image.write_bytes(b'png')
+        for group, names in (('A', ['good', 'neg']), ('C', ['bad'])):
+            d = self.root / 'runs' / group
+            d.mkdir(parents=True)
+            cases = [dict(case(n, positive=n != 'neg'), group=group, source=str(image)) for n in names]
+            (d / 'cases.json').write_text(json.dumps(cases))
+        (self.root / 'runs/B2').mkdir()
+        (self.root / 'runs/B2/items.json').write_text(json.dumps([dict(id='2.jpg', image=str(image), exemplars=[[0, 0, 5, 5]])]))
+        self.runs = {g: self.root / 'runs' / g for g in ('A', 'C', 'B2')}
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def export(self):
+        from argparse import Namespace
+        pkg = self.root / 'pkg'
+        lc.export_geco2_cuda(Namespace(a=self.runs['A'], c=self.runs['C'], b2=self.runs['B2'], output=pkg))
+        return pkg
+
+    def test_export_sends_positive_cases_without_truth(self):
+        pkg = self.export()
+        jobs = json.loads((pkg / 'jobs.json').read_text())
+        self.assertEqual({k: [j.get('case', j.get('id')) for j in v] for k, v in jobs.items()}, dict(A=['good'], C=['bad'], B2=['2.jpg']))
+        self.assertNotIn('truth', (pkg / 'jobs.json').read_text())
+        self.assertEqual(jobs['A'][0]['exemplars'], lc.exemplars_for(case('good')))
+        files = json.loads((pkg / 'package.json').read_text())['files']
+        self.assertIn('tools/literature_geco2_cuda_run.py', files)
+        self.assertEqual(files['images/A/good.png'], lc.sha(pkg / 'images/A/good.png'))
+        with self.assertRaises(SystemExit):  # never into an existing package
+            self.export()
+
+    def test_runner_keeps_failures_and_skips_them_on_restart_and_ingest_is_idempotent(self):
+        pkg = self.export()
+        (pkg / 'tools/literature_geco2_worker.py').write_text(FAKE_WORKER)
+        out, work = self.root / 'results', self.root / 'work'
+        runner = [sys.executable, '-I', pkg / 'tools/literature_geco2_cuda_run.py', '--package', pkg, '--work', work, '--output', out]
+        import subprocess
+        for _ in range(2):
+            subprocess.run([str(c) for c in runner], check=True, capture_output=True)
+        rows = lc.read_manifest(out / 'manifest.jsonl')
+        self.assertEqual(sorted((r['group'], r['case'], r['status']) for r in rows),
+                         [('A', 'good', 'ok'), ('B2', 'all', 'ok'), ('C', 'bad', 'failed')])
+        self.assertIn('boom', rows[[r['case'] for r in rows].index('bad')]['stderr_tail'])
+        self.assertEqual(len(lc.read_manifest(out / 'attempts.jsonl')), 3)
+        from argparse import Namespace
+        for _ in range(2):
+            lc.ingest_geco2_cuda(Namespace(results=out, a=self.runs['A'], c=self.runs['C'], b2=self.runs['B2']))
+        a = lc.read_manifest(self.runs['A'] / 'manifest.jsonl')
+        self.assertEqual(len(a), 1)
+        self.assertEqual((a[0]['method'], a[0]['status'], a[0]['time_ms'], a[0]['detections']), ('geco2_cuda', 'ok', 5., 1))
+        self.assertEqual(lc.read_manifest(self.runs['C'] / 'manifest.jsonl')[0]['status'], 'failed')
+        self.assertTrue((self.runs['B2'] / 'geco2_cuda.jsonl').exists())
+        table = lc.summarize_scenes(self.runs['A'])[1]
+        self.assertEqual([(r['method'], r['ok_blocks']) for r in table], [('geco2_cuda', 1)])
+
+
 if __name__ == '__main__':
     unittest.main()

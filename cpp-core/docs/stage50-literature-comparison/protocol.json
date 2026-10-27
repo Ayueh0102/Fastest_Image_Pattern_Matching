@@ -365,6 +365,21 @@
    "date": "2026-10-26",
    "kind": "failed attempt kept",
    "what": "formal A and C attempt 1 passed all method names as one shell word (zsh does not split $M), so every worker failed at once (A 75, C 360 manifest rows, no measurement ran); kept as runs/A-attempt1-method-string and runs/C-attempt1-method-string; literature_compare.py now refuses unknown method names (check_methods, MethodNameTest) and the runs were restarted with explicit names"
+  },
+  {
+   "date": "2026-10-27",
+   "kind": "pre-registration (GeCo2 CUDA run)",
+   "what": "user decision relayed by the lead session: \"PRO 4000 用 WSL2 裝 Ubuntu＋CUDA 12.8 toolkit 在 WSL 裡編 GeCo2 kernel\". Device: lab PC PTRI-PRO-4000, NVIDIA RTX PRO 4000 Blackwell 24 GB (sm_120), Windows driver 596.71 (no Linux driver inside WSL), WSL2 Ubuntu 24.04, cuda-toolkit-12-8, Python 3.12 venv with torch 2.7.1+cu128 / torchvision 0.22.1 and the M4 Pro environment's other package versions, GeCo2 67d27e8 with the official Deformable-DETR MultiScaleDeformableAttention extension compiled for TORCH_CUDA_ARCH_LIST=12.0 and copied to models/ops as install.sh does (literature_geco2_cuda_setup.sh); the same GECO2FSCD.pth and SAM2 hashes, threshold 0.11, NMS 0.5 and preprocessing. Inputs go as one package from literature_compare.py export-geco2-cuda (images, exemplar boxes, tools; no truth) and results come back through ingest-geco2-cuda under the method name geco2_cuda; transfers by Taildrop, the run detached from SSH."
+  },
+  {
+   "date": "2026-10-27",
+   "kind": "pre-registration (GeCo2 CUDA run)",
+   "what": "order and stop rules: (1) literature_geco2_cuda_precheck.py must pass all four checks (torch sees the GPU with sm_120; the compiled extension is the imported module and its CUDA forward matches ms_deform_attn_core_pytorch in float64 within 1e-4; one image gives finite boxes with the compiled module; the checkpoint leaves exactly the 149 sam_mask keys missing, all identical across two init seeds, i.e. loaded from SAM2, and the same 8 unused auxiliary-head keys as on the Mac), otherwise nothing runs; (2) the B2 batch over all 1,190 test images (3-hour timeout) and the authenticity gate |AP - 46.81| <= 2 and |AP50 - 75.89| <= 2 (literature_geco2_fscd_eval.py); (3) gate pass: group A and C positive cases (16 + 72) through literature_geco2_cuda_run.py, one fresh process per case, 1 warm-up + 1 measured call, 8 threads, then summarize --geco2-accuracy geco2_cuda for H1(c), H2 and the B2 GeCo2 rows; gate miss: AP50 is retired and H2 becomes count MAE against FSC points from the same CUDA batch, and the A/C runs wait for the lead session. Every attempt is a manifest row; failures are kept and never rerun; a restart after a host failure reruns only cases without a row and records the attempt number."
+  },
+  {
+   "date": "2026-10-27",
+   "kind": "pre-registration (GeCo2 CUDA run)",
+   "what": "reporting: GeCo2 accuracy comes from geco2_cuda; the M4 Pro MPS and CPU outputs stay descriptive and their per-image disagreement with CUDA is disclosed. Lab-PC times are descriptive, shown beside the M4 Pro times per hardware and never divided against them; every worker records the 1-minute load and nvidia-smi utilisation and memory in use (WSL shows no per-process GPU users), recorded not gated. Memory: peak RSS (literature_geco2_worker.py now reports Linux ru_maxrss KiB as bytes) and CUDA max allocated/reserved, never added. Our arms are not rerun (the acceptance replay already showed the af7c97a-equivalent block 0 identical)."
   }
  ]
 }

@@ -165,7 +165,8 @@ def main():
         return detections, timing
 
     def memory():
-        out = dict(peak_rss_bytes=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
+        rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        out = dict(peak_rss_bytes=rss if sys.platform == 'darwin' else rss * 1024)  # Linux reports KiB
         if device.type == 'mps':
             out['mps_driver_allocated_bytes'] = torch.mps.driver_allocated_memory()
         elif device.type == 'cuda':
@@ -174,10 +175,14 @@ def main():
         return out
 
     prefix = lambda keys: dict(Counter(k.split('.')[0] for k in keys))  # noqa: E731
+    msda = sys.modules.get('MultiScaleDeformableAttention')
+    msda_file = getattr(msda, '__file__', None) or 'reference shim (ms_deform_attn_core_pytorch)'
     head = dict(method='geco2', device=args.device, deform_attn=args.deform_attn, deviations=deviations,
                 threads=torch.get_num_threads(), torch=torch.__version__, numpy=np.__version__,
                 cuda=torch.version.cuda if device.type == 'cuda' else None,
                 gpu=torch.cuda.get_device_name(device) if device.type == 'cuda' else None,
+                gpu_capability=list(torch.cuda.get_device_capability(device)) if device.type == 'cuda' else None,
+                msda_module=msda_file,
                 threshold=args.threshold, weights=args.weights.name, checkpoint_keys=len(state),
                 missing_keys=len(missing), unexpected_keys=len(unexpected),
                 missing_key_prefixes=prefix(missing), unexpected_key_prefixes=prefix(unexpected),
