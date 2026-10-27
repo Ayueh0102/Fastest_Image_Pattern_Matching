@@ -172,6 +172,27 @@ class ScoringTest(unittest.TestCase):
         self.assertFalse(h['H4']['pass_'])
         self.assertFalse(lc.hypotheses(a, None, None, 'geco2_cuda')['H4']['pass_'])  # two of the three scenes cannot pass
 
+    def test_h1c_and_h2_compare_with_the_accuracy_device(self):
+        def row(m, tp, boxes):
+            return dict(case='p', method=m, score=dict(gt=4, strict_tp=tp, association_tp=tp, boxes=dict(tp=boxes)), time_ms=None)
+        cases = {'p': dict(positive=True)}
+        pairs = {('p', 'ours_fullgpu_k3'): [dict(position_px=.1, angle_deg=.1)], ('p', 'tdcm_adapted_cpu'): [dict(position_px=1., angle_deg=1.)]}
+        base = [row('ours_fullgpu_k3', 4, 3), row('tdcm_adapted_cpu', 1, 1)]
+        # (c): ours pooled box recall must not be below the accuracy device's; with (a) and (b) passing it decides H1.
+        h = lc.hypotheses((cases, base + [row('geco2_cuda', 0, 4)], [], pairs), None, None, 'geco2_cuda')
+        self.assertEqual((h['H1']['c']['pass_'], h['H1']['pass']), (False, False))
+        h = lc.hypotheses((cases, base + [row('geco2_cuda', 0, 3), row('geco2_mps', 0, 4)], [], pairs), None, None, 'geco2_cuda')
+        self.assertEqual((h['H1']['c']['pass_'], h['H1']['pass']), (True, True))  # a tie passes; the MPS row is not the accuracy device
+
+        def b2(geco2_ap50, geco2_mae, boxes):
+            methods = dict(geco2_cuda=dict(boxes=dict(ap50=geco2_ap50), count_points=dict(mae=geco2_mae)),
+                           ours_fullgpu_k3=dict(boxes=dict(ap50=.1), count_points=dict(mae=50.)))
+            return lc.hypotheses(None, None, dict(methods=methods, geco2_method='geco2_cuda', boxes_available=boxes), 'geco2_cuda')['H2']
+        self.assertEqual((b2(.7, 60., True)['metric'], b2(.7, 60., True)['pass_']), ('AP50', True))
+        self.assertFalse(b2(.05, 9., True)['pass_'])  # AP50 decides while boxes exist, whatever the counts say
+        self.assertEqual((b2(.05, 9., False)['metric'], b2(.05, 9., False)['pass_']), ('count MAE vs FSC points', True))
+        self.assertFalse(b2(.7, 60., False)['pass_'])
+
 
 class WorkerDirectoryTest(unittest.TestCase):
     def test_output_directory_exists_before_the_worker_starts(self):
