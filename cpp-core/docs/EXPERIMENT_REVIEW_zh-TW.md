@@ -1,6 +1,6 @@
 # Template Matching 研究總索引與人工審查指南
 
-更新：2026-10-26。此頁按第1–50輪列出問題、證據與採用決定。數字是各輪的證據快照，不是同一套輸入的連續加速曲線；不同輪次倍率不能相乘。最新輪次見頁末，第一次閱讀先看[外部導覽](../../docs/PROJECT_GUIDE_zh-TW.md)。
+更新：2026-10-27。此頁按第1–50輪列出問題、證據與採用決定。數字是各輪的證據快照，不是同一套輸入的連續加速曲線；不同輪次倍率不能相乘。最新輪次見頁末，第一次閱讀先看[外部導覽](../../docs/PROJECT_GUIDE_zh-TW.md)。
 
 ## 目前推薦方案
 
@@ -547,5 +547,6 @@ Release 54/54、相關ASan／UBSan 2/2及Python工具75項通過。正式／有�
 - 結果：A組第37輪7場景我們嚴格667/667，TDCM改編0、OpenCV 9；誤差中位數0.025px／0.013°對TDCM改編1.53px／1.27°。大圖多物件完整GPU k3每張373／1134／1476ms，TDCM改編CPU 6.4／14.7／73.0s。照明17場景484/484（OpenCV 112）。弱點：第35輪開發集43×30郵票模板我們只找到4／21／8個（OpenCV各35個）；微小模板負場景誤判338（TDCM改編93）；B1的36×36模板在大尺度時成功率82.6％（S2）、74.7％（S2.5），TDCM為99.6％、98.0％；B2自然影像AP50 0.11對GeCo2（MPS描述性）0.69。
 - 判定：H1否（(a)在第35輪開發集失敗）、H3否（微小模板我們較好）、H4是、H5是；H2與H1(c)待GeCo2的CUDA。GeCo2在MPS上未過事前真偽關卡（AP 40.45／AP50 69.41，論文46.81／75.89），權重已排除，前100張CPU描述性結果AP50 0.861、MPS 0.788；使用者選擇等CUDA、不改用CPU。
 - 驗證：評分與驅動單元測試32項；與第44輪封存48筆輸出逐位相同；從壓縮檔重算全部摘要相同；B1樣本凍結後重建GT雜湊相同；保留門檻第1次、A／C第1次（方法名稱錯誤）與GeCo2關卡第1次（maxDets bug）。
-- 決定：量測輪，不改預設、GUI或CURRENT_BEST。
+- 決定：量測輪，不改預設、GUI或CURRENT_BEST的建議（CURRENT_BEST只加本輪的採用判斷段落）。
+- 合併驗收（2026-10-27）：exact head重現單元測試與索引檢查、封存雜湊、凍結快照、摘要由封存重算逐位相同（`created`除外）；28個評分與判定規則突變原本14個存活，補8項測試後全殺（40項）；獨立重算見報告的驗收補充；揭露H1判定程式在凍結後修正但未列入revisions。
 - 證據：[完整報告](LITERATURE_COMPARISON_zh-TW.md)、[protocol](stage50-literature-comparison/protocol.json)、[正式摘要](stage50-literature-comparison/formal-summary.json)、[判定與失敗](stage50-literature-comparison/decision-and-failures.json)、[驗證](stage50-literature-comparison/validation.json)、[封存](stage50-literature-comparison/archive.json)、[第1階段可行性](stage50-literature-comparison/feasibility.md)。
