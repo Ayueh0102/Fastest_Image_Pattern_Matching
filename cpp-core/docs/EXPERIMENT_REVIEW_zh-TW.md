@@ -560,5 +560,6 @@ Release 54/54、相關ASan／UBSan 2/2及Python工具75項通過。正式／有�
 - 結果：混合k3負場景誤判648（邊界405／內部243）→只開邊界243（0／243）→兩個都開0；嚴格命中4251→4237（−0.30%），被邊界切到的真目標82→77；完整GPU k3相同（648→0，4252→4238）。逐案時間中位數+0.12%／+0.09%。回歸集4710個候選無一超出影像或被剔除，輸出49/49逐位相同。
 - 判定：H1–H6在兩種後端都通過；兩個檢查列為小模板研究設定。
 - 驗證：紅燈`c36da3d`三種模式失敗、綠燈`ef854b2`通過；凍結commit全新Release建置ctest 91/91；`test_round52.py` 10項；封存重算正式摘要（`created`除外）與開發選擇都逐位相同；worker失敗0；保留第1次正式量測（主機檢查把自己的驅動程式當重工作，空等51分鐘、沒有worker執行）。
+- 合併驗收（2026-10-27，執行者＝驗收者）：exact head gate（ctest 91／harness 805／ASan 83）、回歸集「不開」與第50輪封存98/98逐位相同、24個突變原本2個存活（最後一行像素中心、平坦區域），補2項測試後全殺；第三方stdlib重算6項全部相符。揭露：主機檢查只排除本專案程序，保留集1280筆中352筆計時時另有rustc／node等程序佔用CPU；只取兩端安靜的配對，H6仍是+0.095%／+0.040%。
 - 決定：研究選項，GUI、核心、預設與CURRENT_BEST的預設不變；CURRENT_BEST加入小模板的研究設定。
 - 證據：[完整報告](SMALL_TEMPLATE_VERIFY_zh-TW.md)、[protocol](stage52-tiny-false-positives/protocol.json)、[正式摘要](stage52-tiny-false-positives/formal-summary.json)、[判定與失敗](stage52-tiny-false-positives/decision-and-failures.json)、[驗證](stage52-tiny-false-positives/validation.json)、[封存](stage52-tiny-false-positives/archive.json)。

@@ -27,7 +27,7 @@
     "other": "No recognized role; inspect manually"
   },
   "artifact_count": 769,
-  "artifact_bytes": 2914192175,
+  "artifact_bytes": 2914195887,
   "artifact_role_counts": {
     "archive": 146,
     "calibration": 5,
@@ -262,8 +262,8 @@
       "path": "EXPERIMENT_REVIEW_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 103629,
-      "sha256": "92b4f127b448960fb6f2ba3047981ea619482a28976a6dfd9087dbdab1741e4c",
+      "bytes": 104120,
+      "sha256": "e8ab842b3beb63b46cbda90315b1faf19ec67375e2a68757672ce8a83d9ab59d",
       "roles": [
         "report"
       ]
@@ -674,8 +674,8 @@
       "path": "SMALL_TEMPLATE_VERIFY_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 13096,
-      "sha256": "7bafde760e34f0c1a25c2f13f08afb7e0c682299402b501244d8305c1b1902c8",
+      "bytes": 16317,
+      "sha256": "bfc3a0a5a1c9c7ccf73b76453d8f12e9fa047b6c03493f04d69c0dfde6f03988",
       "roles": [
         "report"
       ]
