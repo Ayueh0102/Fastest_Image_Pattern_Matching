@@ -27,7 +27,7 @@
     "other": "No recognized role; inspect manually"
   },
   "artifact_count": 769,
-  "artifact_bytes": 2914195887,
+  "artifact_bytes": 2914197156,
   "artifact_role_counts": {
     "archive": 146,
     "calibration": 5,
@@ -442,8 +442,8 @@
       "path": "LOG_CATALOG_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 23020,
-      "sha256": "8ed601e18cfe800c488e874dd50b75cce5b0e7966be9568e33639514893211c0",
+      "bytes": 24289,
+      "sha256": "640c0898ef7d98c0bb12552db31ba7ee599f3ea2338a859481f681a461d0656f",
       "roles": [
         "report"
       ]

@@ -19,7 +19,7 @@ Read these before substantial changes (docs are in Traditional Chinese):
 3. `cpp-core/docs/CURRENT_BEST_zh-TW.md`: recommended configuration per scenario
 4. `cpp-core/docs/EXPERIMENT_REVIEW_zh-TW.md`: index of research rounds 1–40 with adopt/reject reasons
 
-Git: the active branch is `codex/ncc-fourier-gpu-experiments`, built on `codex/portable-cpp-core`. Remote `fork` is Ayueh0102 (push here); `origin` is upstream DennisLiu1993.
+Git: work lands on `main`, one merge commit per accepted round; round branches are deleted after they merge (the `codex/*` branches are merged history, still on `fork`). Remote `fork` is Ayueh0102 (push here with `git push fork main`; local `main` still tracks upstream `origin/main`); `origin` is upstream DennisLiu1993.
 
 ## Build and Test (cpp-core)
 
