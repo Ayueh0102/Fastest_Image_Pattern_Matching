@@ -1,0 +1,50 @@
+{
+ "stage": 50,
+ "unit_tests": "python-port/venv: cpp-core/tests/test_literature_score.py 18 + test_literature_compare.py 14 = 32, OK (scorer counts equal many_object_accuracy.evaluate on 20 random trials)",
+ "identity_round44": {
+  "compared": 48,
+  "equal": 48,
+  "scope": "first-call matches of hybrid/full-GPU x k0/k3 on controlled6, 8k_t256_angle180_3scales, many128_pose, many512_pose, every block, vs build/stage44-dedup-peak2/formal/results"
+ },
+ "archive_replay": "summaries recomputed from the extracted raw-results archives (A, C-*, compacted B1, B2) equal the summaries from the original outputs (A/C including memory; B1/B2 without the dropped Metal byte fields)",
+ "b1_generator": {
+  "author_log": {
+   "compared": 990,
+   "mismatched": 964,
+   "first_mismatch": {
+    "index": 26,
+    "log": [
+     "样本 26 -- 000000296649.jpg ",
+     "状态: 匹配成功(GT vs. Pred)",
+     "center: (40.48,73.80) vs (40.93,72.86) 误差: 1.04",
+     "angle: 176.42° vs 171.21° 误差: 5.21°",
+     "scale_x: 0.556 vs 0.535 误差: 0.020",
+     "scale_y: 0.722 vs 0.677 误差: 0.045"
+    ],
+    "ours": {
+     "name": "000000296649.jpg",
+     "cx": 188.68834228061587,
+     "cy": 177.0602354737088,
+     "angle": 6.59867485094523,
+     "scale_x": 0.5555555555555556,
+     "scale_y": 0.7222222222222222
+    }
+   }
+  },
+  "postfreeze_truth_equal_prefreeze": true
+ },
+ "fscd_mirror": {
+  "images_identical": true,
+  "annotation_copies_identical": true,
+  "split_sizes_match_paper": true,
+  "classes_match_paper": true,
+  "instances_cover_splits": true,
+  "instances_geometry_valid": false,
+  "duplicate_instances_identical": true
+ },
+ "geco2_gate_cross_check": {
+  "cocoeval_ap50": 69.41352291493463,
+  "literature_score_ap50": 69.26374141417861
+ },
+ "host": "formal A 2026-10-26 15:06-15:36Z, C 15:36-17:37Z under timing-lock-round50-{A,C}-formal.txt, no lock waits; per-worker load and busy processes in the manifests"
+}

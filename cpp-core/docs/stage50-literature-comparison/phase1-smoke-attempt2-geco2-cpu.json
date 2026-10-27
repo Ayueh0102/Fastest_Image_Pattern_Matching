@@ -1,0 +1,20 @@
+{
+ "attempt2_geco2_cpu_reference_points": {
+  "tdcm_demo-geco2_cpu": [
+   "  File \"/Users/Ayueh/Fastest_Image_Pattern_Matching/build/stage50-external/repos/geco2/models/query_generator.py\", line 153, in forward",
+   "    src = layer((src+image_pe),self.reference_points,src,self.spatial_shapes, self.level_start_index)",
+   "                               ^^^^^^^^^^^^^^^^^^^^^",
+   "  File \"/Users/Ayueh/Fastest_Image_Pattern_Matching/build/stage50-external/envs/geco2-py312/lib/python3.12/site-packages/torch/nn/modules/module.py\", line 1940, in __getattr__",
+   "    raise AttributeError(",
+   "AttributeError: 'C_base' object has no attribute 'reference_points'. Did you mean: 'get_reference_points'?"
+  ],
+  "many128-geco2_cpu": [
+   "  File \"/Users/Ayueh/Fastest_Image_Pattern_Matching/build/stage50-external/repos/geco2/models/query_generator.py\", line 153, in forward",
+   "    src = layer((src+image_pe),self.reference_points,src,self.spatial_shapes, self.level_start_index)",
+   "                               ^^^^^^^^^^^^^^^^^^^^^",
+   "  File \"/Users/Ayueh/Fastest_Image_Pattern_Matching/build/stage50-external/envs/geco2-py312/lib/python3.12/site-packages/torch/nn/modules/module.py\", line 1940, in __getattr__",
+   "    raise AttributeError(",
+   "AttributeError: 'C_base' object has no attribute 'reference_points'. Did you mean: 'get_reference_points'?"
+  ]
+ }
+}

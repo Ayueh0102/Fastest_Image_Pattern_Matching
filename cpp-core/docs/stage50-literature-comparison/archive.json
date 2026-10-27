@@ -1,0 +1,172 @@
+{
+  "stage": 50,
+  "path_base": "cpp-core/docs/stage50-literature-comparison",
+  "artifacts": [
+    {
+      "path": "acceptance-b1-paper-iou-correction.json",
+      "bytes": 18780,
+      "sha256": "bdda68d4a414c489130601317a54b8ca5a6a8a2bfc03c4c10bceec6039d9f758"
+    },
+    {
+      "path": "b1-prefreeze-fixtures.json",
+      "bytes": 1914,
+      "sha256": "3e5a7c369e4379ba371279447d4aede0824e886426d9a0f6591e6767cf5410be"
+    },
+    {
+      "path": "decision-and-failures.json",
+      "bytes": 13844,
+      "sha256": "4206619a083b0195a66abb0afa13b4cdd37bc2fa1be41b5aa27ad2b251de6425"
+    },
+    {
+      "path": "dev-ours-b2.json",
+      "bytes": 5148,
+      "sha256": "aeee12478a62d136d3e0ef9ce018e5ffdfc2bc16dc1f5d10a6b55d4e28908e76"
+    },
+    {
+      "path": "dev-tdcm-pipeline.json",
+      "bytes": 3482,
+      "sha256": "7f0ff05389c7a0f8b0810e3cc3a642fa0c4e39d55064f9813ff7e70b40b68c4d"
+    },
+    {
+      "path": "dev-tdcm-threshold-attempt1.json",
+      "bytes": 2793,
+      "sha256": "93cf6d73ee22a63e8ee2aa1b8f29c1a9d82198a27ff52f1c6e697b7ac3e5f436"
+    },
+    {
+      "path": "dev-tdcm-threshold.json",
+      "bytes": 20052,
+      "sha256": "80327b81c1491e425f33d42c46d0b77745b8f68906b2f2b9f30e849fa045ccbd"
+    },
+    {
+      "path": "feasibility.json",
+      "bytes": 21406,
+      "sha256": "c0fbfe6b1c040a38c0894ba025bb38ae688da35e8e4a4a81d91788f5bd8667db"
+    },
+    {
+      "path": "feasibility.md",
+      "bytes": 18936,
+      "sha256": "bdc1d788a02f0a0783157d96fb4e3effb099ac3466a18582f638e693349a38c7"
+    },
+    {
+      "path": "formal-summary.json",
+      "bytes": 1835974,
+      "sha256": "b73aae9e333a8f92e2de2a08bd91db807641cf5d29d1cc39d2b960aa42714eb6"
+    },
+    {
+      "path": "fscd147-mirror-verification.json",
+      "bytes": 4675,
+      "sha256": "4377fb160516aed58df43d1f38e28f6e7953e803b11141a4508f17d88bb3685c"
+    },
+    {
+      "path": "gate-geco2-mps-attempt1-maxdets100-bug.json",
+      "bytes": 1701,
+      "sha256": "02270eec8b360fdeb0464acac8274bc5412cbc91fdd6fa65a9a0552d7ffc0ef1"
+    },
+    {
+      "path": "gate-geco2-mps.json",
+      "bytes": 1724,
+      "sha256": "425c4514d8cfbb3c63358ff0d0fa2ac0cc191110ed25091149f9131be6c051ef"
+    },
+    {
+      "path": "phase1-download-sha256.txt",
+      "bytes": 1075,
+      "sha256": "4d4cc79f077133010c16647f73b4485a0a69a519269ce4ecf579f2c2dec91423"
+    },
+    {
+      "path": "phase1-smoke-attempt1-geco2-scipy.json",
+      "bytes": 58673,
+      "sha256": "e8950016818bf270f431c1ea6df4d3501e96490bcf36d99f6e52babfdcdbcb88"
+    },
+    {
+      "path": "phase1-smoke-attempt2-geco2-cpu.json",
+      "bytes": 1387,
+      "sha256": "91fa4360aedf05d1b36d86ece099d93ad5d400d13c698dcf474c71b70384671b"
+    },
+    {
+      "path": "phase1-smoke-summary.json",
+      "bytes": 68433,
+      "sha256": "228605dd0623401c441f6ac7d11272af09064d0b4bbcad037930d83d304fc6fe"
+    },
+    {
+      "path": "protocol.json",
+      "bytes": 27246,
+      "sha256": "b75c00abe880f9a93141550d2964e10547fae0a7b84d6013278125231cc29d70"
+    },
+    {
+      "path": "raw-results-A.tar.gz",
+      "bytes": 15310743,
+      "sha256": "f8adefc51edfbe902ad3651c1865c5896bb52c123aa36529c8ce3283fdb8e876",
+      "regular_files": 1107
+    },
+    {
+      "path": "raw-results-B1.tar.gz",
+      "bytes": 8495572,
+      "sha256": "e4ec07cc95a02ec0538d9315bac2b52b9b93f11dfe96414e92752f09130742b6",
+      "regular_files": 57634
+    },
+    {
+      "path": "raw-results-B2.tar.gz",
+      "bytes": 14703501,
+      "sha256": "5987d07841ab04ea05c811eeaeb516d1abcbc15c778944f303616dec07ae8e9d",
+      "regular_files": 10720
+    },
+    {
+      "path": "raw-results-C-core-shallow.tar.gz",
+      "bytes": 42085584,
+      "sha256": "158024048ee736326a698643d4c6b308a66596d15f37d53f89f48a329df6b31c",
+      "regular_files": 1440
+    },
+    {
+      "path": "raw-results-C-fullgpu.tar.gz",
+      "bytes": 26947256,
+      "sha256": "51ef9a0a9818a73e0813453b1eba49c55dbe3c04c416cbf23c8977ff6cfe9ba6",
+      "regular_files": 2160
+    },
+    {
+      "path": "raw-results-C-hybrid.tar.gz",
+      "bytes": 36405923,
+      "sha256": "db560d65d4f8f001ff75ea9813c675f8a707a60472d495340a39fd06964fb1a6",
+      "regular_files": 2160
+    },
+    {
+      "path": "raw-results-C-other.tar.gz",
+      "bytes": 676073,
+      "sha256": "1c786a6f20039174fe1b5de7de0e129d6f62f40fb10d999914452c4a4f1ea7f4",
+      "regular_files": 492
+    },
+    {
+      "path": "raw-results-development.tar.gz",
+      "bytes": 17071904,
+      "sha256": "9792e5cdb123ef5d053b3ffcc8fff0440288aa1bb709ca0f3f8dcd39c311f6dd",
+      "regular_files": 4742
+    },
+    {
+      "path": "raw-results-phase1-smoke.tar.gz",
+      "bytes": 123345,
+      "sha256": "20941c520294d5321ba5996b5776e9dbcf1a355e2ea41bb1449af0d1d9cf90c3",
+      "regular_files": 128
+    },
+    {
+      "path": "scene-metadata.tar.gz",
+      "bytes": 920613,
+      "sha256": "17686dd32313eee02a72c91a29af98854cde1ca6a972bbd2540817f12a647ba9",
+      "regular_files": 21
+    },
+    {
+      "path": "source-sha256.json",
+      "bytes": 38991,
+      "sha256": "cf14f51728216a6b8144c969b33380ebaa7b23965d49def6fc84d76c48cc6357"
+    },
+    {
+      "path": "source-snapshot.tar.gz",
+      "bytes": 1058676,
+      "sha256": "29826b534e9b18fc79dee38e09b96081a652c59f64b78866fc2743ae4164d49f",
+      "regular_files": 338
+    },
+    {
+      "path": "validation.json",
+      "bytes": 1929,
+      "sha256": "05c1122e820292eb809347f75900a0416faf76cec8561de82bc5a89420af151b"
+    }
+  ]
+}

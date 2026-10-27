@@ -1,0 +1,129 @@
+{
+ "note": "attempt 1 of dev-tdcm-threshold, stopped by hand: the driver did not create the output directory before the first worker of each threshold, so dev_many_dst8 failed with FileNotFoundError; fixed (run_worker creates it; regression test WorkerDirectoryTest) and the whole selection re-run",
+ "rows": [
+  {
+   "threshold": "th0.01",
+   "case": "dev_proc50000_clean",
+   "status": "ok",
+   "count": 86,
+   "peaks": 294
+  },
+  {
+   "threshold": "th0.01",
+   "case": "dev_proc50000_distractor",
+   "status": "ok",
+   "count": 66,
+   "peaks": 200
+  },
+  {
+   "threshold": "th0.01",
+   "case": "dev_proc50000_empty",
+   "status": "ok",
+   "count": 47,
+   "peaks": 200
+  },
+  {
+   "threshold": "th0.01",
+   "case": "dev_proc50000_noise",
+   "status": "ok",
+   "count": 104,
+   "peaks": 294
+  },
+  {
+   "threshold": "th0.01",
+   "case": "dev_proc50001_clean",
+   "status": "ok",
+   "count": 79,
+   "peaks": 294
+  },
+  {
+   "threshold": "th0.01",
+   "case": "dev_proc50001_distractor",
+   "status": "ok",
+   "count": 49,
+   "peaks": 200
+  },
+  {
+   "threshold": "th0.01",
+   "case": "dev_proc50001_empty",
+   "status": "ok",
+   "count": 51,
+   "peaks": 200
+  },
+  {
+   "threshold": "th0.01",
+   "case": "dev_proc50001_noise",
+   "status": "ok",
+   "count": 95,
+   "peaks": 294
+  },
+  {
+   "threshold": "th0.01",
+   "case": "dev_proc50002_clean",
+   "status": "ok",
+   "count": 49,
+   "peaks": 294
+  },
+  {
+   "threshold": "th0.01",
+   "case": "dev_proc50002_distractor",
+   "status": "ok",
+   "count": 83,
+   "peaks": 200
+  },
+  {
+   "threshold": "th0.01",
+   "case": "dev_proc50002_empty",
+   "status": "ok",
+   "count": 31,
+   "peaks": 200
+  },
+  {
+   "threshold": "th0.01",
+   "case": "dev_proc50002_noise",
+   "status": "ok",
+   "count": 52,
+   "peaks": 294
+  },
+  {
+   "threshold": "th0.01",
+   "case": "dev_proc50003_clean",
+   "status": "ok",
+   "count": 49,
+   "peaks": 294
+  },
+  {
+   "threshold": "th0.01",
+   "case": "dev_proc50003_distractor",
+   "status": "ok",
+   "count": 100,
+   "peaks": 200
+  },
+  {
+   "threshold": "th0.01",
+   "case": "dev_proc50003_empty",
+   "status": "ok",
+   "count": 0,
+   "peaks": 0
+  },
+  {
+   "threshold": "th0.01",
+   "case": "dev_proc50003_noise",
+   "status": "ok",
+   "count": 49,
+   "peaks": 294
+  },
+  {
+   "threshold": "th0.01",
+   "case": "dev_many_dst8",
+   "status": "failed",
+   "error": "FileNotFoundError: [Errno 2] No such file or directory: '/Users/Ayueh/Fastest_Image_Pattern_Matching/build/stage50-external/dev/tdcm-threshold/th0.01/dev_many_dst8.json'"
+  },
+  {
+   "threshold": "th0.05",
+   "case": "dev_many_dst8",
+   "status": "failed",
+   "error": "FileNotFoundError: [Errno 2] No such file or directory: '/Users/Ayueh/Fastest_Image_Pattern_Matching/build/stage50-external/dev/tdcm-threshold/th0.05/dev_many_dst8.json'"
+  }
+ ]
+}

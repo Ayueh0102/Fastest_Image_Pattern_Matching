@@ -26,44 +26,44 @@
     "metadata": "Filesystem sidecar metadata",
     "other": "No recognized role; inspect manually"
   },
-  "artifact_count": 715,
-  "artifact_bytes": 2647266429,
+  "artifact_count": 748,
+  "artifact_bytes": 2813251192,
   "artifact_role_counts": {
-    "archive": 127,
+    "archive": 138,
     "calibration": 5,
-    "failure_review": 26,
-    "false_gate": 60,
-    "formal": 47,
+    "failure_review": 31,
+    "false_gate": 63,
+    "formal": 48,
     "input": 21,
-    "other": 55,
+    "other": 63,
     "pilot": 19,
-    "protocol": 50,
-    "provenance": 76,
-    "raw": 84,
-    "report": 77,
-    "source": 24,
-    "summary": 169,
-    "validation": 96,
+    "protocol": 51,
+    "provenance": 79,
+    "raw": 93,
+    "report": 79,
+    "source": 25,
+    "summary": 180,
+    "validation": 97,
     "visual": 68
   },
-  "archive_member_count": 57000,
+  "archive_member_count": 137942,
   "archive_member_role_counts": {
     "archive": 26,
     "binary": 47,
     "calibration": 1,
-    "failure_review": 36,
+    "failure_review": 122,
     "formal": 32804,
-    "input": 609,
+    "input": 610,
     "metadata": 6526,
-    "other": 4375,
+    "other": 56217,
     "pilot": 4301,
     "protocol": 114,
-    "provenance": 128,
-    "raw": 16548,
-    "report": 88,
-    "source": 12440,
-    "summary": 1171,
-    "validation": 1190,
+    "provenance": 139,
+    "raw": 45252,
+    "report": 89,
+    "source": 12767,
+    "summary": 1192,
+    "validation": 1192,
     "visual": 892
   },
   "artifacts": [
@@ -211,8 +211,8 @@
       "path": "CURRENT_BEST_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 17882,
-      "sha256": "8b8eb6235612ec438a7274edaaf39bda53e7d592881d6871e16d8426c3b979d7",
+      "bytes": 18794,
+      "sha256": "8d61cde00917d734df448efd03fdaccb6edee0521e3abb9e74bd9bac41ea86b4",
       "roles": [
         "report"
       ]
@@ -262,8 +262,8 @@
       "path": "EXPERIMENT_REVIEW_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 96501,
-      "sha256": "cd93a9eeba252f166ec2dc835232a2ec3bd5e500b39d183169e180690846f059",
+      "bytes": 100144,
+      "sha256": "5cee05cb54a556fceb7e3b264a3b0d7984ae1db965ac9cd32e9db69a48f800ec",
       "roles": [
         "report"
       ]
@@ -429,11 +429,21 @@
       ]
     },
     {
+      "path": "LITERATURE_COMPARISON_zh-TW.md",
+      "group": "root",
+      "stage": null,
+      "bytes": 25479,
+      "sha256": "3484184969f0942c6d75fbd56ce41dfd4e224944754caeb2d721ad536326c95a",
+      "roles": [
+        "report"
+      ]
+    },
+    {
       "path": "LOG_CATALOG_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 20670,
-      "sha256": "397f8968f9587b6449afd7b6948d512e9df41b2c59d5ab67e6b8653c75d9a1e6",
+      "bytes": 21704,
+      "sha256": "b1736387533a8ab695ea0b750bba68226eb035caf374ce32dd504f921f4fbb4d",
       "roles": [
         "report"
       ]
@@ -603,8 +613,8 @@
       "path": "PROJECT_STATUS_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 15664,
-      "sha256": "8c2983b64a1ff7fe02855e9877199137cf0f485d68a62e19d4720d0a0ef2a4a2",
+      "bytes": 16578,
+      "sha256": "1f8b42ce0859618b71665773890daa6dd9c044bc872b14523d2c3a050201fec8",
       "roles": [
         "report"
       ]
@@ -9444,6 +9454,429 @@
       ]
     },
     {
+      "path": "stage50-literature-comparison/acceptance-b1-paper-iou-correction.json",
+      "group": "stage50-literature-comparison",
+      "stage": "50",
+      "bytes": 18780,
+      "sha256": "bdda68d4a414c489130601317a54b8ca5a6a8a2bfc03c4c10bceec6039d9f758",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "stage50-literature-comparison/archive.json",
+      "group": "stage50-literature-comparison",
+      "stage": "50",
+      "bytes": 5428,
+      "sha256": "10f03d697326b16bd577ead0fde1205b4ed8b90507001120b043f8b26a769bc9",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage50-literature-comparison/b1-prefreeze-fixtures.json",
+      "group": "stage50-literature-comparison",
+      "stage": "50",
+      "bytes": 1914,
+      "sha256": "3e5a7c369e4379ba371279447d4aede0824e886426d9a0f6591e6767cf5410be",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "stage50-literature-comparison/decision-and-failures.json",
+      "group": "stage50-literature-comparison",
+      "stage": "50",
+      "bytes": 13844,
+      "sha256": "4206619a083b0195a66abb0afa13b4cdd37bc2fa1be41b5aa27ad2b251de6425",
+      "roles": [
+        "failure_review"
+      ]
+    },
+    {
+      "path": "stage50-literature-comparison/dev-ours-b2.json",
+      "group": "stage50-literature-comparison",
+      "stage": "50",
+      "bytes": 5148,
+      "sha256": "aeee12478a62d136d3e0ef9ce018e5ffdfc2bc16dc1f5d10a6b55d4e28908e76",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "stage50-literature-comparison/dev-tdcm-pipeline.json",
+      "group": "stage50-literature-comparison",
+      "stage": "50",
+      "bytes": 3482,
+      "sha256": "7f0ff05389c7a0f8b0810e3cc3a642fa0c4e39d55064f9813ff7e70b40b68c4d",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "stage50-literature-comparison/dev-tdcm-threshold-attempt1.json",
+      "group": "stage50-literature-comparison",
+      "stage": "50",
+      "bytes": 2793,
+      "sha256": "93cf6d73ee22a63e8ee2aa1b8f29c1a9d82198a27ff52f1c6e697b7ac3e5f436",
+      "roles": [
+        "failure_review"
+      ]
+    },
+    {
+      "path": "stage50-literature-comparison/dev-tdcm-threshold.json",
+      "group": "stage50-literature-comparison",
+      "stage": "50",
+      "bytes": 20052,
+      "sha256": "80327b81c1491e425f33d42c46d0b77745b8f68906b2f2b9f30e849fa045ccbd",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "stage50-literature-comparison/feasibility.json",
+      "group": "stage50-literature-comparison",
+      "stage": "50",
+      "bytes": 21406,
+      "sha256": "c0fbfe6b1c040a38c0894ba025bb38ae688da35e8e4a4a81d91788f5bd8667db",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "stage50-literature-comparison/feasibility.md",
+      "group": "stage50-literature-comparison",
+      "stage": "50",
+      "bytes": 18936,
+      "sha256": "bdc1d788a02f0a0783157d96fb4e3effb099ac3466a18582f638e693349a38c7",
+      "roles": [
+        "report"
+      ]
+    },
+    {
+      "path": "stage50-literature-comparison/formal-summary.json",
+      "group": "stage50-literature-comparison",
+      "stage": "50",
+      "bytes": 1835974,
+      "sha256": "b73aae9e333a8f92e2de2a08bd91db807641cf5d29d1cc39d2b960aa42714eb6",
+      "roles": [
+        "false_gate",
+        "formal",
+        "summary"
+      ],
+      "explicit_false_gates": [
+        "/hypotheses/H1/a_pass",
+        "/hypotheses/H1/pass"
+      ]
+    },
+    {
+      "path": "stage50-literature-comparison/fscd147-mirror-verification.json",
+      "group": "stage50-literature-comparison",
+      "stage": "50",
+      "bytes": 4675,
+      "sha256": "4377fb160516aed58df43d1f38e28f6e7953e803b11141a4508f17d88bb3685c",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "stage50-literature-comparison/gate-geco2-mps-attempt1-maxdets100-bug.json",
+      "group": "stage50-literature-comparison",
+      "stage": "50",
+      "bytes": 1701,
+      "sha256": "02270eec8b360fdeb0464acac8274bc5412cbc91fdd6fa65a9a0552d7ffc0ef1",
+      "roles": [
+        "failure_review",
+        "false_gate"
+      ],
+      "explicit_false_gates": [
+        "/gate_pass"
+      ]
+    },
+    {
+      "path": "stage50-literature-comparison/gate-geco2-mps.json",
+      "group": "stage50-literature-comparison",
+      "stage": "50",
+      "bytes": 1724,
+      "sha256": "425c4514d8cfbb3c63358ff0d0fa2ac0cc191110ed25091149f9131be6c051ef",
+      "roles": [
+        "false_gate",
+        "other"
+      ],
+      "explicit_false_gates": [
+        "/gate_pass"
+      ]
+    },
+    {
+      "path": "stage50-literature-comparison/phase1-download-sha256.txt",
+      "group": "stage50-literature-comparison",
+      "stage": "50",
+      "bytes": 1075,
+      "sha256": "4d4cc79f077133010c16647f73b4485a0a69a519269ce4ecf579f2c2dec91423",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage50-literature-comparison/phase1-smoke-attempt1-geco2-scipy.json",
+      "group": "stage50-literature-comparison",
+      "stage": "50",
+      "bytes": 58673,
+      "sha256": "e8950016818bf270f431c1ea6df4d3501e96490bcf36d99f6e52babfdcdbcb88",
+      "roles": [
+        "failure_review"
+      ]
+    },
+    {
+      "path": "stage50-literature-comparison/phase1-smoke-attempt2-geco2-cpu.json",
+      "group": "stage50-literature-comparison",
+      "stage": "50",
+      "bytes": 1387,
+      "sha256": "91fa4360aedf05d1b36d86ece099d93ad5d400d13c698dcf474c71b70384671b",
+      "roles": [
+        "failure_review"
+      ]
+    },
+    {
+      "path": "stage50-literature-comparison/phase1-smoke-summary.json",
+      "group": "stage50-literature-comparison",
+      "stage": "50",
+      "bytes": 68433,
+      "sha256": "228605dd0623401c441f6ac7d11272af09064d0b4bbcad037930d83d304fc6fe",
+      "roles": [
+        "summary"
+      ]
+    },
+    {
+      "path": "stage50-literature-comparison/protocol.json",
+      "group": "stage50-literature-comparison",
+      "stage": "50",
+      "bytes": 27246,
+      "sha256": "b75c00abe880f9a93141550d2964e10547fae0a7b84d6013278125231cc29d70",
+      "roles": [
+        "protocol"
+      ]
+    },
+    {
+      "path": "stage50-literature-comparison/raw-results-A.tar.gz",
+      "group": "stage50-literature-comparison",
+      "stage": "50",
+      "bytes": 15310743,
+      "sha256": "f8adefc51edfbe902ad3651c1865c5896bb52c123aa36529c8ce3283fdb8e876",
+      "roles": [
+        "archive",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 1107,
+      "archive_role_counts": {
+        "failure_review": 3,
+        "other": 702,
+        "provenance": 2,
+        "raw": 402
+      }
+    },
+    {
+      "path": "stage50-literature-comparison/raw-results-B1.tar.gz",
+      "group": "stage50-literature-comparison",
+      "stage": "50",
+      "bytes": 8495572,
+      "sha256": "e4ec07cc95a02ec0538d9315bac2b52b9b93f11dfe96414e92752f09130742b6",
+      "roles": [
+        "archive",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 57634,
+      "archive_role_counts": {
+        "other": 36820,
+        "provenance": 2,
+        "raw": 20812
+      }
+    },
+    {
+      "path": "stage50-literature-comparison/raw-results-B2.tar.gz",
+      "group": "stage50-literature-comparison",
+      "stage": "50",
+      "bytes": 14703501,
+      "sha256": "5987d07841ab04ea05c811eeaeb516d1abcbc15c778944f303616dec07ae8e9d",
+      "roles": [
+        "archive",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 10720,
+      "archive_role_counts": {
+        "failure_review": 1,
+        "other": 7145,
+        "provenance": 2,
+        "raw": 3572
+      }
+    },
+    {
+      "path": "stage50-literature-comparison/raw-results-C-core-shallow.tar.gz",
+      "group": "stage50-literature-comparison",
+      "stage": "50",
+      "bytes": 42085584,
+      "sha256": "158024048ee736326a698643d4c6b308a66596d15f37d53f89f48a329df6b31c",
+      "roles": [
+        "archive",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 1440,
+      "archive_role_counts": {
+        "other": 864,
+        "raw": 576
+      }
+    },
+    {
+      "path": "stage50-literature-comparison/raw-results-C-fullgpu.tar.gz",
+      "group": "stage50-literature-comparison",
+      "stage": "50",
+      "bytes": 26947256,
+      "sha256": "51ef9a0a9818a73e0813453b1eba49c55dbe3c04c416cbf23c8977ff6cfe9ba6",
+      "roles": [
+        "archive",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 2160,
+      "archive_role_counts": {
+        "other": 1440,
+        "raw": 720
+      }
+    },
+    {
+      "path": "stage50-literature-comparison/raw-results-C-hybrid.tar.gz",
+      "group": "stage50-literature-comparison",
+      "stage": "50",
+      "bytes": 36405923,
+      "sha256": "db560d65d4f8f001ff75ea9813c675f8a707a60472d495340a39fd06964fb1a6",
+      "roles": [
+        "archive",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 2160,
+      "archive_role_counts": {
+        "other": 1440,
+        "raw": 720
+      }
+    },
+    {
+      "path": "stage50-literature-comparison/raw-results-C-other.tar.gz",
+      "group": "stage50-literature-comparison",
+      "stage": "50",
+      "bytes": 676073,
+      "sha256": "1c786a6f20039174fe1b5de7de0e129d6f62f40fb10d999914452c4a4f1ea7f4",
+      "roles": [
+        "archive",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 492,
+      "archive_role_counts": {
+        "failure_review": 3,
+        "other": 244,
+        "provenance": 2,
+        "raw": 245
+      }
+    },
+    {
+      "path": "stage50-literature-comparison/raw-results-development.tar.gz",
+      "group": "stage50-literature-comparison",
+      "stage": "50",
+      "bytes": 17071904,
+      "sha256": "9792e5cdb123ef5d053b3ffcc8fff0440288aa1bb709ca0f3f8dcd39c311f6dd",
+      "roles": [
+        "archive",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 4742,
+      "archive_role_counts": {
+        "failure_review": 34,
+        "other": 3103,
+        "provenance": 1,
+        "raw": 1622
+      }
+    },
+    {
+      "path": "stage50-literature-comparison/raw-results-phase1-smoke.tar.gz",
+      "group": "stage50-literature-comparison",
+      "stage": "50",
+      "bytes": 123345,
+      "sha256": "20941c520294d5321ba5996b5776e9dbcf1a355e2ea41bb1449af0d1d9cf90c3",
+      "roles": [
+        "archive",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 128,
+      "archive_role_counts": {
+        "failure_review": 45,
+        "other": 56,
+        "raw": 35,
+        "summary": 3
+      }
+    },
+    {
+      "path": "stage50-literature-comparison/scene-metadata.tar.gz",
+      "group": "stage50-literature-comparison",
+      "stage": "50",
+      "bytes": 920613,
+      "sha256": "17686dd32313eee02a72c91a29af98854cde1ca6a972bbd2540817f12a647ba9",
+      "roles": [
+        "archive"
+      ],
+      "archive_file_count": 21,
+      "archive_role_counts": {
+        "other": 19,
+        "provenance": 2
+      }
+    },
+    {
+      "path": "stage50-literature-comparison/source-sha256.json",
+      "group": "stage50-literature-comparison",
+      "stage": "50",
+      "bytes": 38991,
+      "sha256": "cf14f51728216a6b8144c969b33380ebaa7b23965d49def6fc84d76c48cc6357",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "stage50-literature-comparison/source-snapshot.tar.gz",
+      "group": "stage50-literature-comparison",
+      "stage": "50",
+      "bytes": 1058676,
+      "sha256": "29826b534e9b18fc79dee38e09b96081a652c59f64b78866fc2743ae4164d49f",
+      "roles": [
+        "archive",
+        "source"
+      ],
+      "archive_file_count": 338,
+      "archive_role_counts": {
+        "input": 1,
+        "other": 9,
+        "report": 1,
+        "source": 327,
+        "summary": 18,
+        "validation": 2
+      }
+    },
+    {
+      "path": "stage50-literature-comparison/validation.json",
+      "group": "stage50-literature-comparison",
+      "stage": "50",
+      "bytes": 1929,
+      "sha256": "05c1122e820292eb809347f75900a0416faf76cec8561de82bc5a89420af151b",
+      "roles": [
+        "validation"
+      ]
+    },
+    {
       "path": "validation-after-refinement.json",
       "group": "root",
       "stage": null,
@@ -9464,5 +9897,5 @@
       ]
     }
   ],
-  "archive_member_index_sha256": "3254fbb61b2f9c9935008f0194002dffa076e93c10b5fe57fba780c1f725e339"
+  "archive_member_index_sha256": "ec0b95728682cd3a00f37153942bf37695781a525dc74ec77644ec2029846855"
 }

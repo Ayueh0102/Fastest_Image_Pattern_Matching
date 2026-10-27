@@ -57,6 +57,7 @@ Include/
 !/cpp-core/include/**
 !/cpp-core/README_zh-TW.md
 !/cpp-core/docs/*.md
+!/cpp-core/docs/stage50-literature-comparison/*.md
 !/docs/PROJECT_GUIDE_zh-TW.md
 
 # Claude Code project guidance
