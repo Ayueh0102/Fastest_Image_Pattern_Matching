@@ -34,7 +34,6 @@ import importlib
 import json
 import os
 from pathlib import Path
-import resource
 import sys
 import time
 import types
@@ -56,6 +55,30 @@ def install_reference_deform_attn(repo):
     shim.ms_deform_attn_backward = backward
     sys.modules['MultiScaleDeformableAttention'] = shim
     return ops_dir
+
+
+def peak_rss_bytes():
+    """Peak resident memory of this process: ru_maxrss (bytes on macOS, KiB on Linux), peak working set on Windows."""
+    if sys.platform == 'win32':
+        import ctypes
+        from ctypes import wintypes
+
+        class Counters(ctypes.Structure):
+            _fields_ = [('cb', wintypes.DWORD), ('PageFaultCount', wintypes.DWORD)] + [
+                (n, ctypes.c_size_t) for n in ('PeakWorkingSetSize', 'WorkingSetSize', 'QuotaPeakPagedPoolUsage',
+                                              'QuotaPagedPoolUsage', 'QuotaPeakNonPagedPoolUsage', 'QuotaNonPagedPoolUsage',
+                                              'PagefileUsage', 'PeakPagefileUsage')]
+        c = Counters(cb=ctypes.sizeof(Counters))
+        kernel32 = ctypes.WinDLL('kernel32')
+        kernel32.GetCurrentProcess.restype = wintypes.HANDLE
+        psapi = ctypes.WinDLL('psapi', use_last_error=True)
+        psapi.GetProcessMemoryInfo.argtypes = [wintypes.HANDLE, ctypes.POINTER(Counters), wintypes.DWORD]
+        if not psapi.GetProcessMemoryInfo(kernel32.GetCurrentProcess(), ctypes.byref(c), c.cb):
+            raise OSError(ctypes.get_last_error())
+        return c.PeakWorkingSetSize
+    import resource
+    rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    return rss if sys.platform == 'darwin' else rss * 1024
 
 
 def register_ops_package(ops_dir):
@@ -165,8 +188,7 @@ def main():
         return detections, timing
 
     def memory():
-        rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-        out = dict(peak_rss_bytes=rss if sys.platform == 'darwin' else rss * 1024)  # Linux reports KiB
+        out = dict(peak_rss_bytes=peak_rss_bytes(), platform=sys.platform)
         if device.type == 'mps':
             out['mps_driver_allocated_bytes'] = torch.mps.driver_allocated_memory()
         elif device.type == 'cuda':

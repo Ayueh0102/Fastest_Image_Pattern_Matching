@@ -844,7 +844,7 @@ def run_b2(args, cfg, protocol):
 
 # ---------------------------------------------------------------- GeCo2 on the lab PC's CUDA
 
-CUDA_TOOLS = ('literature_geco2_worker.py', 'literature_geco2_cuda_setup.sh', 'literature_geco2_cuda_precheck.py',
+CUDA_TOOLS = ('literature_geco2_worker.py', 'literature_geco2_cuda_setup.ps1', 'literature_geco2_cuda_precheck.py',
               'literature_geco2_cuda_run.py')
 
 
@@ -997,7 +997,8 @@ def summarize_scenes(run_dir):
             constructs = [e['construct_ms'] for e in ok if e.get('construct_ms') is not None]
             row['construct_ms'] = statistics.median(constructs) if constructs else None
             row['memory'] = memory_of(ok[0])
-            row['load1_median'] = statistics.median(e['host']['load1'] for e in ok)
+            loads = [e['host']['load1'] for e in ok if e['host'].get('load1') is not None]  # the Windows lab PC has none
+            row['load1_median'] = statistics.median(loads) if loads else None
             for key in ('complete', 'extrapolated_ms', 'maps', 'planned_maps', 'job_from_round44', 'exact_repeat'):
                 if key in ok[0]:
                     row[key] = ok[0][key]

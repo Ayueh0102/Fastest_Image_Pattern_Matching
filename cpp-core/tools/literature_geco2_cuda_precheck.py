@@ -1,6 +1,6 @@
-"""Round 50: the four pre-checks before any GeCo2 CUDA run on the lab PC (WSL2 Ubuntu, RTX PRO 4000).
+"""Round 50: the four pre-checks before any GeCo2 CUDA run on the lab PC (Windows, RTX PRO 4000).
 
-Runs in the GeCo2 CUDA environment (``python -I``) after literature_geco2_cuda_setup.sh:
+Runs in the GeCo2 CUDA environment (``python -I``) after literature_geco2_cuda_setup.ps1:
 1. torch sees the GPU (cuda available, compute capability, sm_120 in the build's arch list).
 2. The compiled MultiScaleDeformableAttention extension is the one imported, and its CUDA
    forward agrees with Deformable-DETR's ms_deform_attn_core_pytorch on random inputs.
@@ -67,12 +67,12 @@ def main():
     diff = float((got.double() - ref).abs().max())
     module = getattr(MSDA, '__file__', '')
     record['msda'] = dict(module=module, max_abs_diff_vs_reference_fp64=diff, output_shape=list(got.shape))
-    record['msda']['pass'] = module.endswith('.so') and math.isfinite(diff) and diff < 1e-4
+    record['msda']['pass'] = module.endswith(('.so', '.pyd')) and math.isfinite(diff) and diff < 1e-4  # .pyd on Windows
 
     run = subprocess.run([sys.executable, '-I', str(args.worker), '--repo', str(repo), '--weights', str(args.weights),
                           '--torch-home', str(args.torch_home), '--image', str(args.image), '--exemplars', args.exemplars,
                           '--device', 'cuda', '--deform-attn', 'cuda', '--warmup', '1', '--repeats', '1'],
-                         capture_output=True, text=True)
+                         capture_output=True, encoding='utf-8', errors='replace')
     record['one_image'] = dict(returncode=run.returncode, stderr_tail=run.stderr.splitlines()[-20:])
     if run.returncode == 0:
         out = json.loads(run.stdout)

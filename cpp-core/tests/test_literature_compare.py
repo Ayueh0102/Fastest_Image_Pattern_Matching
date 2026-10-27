@@ -282,6 +282,16 @@ class GeCo2CudaPackageTest(unittest.TestCase):
         table = lc.summarize_scenes(self.runs['A'])[1]
         self.assertEqual([(r['method'], r['ok_blocks']) for r in table], [('geco2_cuda', 1)])
 
+    def test_windows_host_without_load_average_still_summarises(self):
+        d = self.runs['A']
+        out = d / 'geco2_cuda' / 'good-b0.json'
+        out.parent.mkdir()
+        out.write_text(json.dumps(dict(detections=[], exact_repeat=True, memory={}, timing_ms=dict(call_median=1., calls=[1.], load_model=1.))))
+        row = dict(case='good', method='geco2_cuda', block=0, status='ok', output=str(out), time_ms=1.,
+                   host=dict(load1=None, cpu_load_percent=3.))
+        (d / 'manifest.jsonl').write_text(json.dumps(row) + '\n')
+        self.assertIsNone(lc.summarize_scenes(d)[1][0]['load1_median'])
+
 
 if __name__ == '__main__':
     unittest.main()

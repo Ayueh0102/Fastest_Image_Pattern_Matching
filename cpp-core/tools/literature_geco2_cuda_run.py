@@ -1,13 +1,15 @@
-"""Round 50: the GeCo2 CUDA runs on the lab PC (WSL2 Ubuntu, RTX PRO 4000), from a package
+"""Round 50: the GeCo2 CUDA runs on the lab PC (Windows, RTX PRO 4000), from a package
 made by ``literature_compare.py export-geco2-cuda``.
 
-Runs in the GeCo2 CUDA environment (``python -I``), detached from the SSH session.
+Runs in the GeCo2 CUDA environment (``python -I``), detached from the SSH session
+(started through Win32_Process.Create, so it is outside the SSH session's job object).
 - B2: one batch over the 1,190 FSC-147 test images in split order (the M4 Pro MPS
   batch's command with ``--device cuda --deform-attn cuda``), 3-hour timeout.
 - A and C: one fresh worker process per positive case, 1 warm-up and 1 measured call
   (the protocol's geco2 budget), 8 threads, threshold 0.11, 1-hour timeout.
-Before every worker it records the 1-minute load and the GPU's utilisation and memory
-in use (nvidia-smi; WSL lists no per-process GPU users). Every attempt is one row of
+Before every worker it records the host load (the 1-minute load average where there is
+one; Windows has none, so the CPU LoadPercentage instead) and the GPU's utilisation,
+memory in use and compute processes (nvidia-smi). Every attempt is one row of
 ``<out>/manifest.jsonl``. A restart skips every key that already has a row, failed ones
 included, so failures are kept and nothing is rerun for nicer numbers; a worker that was
 running when the host died has no row and runs again, which the row's ``attempt`` shows.
@@ -27,18 +29,30 @@ def now():
     return datetime.now(timezone.utc).isoformat()
 
 
+def query(cmd):
+    try:
+        return subprocess.run(cmd, capture_output=True, encoding='utf-8', errors='replace', timeout=60).stdout.strip()
+    except (OSError, subprocess.TimeoutExpired) as error:
+        return repr(error)
+
+
 def gpu_state():
     q = 'utilization.gpu,memory.used,memory.total,temperature.gpu,clocks.sm,power.draw'
-    try:
-        r = subprocess.run(['nvidia-smi', f'--query-gpu={q}', '--format=csv,noheader,nounits'],
-                           capture_output=True, text=True, timeout=30)
-        return dict(zip(q.split(','), (v.strip() for v in r.stdout.strip().split(','))))
-    except (OSError, subprocess.TimeoutExpired) as error:
-        return dict(error=repr(error))
+    out = query(['nvidia-smi', f'--query-gpu={q}', '--format=csv,noheader,nounits'])
+    state = dict(zip(q.split(','), (v.strip() for v in out.split(','))))
+    state['compute_apps'] = query(['nvidia-smi', '--query-compute-apps=pid,process_name,used_memory', '--format=csv,noheader'])
+    return state
 
 
 def host_state():
-    return dict(utc=now(), hostname=socket.gethostname(), load1=os.getloadavg()[0], gpu=gpu_state())
+    state = dict(utc=now(), hostname=socket.gethostname(), gpu=gpu_state())
+    if hasattr(os, 'getloadavg'):
+        state['load1'] = os.getloadavg()[0]
+    else:
+        cpu = query(['powershell', '-NoProfile', '-Command',
+                     '(Get-CimInstance Win32_Processor | Measure-Object LoadPercentage -Average).Average'])
+        state.update(load1=None, cpu_load_percent=float(cpu) if cpu.replace('.', '', 1).isdigit() else cpu)
+    return state
 
 
 def main():
@@ -67,14 +81,15 @@ def main():
         host = host_state()
         t = time.perf_counter()
         try:
-            r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+            # The lab PC's locale is cp950: decode explicitly so a stray byte cannot stop the run.
+            r = subprocess.run(cmd, capture_output=True, encoding='utf-8', errors='replace', timeout=timeout)
             code, stderr = r.returncode, r.stderr
         except subprocess.TimeoutExpired as e:
             code, stderr = 'timeout', e.stderr if isinstance(e.stderr, str) else ''
         wall = (time.perf_counter() - t) * 1e3
-        result.with_suffix('.stderr.txt').write_text(stderr or '')
+        result.with_suffix('.stderr.txt').write_text(stderr or '', encoding='utf-8')
         row = dict(group=group, case=case, method='geco2_cuda', block=0, status='ok' if code == 0 else 'failed',
-                   output=str(result.relative_to(out)), returncode=code, wall_ms=wall, host=host, attempt=attempt,
+                   output=result.relative_to(out).as_posix(), returncode=code, wall_ms=wall, host=host, attempt=attempt,
                    cmd=[str(c) for c in cmd], finished=now())
         if code != 0:
             row['stderr_tail'] = (stderr or '')[-1500:]
