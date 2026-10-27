@@ -37,8 +37,17 @@ function Get-RebootPending {
     if (Test-Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending') { $flags += 'CBS' }
     if (Test-Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired') { $flags += 'WindowsUpdate' }
     $rename = (Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager' -Name PendingFileRenameOperations -ErrorAction SilentlyContinue).PendingFileRenameOperations
-    if ($rename) { $flags += 'PendingFileRename' }
+    if ($rename) { $flags += "PendingFileRename($($rename.Count))" }
     return ($flags -join ',')
+}
+
+# The lab PC already had PendingFileRenameOperations (68 entries on 2026-10-27) before this script ran,
+# so only an installer's 3010 or a CBS/Windows Update reboot flag that was not there before stops here.
+function Test-NewRebootFlag([string]$before, [string]$after) {
+    foreach ($flag in 'CBS', 'WindowsUpdate') {
+        if ($after.Split(',') -contains $flag -and -not ($before.Split(',') -contains $flag)) { return $true }
+    }
+    return $false
 }
 
 function Get-File([string]$url, [string]$path) {
@@ -54,7 +63,8 @@ function Get-File([string]$url, [string]$path) {
 function Get-DriverVersion { (& nvidia-smi --query-gpu=driver_version --format=csv,noheader).Trim() }
 
 try {
-    Write-Status "started (reboot pending before: '$(Get-RebootPending)', driver $(Get-DriverVersion))"
+    $pendingBefore = Get-RebootPending
+    Write-Status "started (reboot pending before: '$pendingBefore', driver $(Get-DriverVersion))"
     if ($Phase -eq 'tools') {
         $vs = Get-File 'https://aka.ms/vs/17/release/vs_buildtools.exe' (Join-Path $Installers 'vs_buildtools.exe')
         $vs | ConvertTo-Json | Set-Content (Join-Path $Logs 'installer-vs.json')
@@ -82,8 +92,8 @@ try {
         $now = Get-DriverVersion
         if ($now -ne $Driver) { throw "driver changed: $now (expected $Driver)" }
         $pending = Get-RebootPending
-        if ($pending) { Write-Status "reboot-required after the tools ($pending); stopped"; exit 3010 }
-        Write-Status "done (driver $now)"
+        if (Test-NewRebootFlag $pendingBefore $pending) { Write-Status "reboot-required after the tools ($pending, before '$pendingBefore'); stopped"; exit 3010 }
+        Write-Status "done (driver $now; reboot flags before '$pendingBefore', after '$pending')"
         exit 0
     }
 
