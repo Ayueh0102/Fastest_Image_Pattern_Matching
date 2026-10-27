@@ -1,0 +1,41 @@
+{
+ "stage": 52,
+ "build_dir": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/stage52-release",
+ "commit": "bcd409dd18f3c2f5199404916e1fdaee8e7f99c5",
+ "cmake": {
+  "CMAKE_BUILD_TYPE:STRING": "Release",
+  "FPM_BUILD_EXPERIMENTS:BOOL": "ON",
+  "FPM_BUILD_GUI:BOOL": "ON",
+  "FPM_BUILD_TESTS:BOOL": "ON",
+  "FPM_DISABLE_SIMD:BOOL": "OFF",
+  "FPM_SANITIZERS:BOOL": "OFF",
+  "FPM_WITH_OPENCV:BOOL": "ON",
+  "CMAKE_HOME_DIRECTORY:INTERNAL": "/Users/Ayueh/Fastest_Image_Pattern_Matching/.claude/worktrees/round52-tiny-false-positives/cpp-core"
+ },
+ "runner_sha256": "10636f1b1095e797282b67d640f4ed3754f9cc51adda10e87caf2cc1edf0f8f5",
+ "runner_mtime_local": "2026-10-27 15:33:36",
+ "match_verify_object": "experiments/CMakeFiles/fpm_research_pipeline.dir/match_verify.cpp.o",
+ "build": {
+  "HEAD_BEFORE": "bcd409dd18f3c2f5199404916e1fdaee8e7f99c5",
+  "CLEAN_BEFORE": "true",
+  "START": "2026-10-27T07:33:25Z",
+  "COMMAND": "bash -c cmake -S cpp-core -B /Users/Ayueh/Fastest_Image_Pattern_Matching/build/stage52-release -DCMAKE_BUILD_TYPE=Release -DFPM_BUILD_GUI=ON -DFPM_BUILD_EXPERIMENTS=ON -DFPM_WITH_OPENCV=ON && cmake --build /Users/Ayueh/Fastest_Image_Pattern_Matching/build/stage52-release -j 12",
+  "EXIT": "0",
+  "END": "2026-10-27T07:33:37Z",
+  "HEAD_AFTER": "bcd409dd18f3c2f5199404916e1fdaee8e7f99c5",
+  "CLEAN_AFTER": "true",
+  "LOG_SHA256": "d445d3281ccc4225fa8ee7627553700738fd5b910381eb63e202cef153a10f2e"
+ },
+ "ctest": {
+  "HEAD_BEFORE": "bcd409dd18f3c2f5199404916e1fdaee8e7f99c5",
+  "CLEAN_BEFORE": "true",
+  "START": "2026-10-27T07:33:37Z",
+  "COMMAND": "ctest --test-dir /Users/Ayueh/Fastest_Image_Pattern_Matching/build/stage52-release --output-on-failure",
+  "EXIT": "0",
+  "END": "2026-10-27T07:34:27Z",
+  "HEAD_AFTER": "bcd409dd18f3c2f5199404916e1fdaee8e7f99c5",
+  "CLEAN_AFTER": "true",
+  "LOG_SHA256": "8f9fcea16073f2181d780386a1ea4af9c6c887a775e5a237eb98933e2cd77d25",
+  "summary": "100% tests passed, 0 tests failed out of 91"
+ }
+}

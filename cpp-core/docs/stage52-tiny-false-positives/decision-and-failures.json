@@ -1,0 +1,259 @@
+{
+ "stage": 52,
+ "decision": {
+  "border_check": "research option for small templates: H1, H2 and H5 pass on hybrid k3 and full GPU k3 (border_min_inside 0.5)",
+  "size_check": "research option for small templates: H3, H4, H5 and H6 pass on both backends (small_template_area 576)",
+  "defaults": "unchanged: both checks stay off in the runner, Session, GUI and core"
+ },
+ "hypotheses": {
+  "ours_hybrid_k3": {
+   "H1": true,
+   "H2": true,
+   "H3": true,
+   "H4": true,
+   "H6": true,
+   "H5": true
+  },
+  "ours_fullgpu_k3": {
+   "H1": true,
+   "H2": true,
+   "H3": true,
+   "H4": true,
+   "H6": true,
+   "H5": true
+  }
+ },
+ "holdout_totals": {
+  "ours_fullgpu_k3-border": {
+   "positives": {
+    "cases": 96,
+    "gt": 4704,
+    "strict_tp": 4252,
+    "edge_gt": 185,
+    "edge_tp": 82,
+    "extra": 343
+   },
+   "negatives": {
+    "cases": 64,
+    "false_positives": 242,
+    "border_fp": 0,
+    "interior_fp": 242
+   }
+  },
+  "ours_fullgpu_k3-both": {
+   "positives": {
+    "cases": 96,
+    "gt": 4704,
+    "strict_tp": 4238,
+    "edge_gt": 185,
+    "edge_tp": 77,
+    "extra": 254
+   },
+   "negatives": {
+    "cases": 64,
+    "false_positives": 0,
+    "border_fp": 0,
+    "interior_fp": 0
+   }
+  },
+  "ours_fullgpu_k3-off": {
+   "positives": {
+    "cases": 96,
+    "gt": 4704,
+    "strict_tp": 4252,
+    "edge_gt": 185,
+    "edge_tp": 82,
+    "extra": 750
+   },
+   "negatives": {
+    "cases": 64,
+    "false_positives": 648,
+    "border_fp": 406,
+    "interior_fp": 242
+   }
+  },
+  "ours_fullgpu_k3-size": {
+   "positives": {
+    "cases": 96,
+    "gt": 4704,
+    "strict_tp": 4238,
+    "edge_gt": 185,
+    "edge_tp": 77,
+    "extra": 400
+   },
+   "negatives": {
+    "cases": 64,
+    "false_positives": 112,
+    "border_fp": 112,
+    "interior_fp": 0
+   }
+  },
+  "ours_hybrid_k3-border": {
+   "positives": {
+    "cases": 96,
+    "gt": 4704,
+    "strict_tp": 4251,
+    "edge_gt": 185,
+    "edge_tp": 82,
+    "extra": 340
+   },
+   "negatives": {
+    "cases": 64,
+    "false_positives": 243,
+    "border_fp": 0,
+    "interior_fp": 243
+   }
+  },
+  "ours_hybrid_k3-both": {
+   "positives": {
+    "cases": 96,
+    "gt": 4704,
+    "strict_tp": 4237,
+    "edge_gt": 185,
+    "edge_tp": 77,
+    "extra": 255
+   },
+   "negatives": {
+    "cases": 64,
+    "false_positives": 0,
+    "border_fp": 0,
+    "interior_fp": 0
+   }
+  },
+  "ours_hybrid_k3-off": {
+   "positives": {
+    "cases": 96,
+    "gt": 4704,
+    "strict_tp": 4251,
+    "edge_gt": 185,
+    "edge_tp": 82,
+    "extra": 749
+   },
+   "negatives": {
+    "cases": 64,
+    "false_positives": 648,
+    "border_fp": 405,
+    "interior_fp": 243
+   }
+  },
+  "ours_hybrid_k3-size": {
+   "positives": {
+    "cases": 96,
+    "gt": 4704,
+    "strict_tp": 4237,
+    "edge_gt": 185,
+    "edge_tp": 77,
+    "extra": 401
+   },
+   "negatives": {
+    "cases": 64,
+    "false_positives": 112,
+    "border_fp": 112,
+    "interior_fp": 0
+   }
+  }
+ },
+ "key_numbers": {
+  "hybrid": {
+   "negatives_fp_off": {
+    "cases": 64,
+    "false_positives": 648,
+    "border_fp": 405,
+    "interior_fp": 243
+   },
+   "negatives_fp_border": {
+    "cases": 64,
+    "false_positives": 243,
+    "border_fp": 0,
+    "interior_fp": 243
+   },
+   "negatives_fp_both": {
+    "cases": 64,
+    "false_positives": 0,
+    "border_fp": 0,
+    "interior_fp": 0
+   },
+   "positives_off": {
+    "cases": 96,
+    "gt": 4704,
+    "strict_tp": 4251,
+    "edge_gt": 185,
+    "edge_tp": 82,
+    "extra": 749
+   },
+   "positives_both": {
+    "cases": 96,
+    "gt": 4704,
+    "strict_tp": 4237,
+    "edge_gt": 185,
+    "edge_tp": 77,
+    "extra": 255
+   },
+   "median_time_increase": 0.0012292892933236654
+  },
+  "full_gpu": {
+   "negatives_fp_off": {
+    "cases": 64,
+    "false_positives": 648,
+    "border_fp": 406,
+    "interior_fp": 242
+   },
+   "negatives_fp_both": {
+    "cases": 64,
+    "false_positives": 0,
+    "border_fp": 0,
+    "interior_fp": 0
+   },
+   "positives_off": {
+    "cases": 96,
+    "gt": 4704,
+    "strict_tp": 4252,
+    "edge_gt": 185,
+    "edge_tp": 82,
+    "extra": 750
+   },
+   "positives_both": {
+    "cases": 96,
+    "gt": 4704,
+    "strict_tp": 4238,
+    "edge_gt": 185,
+    "edge_tp": 77,
+    "extra": 254
+   },
+   "median_time_increase": 0.0008905259020987044
+  }
+ },
+ "worker_failures": {
+  "development": 0,
+  "holdout": 0,
+  "regression": 0,
+  "smoke": 0
+ },
+ "attempts_kept": [
+  {
+   "what": "formal holdout attempt 1",
+   "result": "stopped after 51 minutes in the host check; no worker ran, nothing written",
+   "cause": "literature_compare.heavy_processes matched the driver and its parent shell (their command lines name the runner path)",
+   "fix": "round52_compare.heavy_others excludes the driver process ancestry (480269d, protocol revision 1, HostCheckTest)"
+  },
+  {
+   "what": "smoke run",
+   "result": "3 holdout cases x 8 arms, descriptive, before the formal runs; outputs in raw-results-validation-logs.tar.gz (smoke/)"
+  }
+ ],
+ "disclosures": [
+  "The development set is round 50 group-C/dev tiny-template data (already reported in round 50); only the holdout is evidence.",
+  "Regression set: no candidate was rejected in any of its 196 runs (all templates cover >= 576 source pixels and no footprint left the source), so byte-identical outputs there were expected; it shows the untriggered path is unchanged, not that the checks are harmless when they trigger on large templates.",
+  "The size check lost 14 holdout strict TP per backend vs border-only (0.30% of 4704): 8 on boundary scenes (5 of them edge-crossing truths: 82 -> 77 of 185) and 6 on clean/noise scenes of the resized Dst templates.",
+  "Full GPU applies both checks to its final matches (NMS ran on the GPU), so a rejected match is not replaced; the CPU/hybrid Session checks before NMS. On this holdout the two backends differ by at most one TP and one FP.",
+  "The formal runner was built at the frozen commit bcd409d (formal-build.json); the only later change before the formal runs is the Python host-check fix in 480269d, whose snapshot is archived.",
+  "All 648 unchecked holdout false positives sit in 13 of 64 negative scenes (225 on empty procedural scenes, all at the border; 419 on procedural distractor scenes, 180 at the border); the resized Dst templates produced 4.",
+  "Times are descriptive except H6; one block, 0.3 s warm-up and 3 calls per case on one M4 Pro."
+ ],
+ "not_run": [
+  "stable core fpm_cli (the checks are only in the research Session)",
+  "other GPUs and operating systems",
+  "real camera images",
+  "TDCM and OpenCV on the holdout (round 50 numbers are on a different scene set)"
+ ]
+}

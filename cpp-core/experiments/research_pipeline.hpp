@@ -2,6 +2,7 @@
 #pragma once
 #include "fpm/matcher.hpp"
 #include "coarse_ncc.h"
+#include "match_verify.hpp"
 #include "pose_ncc.h"
 #include "pyramid_rule.hpp"
 #include "sparse_orientation.hpp"
@@ -55,6 +56,10 @@ struct Options {
     // search angles within angleSteps top-level coarse angle steps. Never a default.
     int candidateDedupTopK = 0;
     double candidateDedupRadius = .5, candidateDedupAngleSteps = 3;
+    // Experimental (round 52, match_verify.hpp): border and small-template acceptance
+    // checks. The CPU/hybrid paths apply them before NMS; the full GPU path filters
+    // its final matches, so a rejected match is not replaced there. Off by default.
+    MatchVerifyRules verify;
 };
 struct CandidateDedupMetrics {
     uint64_t input = 0, kept = 0; // Coarse candidates before/after the filter.
@@ -136,6 +141,9 @@ struct Result {
     std::vector<FpmCoarseOverlapMetricsV1> overlapMetrics;
     int candidateDedupTopK = 0; // Option as run; 0 means every candidate was refined.
     std::vector<CandidateDedupMetrics> candidateDedup; // One per scale model.
+    bool verifyEnabled = false, verifyAfterNms = false; // Options::verify as run; after NMS on the full GPU path.
+    uint64_t verifyChecked = 0, verifyBorder = 0, verifyRejectedBorder = 0, verifyRejectedSize = 0;
+    double verifyMs = 0; // Host wall time of the checks (nested in nmsMs except on the full GPU path).
 };
 // Public for cross-language parity checks; zero extension, width/2 center,
 // ties-to-even dimensions and floor(value+.5) gray8 rounding. No antialiasing.

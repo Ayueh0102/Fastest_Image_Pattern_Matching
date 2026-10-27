@@ -1,0 +1,182 @@
+{
+ "stage": 52,
+ "status": "frozen after the development selection; holdout scenes and every formal output are produced after this commit",
+ "date": "2026-10-27",
+ "title": "Small-template false positives: image-border rescoring and a size-aware acceptance threshold",
+ "question": "Round 50 group C: our 338 false positives on tiny-template negative scenes (full GPU k3) split into 189 whose footprint leaves the image (all from the smooth template proc50105; the source outside the image is padded black or white, image.cpp:50) and 149 on distractors scoring 0.84-0.92, while true matches score a median 0.986. Do two opt-in checks remove them on new scenes without losing true matches or changing other results?",
+ "base": {
+  "main": "4126e92 (rounds 1-50)",
+  "implementation": "c36da3d red, ef854b2 green",
+  "formal_build": "a fresh Release research build (GUI + experiments + OpenCV) configured at the frozen commit in build/stage52-release; its CMakeCache source directory and object list are recorded before any formal run"
+ },
+ "options": {
+  "border_min_inside": "runner key / Options::verify.borderMinInside. A candidate whose template footprint (template pixel x at center + scale*R*(x - w/2), makeMatch rotation, integer source pixel centres) leaves the source is kept only when at least this fraction of its template pixels map inside and the NCC over those pixels alone (bilinear) reaches the minimum score. Interior candidates are never rescored. Fixed at 0.5 (not tuned): at least half of the template must be visible.",
+  "small_template_area": "runner key / Options::verify.smallTemplateArea = A0. A template covering area = w*h*scale^2 < A0 source pixels needs score >= 1-(1-minScore)*sqrt(area/A0); larger templates keep minScore. Selected on the development set below.",
+  "placement": "CPU/hybrid Session: before NMS, so a rejected candidate neither suppresses nor displaces another. Full GPU: on its final matches (NMS ran on the GPU), so a rejected match is not replaced. Both off by default; GUI, core and CURRENT_BEST defaults unchanged."
+ },
+ "development": {
+  "cases": "round 50 tiny-template cases: build/stage50-external/scenes-dev (4 templates) and scenes-c (24 templates), clean and noise positives, empty and distractor negatives (112 cases); these are round 50 results, used here only as development data",
+  "arm": "ours_hybrid_k3 (round 50 CURRENT_BEST hybrid job), search limit 100, score 0.8, one call per case",
+  "variants": [
+   "off",
+   "border (border_min_inside 0.5)",
+   "both256 (border 0.5 + small_template_area 256)",
+   "both400 (border 0.5 + small_template_area 400)",
+   "both576 (border 0.5 + small_template_area 576)",
+   "both784 (border 0.5 + small_template_area 784)",
+   "both1024 (border 0.5 + small_template_area 1024)",
+   "both1600 (border 0.5 + small_template_area 1600)"
+  ],
+  "rule": "Border check on: among A0 in (256, 400, 576, 784, 1024, 1600) whose positive strict-TP loss vs border-only is <= 0.5% of the positives' truths, the one with the fewest negative false positives; ties to the smaller A0; if none qualifies the size check is not used (A0 = 0) and H3, H4, H6 are not judged.",
+  "build": "build/stage52-dev (ef854b2)"
+ },
+ "holdout": {
+  "generator": "cpp-core/tools/round52_scenes.py; built only after the freeze, which records its SHA-256 under generators",
+  "templates": "24 procedural (seeds 52100-52123, longer side 12-24 px, round-49 sigma cycle) + Dst1, Dst2, Dst4, Dst6 at 16 and 24 px",
+  "conditions": "clean, noise (positives, 49 copies); empty, distractor (negatives); boundary (positive: the clean layout cropped through its first row and column so those copies cross the top/left edges, centres at least a quarter diagonal inside, seeded noise; edge truths flagged)",
+  "cases": 160
+ },
+ "regression": {
+  "cases": "round 50 group A (25 cases incl. 9 negatives) and group C non-tiny (challenge 6, illumination, 8192^2 large), round 50 jobs unchanged except the two keys",
+  "variants": [
+   "off",
+   "both (or border when A0 = 0)"
+  ]
+ },
+ "arms": {
+  "backends": [
+   "ours_hybrid_k3",
+   "ours_fullgpu_k3"
+  ],
+  "holdout_variants": [
+   "off",
+   "border",
+   "size",
+   "both"
+  ]
+ },
+ "measurement": {
+  "holdout": "one block; per case 0.3 s warm-up then 3 calls; time = median call; first-call matches scored",
+  "regression": "one call per case (identity and accuracy only)",
+  "host": "formal runs hold timing-lock-round52-<group>.txt and wait until no other lock and no project heavy process (ours included) exists; per-worker host state recorded; timing is descriptive except H6"
+ },
+ "scoring": {
+  "tool": "literature_score.py (round 50 scorer): strict pose 2 px / 1 deg / 2% per axis, maximum matching",
+  "negatives": "every output is a false positive; border FP = a footprint corner beyond the outermost pixel centres (x < 0, y < 0, x > W-1 or y > H-1), interior FP = the rest",
+  "edge": "boundary scenes: strict TP on the edge-flagged truths reported separately"
+ },
+ "hypotheses": {
+  "H1": "Holdout tiny negatives, each backend: border FPs with the border check <= 10% of those without any check (judged when the unchecked count is >= 10).",
+  "H2": "Holdout tiny positives, each backend: strict TP with the border check >= unchecked - 0.2% of truths, and edge-truth TP >= unchecked - 1.",
+  "H3": "Holdout tiny negatives, each backend: interior FPs with both checks <= 50% of border-only (judged when border-only has >= 10).",
+  "H4": "Holdout tiny positives, each backend: strict TP with both checks >= border-only - 0.5% of truths.",
+  "H5": "Regression set, each backend: with the checks on, no positive case loses a strict TP and no negative case gains a FP vs off; cases with no rejection are reported byte-identical or not.",
+  "H6": "Holdout, each backend: median over cases of time(both)/time(off) - 1 <= 5%."
+ },
+ "decision": "Border check: research option for small templates if H1, H2 and H5 pass. Size check: research option if H3, H4, H5 and H6 pass. No default changes either way; failures and every failed worker stay in the report.",
+ "generators": {
+  "round52_scenes.py": "a5e3e59506441528cf216ea0405b1d681a01fe56b52bc0038a998a4cac2eccbf"
+ },
+ "tools": {
+  "cpp-core/tools/round52_compare.py": "cf612ac304c4ed37ac189d49a8053933f0371abe9ee1169f8ef73a4a2348c037",
+  "cpp-core/tools/round52_scenes.py": "a5e3e59506441528cf216ea0405b1d681a01fe56b52bc0038a998a4cac2eccbf",
+  "cpp-core/tools/literature_compare.py": "0225d51db8cc72a8cf15e806cf1ed9ae4fd9720f8af81fad7d29ea8746c7680a",
+  "cpp-core/tools/literature_score.py": "e552f604c48644e5721edb13e85146879954f3c6311bd31d330e9f8f4e5f3c69",
+  "cpp-core/tools/literature_scenes.py": "99ab2707b67d923a729fc325449cb7fbe4ab22a7747764f4cd192f02d923832c",
+  "cpp-core/tools/stage49_scenes.py": "dd18e15c25a3d4e9139e6b88a34e6abfe626c952c2c6092bcc7c6ef0489d4ab8"
+ },
+ "revisions": [
+  {
+   "date": "2026-10-27",
+   "kind": "failed attempt kept; tool bug fix before any formal measurement",
+   "what": "Attempt 1 of the formal holdout run (started about 15:55 local) waited 51 minutes in the host check and was stopped: literature_compare.heavy_processes matched this driver and its parent shell, whose command lines name the runner path. No worker ran and nothing was written under runs/. round52_compare.heavy_others now excludes the driver's own process ancestry (HostCheckTest); everything else in the run is unchanged and the formal runs restart from scratch.",
+   "round52_compare_sha256_before": "cf612ac304c4ed37ac189d49a8053933f0371abe9ee1169f8ef73a4a2348c037",
+   "round52_compare_sha256_after": "f2fddabdd7bcf30d6c08b5b28eb728b176450a969d3084d9eabf3aeb34a76edf"
+  }
+ ],
+ "selection": {
+  "border_min_inside": 0.5,
+  "small_template_area": 576,
+  "development": {
+   "cases": 112,
+   "failures": 0,
+   "off": {
+    "positives": {
+     "cases": 56,
+     "gt": 2744,
+     "strict_tp": 2678,
+     "edge_gt": 0,
+     "edge_tp": 0,
+     "extra": 270
+    },
+    "negatives": {
+     "cases": 56,
+     "false_positives": 338,
+     "border_fp": 189,
+     "interior_fp": 149
+    }
+   },
+   "border": {
+    "positives": {
+     "cases": 56,
+     "gt": 2744,
+     "strict_tp": 2678,
+     "edge_gt": 0,
+     "edge_tp": 0,
+     "extra": 168
+    },
+    "negatives": {
+     "cases": 56,
+     "false_positives": 149,
+     "border_fp": 0,
+     "interior_fp": 149
+    }
+   },
+   "grid": [
+    {
+     "a0": 256,
+     "strict_tp": 2678,
+     "tp_loss": 0,
+     "false_positives": 109,
+     "eligible": true
+    },
+    {
+     "a0": 400,
+     "strict_tp": 2678,
+     "tp_loss": 0,
+     "false_positives": 50,
+     "eligible": true
+    },
+    {
+     "a0": 576,
+     "strict_tp": 2678,
+     "tp_loss": 0,
+     "false_positives": 0,
+     "eligible": true
+    },
+    {
+     "a0": 784,
+     "strict_tp": 2678,
+     "tp_loss": 0,
+     "false_positives": 0,
+     "eligible": true
+    },
+    {
+     "a0": 1024,
+     "strict_tp": 2676,
+     "tp_loss": 2,
+     "false_positives": 0,
+     "eligible": true
+    },
+    {
+     "a0": 1600,
+     "strict_tp": 2676,
+     "tp_loss": 2,
+     "false_positives": 0,
+     "eligible": true
+    }
+   ]
+  },
+  "record": "dev-selection.json (raw outputs in raw-results-development.tar.gz)"
+ }
+}
