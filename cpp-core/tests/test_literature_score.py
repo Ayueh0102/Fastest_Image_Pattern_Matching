@@ -51,11 +51,19 @@ class GeometryTest(unittest.TestCase):
         inter = 8 * (math.sqrt(2) - 1)
         self.assertAlmostEqual(score.rotated_iou(sq, diamond), inter / (8 - inter))
 
-    def test_tdcm_paper_iou_uses_mirrored_angle(self):
+    def test_tdcm_paper_iou_follows_get_iou(self):
+        # TDCM utils/tool.py: getIOU draws rotated_rect(x, y, w, h, -r), and rotated_rect turns the
+        # corners by [[cos, -sin], [sin, cos]] in y-down image coordinates.
+        def rotated_rect(x, y, w, h, angle):
+            c, s = math.cos(math.radians(angle)), math.sin(math.radians(angle))
+            return [(x + u * c - v * s, y + u * s + v * c) for u, v in ((w / 2, h / 2), (-w / 2, h / 2), (-w / 2, -h / 2), (w / 2, -h / 2))]
         g = dict(cx=50, cy=50, scale_x=1., scale_y=.5, angle_deg=30)
+        p = dict(cx=52, cy=47, scale_x=1., scale_y=.5, angle_deg=40)
         self.assertAlmostEqual(score.tdcm_paper_iou(g, g), 1.)
-        mirrored = score.rotated_iou(score.pose_corners(50, 50, 36, 18, -30), score.pose_corners(52, 47, 36, 18, -40))
-        self.assertAlmostEqual(score.tdcm_paper_iou(g, dict(cx=52, cy=47, scale_x=1., scale_y=.5, angle_deg=40)), mirrored)
+        expected = score.rotated_iou(rotated_rect(50, 50, 36, 18, -30), rotated_rect(52, 47, 36, 18, -40))
+        mirrored = score.rotated_iou(rotated_rect(50, 50, 36, 18, 30), rotated_rect(52, 47, 36, 18, 40))
+        self.assertGreater(abs(expected - mirrored), .01)  # the example tells the two conventions apart
+        self.assertAlmostEqual(score.tdcm_paper_iou(g, p), expected)
 
 
 class PoseMatchTest(unittest.TestCase):
