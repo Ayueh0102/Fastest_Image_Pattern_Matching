@@ -48,6 +48,13 @@ class SelectionRuleTest(unittest.TestCase):
         self.assertAlmostEqual(m['miou'], 1.)
         self.assertAlmostEqual(m['loc_err'], 0.)
 
+    def test_paper_success_needs_only_iou_above_a_tenth(self):
+        truth = [dict(index=0, cx=50, cy=50, scale_x=1., scale_y=1., angle=0.)]
+        shifted = {0: [dict(cx=68, cy=50, width=36, height=36, angle_deg=0., score=.9)]}  # IoU 1/3
+        self.assertEqual(lc.b1_paper_metrics(truth, shifted)['successes'], 1)
+        far = {0: [dict(cx=83, cy=50, width=36, height=36, angle_deg=0., score=.9)]}  # IoU 108/2484
+        self.assertEqual(lc.b1_paper_metrics(truth, far)['successes'], 0)
+
 
 class ApplicabilityTest(unittest.TestCase):
     def test_core_only_on_fixed_scale(self):
@@ -122,6 +129,48 @@ class ScoringTest(unittest.TestCase):
         h = lc.hypotheses((a_cases, table, [], pairs), None, None, 'geco2_cuda')
         self.assertFalse(h['H1']['a_pass'])
         self.assertIs(h['H1']['pass'], False)
+
+    def test_h1_and_h5_rules_follow_the_protocol(self):
+        def row(n, m, tp=None, fp=None, complete=None):
+            s = dict(false_positives=fp) if fp is not None else dict(gt=4, strict_tp=tp, association_tp=tp, boxes=dict(tp=tp))
+            r = dict(case=n, method=m, score=s, time_ms=None)
+            if complete is not None:
+                r['complete'] = complete
+            return r
+        cases = {'p': dict(positive=True), 'q': dict(positive=True), 'neg': dict(positive=False)}
+        pairs = {('p', 'ours_fullgpu_k3'): [dict(position_px=.1, angle_deg=.1)], ('p', 'tdcm_adapted_cpu'): [dict(position_px=1., angle_deg=1.)]}
+        base = [row('p', 'ours_fullgpu_k3', 4), row('p', 'tdcm_adapted_cpu', 1), row('q', 'ours_fullgpu_k3', 2), row('q', 'tdcm_adapted_cpu', 2)]
+
+        def judge(rows, pairs=pairs):
+            return lc.hypotheses((cases, rows, [], pairs), None, None, 'geco2_cuda')
+        # (a): a completed OpenCV search above ours fails that case; an incomplete one is not compared.
+        self.assertFalse(judge(base + [row('q', 'opencv', 3, complete=True)])['H1']['a_pass'])
+        self.assertTrue(judge(base + [row('q', 'opencv', 3, complete=False)])['H1']['a_pass'])
+        # (b): the median position and the median angle error must both be below TDCM-adapted's.
+        h = judge(base, {**pairs, ('p', 'ours_fullgpu_k3'): [dict(position_px=.1, angle_deg=2.)]})
+        self.assertFalse(h['H1']['b']['pass_'])
+        self.assertIs(h['H1']['pass'], False)
+        # H5 judges our arms only; competitors' false positives are reported beside them.
+        h = judge(base + [row('neg', 'ours_fullgpu_k3', fp=0), row('neg', 'tdcm_adapted_cpu', fp=5)])
+        self.assertTrue(h['H5']['pass_'])
+        self.assertEqual(len(h['H5']['rows']), 2)
+
+    def test_h3_and_h4_directions(self):
+        tiny = {'t1': dict(positive=True, family='tiny'), 't2': dict(positive=False, family='tiny')}
+
+        def tiny_table(tdcm_tp):
+            return [dict(case='t1', method='ours_fullgpu_k3', score=dict(gt=10, strict_tp=8, association_tp=10)),
+                    dict(case='t1', method='tdcm_adapted_cpu', score=dict(gt=10, strict_tp=tdcm_tp, association_tp=10))]
+        self.assertFalse(lc.hypotheses(None, (tiny, tiny_table(7), [], {}), None, 'geco2_cuda')['H3']['pass_'])
+        self.assertTrue(lc.hypotheses(None, (tiny, tiny_table(8), [], {}), None, 'geco2_cuda')['H3']['pass_'])
+
+        def timed(n, ours, tdcm):
+            return [dict(case=n, method='ours_fullgpu_k3', time_ms=ours), dict(case=n, method='tdcm_adapted_cpu', time_ms=tdcm)]
+        a = ({}, timed('many128_pose', 1, 2) + timed('many512_pose', 1, 2), [], {})
+        h = lc.hypotheses(a, ({}, timed('many8k_512', 5, 5), [], {}), None, 'geco2_cuda')
+        self.assertEqual([r['ok'] for r in h['H4']['rows']], [True, True, False])  # a tie is not faster
+        self.assertFalse(h['H4']['pass_'])
+        self.assertFalse(lc.hypotheses(a, None, None, 'geco2_cuda')['H4']['pass_'])  # two of the three scenes cannot pass
 
 
 class WorkerDirectoryTest(unittest.TestCase):

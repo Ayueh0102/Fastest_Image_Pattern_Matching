@@ -90,6 +90,11 @@ class PoseMatchTest(unittest.TestCase):
         r = score.score_pose_image([pose(0, 0, 0)], [pose(float('nan'), 0, 0)])
         self.assertEqual((r['strict_tp'], r['strict_fp'], r['invalid_predictions']), (0, 1, 1))
 
+    def test_nonfinite_angle_or_empty_size_is_invalid(self):
+        for bad in (pose(0, 0, float('nan')), pose(0, 0, 0, 0., 20.)):
+            r = score.score_pose_image([pose(0, 0, 0)], [bad])
+            self.assertEqual((r['invalid_predictions'], r['association_tp']), (1, 0))
+
     def test_counts_equal_many_object_accuracy(self):
         try:
             from many_object_accuracy import evaluate
@@ -139,6 +144,21 @@ class BoxAndCountTest(unittest.TestCase):
         preds = [dict(kind='box', x0=10, y0=10, x1=390, y1=390, score=.9)]
         self.assertEqual(score.score_box_images([(boxes, preds)])['tp'], 1)
 
+    def test_box_matching_follows_descending_score_and_uses_each_truth_once(self):
+        boxes = [(0, 0, 10, 10)]
+        high = dict(kind='box', x0=0, y0=0, x1=10, y1=12, score=.9)  # IoU 10/12
+        low = dict(kind='box', x0=0, y0=0, x1=10, y1=10, score=.5)  # exact, but ranked second
+        flags = score.match_boxes(boxes, [score.normalise(low), score.normalise(high)])
+        self.assertEqual([f[:2] for f in flags], [(.9, True), (.5, False)])
+        self.assertEqual(score.score_box_images([(boxes, [low, high])])['tp'], 1)
+
+    def test_box_iou_threshold_is_half_and_inclusive(self):
+        boxes = [(0, 0, 10, 10)]
+        half = dict(kind='box', x0=0, y0=0, x1=10, y1=20, score=.9)  # IoU exactly 0.5
+        below = dict(kind='box', x0=0, y0=0, x1=10, y1=25, score=.9)  # IoU 0.4
+        self.assertEqual(score.score_box_images([(boxes, [half])])['tp'], 1)
+        self.assertEqual(score.score_box_images([(boxes, [below])])['tp'], 0)
+
     def test_pose_converts_to_enclosing_box(self):
         boxes = [(80, 90, 120, 110)]
         r = score.score_box_images([(boxes, [pose(100, 100, 0)])])
@@ -150,6 +170,15 @@ class BoxAndCountTest(unittest.TestCase):
         self.assertAlmostEqual(r['mae'], 5 / 3)
         self.assertAlmostEqual(r['rmse'], math.sqrt(13 / 3))
         self.assertEqual(r['empty_scene_false_positives'], 3)
+
+    def test_count_errors_use_absolute_differences(self):
+        r = score.count_errors([(10, 12), (10, 8)])
+        self.assertAlmostEqual(r['mae'], 2.)
+        self.assertAlmostEqual(r['rmse'], 2.)
+
+    def test_summary_median_of_even_count(self):
+        s = score.summary([4., 1., 3., 2.])
+        self.assertEqual((s['n'], s['median'], s['p90'], s['max']), (4, 2.5, 4., 4.))
 
 
 if __name__ == '__main__':
