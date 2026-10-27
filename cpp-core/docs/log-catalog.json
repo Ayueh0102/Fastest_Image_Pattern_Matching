@@ -27,7 +27,7 @@
     "other": "No recognized role; inspect manually"
   },
   "artifact_count": 754,
-  "artifact_bytes": 2819178139,
+  "artifact_bytes": 2819180968,
   "artifact_role_counts": {
     "archive": 140,
     "calibration": 5,
@@ -432,8 +432,8 @@
       "path": "LITERATURE_COMPARISON_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 35790,
-      "sha256": "cd845a54d1aae182e0a12aa2cacca676bce9c69ff75b107e3e2bb0d48873f840",
+      "bytes": 38619,
+      "sha256": "f59980a7ebfb048184678cbb1bebe6ae5ed89a2402fbad88a902566bf5addb71",
       "roles": [
         "report"
       ]
