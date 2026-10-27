@@ -26,44 +26,44 @@
     "metadata": "Filesystem sidecar metadata",
     "other": "No recognized role; inspect manually"
   },
-  "artifact_count": 748,
-  "artifact_bytes": 2813251192,
+  "artifact_count": 754,
+  "artifact_bytes": 2819178139,
   "artifact_role_counts": {
-    "archive": 138,
+    "archive": 140,
     "calibration": 5,
     "failure_review": 31,
-    "false_gate": 63,
-    "formal": 48,
+    "false_gate": 64,
+    "formal": 49,
     "input": 21,
-    "other": 63,
+    "other": 64,
     "pilot": 19,
     "protocol": 51,
-    "provenance": 79,
-    "raw": 93,
+    "provenance": 81,
+    "raw": 94,
     "report": 79,
-    "source": 25,
-    "summary": 180,
+    "source": 26,
+    "summary": 182,
     "validation": 97,
     "visual": 68
   },
-  "archive_member_count": 137942,
+  "archive_member_count": 138484,
   "archive_member_role_counts": {
     "archive": 26,
     "binary": 47,
     "calibration": 1,
     "failure_review": 122,
-    "formal": 32804,
-    "input": 610,
+    "formal": 32805,
+    "input": 611,
     "metadata": 6526,
-    "other": 56217,
+    "other": 56333,
     "pilot": 4301,
     "protocol": 114,
-    "provenance": 139,
-    "raw": 45252,
-    "report": 89,
-    "source": 12767,
-    "summary": 1192,
-    "validation": 1192,
+    "provenance": 141,
+    "raw": 45342,
+    "report": 90,
+    "source": 13096,
+    "summary": 1213,
+    "validation": 1194,
     "visual": 892
   },
   "artifacts": [
@@ -211,8 +211,8 @@
       "path": "CURRENT_BEST_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 18794,
-      "sha256": "8d61cde00917d734df448efd03fdaccb6edee0521e3abb9e74bd9bac41ea86b4",
+      "bytes": 18822,
+      "sha256": "ff0d2fd2f00d1cfc36b341b6ea0596e33d38f17911783ab3a0ab984e169cf597",
       "roles": [
         "report"
       ]
@@ -262,8 +262,8 @@
       "path": "EXPERIMENT_REVIEW_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 100144,
-      "sha256": "5cee05cb54a556fceb7e3b264a3b0d7984ae1db965ac9cd32e9db69a48f800ec",
+      "bytes": 100970,
+      "sha256": "8ebbfbed0bb076b293afa0b2650daeb95e536e89566d52d0849f66c17085bd37",
       "roles": [
         "report"
       ]
@@ -432,8 +432,8 @@
       "path": "LITERATURE_COMPARISON_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 25479,
-      "sha256": "3484184969f0942c6d75fbd56ce41dfd4e224944754caeb2d721ad536326c95a",
+      "bytes": 35790,
+      "sha256": "cd845a54d1aae182e0a12aa2cacca676bce9c69ff75b107e3e2bb0d48873f840",
       "roles": [
         "report"
       ]
@@ -442,8 +442,8 @@
       "path": "LOG_CATALOG_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 21704,
-      "sha256": "b1736387533a8ab695ea0b750bba68226eb035caf374ce32dd504f921f4fbb4d",
+      "bytes": 22029,
+      "sha256": "ae67574e6510aecdfcfa696c92ba214cfe03ed4e9e410121d754df12f707761c",
       "roles": [
         "report"
       ]
@@ -613,8 +613,8 @@
       "path": "PROJECT_STATUS_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 16578,
-      "sha256": "1f8b42ce0859618b71665773890daa6dd9c044bc872b14523d2c3a050201fec8",
+      "bytes": 16824,
+      "sha256": "8be220c98389e311b769032d72d6fc31a30b841d6927fcd0b3ae8d22920316c3",
       "roles": [
         "report"
       ]
@@ -9467,8 +9467,8 @@
       "path": "stage50-literature-comparison/archive.json",
       "group": "stage50-literature-comparison",
       "stage": "50",
-      "bytes": 5428,
-      "sha256": "10f03d697326b16bd577ead0fde1205b4ed8b90507001120b043f8b26a769bc9",
+      "bytes": 6472,
+      "sha256": "b64abc00da05982be5e9fce7b7825ff8d07065f923ecabbd809bc5d79f949235",
       "roles": [
         "provenance"
       ]
@@ -9487,8 +9487,8 @@
       "path": "stage50-literature-comparison/decision-and-failures.json",
       "group": "stage50-literature-comparison",
       "stage": "50",
-      "bytes": 13844,
-      "sha256": "4206619a083b0195a66abb0afa13b4cdd37bc2fa1be41b5aa27ad2b251de6425",
+      "bytes": 16392,
+      "sha256": "d7e29a4b7a844b71f3276011f3add8fbe84f05a28297e7a8fa87b4e21d7f7b6d",
       "roles": [
         "failure_review"
       ]
@@ -9554,6 +9554,22 @@
       ]
     },
     {
+      "path": "stage50-literature-comparison/formal-summary-geco2-cuda.json",
+      "group": "stage50-literature-comparison",
+      "stage": "50",
+      "bytes": 1922236,
+      "sha256": "2a7a6b035d29135e94a7756d7ec3b73df9444e03b99c40066740e59d85234e25",
+      "roles": [
+        "false_gate",
+        "formal",
+        "summary"
+      ],
+      "explicit_false_gates": [
+        "/hypotheses/H1/a_pass",
+        "/hypotheses/H1/pass"
+      ]
+    },
+    {
       "path": "stage50-literature-comparison/formal-summary.json",
       "group": "stage50-literature-comparison",
       "stage": "50",
@@ -9575,6 +9591,16 @@
       "stage": "50",
       "bytes": 4675,
       "sha256": "4377fb160516aed58df43d1f38e28f6e7953e803b11141a4508f17d88bb3685c",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "stage50-literature-comparison/gate-geco2-cuda.json",
+      "group": "stage50-literature-comparison",
+      "stage": "50",
+      "bytes": 1780,
+      "sha256": "ef63df54fb80b3d9e9ceaac4db42dea51f0c8b18f12d6193ff20897951c77479",
       "roles": [
         "other"
       ]
@@ -9605,6 +9631,16 @@
       ],
       "explicit_false_gates": [
         "/gate_pass"
+      ]
+    },
+    {
+      "path": "stage50-literature-comparison/geco2-cuda-environment.json",
+      "group": "stage50-literature-comparison",
+      "stage": "50",
+      "bytes": 6527,
+      "sha256": "f86c650762a88974cb3cfab4d265c8a489b996e3fd426177125f32ee684c95c5",
+      "roles": [
+        "provenance"
       ]
     },
     {
@@ -9651,8 +9687,8 @@
       "path": "stage50-literature-comparison/protocol.json",
       "group": "stage50-literature-comparison",
       "stage": "50",
-      "bytes": 27246,
-      "sha256": "b75c00abe880f9a93141550d2964e10547fae0a7b84d6013278125231cc29d70",
+      "bytes": 31949,
+      "sha256": "80f24e310a3d54c9039b82360fcc4b3c4bb2727456ddfb793b6ed6e68813fc05",
       "roles": [
         "protocol"
       ]
@@ -9803,6 +9839,26 @@
       }
     },
     {
+      "path": "stage50-literature-comparison/raw-results-geco2-cuda.tar.gz",
+      "group": "stage50-literature-comparison",
+      "stage": "50",
+      "bytes": 2861633,
+      "sha256": "de64f7c1b89d926be871de8fc7898ae77c3bc22df4b1b7bb71a720fc22c37cbe",
+      "roles": [
+        "archive",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 201,
+      "archive_role_counts": {
+        "formal": 1,
+        "other": 106,
+        "provenance": 2,
+        "raw": 90,
+        "summary": 2
+      }
+    },
+    {
       "path": "stage50-literature-comparison/raw-results-phase1-smoke.tar.gz",
       "group": "stage50-literature-comparison",
       "stage": "50",
@@ -9837,6 +9893,16 @@
       }
     },
     {
+      "path": "stage50-literature-comparison/source-sha256-geco2-cuda.json",
+      "group": "stage50-literature-comparison",
+      "stage": "50",
+      "bytes": 39356,
+      "sha256": "c07bffeff168ab90130f3a3d50f9ab51fb5491bb0e219c9adf9d434a6dc6df78",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
       "path": "stage50-literature-comparison/source-sha256.json",
       "group": "stage50-literature-comparison",
       "stage": "50",
@@ -9845,6 +9911,26 @@
       "roles": [
         "provenance"
       ]
+    },
+    {
+      "path": "stage50-literature-comparison/source-snapshot-geco2-cuda.tar.gz",
+      "group": "stage50-literature-comparison",
+      "stage": "50",
+      "bytes": 1073030,
+      "sha256": "209406bddbdb9a737f6b338f4008f48a93af99972419a99a6b55364fd2c056b3",
+      "roles": [
+        "archive",
+        "source"
+      ],
+      "archive_file_count": 341,
+      "archive_role_counts": {
+        "input": 1,
+        "other": 10,
+        "report": 1,
+        "source": 329,
+        "summary": 19,
+        "validation": 2
+      }
     },
     {
       "path": "stage50-literature-comparison/source-snapshot.tar.gz",
@@ -9870,8 +9956,8 @@
       "path": "stage50-literature-comparison/validation.json",
       "group": "stage50-literature-comparison",
       "stage": "50",
-      "bytes": 1929,
-      "sha256": "05c1122e820292eb809347f75900a0416faf76cec8561de82bc5a89420af151b",
+      "bytes": 4283,
+      "sha256": "c5a840f84ca73243b011ad3930311849d479702989e94249c67bd96ba5d9b669",
       "roles": [
         "validation"
       ]
@@ -9897,5 +9983,5 @@
       ]
     }
   ],
-  "archive_member_index_sha256": "ec0b95728682cd3a00f37153942bf37695781a525dc74ec77644ec2029846855"
+  "archive_member_index_sha256": "4d9f34d37e34da474b008256d059d78d1a0d9f6ed731e3a9a140098d63f72785"
 }
