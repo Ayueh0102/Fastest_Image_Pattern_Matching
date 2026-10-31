@@ -16,6 +16,8 @@
 
 2026-10-25再改[窮舉NCC](CORE_EXHAUSTIVE_NCC_zh-TW.md)：預設窮舉路徑以精確整數欄和滑動求視窗和，取代binary64積分圖；UDOT建置一次計算8個相鄰視窗的點積，模板每個區塊只載入一次。有界限或screen的路徑不變。輸出與`65b7dad`逐位元相同（544次執行零差異），Src7模式基準再快37.6%（245.72→153.22ms），17張固定影像幾何平均快56.1%。穩定核心現在比同session的舊OpenCV＋DOTPROD版（186.22ms）快17.7%，稽核設定下17張也全部較快；剩下的時間以`warp`為主（大模板72～78%）。
 
+2026-10-31在實驗室Windows 11 x64（Core Ultra 9 285K，MSVC 19.44）第一次實機驗證後，加入[x86 SIMD分級](CORE_X86_SIMD_zh-TW.md)（非研究輪次）：x86-64在執行期以cpuid選SSE2、AVX2或AVX-VNNI-INT8（`FPM_X86_MAX_ISA`可設上限），窮舉NCC走和UDOT相同的8視窗點積，沒有FMA的編譯下以SSE2兩像素／AVX2四像素照scalar的捨入順序做`warp`，`pyrDown`改用SSE2整數。PC上5個建置的binary64輸出相同（680次零差異），20個編譯突變全部被抓到；17張影像預設模式1924→839ms（幾何平均快57.2%），FastMode與subpixel快約56～58%，大部分收益來自SSE2這一級。Mac的輸出與速度不變（272次零差異，比值0.9975）。預先登記的跨平台gate沒有通過：PC與Mac在binary64只有9/68組相同，原因是改動前就存在的Apple clang FMA合併與libm差異；同平台的身分比對都通過。同日也修正兩個只在Windows出現的實驗測試問題。
+
 第42輪[完整GPU粗選峰改為精確平行回合](GPU_PARALLEL_PEAKS_zh-TW.md)：新增`full_gpu_peak_mode=2`，多張分數圖同批、每回合平行接受與抑制，完整有序輸出與mode 1逐位相同。fine4完整GPU時間128／512少27.3%／34.4%（587.22／1881.34ms），每換新影格對混合為−31.4%／−22.7%，六物件混合仍快1.5%、8K快80.1%，皆6/6 block同向。1538次直接GT零FP／FN、0筆失敗門檻；完整GPU研究建議改為peak2／fine4，預設不變。
 
 第43輪加入[細搜尋前的粗候選去重](CANDIDATE_DEDUP_zh-TW.md)，這是會改變語意、預設關閉的研究選項。k3在112／79個GT案例變體（混合／完整GPU）中沒有任何嚴格TP減少或FP增加，正式時間128／512物件混合少30.4%／37.0%、完整GPU少26.1%／25.7%（完整GPU臂用第40輪peak1／fine4，不與第42輪相乘），8K約不變。輸出不保證與基線逐位相同（matches相同者97/112、67/79）。k1與兩個刻意放寬的消融會失去物件，保留全部失敗；不改預設。
@@ -50,7 +52,7 @@
 
 | 範圍 | 狀態 | 證據入口 |
 |---|---|---|
-| 固定尺度灰階核心 | C++17完整自有實作；旋轉、金字塔、NCC、NMS與subpixel；ARM編譯期UDOT點積、NEON精確旋轉、滑動整數和與8視窗點積 | [移植契約](PORTING_zh-TW.md)、[核心與GUI建置](../README_zh-TW.md)、[DOTPROD點積](CORE_DOTPROD_zh-TW.md)、[旋轉與金字塔](CORE_WARP_PYRDOWN_zh-TW.md)、[窮舉NCC](CORE_EXHAUSTIVE_NCC_zh-TW.md) |
+| 固定尺度灰階核心 | C++17完整自有實作；旋轉、金字塔、NCC、NMS與subpixel；ARM編譯期UDOT點積、NEON精確旋轉、滑動整數和與8視窗點積；x86-64執行期SSE2／AVX2／VNNI-INT8分級（Windows實機驗證） | [移植契約](PORTING_zh-TW.md)、[核心與GUI建置](../README_zh-TW.md)、[DOTPROD點積](CORE_DOTPROD_zh-TW.md)、[旋轉與金字塔](CORE_WARP_PYRDOWN_zh-TW.md)、[窮舉NCC](CORE_EXHAUSTIVE_NCC_zh-TW.md)、[x86 SIMD](CORE_X86_SIMD_zh-TW.md) |
 | 灰階多尺度與連續精修 | 原生C++排程、CPU／Metal後端；GUI可選研究流程 | [總索引](EXPERIMENT_REVIEW_zh-TW.md)、`experiments/research_pipeline.hpp` |
 | 大量物件與大圖 | 有128／512物件、4K／8K測量；同模板合成為主 | [第34輪](STAGE34_CLOSURE_zh-TW.md)、各輪原始封存 |
 | 記憶體與提交改善 | gray8讀圖、u8初始化、共用影像、細搜尋旋轉／NCC融合 | [第31輪](GRAY_LOAD_MEMORY_zh-TW.md)、[第32輪](RUN_VARIABILITY_POSE_MEMORY_zh-TW.md) |

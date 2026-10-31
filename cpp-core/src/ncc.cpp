@@ -17,6 +17,18 @@
 #include <emmintrin.h>
 #define FPM_SSE2 1
 #endif
+#if FPM_X86
+#include <immintrin.h>
+#if defined(_MSC_VER) && !defined(__clang__)
+#include <intrin.h>
+#else
+#include <cpuid.h>
+#endif
+#endif
+// Exhaustive maps take products eight windows at a time on these builds.
+#if FPM_DOTPROD || FPM_SSE2
+#define FPM_GROUPED 1
+#endif
 
 namespace fpm {
 const char* compiledBackend()
@@ -26,6 +38,13 @@ const char* compiledBackend()
 #elif FPM_NEON
 	return "NEON";
 #elif FPM_SSE2
+#if FPM_X86
+	switch (detail::x86Isa()) {
+	case detail::X86Isa::VnniInt8: return "AVX2+VNNI-INT8";
+	case detail::X86Isa::Avx2: return "AVX2";
+	default: break;
+	}
+#endif
 	return "SSE2";
 #else
 	return "scalar";
@@ -33,6 +52,52 @@ const char* compiledBackend()
 }
 
 namespace detail {
+#if FPM_X86
+static void cpuid(int leaf, int subleaf, unsigned (&r)[4])
+{
+#if defined(_MSC_VER) && !defined(__clang__)
+	int v[4];
+	__cpuidex(v, leaf, subleaf);
+	for (int i = 0; i < 4; ++i) r[i] = unsigned(v[i]);
+#else
+	__cpuid_count(leaf, subleaf, r[0], r[1], r[2], r[3]);
+#endif
+}
+
+static X86Isa detectX86Isa()
+{
+	unsigned r[4];
+	cpuid(0, 0, r);
+	const unsigned maxLeaf = r[0];
+	cpuid(1, 0, r);
+	// AVX needs OSXSAVE, and the OS must save XMM and YMM state (XCR0 bits 1, 2).
+	if (maxLeaf < 7 || !(r[2] >> 27 & 1) || !(r[2] >> 28 & 1)) return X86Isa::Sse2;
+#if defined(_MSC_VER) && !defined(__clang__)
+	const unsigned long long xcr0 = _xgetbv(0);
+#else
+	unsigned low, high;
+	__asm__("xgetbv" : "=a"(low), "=d"(high) : "c"(0));
+	const unsigned long long xcr0 = (unsigned long long)high << 32 | low;
+#endif
+	if ((xcr0 & 6) != 6) return X86Isa::Sse2;
+	cpuid(7, 0, r);
+	if (!(r[1] >> 5 & 1)) return X86Isa::Sse2;
+	if (r[0] < 1) return X86Isa::Avx2;
+	cpuid(7, 1, r);
+	return r[3] >> 4 & 1 ? X86Isa::VnniInt8 : X86Isa::Avx2;
+}
+#endif
+
+X86Isa x86Isa()
+{
+#if FPM_X86
+	static const X86Isa isa = std::min(detectX86Isa(), X86Isa(FPM_X86_MAX_ISA));
+	return isa;
+#else
+	return X86Isa::None;
+#endif
+}
+
 std::uint64_t dotProduct(const std::uint8_t* a, const std::uint8_t* b, int size, Backend backend)
 {
 	std::uint64_t total = 0;
@@ -133,11 +198,169 @@ static void windowDot8(const std::uint8_t* padded, int blocks, int rows,
 	out[4] = total[4] + vaddvq_u32(a4); out[5] = total[5] + vaddvq_u32(a5);
 	out[6] = total[6] + vaddvq_u32(a6); out[7] = total[7] + vaddvq_u32(a7);
 }
+#elif FPM_SSE2
+// The same eight-window kernel for x86, with the UDOT kernel's padding, reads
+// and flushes. Per accumulator lane and 16-byte block, SSE2 and AVX-VNNI-INT8
+// add four products and AVX2 adds two, so a lane stays below 512 * 4 * 65025
+// < 2^31 between flushes; lanes are summed in 64 bits.
+static std::uint64_t laneSum128(__m128i v)
+{
+	std::uint32_t lanes[4];
+	_mm_storeu_si128(reinterpret_cast<__m128i*>(lanes), v);
+	return std::uint64_t(lanes[0]) + lanes[1] + lanes[2] + lanes[3];
+}
+
+static __m128i sse2Dot16(__m128i sum, __m128i low, __m128i high, const std::uint8_t* p)
+{
+	const auto zero = _mm_setzero_si128(), s = _mm_loadu_si128(reinterpret_cast<const __m128i*>(p));
+	return _mm_add_epi32(sum, _mm_add_epi32(_mm_madd_epi16(_mm_unpacklo_epi8(s, zero), low),
+		_mm_madd_epi16(_mm_unpackhi_epi8(s, zero), high)));
+}
+
+static void windowDot8Sse2(const std::uint8_t* padded, int blocks, int rows,
+	const std::uint8_t* src, std::size_t stride, std::uint64_t* out)
+{
+	const std::size_t row = std::size_t(16) * blocks;
+	const auto zero = _mm_setzero_si128();
+	__m128i a0 = zero, a1 = zero, a2 = zero, a3 = zero, a4 = zero, a5 = zero, a6 = zero, a7 = zero;
+	std::uint64_t total[8] = {};
+	int pending = 0;
+	for (int y = 0; y < rows; ++y) {
+		const auto* t = padded + y * row;
+		const auto* p = src + y * stride;
+		for (std::size_t b = 0; b < row; b += 16) {
+			const auto tb = _mm_loadu_si128(reinterpret_cast<const __m128i*>(t + b));
+			const auto low = _mm_unpacklo_epi8(tb, zero), high = _mm_unpackhi_epi8(tb, zero);
+			a0 = sse2Dot16(a0, low, high, p + b); a1 = sse2Dot16(a1, low, high, p + b + 1);
+			a2 = sse2Dot16(a2, low, high, p + b + 2); a3 = sse2Dot16(a3, low, high, p + b + 3);
+			a4 = sse2Dot16(a4, low, high, p + b + 4); a5 = sse2Dot16(a5, low, high, p + b + 5);
+			a6 = sse2Dot16(a6, low, high, p + b + 6); a7 = sse2Dot16(a7, low, high, p + b + 7);
+		}
+		if ((pending += blocks) >= 256) {
+			total[0] += laneSum128(a0); total[1] += laneSum128(a1);
+			total[2] += laneSum128(a2); total[3] += laneSum128(a3);
+			total[4] += laneSum128(a4); total[5] += laneSum128(a5);
+			total[6] += laneSum128(a6); total[7] += laneSum128(a7);
+			a0 = a1 = a2 = a3 = a4 = a5 = a6 = a7 = zero;
+			pending = 0;
+		}
+	}
+	out[0] = total[0] + laneSum128(a0); out[1] = total[1] + laneSum128(a1);
+	out[2] = total[2] + laneSum128(a2); out[3] = total[3] + laneSum128(a3);
+	out[4] = total[4] + laneSum128(a4); out[5] = total[5] + laneSum128(a5);
+	out[6] = total[6] + laneSum128(a6); out[7] = total[7] + laneSum128(a7);
+}
+
+#if FPM_X86
+FPM_TARGET_AVX2 static std::uint64_t laneSum256(__m256i v)
+{
+	return laneSum128(_mm256_castsi256_si128(v)) + laneSum128(_mm256_extracti128_si256(v, 1));
+}
+
+// Zero-extend 16 source bytes and multiply-add them with the widened block.
+FPM_TARGET_AVX2 static __m256i avx2Dot16(__m256i sum, __m256i block, const std::uint8_t* p)
+{
+	return _mm256_add_epi32(sum, _mm256_madd_epi16(
+		_mm256_cvtepu8_epi16(_mm_loadu_si128(reinterpret_cast<const __m128i*>(p))), block));
+}
+
+FPM_TARGET_AVX2 static void windowDot8Avx2(const std::uint8_t* padded, int blocks, int rows,
+	const std::uint8_t* src, std::size_t stride, std::uint64_t* out)
+{
+	const std::size_t row = std::size_t(16) * blocks;
+	__m256i a0 = _mm256_setzero_si256(), a1 = a0, a2 = a0, a3 = a0, a4 = a0, a5 = a0, a6 = a0, a7 = a0;
+	std::uint64_t total[8] = {};
+	int pending = 0;
+	for (int y = 0; y < rows; ++y) {
+		const auto* t = padded + y * row;
+		const auto* p = src + y * stride;
+		for (std::size_t b = 0; b < row; b += 16) {
+			const auto tb = _mm256_cvtepu8_epi16(_mm_loadu_si128(reinterpret_cast<const __m128i*>(t + b)));
+			a0 = avx2Dot16(a0, tb, p + b); a1 = avx2Dot16(a1, tb, p + b + 1);
+			a2 = avx2Dot16(a2, tb, p + b + 2); a3 = avx2Dot16(a3, tb, p + b + 3);
+			a4 = avx2Dot16(a4, tb, p + b + 4); a5 = avx2Dot16(a5, tb, p + b + 5);
+			a6 = avx2Dot16(a6, tb, p + b + 6); a7 = avx2Dot16(a7, tb, p + b + 7);
+		}
+		if ((pending += blocks) >= 256) {
+			total[0] += laneSum256(a0); total[1] += laneSum256(a1);
+			total[2] += laneSum256(a2); total[3] += laneSum256(a3);
+			total[4] += laneSum256(a4); total[5] += laneSum256(a5);
+			total[6] += laneSum256(a6); total[7] += laneSum256(a7);
+			a0 = a1 = a2 = a3 = a4 = a5 = a6 = a7 = _mm256_setzero_si256();
+			pending = 0;
+		}
+	}
+	out[0] = total[0] + laneSum256(a0); out[1] = total[1] + laneSum256(a1);
+	out[2] = total[2] + laneSum256(a2); out[3] = total[3] + laneSum256(a3);
+	out[4] = total[4] + laneSum256(a4); out[5] = total[5] + laneSum256(a5);
+	out[6] = total[6] + laneSum256(a6); out[7] = total[7] + laneSum256(a7);
+	_mm256_zeroupper();
+}
+
+#if FPM_X86_MAX_ISA >= 3
+// vpdpbuud: four u8*u8 products per u32 lane, like UDOT. The 128-bit form was
+// faster than 256-bit pairs of blocks on the Core Ultra 9 285K pilot.
+FPM_TARGET_VNNI_INT8 static __m128i vnniDot16(__m128i sum, __m128i block, const std::uint8_t* p)
+{
+	return _mm_dpbuud_epi32(sum, _mm_loadu_si128(reinterpret_cast<const __m128i*>(p)), block);
+}
+
+FPM_TARGET_VNNI_INT8 static void windowDot8VnniInt8(const std::uint8_t* padded, int blocks, int rows,
+	const std::uint8_t* src, std::size_t stride, std::uint64_t* out)
+{
+	const std::size_t row = std::size_t(16) * blocks;
+	__m128i a0 = _mm_setzero_si128(), a1 = a0, a2 = a0, a3 = a0, a4 = a0, a5 = a0, a6 = a0, a7 = a0;
+	std::uint64_t total[8] = {};
+	int pending = 0;
+	for (int y = 0; y < rows; ++y) {
+		const auto* t = padded + y * row;
+		const auto* p = src + y * stride;
+		for (std::size_t b = 0; b < row; b += 16) {
+			const auto tb = _mm_loadu_si128(reinterpret_cast<const __m128i*>(t + b));
+			a0 = vnniDot16(a0, tb, p + b); a1 = vnniDot16(a1, tb, p + b + 1);
+			a2 = vnniDot16(a2, tb, p + b + 2); a3 = vnniDot16(a3, tb, p + b + 3);
+			a4 = vnniDot16(a4, tb, p + b + 4); a5 = vnniDot16(a5, tb, p + b + 5);
+			a6 = vnniDot16(a6, tb, p + b + 6); a7 = vnniDot16(a7, tb, p + b + 7);
+		}
+		if ((pending += blocks) >= 256) {
+			total[0] += laneSum128(a0); total[1] += laneSum128(a1);
+			total[2] += laneSum128(a2); total[3] += laneSum128(a3);
+			total[4] += laneSum128(a4); total[5] += laneSum128(a5);
+			total[6] += laneSum128(a6); total[7] += laneSum128(a7);
+			a0 = a1 = a2 = a3 = a4 = a5 = a6 = a7 = _mm_setzero_si128();
+			pending = 0;
+		}
+	}
+	out[0] = total[0] + laneSum128(a0); out[1] = total[1] + laneSum128(a1);
+	out[2] = total[2] + laneSum128(a2); out[3] = total[3] + laneSum128(a3);
+	out[4] = total[4] + laneSum128(a4); out[5] = total[5] + laneSum128(a5);
+	out[6] = total[6] + laneSum128(a6); out[7] = total[7] + laneSum128(a7);
+}
+#endif
+#endif
+#endif
+
+#if FPM_GROUPED
+using WindowDot8 = void (*)(const std::uint8_t*, int, int, const std::uint8_t*, std::size_t, std::uint64_t*);
+static WindowDot8 windowDot8Kernel()
+{
+#if FPM_DOTPROD
+	return windowDot8;
+#else
+#if FPM_X86 && FPM_X86_MAX_ISA >= 3
+	if (x86Isa() == X86Isa::VnniInt8) return windowDot8VnniInt8;
+#endif
+#if FPM_X86
+	if (x86Isa() >= X86Isa::Avx2) return windowDot8Avx2;
+#endif
+	return windowDot8Sse2;
+#endif
+}
 #endif
 
 // Default exhaustive map (no bounds or screens). Window sums and squares slide
 // over exact integer column sums instead of binary64 integral images, and UDOT
-// builds take products eight windows at a time. Every sum, square and product
+// and x86 builds take products eight windows at a time. Every sum, square and product
 // is an exact integer below 2^53, the same value as the original integral
 // difference or row-by-row binary64 sum, so all scores are bit-identical.
 static void exhaustiveNcc(ImageView src, const TemplateLevel& templ, Backend backend,
@@ -157,9 +380,10 @@ static void exhaustiveNcc(ImageView src, const TemplateLevel& templ, Backend bac
 		}
 	}
 	std::vector<double> sums(out.width), squares(out.width), denominators(out.width);
-#if FPM_DOTPROD
+#if FPM_GROUPED
 	const int blocks = (tw + 15) / 16;
 	const bool grouped = backend == Backend::Auto && blocks <= 256;
+	const WindowDot8 windowDot8Group = windowDot8Kernel();
 	std::vector<std::uint8_t> padded, source;
 	std::vector<std::uint64_t> products;
 	if (grouped) {
@@ -194,21 +418,21 @@ static void exhaustiveNcc(ImageView src, const TemplateLevel& templ, Backend bac
 			const double variance = std::max(0.0, squares[x] - sums[x] * sums[x] / area);
 			denominators[x] = nccDenominator(variance, squares[x], templ.norm);
 		}
-#if FPM_DOTPROD
+#if FPM_GROUPED
 		// Like the original, products are only needed where denominator != 0.
 		if (grouped)
 			for (int x = 0; x < out.width; x += 8) {
 				bool needed = false;
 				for (int k = x; k < std::min(x + 8, out.width); ++k) needed |= denominators[k] != 0;
 				if (needed)
-					windowDot8(padded.data(), blocks, th, source.data() + std::size_t(y) * src.width + x,
+					windowDot8Group(padded.data(), blocks, th, source.data() + std::size_t(y) * src.width + x,
 						src.width, products.data() + x);
 			}
 #endif
 		for (int x = 0; x < out.width; ++x) {
 			if (denominators[x] == 0) { out.at(x, y) = 0; continue; }
 			double product = 0;
-#if FPM_DOTPROD
+#if FPM_GROUPED
 			if (grouped) product = double(products[x]);
 			else
 #endif

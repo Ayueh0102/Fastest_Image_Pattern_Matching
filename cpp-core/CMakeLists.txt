@@ -19,6 +19,35 @@ target_compile_definitions(fpm_c PRIVATE FPM_BUILDING_LIBRARY PUBLIC FPM_SHARED)
 if(FPM_DISABLE_SIMD)
     target_compile_definitions(fpm_core PRIVATE FPM_DISABLE_SIMD)
 endif()
+# x86-64 only: the highest tier the core may pick at run time. VNNI_INT8 drops to
+# AVX2 when the compiler cannot build AVX-VNNI-INT8 intrinsics.
+set(FPM_X86_MAX_ISA "VNNI_INT8" CACHE STRING "Highest x86-64 SIMD tier selected at run time: SSE2, AVX2 or VNNI_INT8")
+set_property(CACHE FPM_X86_MAX_ISA PROPERTY STRINGS SSE2 AVX2 VNNI_INT8)
+if(FPM_X86_MAX_ISA STREQUAL "SSE2")
+    set(fpm_x86_level 1)
+elseif(FPM_X86_MAX_ISA STREQUAL "AVX2")
+    set(fpm_x86_level 2)
+elseif(FPM_X86_MAX_ISA STREQUAL "VNNI_INT8")
+    include(CheckCXXSourceCompiles)
+    check_cxx_source_compiles([=[
+#include <immintrin.h>
+#if defined(_MSC_VER) && !defined(__clang__)
+#define FPM_TARGET
+#else
+#define FPM_TARGET __attribute__((target("avx2,avxvnniint8")))
+#endif
+FPM_TARGET static __m128i dot(__m128i a, __m128i b) { return _mm_dpbuud_epi32(a, a, b); }
+int main() { return _mm_cvtsi128_si32(dot(_mm_setzero_si128(), _mm_setzero_si128())); }
+]=] FPM_HAVE_AVX_VNNI_INT8)
+    if(FPM_HAVE_AVX_VNNI_INT8)
+        set(fpm_x86_level 3)
+    else()
+        set(fpm_x86_level 2)
+    endif()
+else()
+    message(FATAL_ERROR "FPM_X86_MAX_ISA must be SSE2, AVX2 or VNNI_INT8")
+endif()
+target_compile_definitions(fpm_core PRIVATE FPM_X86_MAX_ISA=${fpm_x86_level})
 foreach(target fpm_core fpm_c)
     if(MSVC)
         target_compile_options(${target} PRIVATE /W4 /utf-8)

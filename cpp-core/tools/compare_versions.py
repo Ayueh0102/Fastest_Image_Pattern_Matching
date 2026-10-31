@@ -19,23 +19,13 @@ import time
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "python-port/src"))
+sys.path.insert(0, str(ROOT / "cpp-core/tools"))
 import cv2
 import numpy as np
 from fpm_py.pyramid import pyramid_match, _find_topk_suppressed
 from fpm_py.nms import nms, nms_rotated
 
-CASES = [
-    ("Src1.bmp", "Dst1.bmp", 5, .8, 180, .0, 256),
-    ("Src2.bmp", "Dst2.bmp", 5, .8, 180, .0, 256),
-    ("Src3.bmp", "Dst3.bmp", 38, .8, 0, .0, 256),
-    ("Src4.bmp", "Dst4.bmp", 5, .8, 180, .0, 256),
-    ("Src6.jpg", "Dst6.bmp", 15, .8, 180, .0, 256),
-    ("Src7.bmp", "Dst7.bmp", 5, .8, 180, .0, 256),
-    ("Src8.bmp", "Dst8.bmp", 5, .8, 180, .8, 256),
-    ("Src9.bmp", "Dst9.bmp", 100, .5, 0, .5, 1024),
-    ("Src10.bmp", "Dst10.jpg", 100, .8, 0, .0, 256),
-] + [(f"Src5-{angle}.bmp", "Dst5.bmp", 1, .8, 180, .0, 256)
-     for angle in (0, 45, 90, 135, 180, 225, 270, 315)]
+from fixture_cases import CASES  # noqa: E402
 
 
 def correspondence(reference, actual):
