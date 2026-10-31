@@ -265,16 +265,18 @@ void coarse()
     Rng rng(4242);
     std::uniform_real_distribution<double> u(0, 1);
     // Scores exactly at the threshold are kept: a flat template scores 1 everywhere,
-    // a flat source scores 0 everywhere (zero variance).
+    // a flat source scores 0 everywhere (zero variance). Their own generator keeps
+    // the random trials below unchanged.
+    Rng flatRng(99);
     for (int mode = 0; mode < 2; ++mode) {
         Gpu backend;
         backend.value->setCoarseOptimization(0, mode);
         Image flat(9, 7), flatSource(60, 40);
         for (int y = 0; y < 7; ++y) std::memset(flat.row(y), 50, 9);
         for (int y = 0; y < 40; ++y) std::memset(flatSource.row(y), 120, 60);
-        const auto textured = texture(80, 50, rng);
+        const auto textured = texture(80, 50, flatRng);
         sameCoarse(*backend.value, textured, learnLevel(flat), {0, 30, -90}, 0, 6, 0.3, 1.0, "flat template, threshold 1");
-        sameCoarse(*backend.value, flatSource, learnLevel(texture(9, 7, rng)), {0, 45}, 120, 6, 0.3, 0.0, "flat source, threshold 0");
+        sameCoarse(*backend.value, flatSource, learnLevel(texture(9, 7, flatRng)), {0, 45}, 120, 6, 0.3, 0.0, "flat source, threshold 0");
     }
     for (int mode = 0; mode < 2; ++mode) {
         Gpu backend;
@@ -328,6 +330,14 @@ void dense()
         require(sameBits(backend.value->compute(source.view(), templ).values, ncc(source.view(), templ, fpm::Backend::Auto).values),
             "dense map differs");
     }
+    // Bright, nearly flat windows: 10*FLT_EPSILON*square exceeds 0.5, so the 0.5 cap
+    // of nccDenominator()'s variance guard decides whether a window scores 0.
+    Image bright(120, 90);
+    for (int y = 0; y < 90; ++y)
+        for (int x = 0; x < 120; ++x) bright.row(y)[x] = std::uint8_t(rng() % 23 == 0 ? 201 : 200);
+    const auto templ = learnLevel(texture(12, 10, rng));
+    require(sameBits(backend.value->compute(bright.view(), templ).values, ncc(bright.view(), templ, fpm::Backend::Auto).values),
+        "dense map of a bright, nearly flat image differs");
 }
 
 void pyramid()
