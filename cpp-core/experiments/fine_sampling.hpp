@@ -32,6 +32,8 @@ struct FineWarpPlan {
     FineWarpDescriptor descriptor{};
 };
 
+inline void describeFineWarp(FineWarpPlan& plan, int width, int height);
+
 inline FineWarpPlan prepareFineWarp(const fpm::detail::FineRequest& request, int width, int height)
 {
     if (!std::isfinite(request.anchor.x) || !std::isfinite(request.anchor.y) ||
@@ -43,6 +45,15 @@ inline FineWarpPlan prepareFineWarp(const fpm::detail::FineRequest& request, int
         {0, 0}, -request.angle);
     FineWarpPlan plan{{request.anchor.x + origin.x, request.anchor.y + origin.y},
         std::cos(request.angle * fpm::detail::D2R), std::sin(request.angle * fpm::detail::D2R), {}};
+    describeFineWarp(plan, width, height);
+    return plan;
+}
+
+// Q28 descriptor and rounding guard of a width x height ROI sampled at the plan's
+// binary64 anchor, cosine and sine.
+inline void describeFineWarp(FineWarpPlan& plan, int width, int height)
+{
+    plan.descriptor = {};
     constexpr double scale = 268435456.0; // 2^28, exactly representable.
     const double extent = double(width - 1) + double(height - 1);
     // This conservative range also proves that all Q28 affine products/adds
@@ -51,7 +62,7 @@ inline FineWarpPlan prepareFineWarp(const fpm::detail::FineRequest& request, int
         std::abs(plan.anchor.x) + extent + 1 > 2147483648.0 ||
         std::abs(plan.anchor.y) + extent + 1 > 2147483648.0) {
         plan.descriptor.repairAll = 1;
-        return plan;
+        return;
     }
     auto& descriptor = plan.descriptor;
     descriptor.anchorX = std::llround(plan.anchor.x * scale);
@@ -73,13 +84,12 @@ inline FineWarpPlan prepareFineWarp(const fpm::detail::FineRequest& request, int
     const double error = 255 * (errorX + errorY) + 8192 * epsilon;
     if (!std::isfinite(error) || error >= 0.25) {
         descriptor.repairAll = 1;
-        return plan;
+        return;
     }
     // Compare on the GPU using integers, not a rounded FP32 confidence test.
     // Outward rounding and 256 numerator units cover host guard conversion.
     descriptor.roundingGuard = std::uint64_t(std::ceil(std::ldexp(
         std::nextafter(error, std::numeric_limits<double>::infinity()), 56))) + 256;
-    return plan;
 }
 
 inline std::uint8_t sampleFineLegacyPixel(fpm::ImageView source, const FineWarpPlan& plan, int x, int y)
