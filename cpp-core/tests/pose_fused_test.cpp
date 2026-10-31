@@ -540,6 +540,16 @@ void testSimdEquivalence()
 int main()
 {
     try {
+        if (FPM_TEST_STORAGE_MODE) {
+            // The GPU-less guards below already create auto handles with this storage mode.
+            const Fixture f = fixture(); char error[1024]{};
+            void* shared = fpm_pose_create_with_storage(2, 1, f.source.data(), f.sw, f.sh,
+                f.templ.data(), f.tw, f.th, f.channels, FPM_TEST_STORAGE_MODE, error, sizeof(error));
+            if (!shared && std::string(error) == "Shared pose storage requires Apple Metal") {
+                std::cout << "SKIP: " << error << '\n'; return 77;
+            }
+            fpm_pose_destroy(shared);
+        }
         testModeGuardsWithoutGpu();
         const Fixture probe = fixture(); char error[1024]{};
         void* available = fpm_pose_create(1, 1, probe.source.data(), probe.sw, probe.sh,

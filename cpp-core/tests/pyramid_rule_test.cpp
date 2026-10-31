@@ -14,6 +14,8 @@
 using namespace fpm;
 using namespace fpm::research;
 namespace {
+// MSVC defines M_PI only with _USE_MATH_DEFINES.
+constexpr double PI=3.14159265358979323846;
 void require(bool v,const std::string& why) { if(!v) throw std::runtime_error(why); }
 template<class F> void invalid(F&& operation,const char* why) {
     bool rejected=false;
@@ -166,7 +168,7 @@ Image scene(const Image& t,const std::vector<Truth>& objects) {
     Image s(360,260);for(int y=0;y<260;++y) std::fill_n(s.row(y),360,uint8_t(118));
     const double cx=(t.width()-1)/2.,cy=(t.height()-1)/2.;
     for(const auto& o:objects) {
-        const double c=std::cos(o.angle*M_PI/180),sn=std::sin(o.angle*M_PI/180);
+        const double c=std::cos(o.angle*PI/180),sn=std::sin(o.angle*PI/180);
         for(int y=0;y<260;++y) for(int x=0;x<360;++x) {
             const double dx=x-o.x,dy=y-o.y,u=c*dx-sn*dy+cx,v=sn*dx+c*dy+cy;
             if(u<0 || v<0 || u>t.width()-1 || v>t.height()-1) continue;
