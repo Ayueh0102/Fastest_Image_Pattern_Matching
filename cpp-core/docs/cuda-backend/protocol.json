@@ -1,0 +1,59 @@
+{
+ "registered_before_timing": "2026-10-31T16:53:49Z",
+ "question": "Does the experimental CUDA backend (backend 2 of the research coarse/frame API: exact device pyramid, one fused coarse launch over all angles with sparse peak entries, Q28-guarded fine search with __dp4a stripes) return matches bit-identical to the same build's CPU backend on Windows x86-64, and how does it change the per-frame time (prepare + match) of the 17 fixtures on the RTX PRO 4000?",
+ "commits": {
+  "base": "c67ca3329861fe78706e2ed0217f71ec54f695a3 (main before this work)",
+  "core_hooks": "500d1cd (canvasWarp/roiWarp, deviceCoarse hook, selectPeaksSparse)",
+  "after": "9623880 (CUDA backend, tests and tools)"
+ },
+ "sources": "git archive of each commit's cpp-core (docs excluded), unpacked into fresh directories",
+ "pc": {
+  "host": "PTRI-PRO-4000",
+  "cpu": "Intel Core Ultra 9 285K (8 P-cores + 16 E-cores)",
+  "gpu": "NVIDIA RTX PRO 4000 Blackwell, compute capability 12.0, 70 SMs, 24 GB, driver 596.71, WDDM, no display attached",
+  "os": "Windows 11 10.0.26300",
+  "toolchain": "MSVC 19.44.35207, CUDA 13.2 Update 2 (nvcc V13.2.86, MD5 of cuda_13.2.2_windows.exe 9e4bcad21f296561fa834a4eeda079d2 as published), CMake 3.31.6, Ninja, Release, CMAKE_CUDA_ARCHITECTURES=120, nvcc -fmad=false -lineinfo, static cudart",
+  "builds": {
+   "after-cuda": "9623880 with FPM_BUILD_EXPERIMENTS=ON FPM_WITH_CUDA=ON (every timing and identity arm runs this one build's fpm_frame_bench)",
+   "core-base / core-after": "c67ca33 and 9623880 pure core (fpm_c.dll) for the core identity gate"
+  },
+  "affinity": "drivers start with `start /affinity C03C02` (P-cores 1,10-13,22,23); children inherit it"
+ },
+ "mac": {
+  "host": "Apple M4 Pro, 48 GiB, Apple clang 21",
+  "builds": "9623880 pure core and research build (GUI, OpenCV, experiments; no CUDA), and c67ca33 pure core"
+ },
+ "inputs": "the 17 compare_versions cases as 8-bit PGM copies from export_fixture_pgm.py; manifest.json sha256 3a539fec058b4f42e613c074a8fcb0f697ae2ca671cd76645bc8a23b6cd8e64f, checked on the PC before any run",
+ "arms": {
+  "cpu": "fpm_frame_bench backend 0: CPU pyramid, coarse and fine search (the matcher's own CPU path)",
+  "cuda": "backend 2, pyramid_mode 1, fine_batch_size 256, coarse ncc_mode 0 (fused)",
+  "cuda_coarse": "backend 2, CPU pyramid, device coarse search only (fine on CPU): the coarse stage's share",
+  "identity_only": {
+   "cuda_unfused": "2,1,256,1 (canvases in device memory)",
+   "cuda_batch8": "2,1,8,0",
+   "cuda_cpu_pyramid": "2,0,256,0"
+  }
+ },
+ "metric": "per-frame time = fpm_frame_prepare (source copy and pyramid) + fpm_frame_match, image decoding and frame/pattern creation excluded; steady = median of 5 calls after 500 ms of untimed calls in the same process; cold = that process's first call. Backend device times, sync counts and FP64 pixel counts are diagnostics only.",
+ "gates": {
+  "ctest": "the PC after-cuda build passes ctest with experimental_cuda_backend and experimental_cuda_kernels run (not skipped); on the Mac, 9623880 passes the pure core ctest and the research build ctest",
+  "identity": "every run of every arm (timing rounds and identity-only runs) returns matches bit-identical to the cpu arm of the same round, case and mode; zero mismatches and zero failed runs",
+  "core_unchanged": "check_backend_identity.py with fpm_c of c67ca33 and 9623880 on the PC (--pgm-dir) and on the Mac: zero differences (17 cases x 4 modes x SIMD/scalar)",
+  "guard_exercised": "fpm_cuda_kernel_test reports at least 4 poses where Q28 and binary64 round a pixel differently (each inside the guard) and nonzero FP64 pixels and FP64 maps",
+  "mutants": "cuda_mutants.py: 24 compiled mutants (23 in coarse_cuda.cu, 1 in selectPeaksSparse); all KILLED; the unmutated and restored trees pass"
+ },
+ "hypotheses": {
+  "H1": "steady geometric mean of cuda/cpu over the 17 cases is below 0.5 in each mode (exhaustive, fast, subpixel)",
+  "H2": "at least 15 of the 17 cases are faster with cuda in each mode (predicted exception: Src9, the smallest case)",
+  "descriptive": "cold first-call times, process peak RSS (expected higher for cuda: CUDA context and page-locked buffers) and retained device bytes are reported, not gated"
+ },
+ "timing": {
+  "tool": "benchmark_frame_backend.py --rounds 8 --repeat 5 --warmup-ms 500 (round 0 kept but left out of the summary), arms cpu, cuda, cuda_coarse; arm order alternates by round; fresh process per run",
+  "identity_only_run": "benchmark_frame_backend.py --rounds 2 --repeat 1 --warmup-ms 0 with arms cpu, cuda_unfused, cuda_batch8, cuda_cpu_pyramid",
+  "quiet": "nothing else runs on the PC during the timing runs; mutants and profiling run afterwards",
+  "no_drops": "no run is dropped or repeated; a failed run is reported as failed"
+ },
+ "decision_rule": "The backend is kept as an opt-in research backend when every gate passes. H1 and H2 are reported as measured; a failure is disclosed, not tuned away. Defaults do not change.",
+ "not_formal": "cuda_pilot.cu (exactness and latency pilot), the exploratory runs explore1/explore2 and the nsys/ncu profiles of uncommitted trees chose the design (FP64 warp to Q28 guard, dp4a stripes, two blocks per SM, template reuse) and are archived as selection evidence only",
+ "profiling": "Nsight Systems (--trace=cuda,nvtx,wddm) and Nsight Compute runs of 9623880 are made after the formal runs, separately; their times are not formal"
+}
