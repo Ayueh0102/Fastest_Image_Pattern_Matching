@@ -1,0 +1,59 @@
+{
+ "registered_before_timing": "2026-10-31T14:07:52Z",
+ "question": "Do the run-time selected x86-64 SIMD tiers (eight-window SSE2/AVX2/AVX-VNNI-INT8 products, SSE2/AVX2 rotation rows) and the SSE2 pyrDown speed up the stable core's fixed-scale match on x86-64 with bit-identical outputs, without slowing the Apple arm64 build?",
+ "commits": {
+  "before": "fe601594ea9a16153b406a17b7e7a938f7d5c6f8 (main before this work)",
+  "after": "869502729de13b74a98bffde202461ec413691bf (c74913c tiers + 8695027 SSE2 pyrDown; 7506003 only changes two experiment tests)"
+ },
+ "sources": "git archive of each commit's cpp-core (docs excluded), unpacked into fresh directories on each machine",
+ "pc": {
+  "host": "PTRI-PRO-4000",
+  "cpu": "Intel Core Ultra 9 285K (8 P-cores + 16 E-cores, no SMT; cpuid: AVX2, FMA, AVX-VNNI, AVX-VNNI-INT8, no AVX-512)",
+  "os": "Windows 11 10.0.26300",
+  "toolchain": "MSVC 19.44.35207 (VS Build Tools 2022 17.14), CMake 3.31.6, Ninja, CMAKE_BUILD_TYPE=Release, no /arch flag (x86-64 SSE2 baseline), pure core (no OpenCV)",
+  "builds": {
+   "before": "fe60159 default",
+   "after-auto": "default (FPM_X86_MAX_ISA=VNNI_INT8; picks AVX2+VNNI-INT8 on this CPU)",
+   "after-avx2": "FPM_X86_MAX_ISA=AVX2",
+   "after-sse2": "FPM_X86_MAX_ISA=SSE2",
+   "after-scalar": "FPM_DISABLE_SIMD=ON",
+   "after-asan-auto / after-asan-sse2": "MSVC /fsanitize=address, ctest only"
+  },
+  "affinity": "every timing driver is started with `start /affinity C03C02` (P-cores 1,10-13,22,23; CPU 0 and all E-cores excluded); fpm_cli children inherit it",
+  "script": "formal.bat (archived)"
+ },
+ "mac": {
+  "host": "Apple M4 Pro, 48 GiB",
+  "toolchain": "Apple clang 21.0.0, Release, pure core",
+  "builds": {
+   "before": "fe60159",
+   "after": "8695027"
+  },
+  "script": "formal-mac.sh (archived); refuses to run while a side-session timing lock exists; records uptime/load"
+ },
+ "inputs": "the 17 compare_versions cases as 8-bit PGM copies from export_fixture_pgm.py; manifest.json sha256 3a539fec058b4f42e613c074a8fcb0f697ae2ca671cd76645bc8a23b6cd8e64f; the PC copies are checked against it before any run",
+ "gates": {
+  "ctest": "every PC configuration (before, after-auto/avx2/sse2/scalar, both ASan builds) and both Mac builds pass ctest; the Mac research build at 8695027 passes ctest",
+  "identity_pc": "check_backend_identity.py --pgm-dir with libraries before, auto, avx2, sse2, scalar (SIMD and scalar backends each): 17 cases x 4 modes x 10 = 680 runs, zero runs different from before/scalar",
+  "identity_mac": "the same tool with before and after on arm64: 272 runs, zero different",
+  "cross_platform": "every case/mode reference output (binary64 hex) of the PC equals the Mac's",
+  "mutants": "x86_mutants.py: 20 compiled mutants of the SSE2/AVX2/VNNI-INT8 kernels, rotation rows and SSE2 pyrDown, each built under the tier cap that runs it; all must be killed by fpm_core_test, and the unmutated and restored trees must pass"
+ },
+ "timing": {
+  "tool": "benchmark_backend_ab.py --rounds 8 (round 0 warm-up discarded), alternating order, fresh fpm_cli process per run, --pgm-dir; metric fpm_cli match_ms (excludes decoding and template learning)",
+  "pc_runs": [
+   "before vs after-auto: default",
+   "before vs after-auto: --fast",
+   "before vs after-auto: --subpixel",
+   "after-sse2 vs after-auto: default (tier contribution)",
+   "after-avx2 vs after-auto: default (tier contribution)"
+  ],
+  "mac_runs": [
+   "before vs after: default"
+  ],
+  "no_drops": "no run is dropped or repeated; a failed run is reported as failed"
+ },
+ "decision_rule": "Adopt when every gate above passes, the PC default before/after geometric-mean ratio (after/before over the 17 per-case medians) is below 1, and the Mac default ratio is at most 1.02. Speeds are otherwise reported, not gated.",
+ "not_formal": "the pilot (x86_pilot.cpp), the counter-instrumented profiles and the preliminary run_cli_cases.py runs were made before this registration on uncommitted trees; they chose the variants and are archived as selection evidence only",
+ "profiling": "a counter-instrumented copy of 8695027 is profiled after the formal runs, separately; its times are not formal"
+}
