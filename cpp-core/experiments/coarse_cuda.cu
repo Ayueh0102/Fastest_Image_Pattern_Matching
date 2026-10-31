@@ -469,6 +469,12 @@ public:
         fusedCoarse_ = nccMode == 0;
     }
     bool deviceCoarse() const override { return true; }
+    // Fine NCC mode 1 samples every fine pixel with the FP64 warpPixel() (ablation
+    // and tests of the FP64 path); 0 is the Q28 fast path with the guard.
+    void setFineNccMode(int mode) override {
+        if (mode < 0 || mode > 1) throw std::invalid_argument("CUDA fine NCC mode is 0 (Q28 with guard) or 1 (FP64 sampling)");
+        exactFine_ = mode == 1;
+    }
 
     // ---- metrics ----
     void resetMetrics() override {
@@ -703,6 +709,7 @@ public:
         u64 repairAll = 0;
         for (const auto& r : requests) {
             warps.push_back(fineWarp(fpm::detail::roiWarp(tw, th, r.anchor, r.angle)));
+            if (exactFine_) warps.back().repairAll = 1;
             repairAll += warps.back().repairAll != 0;
         }
         const size_t warpsBytes = align16(warps.size() * sizeof(FineWarp));
@@ -800,11 +807,12 @@ private:
     size_t retainedDeviceBytes() const {
         size_t bytes = pyramid_.capacity() + coarseDevice_.capacity() + fineDevice_.capacity() + fineAcc_.capacity();
         for (const auto& item : uploaded_) bytes += item.second.capacity();
+        for (const auto& buffer : templateBuffers_) bytes += buffer.capacity();
         return bytes;
     }
 
     int sharedOptin_ = 0, fineSharedLimit_ = 0, fineSharedTarget_ = 0, pyramidMode_ = 0;
-    bool fusedCoarse_ = true;
+    bool fusedCoarse_ = true, exactFine_ = false;
     size_t fineBatchSize_ = 0, uploadedBytes_ = 0;
     cudaStream_t stream_ = nullptr;
     cudaEvent_t begin_ = nullptr, end_ = nullptr;

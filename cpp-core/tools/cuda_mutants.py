@@ -1,7 +1,7 @@
 """Compiled mutants of the CUDA backend (stdlib only; run where nvcc and the host compiler work).
 
-python cuda_mutants.py BUILD_DIR SOURCE_ROOT LOG_JSON
-BUILD_DIR is a configured FPM_WITH_CUDA build of SOURCE_ROOT/cpp-core. Each mutant replaces the
+python cuda_mutants.py BUILD_DIR SOURCE_ROOT LOG_JSON [LABELS]
+LABELS optionally restricts the run to comma-separated label prefixes (e.g. W1,C1). BUILD_DIR is a configured FPM_WITH_CUDA build of SOURCE_ROOT/cpp-core. Each mutant replaces the
 `occurrence`-th copy of an anchor (counted from 1; the anchor must occur exactly `total` times),
 rebuilds fpm_cuda_kernel_test, fpm_cuda_backend_test and fpm_core_test, runs the tests its file
 can affect, and restores the file. KILLED: a test fails or times out. SURVIVED: all pass.
@@ -14,6 +14,7 @@ import sys
 from pathlib import Path
 
 build, root, log = Path(sys.argv[1]), Path(sys.argv[2]), Path(sys.argv[3])
+only = sys.argv[4].split(',') if len(sys.argv) > 4 else None
 CU, NCC = 'cpp-core/experiments/coarse_cuda.cu', 'cpp-core/src/ncc.cpp'
 # (label, file, anchor, replacement, occurrence, total)
 MUTANTS = [
@@ -109,19 +110,22 @@ for rel in (CU, NCC):
     if status[0] != 'SURVIVED':
         sys.exit('baseline fails')
 for label, rel, old, new, occurrence, total in MUTANTS:
+    if only and label.split()[0] not in only:
+        continue
     path = root / rel
-    text = path.read_text(encoding='utf-8')
+    original = path.read_bytes()  # bytes: no newline translation on Windows
+    text = original.decode('utf-8')
     if text.count(old) != total:
         results.append(dict(mutant=label, status='ANCHOR', detail=f'{text.count(old)} copies'))
         print('ANCHOR', label, flush=True)
         continue
     parts = text.split(old)
     mutated = old.join(parts[:occurrence]) + new + old.join(parts[occurrence:])
-    path.write_text(mutated, encoding='utf-8')
+    path.write_bytes(mutated.encode('utf-8'))
     try:
         status = check(rel)
     finally:
-        path.write_text(text, encoding='utf-8')
+        path.write_bytes(original)
     results.append(dict(mutant=label, status=status[0], detail=status[1]))
     print(f'{status[0]:8s} {label} | {status[1][:200]}', flush=True)
 for rel in (CU, NCC):

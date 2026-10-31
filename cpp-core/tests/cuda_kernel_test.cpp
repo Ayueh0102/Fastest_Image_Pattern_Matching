@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: BSD-2-Clause
 // Kernel-level checks of the CUDA backend against fpm_core in the same build.
 // Fine maps must equal ncc(rotatedRoi()) for random, border, out-of-image and
-// repairAll poses, and for poses found here on the host where exact Q28 sampling
+// repairAll poses, for poses found here on the host where exact Q28 sampling
 // rounds a pixel differently from binary64 (the guard must send those pixels to
-// FP64, and each such pixel must lie inside the guard). Coarse peaks must equal
+// FP64, and each such pixel must lie inside the guard), and, with every pixel
+// sampled in FP64, for poses where re-associating or contracting warpPixel()'s
+// coordinate arithmetic would change a pixel. Coarse peaks must equal
 // selectPeaks(ncc(rotateCanvas())) for random angle sets, borders, counts,
 // overlaps and thresholds, fused and unfused; dense maps must equal ncc(); the
 // device pyramid must equal pyrDown(). Exit 77 when no CUDA device is available.
@@ -120,6 +122,55 @@ std::vector<FineRequest> disagreeingPoses(const Image& source, int tw, int th, R
     return found;
 }
 
+// The sampled value of warpPixel() at (sx, sy), as in sampleFineLegacyPixel().
+std::uint8_t bilinear(ImageView s, double sx, double sy)
+{
+    if (sx < -1 || sy < -1 || sx >= s.width || sy >= s.height) return 0;
+    const int ix = int(std::floor(sx)), iy = int(std::floor(sy));
+    const double dx = sx - ix, dy = sy - iy;
+    auto pixel = [&](int px, int py) -> double {
+        return px < 0 || py < 0 || px >= s.width || py >= s.height ? 0 : s.data[std::size_t(py) * s.stride + std::size_t(px)];
+    };
+    const double top = pixel(ix, iy) * (1 - dx) + pixel(ix + 1, iy) * dx;
+    const double bottom = pixel(ix, iy + 1) * (1 - dx) + pixel(ix + 1, iy + 1) * dx;
+    return std::uint8_t(std::clamp(std::floor(top * (1 - dy) + bottom * dy + 0.5), 0.0, 255.0));
+}
+
+// Poses whose ROI has a pixel that changes when warpPixel()'s coordinates are
+// re-associated or contracted into an FMA: only an exact FP64 port reproduces them.
+std::vector<FineRequest> arithmeticPoses(const Image& source, int tw, int th, Rng& rng, std::size_t wanted, std::size_t& inspected)
+{
+    // Exact ties need structured poses: special angles (tiny or zero products) and
+    // anchors on half, third and seventh grids, as in core_test's exact-reference.
+    std::vector<FineRequest> candidates;
+    const double angles[] = {0, 90, -90, 180, -180, 1e-9, 1e-12, -1e-12, 45, 30, 60, -37.25, 120};
+    for (double angle : angles)
+        for (int i = -12; i < 2 * source.width(); i += 1)
+            for (int j = -12; j < 2 * source.height(); j += 3)
+                for (double denominator : {2.0, 3.0, 7.0}) candidates.push_back({{i / denominator, j / denominator}, angle});
+    std::shuffle(candidates.begin(), candidates.end(), rng);
+    std::vector<FineRequest> found;
+    inspected = 0;
+    for (const auto& request : candidates) {
+        if (found.size() >= wanted) break;
+        const auto m = roiWarp(tw, th, request.anchor, request.angle);
+        fpm_coarse_detail::FineWarpPlan plan{m.anchor, m.c, m.s, {}};
+        bool differs = false;
+        for (int y = 0; y < m.height && !differs; ++y)
+            for (int x = 0; x < m.width && !differs; ++x) {
+                ++inspected;
+                const auto expected = fpm_coarse_detail::sampleFineLegacyPixel(source.view(), plan, x, y);
+                const double cx = m.c * x, sy0 = m.s * y, sx1 = m.s * x, cy = m.c * y;
+                const double sx = (m.anchor.x + cx) - sy0, sy = (m.anchor.y + sx1) + cy;
+                const double variants[][2] = {{m.anchor.x + (cx - sy0), sy}, {sx, std::fma(m.c, double(y), m.anchor.y + sx1)},
+                    {std::fma(m.c, double(x), m.anchor.x) - sy0, sy}, {sx, std::fma(m.s, double(x), m.anchor.y) + cy}};
+                for (const auto& v : variants) differs |= bilinear(source.view(), v[0], v[1]) != expected;
+            }
+        if (differs) found.push_back(request);
+    }
+    return found;
+}
+
 void fine()
 {
     Gpu backend;
@@ -138,7 +189,21 @@ void fine()
         std::cout << "Q28/binary64 disagreements: " << poses.size() << " poses in " << inspected << " pixels\n";
         fineCase(gpu, source, templ, poses, "disagreeing poses");
     }
-    // 2. Random, border, out-of-image, special-angle and repairAll poses.
+    // 2. FP64 sampling of every pixel (fine NCC mode 1) at poses where re-associated
+    //    or contracted coordinate arithmetic changes a pixel.
+    {
+        const auto source = noise(64, 48, rng, true);
+        const auto templ = learnLevel(texture(5, 4, rng));
+        std::size_t inspected = 0;
+        const auto poses = arithmeticPoses(source, 5, 4, rng, 24, inspected);
+        require(poses.size() >= 4, "found only " + std::to_string(poses.size()) + " arithmetic-sensitive poses in " +
+            std::to_string(inspected) + " pixels");
+        std::cout << "arithmetic-sensitive poses: " << poses.size() << " in " << inspected << " pixels\n";
+        gpu.setFineNccMode(1);
+        fineCase(gpu, source, templ, poses, "arithmetic-sensitive poses, FP64 sampling");
+        gpu.setFineNccMode(0);
+    }
+    // 3. Random, border, out-of-image, special-angle and repairAll poses.
     for (int trial = 0; trial < 8; ++trial) {
         const int sw = 20 + int(rng() % 300), sh = 20 + int(rng() % 200);
         const int tw = 1 + int(rng() % 90), th = 1 + int(rng() % 70);
@@ -154,7 +219,7 @@ void fine()
         requests.push_back({{-4.0e9, -4.0e9}, 0});
         fineCase(gpu, source, templ, requests, "fine trial " + std::to_string(trial));
     }
-    // 3. A flat template (every score 1) and a template wider than one 32-row stripe is tall.
+    // 4. A flat template (every score 1) and a template wider than one 32-row stripe is tall.
     {
         const auto source = texture(400, 120, rng);
         Image flat(17, 9);
@@ -168,10 +233,49 @@ void fine()
               << metrics.repair_all_maps << " FP64 maps\n";
 }
 
+// Peaks of one coarse request on the device against selectPeaks(ncc(rotateCanvas())).
+void sameCoarse(fpm_coarse_detail::Backend& gpu, const Image& source, const TemplateLevel& templ,
+    const std::vector<double>& angles, std::uint8_t border, int count, double overlapRatio, double threshold,
+    const std::string& name)
+{
+    const int tw = templ.image.width(), th = templ.image.height();
+    gpu.invalidateFineSource();
+    const auto got = gpu.computeCoarseDevice(source.view(), templ, angles, border, count, overlapRatio, threshold);
+    require(got.size() == angles.size(), name + ": coarse angle count");
+    for (std::size_t i = 0; i < angles.size(); ++i) {
+        const auto canvas = rotateCanvas(source.view(), tw, th, angles[i], border);
+        const std::string what = name + " angle " + std::to_string(i);
+        require(got[i].canvasWidth == canvas.image.width() && got[i].canvasHeight == canvas.image.height() &&
+            std::memcmp(&got[i].translation, &canvas.translation, sizeof(Point)) == 0, what + ": canvas geometry");
+        if (canvas.image.width() < tw || canvas.image.height() < th) {
+            require(got[i].peaks.empty(), what + ": skipped canvas has peaks");
+            continue;
+        }
+        const auto expected = selectPeaks(ncc(canvas.image.view(), templ, fpm::Backend::Auto), tw, th,
+            count, overlapRatio, threshold, false);
+        require(got[i].peaks.size() == expected.size(), what + ": peak count");
+        for (std::size_t k = 0; k < expected.size(); ++k)
+            require(got[i].peaks[k].x == expected[k].x && got[i].peaks[k].y == expected[k].y &&
+                std::memcmp(&got[i].peaks[k].score, &expected[k].score, sizeof(double)) == 0, what + ": peak differs");
+    }
+}
+
 void coarse()
 {
     Rng rng(4242);
     std::uniform_real_distribution<double> u(0, 1);
+    // Scores exactly at the threshold are kept: a flat template scores 1 everywhere,
+    // a flat source scores 0 everywhere (zero variance).
+    for (int mode = 0; mode < 2; ++mode) {
+        Gpu backend;
+        backend.value->setCoarseOptimization(0, mode);
+        Image flat(9, 7), flatSource(60, 40);
+        for (int y = 0; y < 7; ++y) std::memset(flat.row(y), 50, 9);
+        for (int y = 0; y < 40; ++y) std::memset(flatSource.row(y), 120, 60);
+        const auto textured = texture(80, 50, rng);
+        sameCoarse(*backend.value, textured, learnLevel(flat), {0, 30, -90}, 0, 6, 0.3, 1.0, "flat template, threshold 1");
+        sameCoarse(*backend.value, flatSource, learnLevel(texture(9, 7, rng)), {0, 45}, 120, 6, 0.3, 0.0, "flat source, threshold 0");
+    }
     for (int mode = 0; mode < 2; ++mode) {
         Gpu backend;
         auto& gpu = *backend.value;

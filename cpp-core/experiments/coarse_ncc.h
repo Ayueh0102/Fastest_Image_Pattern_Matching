@@ -304,8 +304,10 @@ FPM_API int fpm_coarse_create(fpm_image templ, int min_area,
  * reach the coarse threshold; with a frame fine_batch_size it also runs fine
  * search, and pyramid_mode 1 builds the exact pyramid on the device. Its
  * outputs equal the CPU backend's of the same build bit for bit. Coarse
- * optimization ncc_mode 1 keeps canvases in device memory (unfused ablation).
- * gpu_bytes counts device allocations only, not page-locked host staging.
+ * optimization ncc_mode 1 keeps canvases in device memory (unfused ablation);
+ * fine NCC mode 1 samples every fine pixel in FP64 instead of the guarded Q28
+ * fast path. gpu_bytes counts device allocations only, not page-locked host
+ * staging.
  */
 FPM_API int fpm_coarse_create_backend(fpm_image templ, int min_area, int backend,
     fpm_coarse_handle** out, FpmCoarseMetrics* metrics, char* error, size_t error_capacity);
