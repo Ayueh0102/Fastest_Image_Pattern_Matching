@@ -21,6 +21,9 @@
 #include <immintrin.h>
 #define FPM_X86_WARP 1
 #endif
+#if FPM_X86
+#include <emmintrin.h>
+#endif
 
 namespace fpm {
 namespace detail {
@@ -67,6 +70,52 @@ Pattern::Pattern(ImageView image, int minReducedArea)
 }
 
 namespace detail {
+#if FPM_X86
+// pyrDown with SSE2 integer sums; the same integers as the scalar loops. Eight
+// outputs x..x+7 need bytes 2x-2..2x+16; reads stop at 2x+29 < source width.
+static int pyrDownRowSse2(const std::uint8_t* row, int* out, int x, int interior, int sourceWidth)
+{
+	const __m128i lowByte = _mm_set1_epi16(0x00ff), zero = _mm_setzero_si128();
+	for (; x + 8 <= interior && 2 * x + 30 <= sourceWidth; x += 8) {
+		// e[j] = row[2(x+j-1)], o[j] = row[2(x+j-1)+1]; sums stay <= 16*255.
+		const auto* p = row + 2 * x - 2;
+		const __m128i a = _mm_loadu_si128(reinterpret_cast<const __m128i*>(p));
+		const __m128i b = _mm_loadu_si128(reinterpret_cast<const __m128i*>(p + 16));
+		const __m128i e0 = _mm_and_si128(a, lowByte), o0 = _mm_srli_epi16(a, 8);
+		const __m128i e8 = _mm_and_si128(b, lowByte), o8 = _mm_srli_epi16(b, 8);
+		const __m128i e1 = _mm_or_si128(_mm_srli_si128(e0, 2), _mm_slli_si128(e8, 14));
+		const __m128i e2 = _mm_or_si128(_mm_srli_si128(e0, 4), _mm_slli_si128(e8, 12));
+		const __m128i o1 = _mm_or_si128(_mm_srli_si128(o0, 2), _mm_slli_si128(o8, 14));
+		// out[x+k] = e[k] + 4*o[k] + 6*e[k+1] + 4*o[k+1] + e[k+2]
+		const __m128i sum = _mm_add_epi16(_mm_add_epi16(e0, e2), _mm_add_epi16(_mm_slli_epi16(_mm_add_epi16(o0, o1), 2),
+			_mm_add_epi16(_mm_slli_epi16(e1, 2), _mm_slli_epi16(e1, 1))));
+		_mm_storeu_si128(reinterpret_cast<__m128i*>(out + x), _mm_unpacklo_epi16(sum, zero));
+		_mm_storeu_si128(reinterpret_cast<__m128i*>(out + x + 4), _mm_unpackhi_epi16(sum, zero));
+	}
+	return x;
+}
+
+// Vertical taps; the nonnegative (sum + 128) / 256 is a shift and stays <= 255.
+static int pyrDownColumnsSse2(const int* const* rows, std::uint8_t* out, int width)
+{
+	const __m128i bias = _mm_set1_epi32(128);
+	int x = 0;
+	for (; x + 8 <= width; x += 8) {
+		__m128i halves[2];
+		for (int h = 0; h < 2; ++h) {
+			const auto load = [&](int k) { return _mm_loadu_si128(reinterpret_cast<const __m128i*>(rows[k] + x + 4 * h)); };
+			const __m128i center = load(2);
+			const __m128i sum = _mm_add_epi32(_mm_add_epi32(load(0), load(4)), _mm_add_epi32(
+				_mm_slli_epi32(_mm_add_epi32(load(1), load(3)), 2), _mm_add_epi32(_mm_slli_epi32(center, 2), _mm_slli_epi32(center, 1))));
+			halves[h] = _mm_srli_epi32(_mm_add_epi32(sum, bias), 8);
+		}
+		const __m128i words = _mm_packs_epi32(halves[0], halves[1]);
+		_mm_storel_epi64(reinterpret_cast<__m128i*>(out + x), _mm_packus_epi16(words, words));
+	}
+	return x;
+}
+#endif
+
 static int reflect101(int p, int length)
 {
 	if (length == 1) return 0;
@@ -96,18 +145,26 @@ Image pyrDown(ImageView image)
 			return sum;
 		};
 		out[0] = reflected(0);
-		for (int x = 1; x < interior; ++x) {
+		int x = 1;
+#if FPM_X86
+		x = pyrDownRowSse2(row, out, x, interior, image.width);
+#endif
+		for (; x < interior; ++x) {
 			const auto* p = row + 2 * x;
 			out[x] = p[-2] + 4 * p[-1] + 6 * p[0] + 4 * p[1] + p[2];
 		}
-		for (int x = interior; x < width; ++x) out[x] = reflected(x);
+		for (; x < width; ++x) out[x] = reflected(x);
 	}
 	for (int y = 0; y < result.height(); ++y) {
 		const int* rows[5];
 		for (int k = 0; k < 5; ++k)
 			rows[k] = horizontal.data() + std::size_t(reflect101(y * 2 + k - 2, image.height)) * width;
 		auto* out = result.row(y);
-		for (int x = 0; x < width; ++x)
+		int x = 0;
+#if FPM_X86
+		x = pyrDownColumnsSse2(rows, out, width);
+#endif
+		for (; x < width; ++x)
 			out[x] = std::uint8_t((rows[0][x] + 4 * rows[1][x] + 6 * rows[2][x] + 4 * rows[3][x] + rows[4][x] + 128) / 256);
 	}
 	return result;
