@@ -1,0 +1,601 @@
+{
+  "platform": "Windows-11-10.0.26300-SP0",
+  "machine": "AMD64",
+  "rounds": 8,
+  "warmup_rounds": 1,
+  "extra_options": [],
+  "inputs": "PGM copies in C:\\r51\\bundle\\pgm",
+  "timing": "fpm_cli match_ms; excludes decoding and learning; fresh process per run",
+  "binaries": {
+    "before": {
+      "path": "C:\\r51\\formal\\build-before\\fpm_cli.exe",
+      "sha256": "a32d275152f8fdfbf67030a2ba581dfb3db18cafcad64d229064ab0cefdbb557"
+    },
+    "after": {
+      "path": "C:\\r51\\formal\\build-after-auto\\fpm_cli.exe",
+      "sha256": "fe89a95d39e0cfbc613f754f010275d6d1b86c68d32a1c1ac715b4011800270f"
+    }
+  },
+  "load_average_start": null,
+  "cases": [
+    {
+      "source": "Src1.bmp",
+      "template": "Dst1.bmp",
+      "count": 5,
+      "backend": {
+        "before": "SSE2",
+        "after": "AVX2+VNNI-INT8"
+      },
+      "times_ms": {
+        "before": [
+          312.3479,
+          313.2772,
+          314.0521,
+          313.38,
+          314.1941,
+          313.7303,
+          314.0411
+        ],
+        "after": [
+          126.3709,
+          125.4097,
+          126.2151,
+          124.2509,
+          122.9649,
+          126.0897,
+          125.1747
+        ]
+      },
+      "median_ms": {
+        "before": 313.7303,
+        "after": 125.4097
+      },
+      "median_ratio": 0.3997372902776684
+    },
+    {
+      "source": "Src2.bmp",
+      "template": "Dst2.bmp",
+      "count": 5,
+      "backend": {
+        "before": "SSE2",
+        "after": "AVX2+VNNI-INT8"
+      },
+      "times_ms": {
+        "before": [
+          117.346,
+          117.4525,
+          117.517,
+          117.6309,
+          117.1528,
+          117.4054,
+          117.1447
+        ],
+        "after": [
+          58.6662,
+          58.8135,
+          59.3401,
+          60.1335,
+          59.724,
+          59.0059,
+          58.5352
+        ]
+      },
+      "median_ms": {
+        "before": 117.4054,
+        "after": 59.0059
+      },
+      "median_ratio": 0.5025825047229514
+    },
+    {
+      "source": "Src3.bmp",
+      "template": "Dst3.bmp",
+      "count": 36,
+      "backend": {
+        "before": "SSE2",
+        "after": "AVX2+VNNI-INT8"
+      },
+      "times_ms": {
+        "before": [
+          12.2317,
+          12.0654,
+          12.2225,
+          12.0737,
+          12.175,
+          12.0165,
+          12.394
+        ],
+        "after": [
+          5.9778,
+          6.0769,
+          6.1019,
+          6.1283,
+          5.9696,
+          6.0544,
+          6.0793
+        ]
+      },
+      "median_ms": {
+        "before": 12.175,
+        "after": 6.0769
+      },
+      "median_ratio": 0.499129363449692
+    },
+    {
+      "source": "Src4.bmp",
+      "template": "Dst4.bmp",
+      "count": 5,
+      "backend": {
+        "before": "SSE2",
+        "after": "AVX2+VNNI-INT8"
+      },
+      "times_ms": {
+        "before": [
+          46.8709,
+          49.0519,
+          49.8032,
+          47.3395,
+          48.8021,
+          49.1853,
+          46.179
+        ],
+        "after": [
+          21.0244,
+          20.9369,
+          19.8827,
+          19.9891,
+          21.0912,
+          20.9974,
+          20.8993
+        ]
+      },
+      "median_ms": {
+        "before": 48.8021,
+        "after": 20.9369
+      },
+      "median_ratio": 0.42901637429536843
+    },
+    {
+      "source": "Src6.jpg",
+      "template": "Dst6.bmp",
+      "count": 15,
+      "backend": {
+        "before": "SSE2",
+        "after": "AVX2+VNNI-INT8"
+      },
+      "times_ms": {
+        "before": [
+          724.7803,
+          726.642,
+          727.3356,
+          728.5458,
+          727.9428,
+          727.0923,
+          727.0674
+        ],
+        "after": [
+          330.538,
+          332.574,
+          329.7088,
+          329.5089,
+          329.2933,
+          330.7143,
+          329.6886
+        ]
+      },
+      "median_ms": {
+        "before": 727.0923,
+        "after": 329.7088
+      },
+      "median_ratio": 0.4534620982783066
+    },
+    {
+      "source": "Src7.bmp",
+      "template": "Dst7.bmp",
+      "count": 3,
+      "backend": {
+        "before": "SSE2",
+        "after": "AVX2+VNNI-INT8"
+      },
+      "times_ms": {
+        "before": [
+          211.8117,
+          211.8408,
+          211.9847,
+          211.8756,
+          211.6447,
+          212.2022,
+          213.363
+        ],
+        "after": [
+          98.6928,
+          98.9187,
+          99.2666,
+          99.389,
+          99.3812,
+          99.2976,
+          99.6559
+        ]
+      },
+      "median_ms": {
+        "before": 211.8756,
+        "after": 99.2976
+      },
+      "median_ratio": 0.46865991175954197
+    },
+    {
+      "source": "Src8.bmp",
+      "template": "Dst8.bmp",
+      "count": 3,
+      "backend": {
+        "before": "SSE2",
+        "after": "AVX2+VNNI-INT8"
+      },
+      "times_ms": {
+        "before": [
+          40.7967,
+          40.8839,
+          40.7975,
+          40.9725,
+          40.9392,
+          40.6864,
+          40.7531
+        ],
+        "after": [
+          18.2389,
+          18.3682,
+          17.9185,
+          18.2477,
+          17.6319,
+          18.0795,
+          18.0566
+        ]
+      },
+      "median_ms": {
+        "before": 40.7975,
+        "after": 18.0795
+      },
+      "median_ratio": 0.44315215393100066
+    },
+    {
+      "source": "Src9.bmp",
+      "template": "Dst9.bmp",
+      "count": 1,
+      "backend": {
+        "before": "SSE2",
+        "after": "AVX2+VNNI-INT8"
+      },
+      "times_ms": {
+        "before": [
+          1.7568,
+          1.778,
+          1.8091,
+          1.7912,
+          1.7649,
+          1.7999,
+          1.7719
+        ],
+        "after": [
+          0.918,
+          0.9314,
+          0.9159,
+          0.918,
+          0.9136,
+          0.9163,
+          0.9514
+        ]
+      },
+      "median_ms": {
+        "before": 1.778,
+        "after": 0.918
+      },
+      "median_ratio": 0.516310461192351
+    },
+    {
+      "source": "Src10.bmp",
+      "template": "Dst10.jpg",
+      "count": 100,
+      "backend": {
+        "before": "SSE2",
+        "after": "AVX2+VNNI-INT8"
+      },
+      "times_ms": {
+        "before": [
+          71.9362,
+          72.0869,
+          72.2364,
+          71.8736,
+          72.2366,
+          72.0606,
+          72.3592
+        ],
+        "after": [
+          25.8979,
+          25.9441,
+          25.7692,
+          25.5573,
+          26.3448,
+          25.6701,
+          25.5482
+        ]
+      },
+      "median_ms": {
+        "before": 72.0869,
+        "after": 25.7692
+      },
+      "median_ratio": 0.35747410417149306
+    },
+    {
+      "source": "Src5-0.bmp",
+      "template": "Dst5.bmp",
+      "count": 1,
+      "backend": {
+        "before": "SSE2",
+        "after": "AVX2+VNNI-INT8"
+      },
+      "times_ms": {
+        "before": [
+          48.1367,
+          47.828,
+          46.8648,
+          48.1002,
+          46.573,
+          46.7144,
+          48.9084
+        ],
+        "after": [
+          19.3983,
+          19.7095,
+          19.2304,
+          19.2381,
+          19.1716,
+          19.3786,
+          19.6275
+        ]
+      },
+      "median_ms": {
+        "before": 47.828,
+        "after": 19.3786
+      },
+      "median_ratio": 0.40517270218282175
+    },
+    {
+      "source": "Src5-45.bmp",
+      "template": "Dst5.bmp",
+      "count": 1,
+      "backend": {
+        "before": "SSE2",
+        "after": "AVX2+VNNI-INT8"
+      },
+      "times_ms": {
+        "before": [
+          49.2518,
+          48.2114,
+          48.2878,
+          48.2792,
+          49.2336,
+          49.3676,
+          49.8365
+        ],
+        "after": [
+          18.7687,
+          20.0784,
+          18.7571,
+          20.2436,
+          20.0552,
+          20.2071,
+          18.852
+        ]
+      },
+      "median_ms": {
+        "before": 49.2336,
+        "after": 20.0552
+      },
+      "median_ratio": 0.4073478274999187
+    },
+    {
+      "source": "Src5-90.bmp",
+      "template": "Dst5.bmp",
+      "count": 1,
+      "backend": {
+        "before": "SSE2",
+        "after": "AVX2+VNNI-INT8"
+      },
+      "times_ms": {
+        "before": [
+          46.8068,
+          46.583,
+          46.8809,
+          47.8925,
+          46.7092,
+          46.6324,
+          47.9677
+        ],
+        "after": [
+          19.3593,
+          17.8255,
+          19.5173,
+          19.372,
+          19.416,
+          19.396,
+          19.3559
+        ]
+      },
+      "median_ms": {
+        "before": 46.8068,
+        "after": 19.372
+      },
+      "median_ratio": 0.4138714887580437
+    },
+    {
+      "source": "Src5-135.bmp",
+      "template": "Dst5.bmp",
+      "count": 1,
+      "backend": {
+        "before": "SSE2",
+        "after": "AVX2+VNNI-INT8"
+      },
+      "times_ms": {
+        "before": [
+          46.7062,
+          47.0742,
+          46.0883,
+          46.3303,
+          46.3159,
+          46.172,
+          45.921
+        ],
+        "after": [
+          18.5017,
+          17.6148,
+          17.6697,
+          18.1566,
+          17.8103,
+          18.5011,
+          19.1297
+        ]
+      },
+      "median_ms": {
+        "before": 46.3159,
+        "after": 18.1566
+      },
+      "median_ratio": 0.39201656450592565
+    },
+    {
+      "source": "Src5-180.bmp",
+      "template": "Dst5.bmp",
+      "count": 1,
+      "backend": {
+        "before": "SSE2",
+        "after": "AVX2+VNNI-INT8"
+      },
+      "times_ms": {
+        "before": [
+          47.5146,
+          48.5881,
+          47.3196,
+          47.4872,
+          48.4241,
+          47.5332,
+          47.3095
+        ],
+        "after": [
+          19.4275,
+          19.5036,
+          18.3945,
+          19.6831,
+          19.454,
+          18.3178,
+          19.473
+        ]
+      },
+      "median_ms": {
+        "before": 47.5146,
+        "after": 19.454
+      },
+      "median_ratio": 0.40943204825464175
+    },
+    {
+      "source": "Src5-225.bmp",
+      "template": "Dst5.bmp",
+      "count": 1,
+      "backend": {
+        "before": "SSE2",
+        "after": "AVX2+VNNI-INT8"
+      },
+      "times_ms": {
+        "before": [
+          47.0274,
+          47.8999,
+          47.2837,
+          48.0754,
+          46.8747,
+          46.8673,
+          47.2479
+        ],
+        "after": [
+          19.0172,
+          19.2414,
+          18.0295,
+          19.3326,
+          19.3164,
+          19.3504,
+          18.224
+        ]
+      },
+      "median_ms": {
+        "before": 47.2479,
+        "after": 19.2414
+      },
+      "median_ratio": 0.40724349653635394
+    },
+    {
+      "source": "Src5-270.bmp",
+      "template": "Dst5.bmp",
+      "count": 1,
+      "backend": {
+        "before": "SSE2",
+        "after": "AVX2+VNNI-INT8"
+      },
+      "times_ms": {
+        "before": [
+          46.5365,
+          46.9365,
+          46.4512,
+          47.577,
+          46.2426,
+          47.4129,
+          47.5781
+        ],
+        "after": [
+          17.9876,
+          19.2968,
+          17.8193,
+          18.868,
+          19.0982,
+          17.5943,
+          18.9641
+        ]
+      },
+      "median_ms": {
+        "before": 46.9365,
+        "after": 18.868
+      },
+      "median_ratio": 0.4019899225549412
+    },
+    {
+      "source": "Src5-315.bmp",
+      "template": "Dst5.bmp",
+      "count": 1,
+      "backend": {
+        "before": "SSE2",
+        "after": "AVX2+VNNI-INT8"
+      },
+      "times_ms": {
+        "before": [
+          46.8817,
+          46.908,
+          46.6928,
+          46.6358,
+          46.4477,
+          46.5725,
+          46.8258
+        ],
+        "after": [
+          19.0162,
+          19.1077,
+          19.3528,
+          19.4321,
+          18.2925,
+          19.4306,
+          17.8987
+        ]
+      },
+      "median_ms": {
+        "before": 46.6928,
+        "after": 19.1077
+      },
+      "median_ratio": 0.4092215502175925
+    }
+  ],
+  "load_average_end": null
+}

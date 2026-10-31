@@ -1,0 +1,609 @@
+{
+  "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "machine": "arm64",
+  "rounds": 8,
+  "warmup_rounds": 1,
+  "extra_options": [],
+  "inputs": "PGM copies in build/x86simd-transfer/fixtures-pgm",
+  "timing": "fpm_cli match_ms; excludes decoding and learning; fresh process per run",
+  "binaries": {
+    "before": {
+      "path": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/x86simd-formal-mac/build-before/fpm_cli",
+      "sha256": "42026b9c476d377b47a7b85431c0b79a2087d042ce75b173ff628fe82a15e684"
+    },
+    "after": {
+      "path": "/Users/Ayueh/Fastest_Image_Pattern_Matching/build/x86simd-formal-mac/build-after/fpm_cli",
+      "sha256": "34366e1eb9da629d8e1e9b1c85df4293d17aa8159a817afe98890004b7180c03"
+    }
+  },
+  "load_average_start": [
+    3.384765625,
+    2.99169921875,
+    2.93701171875
+  ],
+  "cases": [
+    {
+      "source": "Src1.bmp",
+      "template": "Dst1.bmp",
+      "count": 5,
+      "backend": {
+        "before": "NEON+DOTPROD",
+        "after": "NEON+DOTPROD"
+      },
+      "times_ms": {
+        "before": [
+          66.622291,
+          64.885584,
+          64.286875,
+          65.670958,
+          65.202958,
+          64.146292,
+          65.122709
+        ],
+        "after": [
+          64.639375,
+          64.5425,
+          64.579083,
+          64.510125,
+          64.250625,
+          65.186583,
+          64.739541
+        ]
+      },
+      "median_ms": {
+        "before": 65.122709,
+        "after": 64.579083
+      },
+      "median_ratio": 0.9916522821555227
+    },
+    {
+      "source": "Src2.bmp",
+      "template": "Dst2.bmp",
+      "count": 5,
+      "backend": {
+        "before": "NEON+DOTPROD",
+        "after": "NEON+DOTPROD"
+      },
+      "times_ms": {
+        "before": [
+          29.826125,
+          29.095666,
+          29.213667,
+          30.003083,
+          29.6745,
+          29.406,
+          29.81625
+        ],
+        "after": [
+          29.831875,
+          29.6545,
+          29.3565,
+          29.575167,
+          29.528,
+          29.627042,
+          29.778041
+        ]
+      },
+      "median_ms": {
+        "before": 29.6745,
+        "after": 29.627042
+      },
+      "median_ratio": 0.9984007144181031
+    },
+    {
+      "source": "Src3.bmp",
+      "template": "Dst3.bmp",
+      "count": 36,
+      "backend": {
+        "before": "NEON+DOTPROD",
+        "after": "NEON+DOTPROD"
+      },
+      "times_ms": {
+        "before": [
+          3.073542,
+          3.031875,
+          3.093125,
+          3.049334,
+          3.199625,
+          3.073792,
+          3.022375
+        ],
+        "after": [
+          2.993916,
+          3.22125,
+          3.036042,
+          3.036458,
+          3.099208,
+          3.066625,
+          3.02275
+        ]
+      },
+      "median_ms": {
+        "before": 3.073542,
+        "after": 3.036458
+      },
+      "median_ratio": 0.9879344417613294
+    },
+    {
+      "source": "Src4.bmp",
+      "template": "Dst4.bmp",
+      "count": 5,
+      "backend": {
+        "before": "NEON+DOTPROD",
+        "after": "NEON+DOTPROD"
+      },
+      "times_ms": {
+        "before": [
+          12.310875,
+          12.479375,
+          12.507875,
+          12.553458,
+          12.616584,
+          12.396834,
+          12.436542
+        ],
+        "after": [
+          12.626083,
+          12.361375,
+          12.3275,
+          12.520584,
+          12.2445,
+          12.393167,
+          12.362417
+        ]
+      },
+      "median_ms": {
+        "before": 12.479375,
+        "after": 12.362417
+      },
+      "median_ratio": 0.990627896028447
+    },
+    {
+      "source": "Src6.jpg",
+      "template": "Dst6.bmp",
+      "count": 15,
+      "backend": {
+        "before": "NEON+DOTPROD",
+        "after": "NEON+DOTPROD"
+      },
+      "times_ms": {
+        "before": [
+          178.8415,
+          189.72275,
+          181.0335,
+          180.752875,
+          181.438917,
+          178.819083,
+          180.29025
+        ],
+        "after": [
+          180.977709,
+          183.5735,
+          182.068,
+          179.137334,
+          180.650667,
+          181.679708,
+          179.694042
+        ]
+      },
+      "median_ms": {
+        "before": 180.752875,
+        "after": 180.977709
+      },
+      "median_ratio": 1.0012438750974224
+    },
+    {
+      "source": "Src7.bmp",
+      "template": "Dst7.bmp",
+      "count": 3,
+      "backend": {
+        "before": "NEON+DOTPROD",
+        "after": "NEON+DOTPROD"
+      },
+      "times_ms": {
+        "before": [
+          52.488667,
+          52.937625,
+          51.792125,
+          52.589333,
+          52.441584,
+          51.865542,
+          52.772791
+        ],
+        "after": [
+          52.648291,
+          53.346125,
+          51.625625,
+          51.946166,
+          52.079375,
+          52.696792,
+          52.657166
+        ]
+      },
+      "median_ms": {
+        "before": 52.488667,
+        "after": 52.648291
+      },
+      "median_ratio": 1.003041113617917
+    },
+    {
+      "source": "Src8.bmp",
+      "template": "Dst8.bmp",
+      "count": 3,
+      "backend": {
+        "before": "NEON+DOTPROD",
+        "after": "NEON+DOTPROD"
+      },
+      "times_ms": {
+        "before": [
+          9.553125,
+          9.721292,
+          9.799,
+          9.850291,
+          9.868167,
+          9.698958,
+          9.924458
+        ],
+        "after": [
+          9.566167,
+          9.575292,
+          9.832459,
+          9.861625,
+          9.709292,
+          9.879,
+          9.778459
+        ]
+      },
+      "median_ms": {
+        "before": 9.799,
+        "after": 9.778459
+      },
+      "median_ratio": 0.9979037656903766
+    },
+    {
+      "source": "Src9.bmp",
+      "template": "Dst9.bmp",
+      "count": 1,
+      "backend": {
+        "before": "NEON+DOTPROD",
+        "after": "NEON+DOTPROD"
+      },
+      "times_ms": {
+        "before": [
+          0.376333,
+          0.382625,
+          0.372292,
+          0.431083,
+          0.377417,
+          0.36725,
+          0.37925
+        ],
+        "after": [
+          0.408666,
+          0.376666,
+          0.377417,
+          0.381666,
+          0.397167,
+          0.379583,
+          0.384333
+        ]
+      },
+      "median_ms": {
+        "before": 0.377417,
+        "after": 0.381666
+      },
+      "median_ratio": 1.011258104430908
+    },
+    {
+      "source": "Src10.bmp",
+      "template": "Dst10.jpg",
+      "count": 100,
+      "backend": {
+        "before": "NEON+DOTPROD",
+        "after": "NEON+DOTPROD"
+      },
+      "times_ms": {
+        "before": [
+          12.420292,
+          12.487292,
+          12.273417,
+          12.864084,
+          12.442333,
+          12.178625,
+          11.874916
+        ],
+        "after": [
+          12.408208,
+          12.272,
+          12.594583,
+          12.156208,
+          12.84075,
+          12.224792,
+          12.400542
+        ]
+      },
+      "median_ms": {
+        "before": 12.420292,
+        "after": 12.400542
+      },
+      "median_ratio": 0.9984098602512727
+    },
+    {
+      "source": "Src5-0.bmp",
+      "template": "Dst5.bmp",
+      "count": 1,
+      "backend": {
+        "before": "NEON+DOTPROD",
+        "after": "NEON+DOTPROD"
+      },
+      "times_ms": {
+        "before": [
+          9.728333,
+          9.575041,
+          9.642417,
+          9.641834,
+          9.647542,
+          9.840666,
+          9.628541
+        ],
+        "after": [
+          9.665125,
+          9.823125,
+          9.445083,
+          9.803459,
+          9.811375,
+          9.493708,
+          9.4545
+        ]
+      },
+      "median_ms": {
+        "before": 9.642417,
+        "after": 9.665125
+      },
+      "median_ratio": 1.0023550111968813
+    },
+    {
+      "source": "Src5-45.bmp",
+      "template": "Dst5.bmp",
+      "count": 1,
+      "backend": {
+        "before": "NEON+DOTPROD",
+        "after": "NEON+DOTPROD"
+      },
+      "times_ms": {
+        "before": [
+          9.952584,
+          10.095875,
+          9.896958,
+          10.088083,
+          10.14325,
+          10.159042,
+          9.999625
+        ],
+        "after": [
+          10.049792,
+          10.028083,
+          9.940792,
+          10.160292,
+          10.118084,
+          10.086833,
+          10.1
+        ]
+      },
+      "median_ms": {
+        "before": 10.088083,
+        "after": 10.086833
+      },
+      "median_ratio": 0.9998760914239109
+    },
+    {
+      "source": "Src5-90.bmp",
+      "template": "Dst5.bmp",
+      "count": 1,
+      "backend": {
+        "before": "NEON+DOTPROD",
+        "after": "NEON+DOTPROD"
+      },
+      "times_ms": {
+        "before": [
+          9.485,
+          9.702583,
+          9.799375,
+          9.835125,
+          9.753,
+          9.726083,
+          9.693833
+        ],
+        "after": [
+          9.50775,
+          9.775667,
+          9.546667,
+          9.812666,
+          9.742416,
+          9.673416,
+          9.699541
+        ]
+      },
+      "median_ms": {
+        "before": 9.726083,
+        "after": 9.699541
+      },
+      "median_ratio": 0.9972710494039585
+    },
+    {
+      "source": "Src5-135.bmp",
+      "template": "Dst5.bmp",
+      "count": 1,
+      "backend": {
+        "before": "NEON+DOTPROD",
+        "after": "NEON+DOTPROD"
+      },
+      "times_ms": {
+        "before": [
+          9.149875,
+          9.03825,
+          9.329,
+          9.357083,
+          9.26575,
+          9.356125,
+          9.025792
+        ],
+        "after": [
+          9.404417,
+          9.113208,
+          9.644583,
+          9.065958,
+          9.055458,
+          9.147875,
+          9.347875
+        ]
+      },
+      "median_ms": {
+        "before": 9.26575,
+        "after": 9.147875
+      },
+      "median_ratio": 0.9872784178291019
+    },
+    {
+      "source": "Src5-180.bmp",
+      "template": "Dst5.bmp",
+      "count": 1,
+      "backend": {
+        "before": "NEON+DOTPROD",
+        "after": "NEON+DOTPROD"
+      },
+      "times_ms": {
+        "before": [
+          9.664583,
+          9.618542,
+          9.678,
+          9.578208,
+          9.9155,
+          9.852833,
+          9.514792
+        ],
+        "after": [
+          9.5895,
+          9.629,
+          9.612292,
+          9.513791,
+          9.633625,
+          9.672583,
+          9.643708
+        ]
+      },
+      "median_ms": {
+        "before": 9.664583,
+        "after": 9.629
+      },
+      "median_ratio": 0.9963182063830378
+    },
+    {
+      "source": "Src5-225.bmp",
+      "template": "Dst5.bmp",
+      "count": 1,
+      "backend": {
+        "before": "NEON+DOTPROD",
+        "after": "NEON+DOTPROD"
+      },
+      "times_ms": {
+        "before": [
+          9.366541,
+          9.436667,
+          9.694,
+          9.541625,
+          9.636416,
+          9.609167,
+          9.567625
+        ],
+        "after": [
+          9.366417,
+          9.638625,
+          9.516042,
+          9.449958,
+          9.695792,
+          9.664709,
+          9.672959
+        ]
+      },
+      "median_ms": {
+        "before": 9.567625,
+        "after": 9.638625
+      },
+      "median_ratio": 1.0074208594086829
+    },
+    {
+      "source": "Src5-270.bmp",
+      "template": "Dst5.bmp",
+      "count": 1,
+      "backend": {
+        "before": "NEON+DOTPROD",
+        "after": "NEON+DOTPROD"
+      },
+      "times_ms": {
+        "before": [
+          9.323833,
+          9.402292,
+          9.306917,
+          9.670625,
+          9.594625,
+          9.59125,
+          9.468
+        ],
+        "after": [
+          9.721625,
+          9.405458,
+          9.633333,
+          9.639792,
+          9.242458,
+          9.350875,
+          9.357542
+        ]
+      },
+      "median_ms": {
+        "before": 9.468,
+        "after": 9.405458
+      },
+      "median_ratio": 0.9933943810730882
+    },
+    {
+      "source": "Src5-315.bmp",
+      "template": "Dst5.bmp",
+      "count": 1,
+      "backend": {
+        "before": "NEON+DOTPROD",
+        "after": "NEON+DOTPROD"
+      },
+      "times_ms": {
+        "before": [
+          9.461584,
+          9.588875,
+          9.47575,
+          9.796917,
+          9.432375,
+          9.571583,
+          9.757333
+        ],
+        "after": [
+          9.7015,
+          9.478833,
+          9.519208,
+          9.506208,
+          9.504792,
+          9.478083,
+          9.477
+        ]
+      },
+      "median_ms": {
+        "before": 9.571583,
+        "after": 9.504792
+      },
+      "median_ratio": 0.9930219484070711
+    }
+  ],
+  "load_average_end": [
+    3.177734375,
+    2.958984375,
+    2.92529296875
+  ]
+}

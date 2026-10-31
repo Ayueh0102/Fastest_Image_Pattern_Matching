@@ -1,0 +1,32 @@
+{
+ "adopted": [
+  "run-time x86-64 tier selection (cpuid + XCR0) capped by FPM_X86_MAX_ISA: SSE2 baseline, AVX2, AVX-VNNI-INT8",
+  "exhaustive NCC eight-window products on x86 with the UDOT kernel's layout and flushes: SSE2 unpack+pmaddwd, AVX2 vpmovzxbw+vpmaddwd, 128-bit vpdpbuud",
+  "warp rows on x86-64 without __FMA__: SSE2 two pixels and AVX2 four pixels per step, each multiply and add rounded in warpPixel's order, byte-pair loads; other pixels use warpPixel",
+  "pyrDown horizontal and vertical passes with SSE2 integer sums on x86-64",
+  "fixture_cases.py, export_fixture_pgm.py and --pgm-dir for the identity and A/B tools; Windows test fixes (7506003); 160-row saturated wide-row test"
+ ],
+ "rejected_in_pilot": [
+  {
+   "variant": "AVX2 warp with 32-bit gathers",
+   "reason": "8% faster than byte-pair loads on the 285K P-cores, but needs the stricter sx<w-3 test and gathers are slow on older Intel (post-Downfall microcode) and AMD cores, which were not available to measure"
+  },
+  {
+   "variant": "256-bit vpdpbuud on pairs of 16-byte blocks",
+   "reason": "slower than the 128-bit form on every pilot shape (ROI 0.502 vs 0.161 ms)"
+  }
+ ],
+ "failures_and_caveats": [
+  "registered cross-platform gate FAILED: only 9/68 PC reference outputs equal the Mac's in binary64. The difference already exists between fe60159 builds (both references are fe60159/scalar), match counts are equal, scores differ by at most 17 ulps and positions by at most 27 ulps. A Mac fe60159 build with FPM_DISABLE_SIMD and -ffp-contract=off equals the PC in 63/68; the remaining 5 differ in one match's position/corners each, consistent with libm cos/sin. The gate assumed bit-identical cross-platform output from the 12-digit CLI agreement (68/68), which was wrong; same-platform identity (PC 680 runs, Mac 272 runs) passed.",
+  "the SSE2 pyrDown removed only 15 of 88 ms in the profile (73 ms remain vs 24 ms on the Mac); the remaining cost is outside the two vectorized loops and was not investigated",
+  "most of the gain comes from the SSE2 tier: AVX2+VNNI-INT8 is 6.5% faster than the SSE2 cap and 5.4% faster than the AVX2 cap (geometric means)",
+  "one x86 CPU only (Core Ultra 9 285K, Arrow Lake, hybrid). No AMD, no CPU without AVX2, no CPU with AVX2 but without VNNI-INT8 was run; the SSE2 and AVX2 tiers ran only as capped builds on this CPU",
+  "on the 285K E-cores the AVX2 grouped product was slower than SSE2 in the pilot; formal timings are pinned to P-cores and do not show E-core behaviour",
+  "AVX-VNNI (u8 x s8 vpdpbusd, Alder/Raptor Lake, Zen 5) has no tier; those CPUs use AVX2",
+  "the bounded/pruned path's per-window dotProduct is still SSE2 only on x86",
+  "GCC and clang on x86-64 were only compiled (Apple clang -arch x86_64 on the Mac, no FMA in the objects); no Linux x86 or GCC build was run",
+  "MSVC /fp:contract or /fp:fast would make the scalar loop fuse; the exact-reference test would fail, but there is no compile-time guard for it",
+  "the research pipeline, Metal code and GUI are unchanged; the Windows experiments build (33/33) used the new core",
+  "preliminary runs (pilot, profiles, run_cli_cases.py) were made before registration on uncommitted trees and are selection evidence only"
+ ]
+}

@@ -26,44 +26,44 @@
     "metadata": "Filesystem sidecar metadata",
     "other": "No recognized role; inspect manually"
   },
-  "artifact_count": 769,
-  "artifact_bytes": 2914197156,
+  "artifact_count": 790,
+  "artifact_bytes": 2915777383,
   "artifact_role_counts": {
-    "archive": 146,
+    "archive": 147,
     "calibration": 5,
-    "failure_review": 32,
+    "failure_review": 33,
     "false_gate": 64,
-    "formal": 51,
+    "formal": 61,
     "input": 21,
     "other": 65,
-    "pilot": 19,
-    "protocol": 52,
-    "provenance": 83,
+    "pilot": 24,
+    "protocol": 53,
+    "provenance": 84,
     "raw": 99,
-    "report": 80,
-    "source": 27,
+    "report": 81,
+    "source": 28,
     "summary": 188,
-    "validation": 99,
+    "validation": 101,
     "visual": 68
   },
-  "archive_member_count": 146240,
+  "archive_member_count": 146314,
   "archive_member_role_counts": {
     "archive": 26,
     "binary": 47,
     "calibration": 1,
     "failure_review": 122,
-    "formal": 32805,
+    "formal": 32810,
     "input": 616,
     "metadata": 6526,
-    "other": 61143,
+    "other": 61156,
     "pilot": 4301,
     "protocol": 114,
-    "provenance": 146,
-    "raw": 47748,
-    "report": 91,
-    "source": 13431,
+    "provenance": 147,
+    "raw": 47799,
+    "report": 92,
+    "source": 13437,
     "summary": 1233,
-    "validation": 1199,
+    "validation": 1210,
     "visual": 1088
   },
   "artifacts": [
@@ -91,8 +91,8 @@
       "path": "AUDIT_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 21193,
-      "sha256": "a352555feb4b9b52340b4a91c64929372ce9b5249c54cbdab73b6476eb75121e",
+      "bytes": 21410,
+      "sha256": "80b4a36a54402ce43ec7b2385e1f805943354ac12cf25ded33d571475e6fd740",
       "roles": [
         "report"
       ]
@@ -183,6 +183,16 @@
       "stage": null,
       "bytes": 9721,
       "sha256": "eb9e75fe76859eb29a72ede70c42ed52adffa9154ffede5c22182f0a47587caa",
+      "roles": [
+        "report"
+      ]
+    },
+    {
+      "path": "CORE_X86_SIMD_zh-TW.md",
+      "group": "root",
+      "stage": null,
+      "bytes": 18786,
+      "sha256": "17a6d7beb1078d40b25a68b6cdf5895939ef987953adbfe13bb691296b6d7d1e",
       "roles": [
         "report"
       ]
@@ -613,8 +623,8 @@
       "path": "PROJECT_STATUS_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 17688,
-      "sha256": "ec5ae2d504f2317e67175ed431975abf741f73f9ac3ff075d6b3429e8fc94c67",
+      "bytes": 18774,
+      "sha256": "71744483902393c5cd3bad71ba2c89e57c5571b71497a2a7e575d116dfb18063",
       "roles": [
         "report"
       ]
@@ -2004,6 +2014,218 @@
       "stage": null,
       "bytes": 2127,
       "sha256": "468582e77296a56753ac86c62fbe1eb39ff83a0d0acd4626c0a1948e9cb8a4f1",
+      "roles": [
+        "validation"
+      ]
+    },
+    {
+      "path": "core-x86-simd/archive.json",
+      "group": "core-x86-simd",
+      "stage": null,
+      "bytes": 1815,
+      "sha256": "81ea8f65fffece31e2cb9c63d8db34bbfabc80ff5523701dc21d1bbb97e8b3d0",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "core-x86-simd/decision-and-failures.json",
+      "group": "core-x86-simd",
+      "stage": null,
+      "bytes": 3229,
+      "sha256": "6d995ce7e60d1449076215b299dc1b6197be1f27e2bf2c5fcf915a933532334f",
+      "roles": [
+        "failure_review"
+      ]
+    },
+    {
+      "path": "core-x86-simd/formal/ab-default.json",
+      "group": "core-x86-simd",
+      "stage": null,
+      "bytes": 12423,
+      "sha256": "96d225110fb2e7648c92584e2cb85573adf5ac02d2ddcd9a165dcb466b262255",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "core-x86-simd/formal/ab-fast.json",
+      "group": "core-x86-simd",
+      "stage": null,
+      "bytes": 12417,
+      "sha256": "4378a54e419c17de6ee0af16179b58bd2ae3e385bb0e9b27b424a2114eac45f8",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "core-x86-simd/formal/ab-subpixel.json",
+      "group": "core-x86-simd",
+      "stage": null,
+      "bytes": 12564,
+      "sha256": "a0753aa4776455183b5d85c29cd767081e5c8a8536cb7ef73011e7705fa0d8d4",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "core-x86-simd/formal/ab-tier-avx2-auto.json",
+      "group": "core-x86-simd",
+      "stage": null,
+      "bytes": 12258,
+      "sha256": "1e7b4a8e5465a0fe89fcb06230ff42e6768dede797a508ca22944fd035e5b42a",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "core-x86-simd/formal/ab-tier-sse2-auto.json",
+      "group": "core-x86-simd",
+      "stage": null,
+      "bytes": 12253,
+      "sha256": "f6ea1e8558129e534868709a25b85455935c604992af866841eb0eda67f3067e",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "core-x86-simd/formal/identity-pc.json",
+      "group": "core-x86-simd",
+      "stage": null,
+      "bytes": 396721,
+      "sha256": "5863930b957740d6538ba1e4dc1a733d05cc25d2cbd7acf924183d4eea7c4937",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "core-x86-simd/formal/mac-ab-default.json",
+      "group": "core-x86-simd",
+      "stage": null,
+      "bytes": 12448,
+      "sha256": "06a93892b33cdcc11570e3abcac4493746c5960dff96e98612156536108fc62c",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "core-x86-simd/formal/mac-before-nocontract-identity.json",
+      "group": "core-x86-simd",
+      "stage": null,
+      "bytes": 335863,
+      "sha256": "d26b4affeffa9957117221748d9c0d1d8f42da7136679f2423f2820d7251feb6",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "core-x86-simd/formal/mac-identity.json",
+      "group": "core-x86-simd",
+      "stage": null,
+      "bytes": 347894,
+      "sha256": "cdffc676ce0ec971cc8db440f34ab97bd9a40353b1e124089e29fa9259f7e481",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "core-x86-simd/formal/mutants.json",
+      "group": "core-x86-simd",
+      "stage": null,
+      "bytes": 8046,
+      "sha256": "0d394a1fd44fa6c6ef72442b7b5fe6ce1361829c60574c9b648513a703ae8d26",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "core-x86-simd/pilot/pilot-e1.json",
+      "group": "core-x86-simd",
+      "stage": null,
+      "bytes": 1668,
+      "sha256": "dfcd8a16f92647edfb89c460643fe332dfb5927476de9e9de08d1c3cb766a64c",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "core-x86-simd/pilot/pilot-p1.json",
+      "group": "core-x86-simd",
+      "stage": null,
+      "bytes": 1668,
+      "sha256": "4ebaf212d694f3993fd4205510310d66ed40d52b24e1370fd57c47b1c83ac2e6",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "core-x86-simd/pilot/pilot-p2.json",
+      "group": "core-x86-simd",
+      "stage": null,
+      "bytes": 1668,
+      "sha256": "1ea9fad24f06c0b86fc7d0d8aca04ef351eeb57671145ef7d1cbd413e56bdb12",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "core-x86-simd/pilot/pilot1.json",
+      "group": "core-x86-simd",
+      "stage": null,
+      "bytes": 1552,
+      "sha256": "219249cc0d29a1de98422250df72ff285087676d08ad7bb672d908c4518bbb48",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "core-x86-simd/pilot/x86_pilot.cpp",
+      "group": "core-x86-simd",
+      "stage": null,
+      "bytes": 23530,
+      "sha256": "947bf7feae15029cf725fc62df699fedcf40651fc9df50ce631819ce7216f9bc",
+      "roles": [
+        "pilot",
+        "source"
+      ]
+    },
+    {
+      "path": "core-x86-simd/protocol.json",
+      "group": "core-x86-simd",
+      "stage": null,
+      "bytes": 4171,
+      "sha256": "922e402f4b872cce97ce0aef7df483b5d95018a5aaec226d691a7a48767d65cb",
+      "roles": [
+        "protocol"
+      ]
+    },
+    {
+      "path": "core-x86-simd/validation-logs.tar.gz",
+      "group": "core-x86-simd",
+      "stage": null,
+      "bytes": 352803,
+      "sha256": "2e17c935ac192eb3782bd0d3d8901a628d8d04d73b2af7d283e30146766b9605",
+      "roles": [
+        "archive",
+        "validation"
+      ],
+      "archive_file_count": 74,
+      "archive_role_counts": {
+        "formal": 5,
+        "other": 13,
+        "provenance": 1,
+        "raw": 51,
+        "report": 1,
+        "source": 6,
+        "validation": 11
+      }
+    },
+    {
+      "path": "core-x86-simd/validation.json",
+      "group": "core-x86-simd",
+      "stage": null,
+      "bytes": 5147,
+      "sha256": "790e024f68e170f5ec4956cf847ed34b3b9fe5ac689f408aaf93eda55dbc2cfc",
       "roles": [
         "validation"
       ]
@@ -10189,5 +10411,5 @@
       ]
     }
   ],
-  "archive_member_index_sha256": "0b448fd4a8a042874fe071f5100b0afe405980b1e3825025306a118df55ab4f4"
+  "archive_member_index_sha256": "d198ff5b025b594b3d75bdcc14b6897644b8ceb56f286b06cd2473f278ccfc95"
 }

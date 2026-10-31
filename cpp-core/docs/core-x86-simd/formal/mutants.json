@@ -1,0 +1,163 @@
+{
+ "results": [
+  {
+   "mutant": "baseline SSE2",
+   "cap": "SSE2",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "baseline AVX2",
+   "cap": "AVX2",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "baseline VNNI_INT8",
+   "cap": "VNNI_INT8",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "S1 SSE2 warp inner x bound w instead of w-1",
+   "cap": "SSE2",
+   "status": "KILLED",
+   "detail": "exit 1: FAIL rotation/pyramid/exact-reference: rotation canvas must match the original loop"
+  },
+  {
+   "mutant": "S2 SSE2 warp sx re-associated: ax+(c*x-s*y)",
+   "cap": "SSE2",
+   "status": "KILLED",
+   "detail": "exit 1: FAIL rotation/pyramid/exact-reference: rotation canvas must match the original loop"
+  },
+  {
+   "mutant": "S3 SSE2 warp p10 takes the low byte",
+   "cap": "SSE2",
+   "status": "KILLED",
+   "detail": "exit 1: FAIL NCC/conservative-pruning: bounded matcher count || FAIL rotation/pyramid/exact-reference: rotation canvas must match the original loop || FAIL match/six-rotated-copies: unexpected six-copy pose or duplicate"
+  },
+  {
+   "mutant": "S4 SSE2 warp result not rounded (+0.5 dropped)",
+   "cap": "SSE2",
+   "status": "KILLED",
+   "detail": "exit 1: FAIL NCC/conservative-pruning: bounded matcher count || FAIL rotation/pyramid/exact-reference: rotated ROI must match the original loop"
+  },
+  {
+   "mutant": "S5 SSE2 dot: window 5 reads window 4",
+   "cap": "SSE2",
+   "status": "KILLED",
+   "detail": "exit 1: FAIL NCC/reference/stride: expected 0.290899, got 0.222716 || FAIL NCC/conservative-pruning: expected -0.036186, got 0.032727 || FAIL NCC/exhaustive/exact-reference: exhaustive NCC must match the original binary64 path || FAIL match/six-rotated-copies: unexpected six-copy pose or duplicate || FAIL match/validation/invert: two planted targets || FAIL rotation/ranges/layer0: layer-zero refinement"
+  },
+  {
+   "mutant": "S6 SSE2 dot: source high half unpacked low",
+   "cap": "SSE2",
+   "status": "KILLED",
+   "detail": "exit 1: FAIL NCC/conservative-pruning: expected -0.195559, got -0.113973 || FAIL NCC/exhaustive/exact-reference: exhaustive NCC must match the original binary64 path || FAIL match/six-rotated-copies: six true rotated copies must survive coarse-to-fine search at score .95 || FAIL match/validation/invert: two planted targets || FAIL rotation/ranges/layer0: two angle ranges find +90 object || FAIL subpixel/known-fractional-pose: fractional pose detected"
+  },
+  {
+   "mutant": "S7 SSE2 dot: lanes never flushed",
+   "cap": "SSE2",
+   "status": "KILLED",
+   "detail": "exit 1: FAIL NCC/exhaustive/exact-reference: saturated wide NCC must match the original binary64 path"
+  },
+  {
+   "mutant": "P1 SSE2 pyrDown: o[k+1] replaced by o[k]",
+   "cap": "SSE2",
+   "status": "KILLED",
+   "detail": "exit 1: FAIL rotation/pyramid/exact-reference: pyrDown must match the original loop || FAIL match/six-rotated-copies: unexpected six-copy pose or duplicate || FAIL match/validation/invert: two planted targets || FAIL rotation/ranges/layer0: two angle ranges find +90 object"
+  },
+  {
+   "mutant": "P2 SSE2 pyrDown: e[k+2] shifted one lane too far",
+   "cap": "SSE2",
+   "status": "KILLED",
+   "detail": "exit 1: FAIL rotation/pyramid/exact-reference: pyrDown must match the original loop || FAIL match/validation/invert: two planted targets"
+  },
+  {
+   "mutant": "P3 SSE2 pyrDown: rounding bias 127",
+   "cap": "SSE2",
+   "status": "KILLED",
+   "detail": "exit 1: FAIL rotation/pyramid/exact-reference: pyrDown must match the original loop"
+  },
+  {
+   "mutant": "P4 SSE2 pyrDown: centre row weight 4 instead of 6",
+   "cap": "SSE2",
+   "status": "KILLED",
+   "detail": "exit 1: FAIL rotation/pyramid/exact-reference: pyrDown must match the original loop || FAIL rotation/ranges/layer0: two angle ranges find +90 object"
+  },
+  {
+   "mutant": "A1 AVX2 warp inner y bound h instead of h-1",
+   "cap": "AVX2",
+   "status": "KILLED",
+   "detail": "exit 1: FAIL rotation/pyramid/exact-reference: rotation canvas must match the original loop"
+  },
+  {
+   "mutant": "A2 AVX2 warp lower neighbours swapped",
+   "cap": "AVX2",
+   "status": "KILLED",
+   "detail": "exit 1: FAIL rotation/pyramid/exact-reference: rotated ROI must match the original loop || FAIL match/six-rotated-copies: unexpected six-copy pose or duplicate || FAIL rotation/ranges/layer0: expected 48.500000, got 47.562190 || FAIL subpixel/known-fractional-pose: subpixel position within a quarter pixel"
+  },
+  {
+   "mutant": "A3 AVX2 warp top re-associated with dy",
+   "cap": "AVX2",
+   "status": "KILLED",
+   "detail": "exit 1: FAIL rotation/pyramid/exact-reference: rotation canvas must match the original loop"
+  },
+  {
+   "mutant": "A4 AVX2 dot: source read one byte late",
+   "cap": "AVX2",
+   "status": "KILLED",
+   "detail": "exit 1: FAIL NCC/reference/stride: expected -0.125583, got -0.079565 || FAIL NCC/conservative-pruning: expected -0.104915, got -0.113973 || FAIL NCC/exhaustive/exact-reference: exhaustive NCC must match the original binary64 path || FAIL match/six-rotated-copies: six true rotated copies must survive coarse-to-fine search at score .95 || FAIL match/validation/invert: two planted targets || FAIL rotation/ranges/layer0: expected 40.500000, got 41.500000 || FAIL subpixel/known-fractional-pose: subpixel position within a quarter pixel"
+  },
+  {
+   "mutant": "A5 AVX2 dot: lanes never flushed",
+   "cap": "AVX2",
+   "status": "KILLED",
+   "detail": "exit 1: FAIL NCC/exhaustive/exact-reference: saturated wide NCC must match the original binary64 path"
+  },
+  {
+   "mutant": "A6 AVX2 dot: upper 128-bit half dropped from lane sums",
+   "cap": "AVX2",
+   "status": "KILLED",
+   "detail": "exit 1: FAIL NCC/conservative-pruning: expected 0.000000, got -0.113973 || FAIL NCC/exhaustive/exact-reference: exhaustive NCC must match the original binary64 path || FAIL match/six-rotated-copies: six true rotated copies must survive coarse-to-fine search at score .95 || FAIL match/validation/invert: two planted targets || FAIL rotation/ranges/layer0: two angle ranges find +90 object || FAIL subpixel/known-fractional-pose: fractional pose detected"
+  },
+  {
+   "mutant": "V1 VNNI dot: window 7 reads window 6",
+   "cap": "VNNI_INT8",
+   "status": "KILLED",
+   "detail": "exit 1: FAIL NCC/reference/stride: expected 0.118075, got 0.102250 || FAIL NCC/conservative-pruning: expected 0.029099, got -0.040853 || FAIL NCC/exhaustive/exact-reference: exhaustive NCC must match the original binary64 path || FAIL match/six-rotated-copies: six true rotated copies must survive coarse-to-fine search at score .95 || FAIL match/validation/invert: two planted targets"
+  },
+  {
+   "mutant": "V2 VNNI dot: lanes never flushed",
+   "cap": "VNNI_INT8",
+   "status": "KILLED",
+   "detail": "exit 1: FAIL NCC/exhaustive/exact-reference: saturated wide NCC must match the original binary64 path"
+  },
+  {
+   "mutant": "V3 VNNI dot: source squared instead of times template",
+   "cap": "VNNI_INT8",
+   "status": "KILLED",
+   "detail": "exit 1: FAIL NCC/reference/stride: expected -0.125583, got 0.000000 || FAIL NCC/conservative-pruning: expected 0.943782, got -0.113973 || FAIL NCC/exhaustive/exact-reference: exhaustive NCC must match the original binary64 path || FAIL match/six-rotated-copies: six true rotated copies must survive coarse-to-fine search at score .95 || FAIL match/validation/invert: two planted targets || FAIL rotation/ranges/layer0: two angle ranges find +90 object || FAIL subpixel/known-fractional-pose: subpixel position within a quarter pixel"
+  },
+  {
+   "mutant": "restored SSE2",
+   "cap": "SSE2",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "restored AVX2",
+   "cap": "AVX2",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "restored VNNI_INT8",
+   "cap": "VNNI_INT8",
+   "status": "SURVIVED",
+   "detail": ""
+  }
+ ],
+ "totals": {
+  "KILLED": 20
+ }
+}

@@ -57,6 +57,8 @@ ctest --test-dir build/core -C Release --output-on-failure
 
 產出 `fpm_core` 靜態函式庫、`fpm_c` 動態函式庫及 `fpm_cli`。沒有 OpenCV 的 CLI 支援 8-bit P5 PGM，C++／C API 直接接收記憶體中的灰階影像。Windows 多組態產物位於 `Release/`。
 
+x86-64 會在執行期依 CPU 選 SSE2、AVX2 或 AVX-VNNI-INT8 分級，輸出逐位元相同；`-DFPM_X86_MAX_ISA=SSE2|AVX2|VNNI_INT8`（預設 `VNNI_INT8`）可設定上限，見[x86 SIMD 報告](docs/CORE_X86_SIMD_zh-TW.md)。
+
 也可從根目錄 CMake 編譯；MSVC 預設同時保留原 MFC 工具，要只編譯新核心請加 `-DFPM_BUILD_MFC=OFF`。
 
 ## 編譯 GUI 與一般圖片 CLI
@@ -77,7 +79,7 @@ build/portable/fpm_gui.app/Contents/MacOS/fpm_gui --gui \
   --src "Test Images/Src7.bmp" --tmpl "Test Images/Dst7.bmp"
 ```
 
-或在 Finder 開啟 `build/portable/fpm_gui.app`。Linux 為 `build/portable/fpm_gui`，Windows 為 `build/portable/Release/fpm_gui.exe`。這些平台共用源碼；本次實測平台為 Apple Silicon macOS，尚未實機驗證 Windows/Linux。
+或在 Finder 開啟 `build/portable/fpm_gui.app`。Linux 為 `build/portable/fpm_gui`，Windows 為 `build/portable/Release/fpm_gui.exe`。這些平台共用源碼；GUI 只在 Apple Silicon macOS 實測過。純核心、C ABI、CLI 與 CPU 實驗模組另在 Windows 11 x64（MSVC 19.44）實機驗證（2026-10-31），Linux 仍未實機驗證。
 
 保留的舊建置入口：`cmake -S macos-cli -B build/desktop`，產出 macOS 的 `build/desktop/MatchTool.app`。`macos-cli/match_core.{h,cpp}` 僅作歷史比較，不再連結到新版 GUI。
 
@@ -152,7 +154,7 @@ build/portable/fpm_cli --src "Test Images/Src7.bmp" \
 
 這些是同機、同圖、同參數的模式比較，數量相同不等於精度相同。原始結果和各次時間保留於 `docs/mode-benchmark.json`。一般模式有加速，但尚未追平舊 C++；FastMode 不能拿來當作等精度勝過舊版的證據。GUI 的背景工作避免阻塞視窗，並不是讓核心自動多執行緒加速。
 
-已使用金字塔、縮小旋轉畫布、局部 ROI、NEON／SSE2、積分圖與依條件啟用的 BlockMax。ARM 編譯有 `__ARM_FEATURE_DOTPROD` 時改用 UDOT 點積（2026-10-24，見[報告](docs/CORE_DOTPROD_zh-TW.md)），clang＋aarch64 的旋轉以 NEON 精確重現 scalar 運算（2026-10-25，見[報告](docs/CORE_WARP_PYRDOWN_zh-TW.md)），窮舉 NCC 改用精確整數滑動和與 8 視窗點積（2026-10-25，見[報告](docs/CORE_EXHAUSTIVE_NCC_zh-TW.md)）；上表是之前的數字；核心尚未加入 FFT 相關後端或多核心候選搜尋，不能宣稱已用上所有最快路徑。
+已使用金字塔、縮小旋轉畫布、局部 ROI、NEON／SSE2、積分圖與依條件啟用的 BlockMax。ARM 編譯有 `__ARM_FEATURE_DOTPROD` 時改用 UDOT 點積（2026-10-24，見[報告](docs/CORE_DOTPROD_zh-TW.md)），clang＋aarch64 的旋轉以 NEON 精確重現 scalar 運算（2026-10-25，見[報告](docs/CORE_WARP_PYRDOWN_zh-TW.md)），窮舉 NCC 改用精確整數滑動和與 8 視窗點積（2026-10-25，見[報告](docs/CORE_EXHAUSTIVE_NCC_zh-TW.md)），x86-64 在執行期選擇 SSE2／AVX2／AVX-VNNI-INT8 的 8 視窗點積與精確旋轉，並以 SSE2 計算 pyrDown（2026-10-31，見[報告](docs/CORE_X86_SIMD_zh-TW.md)）；上表是之前的數字；核心尚未加入 FFT 相關後端或多核心候選搜尋，不能宣稱已用上所有最快路徑。
 
 Subpixel 在 GUI「次像素位置與角度精修」、CLI `--subpixel`、C++ `MatchConfig::subpixel`、C ABI `fpm_config.subpixel` 均已接通。旋轉模式使用 27 點三維二次曲面精修 x／y／角度，固定角度可用 2D fallback；QR 求解、負定 Hessian 與偏移界限檢查也都有源碼。FastMode 在半解析度結束，會跳過最細層 Subpixel，GUI 因此停用該選項。
 

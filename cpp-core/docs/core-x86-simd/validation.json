@@ -1,0 +1,218 @@
+{
+ "date": "2026-10-31",
+ "commits": {
+  "before": "fe60159",
+  "after": "8695027",
+  "protocol": "e8d1919",
+  "windows_test_fixes": "7506003"
+ },
+ "source_archives_sha256": {
+  "before.tar.gz": "ee883dee5c71855e6bf95f3ac76d2c9f48c314022922b8668153b24d5aa8744c",
+  "after.tar.gz": "41d44af6fd9869c468991cae2d1d02382920ad67b78f6ceeed67c6566efe9f6d"
+ },
+ "pc": {
+  "pgm_check": "27 files, 0 mismatched []",
+  "ctest": {
+   "before": "3/3",
+   "after-auto": "3/3",
+   "after-avx2": "3/3",
+   "after-sse2": "3/3",
+   "after-scalar": "3/3",
+   "after-asan-auto": "3/3",
+   "after-asan-sse2": "3/3",
+   "after-exp": "33/33"
+  },
+  "asan": "after-asan-auto (AVX2 warp + VNNI-INT8 products) and after-asan-sse2 (SSE2 warp, products and pyrDown) built with MSVC /fsanitize=address; CMAKE_CXX_FLAGS checked in CMakeCache",
+  "identity": {
+   "runs": 680,
+   "different_runs": 0,
+   "libraries": [
+    "before",
+    "auto",
+    "avx2",
+    "sse2",
+    "scalar"
+   ],
+   "reference": "before/scalar"
+  },
+  "mutants": {
+   "KILLED": 20
+  },
+  "mutant_baseline_and_restored_pass": true,
+  "timing_window_local": "2026/10/31 22:12:37.95 - 22:16:21.39 (UTC+8)",
+  "timing_note": "the Mac polled formal.log over SSH every 240 s during the window (one PowerShell start per poll); no other job ran on the PC"
+ },
+ "mac": {
+  "ctest": {
+   "before": "3/3",
+   "after": "3/3",
+   "research": "91/91"
+  },
+  "research_ctest_commit": "e8d1919 (code of 8695027)",
+  "identity": {
+   "runs": 272,
+   "different_runs": 0
+  },
+  "python_harness": "865 tests at the c74913c tools (unchanged since): 10 errors, all color_verify_runner_test.WorkerContract FileNotFoundError 'None' under discover (expected without --runner); the file run directly with --runner --metal: 11/11 OK"
+ },
+ "cross_platform": {
+  "registered_gate": "every PC reference output equals the Mac's (binary64)",
+  "result": "FAILED: 9/68 case/mode reference outputs equal",
+  "same_match_counts": true,
+  "cause": "pre-existing: both references are fe60159/scalar. Apple clang's default -ffp-contract=on fuses multiply-adds outside warp (e.g. scores and geometry); MSVC x64 does not. fe60159 rebuilt on the Mac with FPM_DISABLE_SIMD and -ffp-contract=off equals the PC in 63/68; the other 5 differ only in the position/corners of one match each (consistent with libm cos/sin differences; not isolated)",
+  "twelve_digit_cli": "68/68 equal (run_cli_cases.py, preliminary)"
+ },
+ "timing": {
+  "ab-default": {
+   "names": [
+    "before",
+    "after"
+   ],
+   "backends": {
+    "before": "SSE2",
+    "after": "AVX2+VNNI-INT8"
+   },
+   "geomean_ratio": 0.4283,
+   "min_ratio": 0.3575,
+   "max_ratio": 0.5163,
+   "sum_of_medians_ms": {
+    "before": 1924.32,
+    "after": 838.84
+   },
+   "cases_faster": 17,
+   "cases_faster_every_round": 17,
+   "load_average": [
+    null,
+    null
+   ]
+  },
+  "ab-fast": {
+   "names": [
+    "before",
+    "after"
+   ],
+   "backends": {
+    "before": "SSE2",
+    "after": "AVX2+VNNI-INT8"
+   },
+   "geomean_ratio": 0.4201,
+   "min_ratio": 0.3321,
+   "max_ratio": 0.5863,
+   "sum_of_medians_ms": {
+    "before": 1014.63,
+    "after": 420.21
+   },
+   "cases_faster": 17,
+   "cases_faster_every_round": 17,
+   "load_average": [
+    null,
+    null
+   ]
+  },
+  "ab-subpixel": {
+   "names": [
+    "before",
+    "after"
+   ],
+   "backends": {
+    "before": "SSE2",
+    "after": "AVX2+VNNI-INT8"
+   },
+   "geomean_ratio": 0.4359,
+   "min_ratio": 0.3586,
+   "max_ratio": 0.5209,
+   "sum_of_medians_ms": {
+    "before": 12883.71,
+    "after": 5547.77
+   },
+   "cases_faster": 17,
+   "cases_faster_every_round": 17,
+   "load_average": [
+    null,
+    null
+   ]
+  },
+  "ab-tier-sse2-auto": {
+   "names": [
+    "sse2",
+    "auto"
+   ],
+   "backends": {
+    "sse2": "SSE2",
+    "auto": "AVX2+VNNI-INT8"
+   },
+   "geomean_ratio": 0.9346,
+   "min_ratio": 0.8771,
+   "max_ratio": 0.9712,
+   "sum_of_medians_ms": {
+    "sse2": 893.94,
+    "auto": 836.45
+   },
+   "cases_faster": 17,
+   "cases_faster_every_round": 12,
+   "load_average": [
+    null,
+    null
+   ]
+  },
+  "ab-tier-avx2-auto": {
+   "names": [
+    "avx2",
+    "auto"
+   ],
+   "backends": {
+    "avx2": "AVX2",
+    "auto": "AVX2+VNNI-INT8"
+   },
+   "geomean_ratio": 0.9462,
+   "min_ratio": 0.8775,
+   "max_ratio": 0.9886,
+   "sum_of_medians_ms": {
+    "avx2": 871.43,
+    "auto": 835.19
+   },
+   "cases_faster": 17,
+   "cases_faster_every_round": 11,
+   "load_average": [
+    null,
+    null
+   ]
+  },
+  "mac-ab-default": {
+   "names": [
+    "before",
+    "after"
+   ],
+   "backends": {
+    "before": "NEON+DOTPROD",
+    "after": "NEON+DOTPROD"
+   },
+   "geomean_ratio": 0.9975,
+   "min_ratio": 0.9873,
+   "max_ratio": 1.0113,
+   "sum_of_medians_ms": {
+    "before": 443.18,
+    "after": 442.57
+   },
+   "cases_faster": 12,
+   "cases_faster_every_round": 0,
+   "load_average": [
+    [
+     3.384765625,
+     2.99169921875,
+     2.93701171875
+    ],
+    [
+     3.177734375,
+     2.958984375,
+     2.92529296875
+    ]
+   ]
+  }
+ },
+ "decision_rule_evaluation": {
+  "all_gates": "no: the cross-platform gate failed as registered (see cross_platform)",
+  "pc_default_geomean_below_1": true,
+  "mac_default_geomean_at_most_1_02": true
+ }
+}
