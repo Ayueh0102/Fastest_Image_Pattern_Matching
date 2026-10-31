@@ -43,6 +43,13 @@ struct Canvas { Image image; Point translation; };
 Canvas rotateCanvas(ImageView source, int templateWidth, int templateHeight,
 	double angle, std::uint8_t border);
 Image rotatedRoi(ImageView source, int width, int height, Point anchor, double angle);
+// The inverse map that rotateCanvas() and rotatedRoi() sample: output (x,y) of a
+// width x height image reads source (anchor.x + c*x - s*y, anchor.y + s*x + c*y).
+// Device backends take these host values so their coordinates are identical.
+struct WarpMap { Point anchor; double c = 0, s = 0; int width = 0, height = 0; };
+WarpMap canvasWarp(int sourceWidth, int sourceHeight, int templateWidth, int templateHeight,
+	double angle, Point* translation);
+WarpMap roiWarp(int width, int height, Point anchor, double angle);
 
 struct ScoreMap {
 	int width = 0;
@@ -89,6 +96,16 @@ public:
 	virtual std::vector<std::vector<Peak>> computePeakBatch(const std::vector<ImageView>&,
 		const TemplateLevel&, int, double, double) {
 		throw std::runtime_error("resident coarse peaks are unavailable");
+	}
+	// Optional device coarse search over the top level. For every angle, in
+	// order, the provider rotates with canvasWarp() and returns that canvas's
+	// size and translation plus the peaks selectPeaks() would return from the
+	// exact NCC map; canvases smaller than the template have no peaks.
+	struct CoarseAngle { int canvasWidth = 0, canvasHeight = 0; Point translation; std::vector<Peak> peaks; };
+	virtual bool deviceCoarse() const { return false; }
+	virtual std::vector<CoarseAngle> computeCoarseDevice(ImageView, const TemplateLevel&,
+		const std::vector<double>&, std::uint8_t, int, double, double) {
+		throw std::runtime_error("device coarse search is unavailable");
 	}
 	// A begin call must own all input bytes needed after it returns. Slots 0/1
 	// are consumed in submission order; finish releases a slot for reuse. Drain
@@ -197,6 +214,10 @@ std::vector<Peak> selectPeaks(ScoreMap map, int width, int height,
 // Exact tournament selector; legacy selectPeaks remains the default/reference.
 std::vector<Peak> selectPeaksFast(ScoreMap map, int width, int height,
 	int count, double overlap, double threshold, bool blocked);
+// selectPeaks() of a mapWidth x mapHeight map from only its entries whose scores
+// are finite and >= threshold, in any order: same peaks in the same order.
+std::vector<Peak> selectPeaksSparse(std::vector<Peak> entries, int mapWidth, int mapHeight,
+	int width, int height, int count, double overlap);
 double overlap(const Match& a, const Match& b);
 std::vector<Match> suppress(std::vector<Match> candidates, int maxTargets, double maxOverlap);
 Match makeMatch(Point topLeft, int width, int height, double searchAngle, double score);

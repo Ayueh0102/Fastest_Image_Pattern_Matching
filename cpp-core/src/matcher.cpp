@@ -207,7 +207,33 @@ std::vector<Match> detail::matchWithCoarseNcc(ImageView source, const Pattern& p
 	const auto angles = coarseAngles(config, ranges, angleStep(top));
 	const std::size_t batchAngles = provider ? provider->coarseBatchAngles() : 1;
 	if (batchAngles < 1 || batchAngles > 4) throw std::runtime_error("coarse provider batch size must be 1..4");
-	if (provider && provider->residentCoarsePeaks()) {
+	if (provider && provider->deviceCoarse()) {
+		// All angles in one provider call; candidate order matches the CPU loop.
+		auto results = [&] {
+			StageScope stage(stageClock, Stage::CoarseNcc);
+			return provider->computeCoarseDevice(topSource.view(), topTemplate, angles, pattern.borderColor(),
+				config.maxTargets + EXTRA_CANDIDATES, config.maxOverlap, thresholds[top]);
+		}();
+		if (results.size() != angles.size()) throw std::runtime_error("device coarse search returned the wrong angle count");
+		for (std::size_t i = 0; i < angles.size(); ++i) {
+			const auto& result = results[i];
+			if (profile) {
+				++profile->coarse_angles;
+				const auto bytes = std::uint64_t(result.canvasWidth) * result.canvasHeight;
+				profile->coarse_rotation_total_bytes += bytes;
+				profile->coarse_rotation_peak_bytes = std::max(profile->coarse_rotation_peak_bytes, bytes);
+			}
+			if (result.canvasWidth < topW || result.canvasHeight < topH) continue;
+			if (profile) {
+				++profile->coarse_maps;
+				profile->coarse_windows += std::uint64_t(result.canvasWidth-topW+1) * (result.canvasHeight-topH+1);
+			}
+			for (const auto& peak : result.peaks) {
+				const Point rotated{peak.x - result.translation.x, peak.y - result.translation.y};
+				candidates.push_back({rotate(rotated, center, -angles[i]), angles[i], peak.score});
+			}
+		}
+	} else if (provider && provider->residentCoarsePeaks()) {
 		if (provider->coarseOverlapEnabled())
 			throw std::invalid_argument("resident coarse peaks do not support CPU overlap scheduling");
 		for (std::size_t first = 0; first < angles.size(); first += batchAngles) {

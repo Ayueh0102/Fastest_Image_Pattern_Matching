@@ -634,6 +634,34 @@ Peak maximum(const ScoreMap& map)
 	return best;
 }
 
+namespace {
+struct Suppression { int x0, y0, x1, y1; };
+// Legacy suppression rectangle, plus the selected pixel even at overlap=1.
+Suppression suppression(Peak p, int width, int height, int tw, int th, double overlapRatio)
+{
+	const double rx = tw * (1 - overlapRatio), ry = th * (1 - overlapRatio);
+	const int left = int(p.x - rx), top = int(p.y - ry);
+	return {std::max(0, std::min(p.x, left)), std::max(0, std::min(p.y, top)),
+		std::min(width, std::max(p.x + 1, left + int(2 * rx))), std::min(height, std::max(p.y + 1, top + int(2 * ry)))};
+}
+}
+
+std::vector<Peak> selectPeaksSparse(std::vector<Peak> entries, int width, int height, int tw, int th,
+	int count, double overlapRatio)
+{
+	std::sort(entries.begin(), entries.end(), better);
+	std::vector<Peak> peaks;
+	std::vector<Suppression> taken;
+	for (const auto& p : entries) {
+		if (int(peaks.size()) >= count) break;
+		if (std::any_of(taken.begin(), taken.end(), [&](const Suppression& r) {
+			return p.x >= r.x0 && p.x < r.x1 && p.y >= r.y0 && p.y < r.y1; })) continue;
+		peaks.push_back(p);
+		taken.push_back(suppression(p, width, height, tw, th, overlapRatio));
+	}
+	return peaks;
+}
+
 std::vector<Peak> selectPeaks(ScoreMap map, int tw, int th, int count,
 	double overlapRatio, double threshold, bool blocked)
 {
@@ -659,13 +687,7 @@ std::vector<Peak> selectPeaks(ScoreMap map, int tw, int th, int count,
 		for (const auto& b : blocks) if (better(b.best, p)) p = b.best;
 		if (!std::isfinite(p.score) || p.score < threshold) break;
 		peaks.push_back(p);
-		// Legacy suppression rectangle, plus the selected pixel even at overlap=1.
-		const double rx = tw * (1 - overlapRatio), ry = th * (1 - overlapRatio);
-		const int left = int(p.x - rx), top = int(p.y - ry);
-		const int x0 = std::max(0, std::min(p.x, left));
-		const int y0 = std::max(0, std::min(p.y, top));
-		const int x1 = std::min(map.width, std::max(p.x + 1, left + int(2 * rx)));
-		const int y1 = std::min(map.height, std::max(p.y + 1, top + int(2 * ry)));
+		const auto [x0, y0, x1, y1] = suppression(p, map.width, map.height, tw, th, overlapRatio);
 		for (int y = y0; y < y1; ++y)
 			for (int x = x0; x < x1; ++x) map.at(x, y) = -std::numeric_limits<double>::infinity();
 		for (auto& b : blocks)
