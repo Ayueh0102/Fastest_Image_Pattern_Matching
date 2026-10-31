@@ -8,11 +8,18 @@
 
 // The NEON rotation path mirrors each multiply-add that clang's default
 // -ffp-contract=on fuses in warpPixel's expressions; core_test compares it
-// with a copy of the original loop. Other compilers keep the scalar loop.
+// with a copy of the original loop. Other ARM compilers keep the scalar loop.
 #if !defined(FPM_DISABLE_SIMD) && defined(__clang__) && defined(__aarch64__) && \
 	(defined(__ARM_NEON) || defined(__ARM_NEON__))
 #include <arm_neon.h>
 #define FPM_NEON_WARP 1
+// On x86-64 without FMA nothing is contracted, so the SSE2 and AVX2 rows round
+// every multiply and add separately in warpPixel's order. Builds where the
+// compiler may fuse (__FMA__, MSVC /fp:contract or /fp:fast) would fail the same
+// core_test; GCC and clang -mfma builds keep the scalar loop.
+#elif FPM_X86 && !defined(__FMA__)
+#include <immintrin.h>
+#define FPM_X86_WARP 1
 #endif
 
 namespace fpm {
@@ -156,14 +163,16 @@ static std::uint8_t warpPixel(ImageView src, int x, int y, Point anchor, double 
 	return std::uint8_t(std::clamp(std::floor(top * (1 - dy) + bottom * dy + 0.5), 0.0, 255.0));
 }
 
-#if FPM_NEON_WARP
+#if FPM_NEON_WARP || FPM_X86_WARP
 static std::uint64_t bytePair(const std::uint8_t* p)
 {
 	std::uint16_t value;
 	std::memcpy(&value, p, 2);
 	return value;
 }
+#endif
 
+#if FPM_NEON_WARP
 // Two pixels per step with warpPixel's operations: sx=(ax+c*x)-s*y and
 // sy=(ay+s*x)+c*y fused twice, top=p00*(1-dx)+round(p10*dx) fused, and so on.
 // A pair with any pixel outside 0<=sx<w-1, 0<=sy<h-1 uses warpPixel.
@@ -209,17 +218,120 @@ static int warpRowNeon(ImageView src, std::uint8_t* out, int width, int y, Point
 	}
 	return x;
 }
+#elif FPM_X86_WARP
+// Two pixels per step. sx=(ax+c*x)-s*y, sy=(ay+s*x)+c*y, top=p00*(1-dx)+p10*dx
+// and the final value are evaluated with warpPixel's roundings. Only pairs with
+// both pixels inside 0<=sx<w-1, 0<=sy<h-1 come here, so floor is truncation and
+// value>=0.5; the rest use warpPixel.
+static int warpRowSse2(ImageView src, std::uint8_t* out, int width, int y, Point anchor,
+	double c, double s, std::uint8_t border)
+{
+	const __m128d vc = _mm_set1_pd(c), vs = _mm_set1_pd(s), vy = _mm_set1_pd(y);
+	const __m128d ax = _mm_set1_pd(anchor.x), ay = _mm_set1_pd(anchor.y);
+	const __m128d one = _mm_set1_pd(1), zero = _mm_setzero_pd(), half = _mm_set1_pd(0.5), two = _mm_set1_pd(2);
+	const __m128d innerW = _mm_set1_pd(src.width - 1), innerH = _mm_set1_pd(src.height - 1);
+	const __m128d sy = _mm_mul_pd(vs, vy), cy = _mm_mul_pd(vc, vy);
+	__m128d vx = _mm_set_pd(1, 0);
+	int x = 0;
+	for (; x + 2 <= width; x += 2, vx = _mm_add_pd(vx, two)) {
+		const __m128d px = _mm_sub_pd(_mm_add_pd(ax, _mm_mul_pd(vc, vx)), sy);
+		const __m128d py = _mm_add_pd(_mm_add_pd(ay, _mm_mul_pd(vs, vx)), cy);
+		const __m128d inside = _mm_and_pd(_mm_and_pd(_mm_cmpge_pd(px, zero), _mm_cmplt_pd(px, innerW)),
+			_mm_and_pd(_mm_cmpge_pd(py, zero), _mm_cmplt_pd(py, innerH)));
+		if (_mm_movemask_pd(inside) != 3) {
+			out[x] = warpPixel(src, x, y, anchor, c, s, border);
+			out[x + 1] = warpPixel(src, x + 1, y, anchor, c, s, border);
+			continue;
+		}
+		const __m128i ix = _mm_cvttpd_epi32(px), iy = _mm_cvttpd_epi32(py);
+		const __m128d dx = _mm_sub_pd(px, _mm_cvtepi32_pd(ix)), dy = _mm_sub_pd(py, _mm_cvtepi32_pd(iy));
+		int xs[4], ys[4];
+		_mm_storeu_si128(reinterpret_cast<__m128i*>(xs), ix);
+		_mm_storeu_si128(reinterpret_cast<__m128i*>(ys), iy);
+		const auto* p = src.data + std::size_t(ys[0]) * src.stride + xs[0];
+		const auto* q = src.data + std::size_t(ys[1]) * src.stride + xs[1];
+		const auto pu = int(bytePair(p)), qu = int(bytePair(q));
+		const auto pl = int(bytePair(p + src.stride)), ql = int(bytePair(q + src.stride));
+		const __m128d p00 = _mm_cvtepi32_pd(_mm_set_epi32(0, 0, qu & 255, pu & 255));
+		const __m128d p10 = _mm_cvtepi32_pd(_mm_set_epi32(0, 0, qu >> 8, pu >> 8));
+		const __m128d p01 = _mm_cvtepi32_pd(_mm_set_epi32(0, 0, ql & 255, pl & 255));
+		const __m128d p11 = _mm_cvtepi32_pd(_mm_set_epi32(0, 0, ql >> 8, pl >> 8));
+		const __m128d rx = _mm_sub_pd(one, dx), ry = _mm_sub_pd(one, dy);
+		const __m128d top = _mm_add_pd(_mm_mul_pd(p00, rx), _mm_mul_pd(p10, dx));
+		const __m128d bottom = _mm_add_pd(_mm_mul_pd(p01, rx), _mm_mul_pd(p11, dx));
+		const __m128d value = _mm_add_pd(_mm_add_pd(_mm_mul_pd(top, ry), _mm_mul_pd(bottom, dy)), half);
+		int result[4];
+		_mm_storeu_si128(reinterpret_cast<__m128i*>(result), _mm_cvttpd_epi32(value));
+		out[x] = std::uint8_t(std::min(result[0], 255));
+		out[x + 1] = std::uint8_t(std::min(result[1], 255));
+	}
+	return x;
+}
+
+// The same with four pixels per step. Pixels are loaded as byte pairs; a gather
+// was 8% faster on the 285K pilot but is slow on other x86 cores.
+FPM_TARGET_AVX2 static int warpRowAvx2(ImageView src, std::uint8_t* out, int width, int y, Point anchor,
+	double c, double s, std::uint8_t border)
+{
+	const __m256d vc = _mm256_set1_pd(c), vs = _mm256_set1_pd(s), vy = _mm256_set1_pd(y);
+	const __m256d ax = _mm256_set1_pd(anchor.x), ay = _mm256_set1_pd(anchor.y);
+	const __m256d one = _mm256_set1_pd(1), zero = _mm256_setzero_pd(), half = _mm256_set1_pd(0.5), four = _mm256_set1_pd(4);
+	const __m256d innerW = _mm256_set1_pd(src.width - 1), innerH = _mm256_set1_pd(src.height - 1);
+	const __m256d sy = _mm256_mul_pd(vs, vy), cy = _mm256_mul_pd(vc, vy);
+	const __m128i low = _mm_set1_epi32(255);
+	__m256d vx = _mm256_set_pd(3, 2, 1, 0);
+	int x = 0;
+	for (; x + 4 <= width; x += 4, vx = _mm256_add_pd(vx, four)) {
+		const __m256d px = _mm256_sub_pd(_mm256_add_pd(ax, _mm256_mul_pd(vc, vx)), sy);
+		const __m256d py = _mm256_add_pd(_mm256_add_pd(ay, _mm256_mul_pd(vs, vx)), cy);
+		const __m256d inside = _mm256_and_pd(
+			_mm256_and_pd(_mm256_cmp_pd(px, zero, _CMP_GE_OQ), _mm256_cmp_pd(px, innerW, _CMP_LT_OQ)),
+			_mm256_and_pd(_mm256_cmp_pd(py, zero, _CMP_GE_OQ), _mm256_cmp_pd(py, innerH, _CMP_LT_OQ)));
+		if (_mm256_movemask_pd(inside) != 15) {
+			for (int k = 0; k < 4; ++k) out[x + k] = warpPixel(src, x + k, y, anchor, c, s, border);
+			continue;
+		}
+		const __m128i ix = _mm256_cvttpd_epi32(px), iy = _mm256_cvttpd_epi32(py);
+		const __m256d dx = _mm256_sub_pd(px, _mm256_cvtepi32_pd(ix)), dy = _mm256_sub_pd(py, _mm256_cvtepi32_pd(iy));
+		int xs[4], ys[4], upperPairs[4], lowerPairs[4];
+		_mm_storeu_si128(reinterpret_cast<__m128i*>(xs), ix);
+		_mm_storeu_si128(reinterpret_cast<__m128i*>(ys), iy);
+		for (int k = 0; k < 4; ++k) {
+			const auto* p = src.data + std::size_t(ys[k]) * src.stride + xs[k];
+			upperPairs[k] = int(bytePair(p));
+			lowerPairs[k] = int(bytePair(p + src.stride));
+		}
+		const __m128i upper = _mm_loadu_si128(reinterpret_cast<const __m128i*>(upperPairs));
+		const __m128i lower = _mm_loadu_si128(reinterpret_cast<const __m128i*>(lowerPairs));
+		const __m256d p00 = _mm256_cvtepi32_pd(_mm_and_si128(upper, low)), p10 = _mm256_cvtepi32_pd(_mm_srli_epi32(upper, 8));
+		const __m256d p01 = _mm256_cvtepi32_pd(_mm_and_si128(lower, low)), p11 = _mm256_cvtepi32_pd(_mm_srli_epi32(lower, 8));
+		const __m256d rx = _mm256_sub_pd(one, dx), ry = _mm256_sub_pd(one, dy);
+		const __m256d top = _mm256_add_pd(_mm256_mul_pd(p00, rx), _mm256_mul_pd(p10, dx));
+		const __m256d bottom = _mm256_add_pd(_mm256_mul_pd(p01, rx), _mm256_mul_pd(p11, dx));
+		const __m256d value = _mm256_add_pd(_mm256_add_pd(_mm256_mul_pd(top, ry), _mm256_mul_pd(bottom, dy)), half);
+		const __m128i result = _mm_min_epi32(_mm256_cvttpd_epi32(value), low);
+		const int packed = _mm_cvtsi128_si32(_mm_packus_epi16(_mm_packs_epi32(result, result), _mm_setzero_si128()));
+		std::memcpy(out + x, &packed, 4);
+	}
+	_mm256_zeroupper();
+	return x;
+}
 #endif
 
 static Image warp(ImageView src, int width, int height, Point anchor, double angle, std::uint8_t border)
 {
 	Image result(width, height);
 	const double c = std::cos(angle * D2R), s = std::sin(angle * D2R);
+#if FPM_X86_WARP
+	const auto warpRow = x86Isa() >= X86Isa::Avx2 ? warpRowAvx2 : warpRowSse2;
+#endif
 	for (int y = 0; y < height; ++y) {
 		auto* out = result.row(y);
 		int x = 0;
 #if FPM_NEON_WARP
 		x = warpRowNeon(src, out, width, y, anchor, c, s, border);
+#elif FPM_X86_WARP
+		x = warpRow(src, out, width, y, anchor, c, s, border);
 #endif
 		for (; x < width; ++x) out[x] = warpPixel(src, x, y, anchor, c, s, border);
 	}

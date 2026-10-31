@@ -350,14 +350,16 @@ void exactExhaustiveNcc()
 		check({pixels.data(), w, h, std::size_t(w + pad)}, learnLevel(patch), "exhaustive NCC must match the original binary64 path");
 	}
 	// Near-saturated wide rows: 4096 bytes uses the grouped kernel, 4097 does
-	// not. 4096x20 products exceed one uint32 sum, so the flushes must work.
-	for (int tw : {4096, 4097}) {
-		Image patch(tw, 20);
-		for (int y = 0; y < 20; ++y) for (int x = 0; x < tw; ++x) patch.row(y)[x] = std::uint8_t(x == y ? 0 : 255);
-		Image source(tw + 3, 24);
-		for (int y = 0; y < 24; ++y) for (int x = 0; x < tw + 3; ++x) source.row(y)[x] = std::uint8_t((x + 3 * y) % 11 ? 255 : 254);
-		check(source.view(), learnLevel(patch), "saturated wide NCC must match the original binary64 path");
-	}
+	// not. 4096x20 products exceed one uint32 sum and 4096x160 exceed one uint32
+	// accumulator lane of every grouped kernel, so the flushes must work.
+	for (int th : {20, 160})
+		for (int tw : {4096, 4097}) {
+			Image patch(tw, th);
+			for (int y = 0; y < th; ++y) for (int x = 0; x < tw; ++x) patch.row(y)[x] = std::uint8_t(x == y ? 0 : 255);
+			Image source(tw + 3, th + 4);
+			for (int y = 0; y < th + 4; ++y) for (int x = 0; x < tw + 3; ++x) source.row(y)[x] = std::uint8_t((x + 3 * y) % 11 ? 255 : 254);
+			check(source.view(), learnLevel(patch), "saturated wide NCC must match the original binary64 path");
+		}
 }
 void peakExtraction()
 {

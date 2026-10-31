@@ -8,7 +8,27 @@
 #include <limits>
 #include <stdexcept>
 
+// x86-64 tiers above the SSE2 baseline are chosen once at run time. CMake sets
+// FPM_X86_MAX_ISA (1 SSE2, 2 AVX2, 3 AVX-VNNI-INT8) from what the compiler can
+// build and the FPM_X86_MAX_ISA cache option.
+#if !defined(FPM_DISABLE_SIMD) && (defined(__x86_64__) || defined(_M_X64)) && !defined(_M_ARM64EC)
+#define FPM_X86 1
+#ifndef FPM_X86_MAX_ISA
+#define FPM_X86_MAX_ISA 2
+#endif
+#if defined(_MSC_VER) && !defined(__clang__)
+#define FPM_TARGET_AVX2
+#define FPM_TARGET_VNNI_INT8
+#else
+#define FPM_TARGET_AVX2 __attribute__((target("avx2")))
+#define FPM_TARGET_VNNI_INT8 __attribute__((target("avx2,avxvnniint8")))
+#endif
+#endif
+
 namespace fpm::detail {
+// None off x86-64 and in FPM_DISABLE_SIMD builds.
+enum class X86Isa { None, Sse2, Avx2, VnniInt8 };
+X86Isa x86Isa();
 constexpr double PI = 3.14159265358979323846;
 constexpr double D2R = PI / 180.0;
 constexpr int PADDING = 3;
