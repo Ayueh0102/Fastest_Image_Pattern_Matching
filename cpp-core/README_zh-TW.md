@@ -59,6 +59,8 @@ ctest --test-dir build/core -C Release --output-on-failure
 
 x86-64 會在執行期依 CPU 選 SSE2、AVX2 或 AVX-VNNI-INT8 分級，輸出逐位元相同；`-DFPM_X86_MAX_ISA=SSE2|AVX2|VNNI_INT8`（預設 `VNNI_INT8`）可設定上限，見[x86 SIMD 報告](docs/CORE_X86_SIMD_zh-TW.md)。
 
+研究 coarse／frame API 另有 CUDA 後端（backend 2）：`-DFPM_BUILD_EXPERIMENTS=ON -DFPM_WITH_CUDA=ON`，需要 CUDA Toolkit（實測 13.2）與對應的主機編譯器，`CMAKE_CUDA_ARCHITECTURES` 未指定時用本機 GPU。輸出和 CPU 後端逐位元相同，只在 Windows x64 與 RTX PRO 4000 上驗證過，見 [CUDA 後端報告](docs/CUDA_BACKEND_zh-TW.md)。
+
 也可從根目錄 CMake 編譯；MSVC 預設同時保留原 MFC 工具，要只編譯新核心請加 `-DFPM_BUILD_MFC=OFF`。
 
 ## 編譯 GUI 與一般圖片 CLI
@@ -140,7 +142,7 @@ build/portable/fpm_cli --src "Test Images/Src7.bmp" \
 
 旋轉、尺度、FFT、RGB 與 CPU／GPU 分工的數學推導及研究原型，見 [研究文件](docs/RESEARCH_FOURIER_SCALE_RGB_zh-TW.md)。穩定核心仍是固定尺度灰階比對；灰階多尺度＋連續精修研究流程已透過原生 C++ 接入選配 GUI。Fourier 提案與完整 RGB 全圖搜尋尚未接入 GUI。
 
-`codex/ncc-fourier-gpu-experiments` 已提供可實跑的 C++ 多核與 Metal 浮點／RGB 姿態評分器，透過 `FPM_BUILD_EXPERIMENTS=ON` 額外編譯。實測區分常駐資料的評分時間、含 CPU 提案與同步的 ROI 管線時間、初始化與記憶體；[結果](docs/EXPERIMENT_RESULTS_zh-TW.md) 同時保留小批次 GPU 較慢、Fourier 裁切失敗及回退後仍不夠精確的案例。NumPy FFT 仍在 CPU，CUDA 是尚待實作的對應設計。
+`codex/ncc-fourier-gpu-experiments` 已提供可實跑的 C++ 多核與 Metal 浮點／RGB 姿態評分器，透過 `FPM_BUILD_EXPERIMENTS=ON` 額外編譯。實測區分常駐資料的評分時間、含 CPU 提案與同步的 ROI 管線時間、初始化與記憶體；[結果](docs/EXPERIMENT_RESULTS_zh-TW.md) 同時保留小批次 GPU 較慢、Fourier 裁切失敗及回退後仍不夠精確的案例。NumPy FFT 仍在 CPU；CUDA 目前只有研究 coarse／frame API 的後端（[報告](docs/CUDA_BACKEND_zh-TW.md)），其餘研究路徑仍是對應設計。
 
 2026-10-08，Apple Silicon Release；Src7 4024×3036、Dst7 762×521，target=70、score=.5、angle=180、overlap=.2、minArea=256。各模式先暖機一次，再序列量測三次，取比對時間中位數，排除讀圖與模板學習：
 

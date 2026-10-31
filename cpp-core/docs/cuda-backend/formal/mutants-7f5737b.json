@@ -1,0 +1,148 @@
+{
+ "results": [
+  {
+   "mutant": "baseline cpp-core/experiments/coarse_cuda.cu",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "baseline cpp-core/src/ncc.cpp",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "W1 warp sx re-associated: ax+(c*x-s*y)",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: arithmetic-sensitive poses, FP64 sampling: fine map 0 differs"
+  },
+  {
+   "mutant": "W2 warp sy contracted into an FMA",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: arithmetic-sensitive poses, FP64 sampling: fine map 3 differs"
+  },
+  {
+   "mutant": "W3 warp value not rounded (+0.5 dropped)",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: disagreeing poses: fine map 1 differs"
+  },
+  {
+   "mutant": "W4 warp inside bound w-1 instead of w",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: coarse mode 0 trial 0 angle 0: peak count"
+  },
+  {
+   "mutant": "N1 normalization: no 0.5 cap on the variance guard",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: coarse mode 1 trial 29 angle 26: peak differs"
+  },
+  {
+   "mutant": "N2 normalization: saturation band 1.25 instead of 1.125",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "N3 normalization: s*(s/area) instead of (s*s)/area",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: disagreeing poses: fine map 0 differs"
+  },
+  {
+   "mutant": "C1 fused coarse keeps only scores above the threshold",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: flat template, threshold 1 angle 0: peak count"
+  },
+  {
+   "mutant": "C2 fused coarse tile one row short",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: flat source, threshold 0 angle 0: peak differs"
+  },
+  {
+   "mutant": "C3 compaction lane offset counts its own lane",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: flat template, threshold 1 angle 0: peak differs"
+  },
+  {
+   "mutant": "C4 pack drops the last kept entry",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: flat source, threshold 0 angle 0: peak differs"
+  },
+  {
+   "mutant": "C5 coarse uniform template not detected",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: flat template, threshold 1 angle 0: peak count"
+  },
+  {
+   "mutant": "C6 unfused coarse canvas warp uses border 0",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: flat source, threshold 0 angle 1: peak differs"
+  },
+  {
+   "mutant": "F1 fine guard ignored (Q28 result always kept)",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: disagreeing poses: fine map 0 differs"
+  },
+  {
+   "mutant": "F2 fine repairAll ignored",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "F3 fine FP64 fallback samples a border of 1",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: disagreeing poses: fine map 10 differs"
+  },
+  {
+   "mutant": "F4 fine dot: dx=3 shifted by two bytes",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: disagreeing poses: fine map 0 differs"
+  },
+  {
+   "mutant": "F5 fine row squares not slid",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: disagreeing poses: fine map 0 differs"
+  },
+  {
+   "mutant": "F6 fine stripe one ROI row short",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: disagreeing poses: fine map 0 differs"
+  },
+  {
+   "mutant": "F7 fine window sums skip the last stripe row",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: disagreeing poses: fine map 0 differs"
+  },
+  {
+   "mutant": "F8 fine template padding not zero",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: disagreeing poses: fine map 0 differs"
+  },
+  {
+   "mutant": "P1 pyramid rounding bias 127",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL pyramid: pyramid pixels differ"
+  },
+  {
+   "mutant": "P2 pyramid reflection off by one",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL pyramid: pyramid pixels differ"
+  },
+  {
+   "mutant": "S1 sparse peaks: suppression right edge inclusive",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: flat template, threshold 1 angle 0: peak differs"
+  },
+  {
+   "mutant": "restored cpp-core/experiments/coarse_cuda.cu",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "restored cpp-core/src/ncc.cpp",
+   "status": "SURVIVED",
+   "detail": ""
+  }
+ ],
+ "totals": {
+  "KILLED": 22,
+  "SURVIVED": 2
+ }
+}

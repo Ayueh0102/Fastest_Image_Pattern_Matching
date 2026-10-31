@@ -18,6 +18,8 @@
 
 2026-10-31在實驗室Windows 11 x64（Core Ultra 9 285K，MSVC 19.44）第一次實機驗證後，加入[x86 SIMD分級](CORE_X86_SIMD_zh-TW.md)（非研究輪次）：x86-64在執行期以cpuid選SSE2、AVX2或AVX-VNNI-INT8（`FPM_X86_MAX_ISA`可設上限），窮舉NCC走和UDOT相同的8視窗點積，沒有FMA的編譯下以SSE2兩像素／AVX2四像素照scalar的捨入順序做`warp`，`pyrDown`改用SSE2整數。PC上5個建置的binary64輸出相同（680次零差異），20個編譯突變全部被抓到；17張影像預設模式1924→839ms（幾何平均快57.2%），FastMode與subpixel快約56～58%，大部分收益來自SSE2這一級。Mac的輸出與速度不變（272次零差異，比值0.9975）。預先登記的跨平台gate沒有通過：PC與Mac在binary64只有9/68組相同，原因是改動前就存在的Apple clang FMA合併與libm差異；同平台的身分比對都通過。同日也修正兩個只在Windows出現的實驗測試問題。
 
+2026-11-01在同一台PC的RTX PRO 4000 Blackwell（sm_120，驅動596.71，WDDM）上加入研究coarse／frame API的[CUDA後端](CUDA_BACKEND_zh-TW.md)（backend 2，`FPM_WITH_CUDA`預設關閉，非研究輪次）：GPU精確金字塔；所有角度一次launch的融合粗搜尋，畫布區塊直接旋轉進shared memory、只留下達門檻的項目，主機用新的`selectPeaksSparse()`挑峰值；細搜尋以32列ROI stripe和`__dp4a`計算，取樣沿用Metal的精確Q28規則，guard內的像素在GPU上改走FP64。核心新增`canvasWarp()`／`roiWarp()`與`deviceCoarse()` hook，CPU運算不變（PC與Mac的`fpm_c`輸出各272次零差異）。正式計時（protocol先登記）1122次CUDA執行全部和CPU逐位元相同；17張影像每幀時間的幾何平均是CPU的0.142／0.187／0.097（預設／FastMode／subpixel），合計768.6→59.3 ms，每個模式16/17組變快，最小的Src9變慢（0.52→0.64 ms）。大影像主要剩prepare（來源複製與PCIe傳輸）。預先登記的突變gate未通過（19/24）：3個是測試缺口，已補強並在補強後抓到，2個是可論證的等價突變。研究pipeline的`Session`、pose refinement與完整Metal GPU管線仍沒有CUDA版本，也沒有在Linux或Jetson上跑過。
+
 第42輪[完整GPU粗選峰改為精確平行回合](GPU_PARALLEL_PEAKS_zh-TW.md)：新增`full_gpu_peak_mode=2`，多張分數圖同批、每回合平行接受與抑制，完整有序輸出與mode 1逐位相同。fine4完整GPU時間128／512少27.3%／34.4%（587.22／1881.34ms），每換新影格對混合為−31.4%／−22.7%，六物件混合仍快1.5%、8K快80.1%，皆6/6 block同向。1538次直接GT零FP／FN、0筆失敗門檻；完整GPU研究建議改為peak2／fine4，預設不變。
 
 第43輪加入[細搜尋前的粗候選去重](CANDIDATE_DEDUP_zh-TW.md)，這是會改變語意、預設關閉的研究選項。k3在112／79個GT案例變體（混合／完整GPU）中沒有任何嚴格TP減少或FP增加，正式時間128／512物件混合少30.4%／37.0%、完整GPU少26.1%／25.7%（完整GPU臂用第40輪peak1／fine4，不與第42輪相乘），8K約不變。輸出不保證與基線逐位相同（matches相同者97/112、67/79）。k1與兩個刻意放寬的消融會失去物件，保留全部失敗；不改預設。
@@ -52,7 +54,7 @@
 
 | 範圍 | 狀態 | 證據入口 |
 |---|---|---|
-| 固定尺度灰階核心 | C++17完整自有實作；旋轉、金字塔、NCC、NMS與subpixel；ARM編譯期UDOT點積、NEON精確旋轉、滑動整數和與8視窗點積；x86-64執行期SSE2／AVX2／VNNI-INT8分級（Windows實機驗證） | [移植契約](PORTING_zh-TW.md)、[核心與GUI建置](../README_zh-TW.md)、[DOTPROD點積](CORE_DOTPROD_zh-TW.md)、[旋轉與金字塔](CORE_WARP_PYRDOWN_zh-TW.md)、[窮舉NCC](CORE_EXHAUSTIVE_NCC_zh-TW.md)、[x86 SIMD](CORE_X86_SIMD_zh-TW.md) |
+| 固定尺度灰階核心 | C++17完整自有實作；旋轉、金字塔、NCC、NMS與subpixel；ARM編譯期UDOT點積、NEON精確旋轉、滑動整數和與8視窗點積；x86-64執行期SSE2／AVX2／VNNI-INT8分級（Windows實機驗證）；研究coarse／frame API另有逐位元相同的CUDA後端 | [移植契約](PORTING_zh-TW.md)、[核心與GUI建置](../README_zh-TW.md)、[DOTPROD點積](CORE_DOTPROD_zh-TW.md)、[旋轉與金字塔](CORE_WARP_PYRDOWN_zh-TW.md)、[窮舉NCC](CORE_EXHAUSTIVE_NCC_zh-TW.md)、[x86 SIMD](CORE_X86_SIMD_zh-TW.md)、[CUDA後端](CUDA_BACKEND_zh-TW.md) |
 | 灰階多尺度與連續精修 | 原生C++排程、CPU／Metal後端；GUI可選研究流程 | [總索引](EXPERIMENT_REVIEW_zh-TW.md)、`experiments/research_pipeline.hpp` |
 | 大量物件與大圖 | 有128／512物件、4K／8K測量；同模板合成為主 | [第34輪](STAGE34_CLOSURE_zh-TW.md)、各輪原始封存 |
 | 記憶體與提交改善 | gray8讀圖、u8初始化、共用影像、細搜尋旋轉／NCC融合 | [第31輪](GRAY_LOAD_MEMORY_zh-TW.md)、[第32輪](RUN_VARIABILITY_POSE_MEMORY_zh-TW.md) |
@@ -62,7 +64,7 @@
 | RGB候選評分與色度 | 完整CPU／Metal RGB NCC、CPU線性色度源碼；同程序搜尋＋驗色；物件內白參考的照明正規化色度`chroma_vk`（研究選項，第47輪起有原稿決定的門檻與選用線性光源模型） | [runner契約](COLOR_VERIFY_RUNNER.md)、[第35輪](STAGE35_REAL_RGB_zh-TW.md)、[第46輪](ILLUMINANT_CHROMA_zh-TW.md)、[第47輪](CHROMA_MARGIN_zh-TW.md) |
 | 重現與外部review | protocol、正式worker、失敗、hash、來源與驗證分開保存 | [Log分類](LOG_CATALOG_zh-TW.md)、[實驗總索引](EXPERIMENT_REVIEW_zh-TW.md) |
 
-「完整源碼」涵蓋專案自有程式及測試，不是把Qt、OpenCV、Metal系統框架的全部來源打包。灰階核心無Qt／OpenCV依賴；GUI解碼及研究工具依賴分開列於建置文件。CUDA只有設計對應，沒有本機實作／效能驗收。
+「完整源碼」涵蓋專案自有程式及測試，不是把Qt、OpenCV、Metal系統框架的全部來源打包。灰階核心無Qt／OpenCV依賴；GUI解碼及研究工具依賴分開列於建置文件。CUDA只實作了研究coarse／frame API的後端（[CUDA後端](CUDA_BACKEND_zh-TW.md)，一張RTX PRO 4000與Windows上驗證）；研究pipeline的`Session`、pose refinement與完整GPU管線仍只有設計對應。
 
 ## 本階段以外的研究缺口
 

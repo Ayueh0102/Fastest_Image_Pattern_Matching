@@ -41,6 +41,6 @@
 
 完整RGB全圖搜尋與GUI仍未交付；已有局部RGB評分／精修不等於完整三通道流程。Fourier原型仍包含CPU NumPy，裁切／背景干擾反例保留，全C++／Metal移植應先有採用收益證據。IC／ECC、旋轉基底、學習式提案、全GPU動態排程與多模板庫皆可獨立研究，不能假設必勝現有方法。
 
-沒有CUDA硬體不妨礙繼續改善Metal。跨Apple硬體、Windows／Linux及CUDA驗證屬後續可移植性與性能研究；當前不把完整源碼等同於已在每個平台實測。
+沒有CUDA硬體不妨礙繼續改善Metal。2026-11-01起研究coarse／frame API有CUDA後端，只在一張RTX PRO 4000與Windows上驗證（[CUDA後端](CUDA_BACKEND_zh-TW.md)）；其他Apple硬體、Linux、Jetson與研究pipeline其餘階段的CUDA驗證仍屬後續研究，當前不把完整源碼等同於已在每個平台實測。
 
 審查根據：[研究總索引](EXPERIMENT_REVIEW_zh-TW.md)、[第32輪](RUN_VARIABILITY_POSE_MEMORY_zh-TW.md)、[SIMD精修](POSE_SIMD_zh-TW.md)、[持續運行](STABILITY_30MIN_zh-TW.md)、[Session來源](../experiments/research_pipeline.cpp)、[Session契約](../experiments/research_pipeline.hpp)。第33輪正式比較與新增失敗診斷另見[多尺度精修與新場景](RESIDENT_MULTISCALE_zh-TW.md)。
