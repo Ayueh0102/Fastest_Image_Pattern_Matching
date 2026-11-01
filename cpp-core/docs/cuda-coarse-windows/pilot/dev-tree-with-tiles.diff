@@ -1,0 +1,646 @@
+diff --git a/cpp-core/experiments/coarse_cuda.cu b/cpp-core/experiments/coarse_cuda.cu
+index 960f80f..a2bfaa9 100644
+--- a/cpp-core/experiments/coarse_cuda.cu
++++ b/cpp-core/experiments/coarse_cuda.cu
+@@ -36,6 +36,7 @@
+ #include <climits>
+ #include <cmath>
+ #include <condition_variable>
++#include <cstdlib>
+ #include <cstring>
+ #include <limits>
+ #include <memory>
+@@ -359,6 +360,33 @@ __device__ __forceinline__ u8 q28Sample(const u8* s, int w, int h, long long sx,
+     return warpPixel(s, w, h, x, y, exact, border);
+ }
+ 
++// q28Sample()'s byte from 32-bit arithmetic where the rounding is clear. With the
++// weights cut to Q23 for x (each corner difference then moves the value by under 255
++// Q23 units) and one high multiply for y (under 2 more), the Q23 value is within 257
++// units of the exact one, so a value farther than that plus the guard from a rounding
++// boundary rounds like q28Sample() and needs neither its numerator nor its fallback.
++// margin = screenMargin(guard); interior pixels only, the rest go to q28Sample().
++__device__ __forceinline__ int screenMargin(u64 guard)
++{
++    const u64 units = guard >> 33; // Q56 to Q23, rounded up below
++    return 258 + (units < (1u << 23) ? int(units) : 1 << 23);
++}
++__device__ __forceinline__ u8 q28Sample32(const u8* s, int w, int h, long long sx, long long sy, int margin, u64 guard,
++    int x, int y, const DeviceWarp& exact, u8 border, unsigned& repaired)
++{
++    const int ix = int(sx >> 28), iy = int(sy >> 28);
++    if (unsigned(ix) < unsigned(w - 1) && unsigned(iy) < unsigned(h - 1)) {
++        const u8* p = s + size_t(iy) * w + ix;
++        const int p00 = p[0], p10 = p[1], p01 = p[w], p11 = p[w + 1];
++        const int dx = int((unsigned(sx) << 4) >> 9), dy = int((unsigned(sy) << 4) >> 1);
++        const int top = (p00 << 23) + (p10 - p00) * dx, bottom = (p01 << 23) + (p11 - p01) * dx;
++        const int value = top + 2 * __mulhi(bottom - top, dy);
++        const int fraction = value & ((1 << 23) - 1), distance = fraction > (1 << 22) ? fraction - (1 << 22) : (1 << 22) - fraction;
++        if (distance > margin) return u8((value + (1 << 22)) >> 23);
++    }
++    return q28Sample(s, w, h, sx, sy, guard, x, y, exact, border, repaired);
++}
++
+ // FP32 sampling (inexact ablation): warpPixel() with every quantity in binary32.
+ __device__ u8 warpPixel32(const u8* s, int w, int h, int x, int y, const DeviceWarp& m, u8 border)
+ {
+@@ -479,6 +507,211 @@ __global__ void coarseQ28(const u8* source, int sw, int sh, const CoarseQJob* jo
+     }
+ }
+ 
++// Coarse NCC modes 5 and 6: a block of `warps` warps covers 16 * warps x TILE_Y windows
++// of one angle, and each warp computes 16 x 8 of them with registers, not per-window
++// loops. Each thread owns four windows, m in {g, g + 8}, n in {2t, 2t + 1} for lane
++// g * 4 + t: the layout of the m16n8k32 accumulator.
++//
++// Sums and squares slide: per-column totals over the first th rows give the first
++// window row (lanes scan over dx), and each later window row adds one tile row and
++// removes another. Products come from one of two equal computations. Mode 6 uses the
++// int8 Tensor core: for tile row rho, A[m][k] is the row at column dx + m + k and
++// B[k][n] is template row rho - n, so A * B adds to each window (m, n) that row's
++// contribution. Mode 5 uses __dp4a: every lane walks the template for its four windows.
++// Rows and columns past the canvas are read only for windows past the map, which are
++// never scored. Scores follow mode 3: binary32 screening, binary64 for the rest.
++constexpr int COARSE_WARP_X = 16;
++__device__ __forceinline__ void mmaU8(unsigned& c0, unsigned& c1, unsigned& c2, unsigned& c3,
++    unsigned a0, unsigned a1, unsigned a2, unsigned a3, unsigned b0, unsigned b1)
++{
++#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 800
++    asm volatile("mma.sync.aligned.m16n8k32.row.col.s32.u8.u8.s32 {%0,%1,%2,%3}, {%4,%5,%6,%7}, {%8,%9}, {%10,%11,%12,%13};\n"
++        : "=r"(c0), "=r"(c1), "=r"(c2), "=r"(c3)
++        : "r"(a0), "r"(a1), "r"(a2), "r"(a3), "r"(b0), "r"(b1), "r"(c0), "r"(c1), "r"(c2), "r"(c3));
++#endif
++}
++// Lane dx gets the sum of lanes 0..dx, for dx < 16.
++__device__ __forceinline__ unsigned laneScan16(unsigned v, int lane)
++{
++    for (int offset = 1; offset < COARSE_WARP_X; offset <<= 1) {
++        const unsigned below = __shfl_up_sync(0xffffffffu, v, offset);
++        if (lane >= offset) v += below;
++    }
++    return v;
++}
++// Change of each dx's window sum and square when tile row `in` enters and `out`
++// leaves (both at this warp's first column, word aligned). Exact modulo 2^32.
++__device__ __forceinline__ void slideWindows(const unsigned* in, const unsigned* out, int tw, int lane, unsigned& sum, unsigned& square)
++{
++    constexpr unsigned ONES = 0x01010101u;
++    const int full = tw >> 2, words = (tw + 3) >> 2;
++    const unsigned tail = (1u << (8 * (tw & 3))) - 1;
++    unsigned s = 0, q = 0;
++    for (int j = lane; j < words; j += 32) {
++        unsigned a = in[j], b = out[j];
++        if (j == full) { a &= tail; b &= tail; }
++        s += __dp4a(a, ONES, 0u) - __dp4a(b, ONES, 0u);
++        q += __dp4a(a, a, 0u) - __dp4a(b, b, 0u);
++    }
++    s = warpSum32(s); q = warpSum32(q);
++    if (lane > 0) {
++        s = q = 0;
++        if (lane < COARSE_WARP_X) {
++            const auto* inBytes = reinterpret_cast<const u8*>(in);
++            const auto* outBytes = reinterpret_cast<const u8*>(out);
++            const unsigned a = inBytes[tw + lane - 1], b = inBytes[lane - 1], c = outBytes[tw + lane - 1], d = outBytes[lane - 1];
++            s = (a - b) - (c - d);
++            q = (a * a - b * b) - (c * c - d * d);
++        }
++    }
++    sum = laneScan16(s, lane); square = laneScan16(q, lane);
++}
++template <int MODE>
++__global__ void coarseWarpWindows(const u8* source, int sw, int sh, const CoarseQJob* jobs, const unsigned* templ,
++    int tw, int th, double mean, double norm, double threshold, u8 border, ScoreTemplate stats,
++    Entry* entries, unsigned* counts, int jobCount)
++{
++    extern __shared__ __align__(16) u8 shared[];
++    __shared__ unsigned blockRepaired;
++    const CoarseQJob job = jobs[blockIdx.z];
++    const int warps = blockDim.y, tileX = COARSE_WARP_X * warps;
++    const int x0 = blockIdx.x * tileX, y0 = blockIdx.y * TILE_Y;
++    if (x0 >= job.mapWidth || y0 >= job.mapHeight) return; // uniform per block
++    const int lane = threadIdx.x, warp = threadIdx.y, threads = warps * 32, tid = warp * 32 + lane;
++    const int templateWords = (tw + 3) / 4, pitchWords = (tileX + tw + 2) / 4, pitch = pitchWords * 4;
++    const int validY = min(job.mapHeight - y0, TILE_Y), rows = validY + th - 1, columns = min(job.mapWidth - x0, tileX) + tw - 1;
++    auto* t = reinterpret_cast<unsigned*>(shared);
++    auto* tile = t + size_t(templateWords) * th;
++    auto* tileBytes = reinterpret_cast<u8*>(tile);
++    auto* column = tile + size_t(pitchWords) * (TILE_Y + th - 1); // sum and square per tile column
++    if (tid == 0) blockRepaired = 0;
++    for (int i = tid; i < templateWords * th; i += threads) t[i] = templ[i];
++    const FineWarp& q = job.q;
++    const long long stepX = 32 * q.c, stepY = 32 * q.s;
++    const int margin = screenMargin(q.guard);
++    unsigned repaired = 0;
++    for (int ty = warp; ty < rows; ty += warps) {
++        const int cy = y0 + ty, first = x0 + lane;
++        long long sx = q.ax + q.c * first - q.s * cy, sy = q.ay + q.s * first + q.c * cy;
++        u8* out = tileBytes + size_t(ty) * pitch;
++        for (int tx = lane; tx < columns; tx += 32, sx += stepX, sy += stepY) {
++            const int cx = x0 + tx;
++            if (q.repairAll) { ++repaired; out[tx] = warpPixel(source, sw, sh, cx, cy, q.exact, border); }
++            else out[tx] = q28Sample32(source, sw, sh, sx, sy, margin, q.guard, cx, cy, q.exact, border, repaired);
++        }
++    }
++    if (repaired) atomicAdd(&blockRepaired, repaired);
++    __syncthreads();
++    if (tid == 0 && blockRepaired) atomicAdd(counts + jobCount, blockRepaired);
++    for (int c = tid; c < columns; c += threads) {
++        unsigned sum = 0, square = 0;
++        for (int r = 0; r < th; ++r) { const unsigned v = tileBytes[size_t(r) * pitch + c]; sum += v; square += v * v; }
++        column[2 * c] = sum; column[2 * c + 1] = square;
++    }
++    __syncthreads();
++    const int first = COARSE_WARP_X * warp;
++    if (x0 + first >= job.mapWidth) return; // uniform per warp
++
++    // Sums and squares of this thread's four windows.
++    const int group = lane >> 2, inGroup = lane & 3;
++    unsigned windowSum[4] = {}, windowSquare[4] = {};
++    {
++        unsigned sum = 0, square = 0;
++        for (int c = lane; c < tw; c += 32) { sum += column[2 * (first + c)]; square += column[2 * (first + c) + 1]; }
++        sum = warpSum32(sum); square = warpSum32(square);
++        if (lane > 0) {
++            sum = square = 0;
++            if (lane < COARSE_WARP_X) {
++                const int gone = first + lane - 1, comes = gone + tw;
++                sum = column[2 * comes] - column[2 * gone]; square = column[2 * comes + 1] - column[2 * gone + 1];
++            }
++        }
++        sum = laneScan16(sum, lane); square = laneScan16(square, lane);
++        for (int dy = 0; dy < validY; ++dy) {
++            const unsigned s0 = __shfl_sync(0xffffffffu, sum, group), s1 = __shfl_sync(0xffffffffu, sum, group + 8);
++            const unsigned q0 = __shfl_sync(0xffffffffu, square, group), q1 = __shfl_sync(0xffffffffu, square, group + 8);
++            if (inGroup == dy >> 1) {
++                const int i = dy & 1;
++                windowSum[i] = s0; windowSquare[i] = q0; windowSum[2 + i] = s1; windowSquare[2 + i] = q1;
++            }
++            if (dy + 1 < validY) {
++                unsigned ds, dq;
++                slideWindows(tile + size_t(th + dy) * pitchWords + first / 4, tile + size_t(dy) * pitchWords + first / 4, tw, lane, ds, dq);
++                sum += ds; square += dq;
++            }
++        }
++    }
++
++    // Products of the four windows, accumulated exactly while n * 65025 < 2^32.
++    unsigned p0 = 0, p1 = 0, p2 = 0, p3 = 0;
++    const int shift = (group & 3) * 8;
++    if (MODE == 6) {
++        // Measured m16n8k32 layout (lane = group * 4 + inGroup, bytes low to high): A registers
++        // hold rows group, group + 8 at columns 4 * inGroup, then the same at + 16; B registers
++        // hold column n = group at rows 4 * inGroup, then + 16; the accumulator holds rows
++        // group, group + 8 at columns 2 * inGroup, 2 * inGroup + 1 (four registers, row first).
++        for (int rho = 0; rho < rows; ++rho) {
++            const int tr = rho - group;
++            const unsigned rowMask = tr >= 0 && tr < th ? ~0u : 0u;
++            const unsigned* tRow = t + size_t(tr < 0 ? 0 : tr >= th ? th - 1 : tr) * templateWords;
++            const unsigned* row = tile + size_t(rho) * pitchWords + (first + group) / 4 + inGroup;
++            for (int k = 0; k < templateWords; k += 8) {
++                const unsigned w0 = row[k], w1 = row[k + 1], w2 = row[k + 2], w3 = row[k + 3];
++                const unsigned w4 = row[k + 4], w5 = row[k + 5], w6 = row[k + 6], w7 = row[k + 7];
++                const int b = k + inGroup;
++                const unsigned b0 = b < templateWords ? tRow[b] & rowMask : 0u, b1 = b + 4 < templateWords ? tRow[b + 4] & rowMask : 0u;
++                mmaU8(p0, p1, p2, p3, __funnelshift_r(w0, w1, shift), __funnelshift_r(w2, w3, shift),
++                    __funnelshift_r(w4, w5, shift), __funnelshift_r(w6, w7, shift), b0, b1);
++            }
++        }
++    } else {
++        const int n0 = 2 * inGroup, n1 = n0 + 1, word0 = (first + group) / 4, word1 = word0 + 2;
++        for (int r = 0; r < th; ++r) {
++            const unsigned* tRow = t + size_t(r) * templateWords;
++            const unsigned* r00 = tile + size_t(r + n0) * pitchWords + word0;
++            const unsigned* r01 = tile + size_t(r + n1) * pitchWords + word0;
++            const unsigned* r10 = tile + size_t(r + n0) * pitchWords + word1;
++            const unsigned* r11 = tile + size_t(r + n1) * pitchWords + word1;
++            unsigned a0 = r00[0], a1 = r01[0], a2 = r10[0], a3 = r11[0];
++            for (int j = 0; j < templateWords; ++j) {
++                const unsigned tv = tRow[j];
++                const unsigned b0 = r00[j + 1], b1 = r01[j + 1], b2 = r10[j + 1], b3 = r11[j + 1];
++                p0 = __dp4a(__funnelshift_r(a0, b0, shift), tv, p0);
++                p1 = __dp4a(__funnelshift_r(a1, b1, shift), tv, p1);
++                p2 = __dp4a(__funnelshift_r(a2, b2, shift), tv, p2);
++                p3 = __dp4a(__funnelshift_r(a3, b3, shift), tv, p3);
++                a0 = b0; a1 = b1; a2 = b2; a3 = b3;
++            }
++        }
++    }
++
++    // Scores, as coarse NCC mode 3.
++    const unsigned products[4] = {p0, p1, p2, p3};
++    const u64 pixels = u64(tw) * th;
++    unsigned exact = 0;
++    for (int i = 0; i < 4; ++i) {
++        const int x = x0 + first + (i & 2 ? group + 8 : group), y = y0 + 2 * inGroup + (i & 1);
++        bool keep = false;
++        double score = 0;
++        if (x < job.mapWidth && y < job.mapHeight) {
++            const u64 sum = windowSum[i], square = windowSquare[i], product = products[i];
++            float s32;
++            if (stats.enabled && pixels * square == sum * sum) {
++                keep = !(score < threshold); // zero variance: normalizeScore() returns +0
++            } else if (stats.enabled && score32(sum, square, product, pixels, stats, 4.0f, s32) && s32 < stats.dropBelow) {
++                keep = false;
++            } else {
++                ++exact;
++                score = normalizeScore(sum, square, product, mean, norm, double(tw) * th);
++                keep = !(score < threshold);
++            }
++        }
++        appendEntry(keep, x, y, score, counts + blockIdx.z, entries + job.entryOffset);
++    }
++    exact = warpSum32(exact);
++    if (lane == 0 && exact) atomicAdd(counts + jobCount + 1, exact);
++}
++
+ // Fine search, one (template row stripe of at most 32 rows, request) per block of
+ // 8 warps. The stripe's ROI rows are sampled into shared memory (rows of `pitch`
+ // bytes, template rows of `tpitch`, both odd word counts). Warp dy < 7 computes
+@@ -489,13 +722,19 @@ __global__ void coarseQ28(const u8* source, int sw, int sh, const CoarseQJob* jo
+ //
+ // SAMPLING 0 is the original sampling loop (fine NCC modes 0 and 1); 2 samples
+ // each ROI row with one warp, its Q28 coordinates stepping by 32 columns, through
+-// q28Sample() (same bytes, mode 2); 3 samples in binary32 (inexact ablation, mode 3).
++// q28Sample() (same bytes, mode 2); 3 samples in binary32 (inexact ablation, mode 3);
++// 4 is 2 through q28Sample32() (same bytes, mode 4).
++//
++// grid z splits the template into column tiles of `tileWidth`: a tile adds the share
++// of every window that its template columns cover, so wide templates need less
++// shared memory per block and more blocks fit on an SM.
+ template <int SAMPLING>
+ __global__ void fineStripes(const u8* source, int sw, int sh, const FineWarp* requests, const u8* templ,
+-    int tw, int th, int stripeRows, int pitch, int tpitch, u64* acc, unsigned* repairedTotal)
++    int templateWidth, int th, int tileWidth, int stripeRows, int pitch, int tpitch, u64* acc, unsigned* repairedTotal)
+ {
+     extern __shared__ __align__(16) u8 shared[];
+     __shared__ unsigned blockRepaired;
++    const int c0 = blockIdx.z * tileWidth, tw = min(tileWidth, templateWidth - c0);
+     const int rw = tw + 2 * PAD, r0 = blockIdx.x * stripeRows, rows = min(stripeRows, th - r0), roiRows = rows + 2 * PAD;
+     u8* roi = shared;
+     u8* t = shared + size_t(roiRows) * pitch;
+@@ -510,26 +749,28 @@ __global__ void fineStripes(const u8* source, int sw, int sh, const FineWarp* re
+     if (SAMPLING == 0) {
+         for (int i = threadIdx.x; i < roiRows * rw; i += blockDim.x) {
+             const int x = i % rw, y = i / rw;
+-            roi[size_t(y) * pitch + x] = finePixel(source, sw, sh, x, r0 + y, m, repaired);
++            roi[size_t(y) * pitch + x] = finePixel(source, sw, sh, c0 + x, r0 + y, m, repaired);
+         }
+         for (int i = threadIdx.x; i < rows * tpitch; i += blockDim.x) {
+             const int y = i / tpitch, x = i % tpitch;
+-            t[i] = x < tw ? templ[size_t(r0 + y) * tw + x] : 0;
++            t[i] = x < tw ? templ[size_t(r0 + y) * templateWidth + c0 + x] : 0;
+         }
+     } else {
+         const long long stepX = 32 * m.c, stepY = 32 * m.s;
++        const int margin = screenMargin(m.guard);
+         for (int y = warp; y < roiRows; y += FINE_THREADS / 32) {
+-            const int ry = r0 + y;
+-            long long sx = m.ax + m.c * lane - m.s * ry, sy = m.ay + m.s * lane + m.c * ry;
++            const int ry = r0 + y, first = c0 + lane;
++            long long sx = m.ax + m.c * first - m.s * ry, sy = m.ay + m.s * first + m.c * ry;
+             u8* out = roi + size_t(y) * pitch;
+             for (int x = lane; x < rw; x += 32, sx += stepX, sy += stepY) {
+-                if (SAMPLING == 3) out[x] = warpPixel32(source, sw, sh, x, ry, m.exact, 0);
+-                else if (m.repairAll) { ++repaired; out[x] = warpPixel(source, sw, sh, x, ry, m.exact, 0); }
+-                else out[x] = q28Sample(source, sw, sh, sx, sy, m.guard, x, ry, m.exact, 0, repaired);
++                if (SAMPLING == 3) out[x] = warpPixel32(source, sw, sh, c0 + x, ry, m.exact, 0);
++                else if (m.repairAll) { ++repaired; out[x] = warpPixel(source, sw, sh, c0 + x, ry, m.exact, 0); }
++                else if (SAMPLING == 4) out[x] = q28Sample32(source, sw, sh, sx, sy, margin, m.guard, c0 + x, ry, m.exact, 0, repaired);
++                else out[x] = q28Sample(source, sw, sh, sx, sy, m.guard, c0 + x, ry, m.exact, 0, repaired);
+             }
+         }
+         for (int y = warp; y < rows; y += FINE_THREADS / 32) {
+-            const u8* in = templ + size_t(r0 + y) * tw;
++            const u8* in = templ + size_t(r0 + y) * templateWidth + c0;
+             u8* out = t + size_t(y) * tpitch;
+             for (int x = lane; x < tpitch; x += 32) out[x] = x < tw ? in[x] : 0;
+         }
+@@ -761,6 +1002,16 @@ public:
+         check(cudaFuncSetAttribute(coarseQ28<2>, cudaFuncAttributeMaxDynamicSharedMemorySize, coarseQ28Limit_), "coarse shared");
+         check(cudaFuncSetAttribute(coarseQ28<3>, cudaFuncAttributeMaxDynamicSharedMemorySize, coarseQ28Limit_), "coarse shared");
+         check(cudaFuncSetAttribute(coarseQ28<4>, cudaFuncAttributeMaxDynamicSharedMemorySize, coarseQ28Limit_), "coarse shared");
++        cudaFuncAttributes windowsAttributes{};
++        check(cudaFuncGetAttributes(&windowsAttributes, coarseWarpWindows<5>), "coarse attributes");
++        coarseWindowsLimit_ = sharedOptin_ - int(windowsAttributes.sharedSizeBytes);
++        check(cudaFuncSetAttribute(coarseWarpWindows<5>, cudaFuncAttributeMaxDynamicSharedMemorySize, coarseWindowsLimit_), "coarse shared");
++        check(cudaFuncSetAttribute(coarseWarpWindows<6>, cudaFuncAttributeMaxDynamicSharedMemorySize, coarseWindowsLimit_), "coarse shared");
++        cudaDeviceProp properties{};
++        check(cudaGetDeviceProperties(&properties, 0), "device properties");
++        tensorCores_ = properties.major >= 8;
++        if (const char* warps = std::getenv("FPM_PILOT_COARSE_WARPS")) coarseWarps_ = std::atoi(warps);
++        if (const char* tile = std::getenv("FPM_PILOT_FINE_TILE")) fineTile_ = std::atoi(tile);
+         // The fine sampling variants may differ in static shared memory; budget for the largest.
+         cudaFuncAttributes fine{}, variant{};
+         check(cudaFuncGetAttributes(&fine, fineStripes<0>), "fine attributes");
+@@ -768,6 +1019,8 @@ public:
+         fine.sharedSizeBytes = std::max(fine.sharedSizeBytes, variant.sharedSizeBytes);
+         check(cudaFuncGetAttributes(&variant, fineStripes<3>), "fine attributes");
+         fine.sharedSizeBytes = std::max(fine.sharedSizeBytes, variant.sharedSizeBytes);
++        check(cudaFuncGetAttributes(&variant, fineStripes<4>), "fine attributes");
++        fine.sharedSizeBytes = std::max(fine.sharedSizeBytes, variant.sharedSizeBytes);
+         fineSharedLimit_ = sharedOptin_ - int(fine.sharedSizeBytes);
+         // Prefer stripes small enough for two resident blocks per SM.
+         int perSm = 0;
+@@ -776,6 +1029,7 @@ public:
+         check(cudaFuncSetAttribute(fineStripes<0>, cudaFuncAttributeMaxDynamicSharedMemorySize, fineSharedLimit_), "fine shared");
+         check(cudaFuncSetAttribute(fineStripes<2>, cudaFuncAttributeMaxDynamicSharedMemorySize, fineSharedLimit_), "fine shared");
+         check(cudaFuncSetAttribute(fineStripes<3>, cudaFuncAttributeMaxDynamicSharedMemorySize, fineSharedLimit_), "fine shared");
++        check(cudaFuncSetAttribute(fineStripes<4>, cudaFuncAttributeMaxDynamicSharedMemorySize, fineSharedLimit_), "fine shared");
+         check(cudaStreamCreateWithFlags(&stream_, cudaStreamNonBlocking), "stream");
+         check(cudaEventCreate(&begin_), "event"); check(cudaEventCreate(&end_), "event");
+         check(cudaEventCreateWithFlags(&sourceRead_, cudaEventDisableTiming), "event");
+@@ -802,11 +1056,13 @@ public:
+     std::size_t fineBatchSize() const override { return fineBatchSize_; }
+     // Coarse NCC modes: 0 fused, 1 canvases in device memory (unfused ablation),
+     // 2 fused with exact Q28 tile sampling, 3 that plus binary32 screening of the
+-    // scores (outputs of 0-3 are identical), 4 binary32 sampling and scores
+-    // (inexact ablation).
++    // scores, 4 binary32 sampling and scores (inexact ablation), 5 mode 3 with window
++    // products by __dp4a in warp-level tiles, 6 the same with int8 Tensor cores
++    // (outputs of all but 4 are identical).
+     void setCoarseOptimization(int peakMode, int nccMode) override {
+-        if (peakMode != 0 || nccMode < 0 || nccMode > 4)
+-            throw std::invalid_argument("CUDA coarse optimization takes peak mode 0 and NCC mode 0..4");
++        if (peakMode != 0 || nccMode < 0 || nccMode > 6)
++            throw std::invalid_argument("CUDA coarse optimization takes peak mode 0 and NCC mode 0..6");
++        if (nccMode == 6 && !tensorCores_) throw std::invalid_argument("CUDA coarse NCC mode 6 needs compute capability 8.0");
+         fusedCoarse_ = nccMode != 1;
+         coarseMode_ = nccMode;
+     }
+@@ -814,9 +1070,9 @@ public:
+     // Fine NCC modes: 0 the Q28 fast path with the guard; 1 the FP64 warpPixel()
+     // for every fine pixel (ablation and tests of the FP64 path); 2 mode 0's bytes
+     // from a row-wise loop with stepped Q28 coordinates; 3 binary32 sampling and
+-    // scores (inexact ablation).
++    // scores (inexact ablation); 4 mode 2 with the rounding screened in 32-bit arithmetic.
+     void setFineNccMode(int mode) override {
+-        if (mode < 0 || mode > 3) throw std::invalid_argument("CUDA fine NCC mode is 0..3");
++        if (mode < 0 || mode > 4) throw std::invalid_argument("CUDA fine NCC mode is 0..4");
+         exactFine_ = mode == 1;
+         fineMode_ = mode;
+     }
+@@ -1083,16 +1339,32 @@ public:
+             }
+         }
+         const ScoreTemplate stats = q28 ? scoreTemplate(templ, threshold, uniform, coarseMode_ == 4) : ScoreTemplate{};
++        // Modes 5 and 6 fall back to mode 3 for a uniform template, or when their tile
++        // does not fit shared memory or uint32 products could overflow.
++        const int windowWarps = coarseWarps_, windowTileX = COARSE_WARP_X * windowWarps;
++        const size_t paddedWords = size_t((tw + 3) / 4) * th, pitchWords = (windowTileX + tw + 2) / 4;
++        const size_t windowShared = 4 * (paddedWords + pitchWords * (TILE_Y + th - 1) + 2 * size_t(windowTileX + tw - 1));
++        const bool warpWindows = q28 && coarseMode_ >= 5 && !uniform && u64(tw) * th <= MAX_U32_PIXELS &&
++            windowShared <= size_t(coarseWindowsLimit_);
+ 
+         // One staging upload: jobs, canvas offsets, template.
+         const size_t jobBytes = q28 ? sizeof(CoarseQJob) : sizeof(CoarseJob);
+         const size_t jobsBytes = align16(jobs.size() * jobBytes), offsetsBytes = align16(canvasOffsets.size() * sizeof(u64));
+-        const size_t stageBytes = jobsBytes + offsetsBytes + align16(templateBytes);
++        // Modes 5 and 6 read the template as zero-padded words.
++        const size_t stagedTemplate = warpWindows ? 4 * paddedWords : templateBytes;
++        const size_t stageBytes = jobsBytes + offsetsBytes + align16(stagedTemplate);
+         auto* hostStage = static_cast<u8*>(coarseStage_.reserve(stageBytes));
+         if (q28) std::memcpy(hostStage, qJobs.data(), qJobs.size() * jobBytes);
+         else std::memcpy(hostStage, jobs.data(), jobs.size() * jobBytes);
+         std::memcpy(hostStage + jobsBytes, canvasOffsets.data(), canvasOffsets.size() * sizeof(u64));
+-        std::memcpy(hostStage + jobsBytes + offsetsBytes, templ.image.row(0), templateBytes);
++        u8* stagedRows = hostStage + jobsBytes + offsetsBytes;
++        if (warpWindows) {
++            const int paddedWidth = 4 * ((tw + 3) / 4);
++            std::memset(stagedRows, 0, stagedTemplate);
++            for (int y = 0; y < th; ++y) std::memcpy(stagedRows + size_t(y) * paddedWidth, templ.image.row(y), size_t(tw));
++        } else {
++            std::memcpy(stagedRows, templ.image.row(0), templateBytes);
++        }
+         // Per-angle counts, then the FP64-pixel and binary64-score counters.
+         const size_t countsBytes = align16((jobs.size() + 2) * sizeof(unsigned));
+         // Lean calls keep the counts in their own buffer, which every search leaves zero.
+@@ -1116,10 +1388,18 @@ public:
+         const dim3 block(TILE_X, TILE_Y), grid((maxMapW + TILE_X - 1) / TILE_X, (maxMapH + TILE_Y - 1) / TILE_Y, unsigned(jobs.size()));
+         const auto* dQJobs = reinterpret_cast<const CoarseQJob*>(device);
+         const int jobCount = int(jobs.size());
+-        if (q28 && coarseMode_ == 2) {
++        if (warpWindows) {
++            const dim3 windowBlock(32, windowWarps);
++            const dim3 windowGrid((maxMapW + windowTileX - 1) / windowTileX, (maxMapH + TILE_Y - 1) / TILE_Y, unsigned(jobs.size()));
++            const auto* dWords = reinterpret_cast<const unsigned*>(dTemplate);
++            if (coarseMode_ == 5) coarseWarpWindows<5><<<windowGrid, windowBlock, windowShared, stream_>>>(source, top.width, top.height,
++                dQJobs, dWords, tw, th, templ.mean, templ.norm, threshold, border, stats, dEntries, dCounts, jobCount);
++            else coarseWarpWindows<6><<<windowGrid, windowBlock, windowShared, stream_>>>(source, top.width, top.height,
++                dQJobs, dWords, tw, th, templ.mean, templ.norm, threshold, border, stats, dEntries, dCounts, jobCount);
++        } else if (q28 && coarseMode_ == 2) {
+             coarseQ28<2><<<grid, block, sharedBytes, stream_>>>(source, top.width, top.height, dQJobs, dTemplate,
+                 tw, th, templ.mean, templ.norm, threshold, uniform, border, stats, dEntries, dCounts, jobCount);
+-        } else if (q28 && coarseMode_ == 3) {
++        } else if (q28 && (coarseMode_ == 3 || coarseMode_ >= 5)) {
+             coarseQ28<3><<<grid, block, sharedBytes, stream_>>>(source, top.width, top.height, dQJobs, dTemplate,
+                 tw, th, templ.mean, templ.norm, threshold, uniform, border, stats, dEntries, dCounts, jobCount);
+         } else if (q28) {
+@@ -1219,7 +1499,8 @@ public:
+         checkImage(rw, th + 2 * PAD);
+         // Odd word counts keep the 32 lanes (rows) of a warp in distinct banks;
+         // ROI rows hold two extra words for the dx funnel shifts.
+-        int tpitch = (tw + 3) & ~3;
++        const int tileWidth = fineMode_ == 4 && fineTile_ > 0 ? std::min(tw, fineTile_) : tw, tiles = (tw + tileWidth - 1) / tileWidth;
++        int tpitch = (tileWidth + 3) & ~3;
+         if ((tpitch / 4) % 2 == 0) tpitch += 4;
+         const int pitch = tpitch + 8;
+         auto sharedFor = [&](int rows) {
+@@ -1267,14 +1548,16 @@ public:
+             check(cudaMemcpyAsync(device, host, warpsBytes, cudaMemcpyHostToDevice, stream_), "fine upload");
+         }
+         if (!uniform) {
+-            const dim3 grid((th + stripe - 1) / stripe, unsigned(requests.size()));
++            const dim3 grid((th + stripe - 1) / stripe, unsigned(requests.size()), tiles);
+             const auto* dWarps = reinterpret_cast<const FineWarp*>(device);
+-            if (fineMode_ == 2) fineStripes<2><<<grid, FINE_THREADS, sharedFor(stripe), stream_>>>(level, source.width,
+-                source.height, dWarps, deviceTemplate, tw, th, stripe, pitch, tpitch, acc, repairedCount);
++            if (fineMode_ == 4) fineStripes<4><<<grid, FINE_THREADS, sharedFor(stripe), stream_>>>(level, source.width,
++                source.height, dWarps, deviceTemplate, tw, th, tileWidth, stripe, pitch, tpitch, acc, repairedCount);
++            else if (fineMode_ == 2) fineStripes<2><<<grid, FINE_THREADS, sharedFor(stripe), stream_>>>(level, source.width,
++                source.height, dWarps, deviceTemplate, tw, th, tileWidth, stripe, pitch, tpitch, acc, repairedCount);
+             else if (fineMode_ == 3) fineStripes<3><<<grid, FINE_THREADS, sharedFor(stripe), stream_>>>(level, source.width,
+-                source.height, dWarps, deviceTemplate, tw, th, stripe, pitch, tpitch, acc, repairedCount);
++                source.height, dWarps, deviceTemplate, tw, th, tileWidth, stripe, pitch, tpitch, acc, repairedCount);
+             else fineStripes<0><<<grid, FINE_THREADS, sharedFor(stripe), stream_>>>(level, source.width,
+-                source.height, dWarps, deviceTemplate, tw, th, stripe, pitch, tpitch, acc, repairedCount);
++                source.height, dWarps, deviceTemplate, tw, th, tileWidth, stripe, pitch, tpitch, acc, repairedCount);
+             check(cudaGetLastError(), "fine kernel");
+         }
+         unsigned* done = leanCalls_ ? leanDone() + 1 : nullptr;
+@@ -1462,7 +1745,8 @@ private:
+     }
+ 
+     int sharedOptin_ = 0, fineSharedLimit_ = 0, fineSharedTarget_ = 0, pyramidMode_ = 0, coarseMode_ = 0, fineMode_ = 0;
+-    int coarseQ28Limit_ = 0;
++    int coarseQ28Limit_ = 0, coarseWindowsLimit_ = 0, coarseWarps_ = 4, fineTile_ = 0;
++    bool tensorCores_ = false;
+     bool fusedCoarse_ = true, exactFine_ = false;
+     bool leanPrepare_ = false, leanCalls_ = false, uploadRequests_ = false, sourceReadPending_ = false, leanDoneDirty_ = false;
+     std::unordered_map<const void*, ScoreTemplate> fineStats_;
+diff --git a/cpp-core/experiments/coarse_ncc.cpp b/cpp-core/experiments/coarse_ncc.cpp
+index c6615a5..7c7dd30 100644
+--- a/cpp-core/experiments/coarse_ncc.cpp
++++ b/cpp-core/experiments/coarse_ncc.cpp
+@@ -253,7 +253,7 @@ int fpm_frame_set_fine_ncc_mode(fpm_frame_handle* frame, int32_t mode, char* err
+ {
+     message(error, capacity, "");
+     try {
+-        if (!frame || mode < 0 || mode > 3) throw std::invalid_argument("valid frame and fine NCC mode 0..3 required");
++        if (!frame || mode < 0 || mode > 4) throw std::invalid_argument("valid frame and fine NCC mode 0..4 required");
+         if (frame->backend) frame->backend->setFineNccMode(mode);
+         else if (mode) throw std::invalid_argument("fine NCC reuse requires Metal");
+         return FPM_OK;
+@@ -341,8 +341,8 @@ int fpm_frame_set_coarse_optimization(fpm_frame_handle* frame,
+     try {
+         if (!frame || !config || bytes != sizeof(*config) || config->version != 1 ||
+             config->struct_bytes != sizeof(*config) || config->reserved0 || config->reserved1 ||
+-            config->peak_mode < 0 || config->peak_mode > 2 || config->ncc_mode < 0 || config->ncc_mode > 4)
+-            throw std::invalid_argument("valid coarse optimization v1, exact size, peak mode 0..2 and NCC mode 0..4 are required");
++            config->peak_mode < 0 || config->peak_mode > 2 || config->ncc_mode < 0 || config->ncc_mode > 6)
++            throw std::invalid_argument("valid coarse optimization v1, exact size, peak mode 0..2 and NCC mode 0..6 are required");
+         if (frame->backend) frame->backend->setCoarseOptimization(config->peak_mode, config->ncc_mode);
+         else if (config->peak_mode || config->ncc_mode)
+             throw std::invalid_argument("coarse optimization frame requires Metal backend");
+diff --git a/cpp-core/experiments/coarse_ncc.h b/cpp-core/experiments/coarse_ncc.h
+index f31c915..e824817 100644
+--- a/cpp-core/experiments/coarse_ncc.h
++++ b/cpp-core/experiments/coarse_ncc.h
+@@ -355,9 +355,11 @@ FPM_API int fpm_coarse_create(fpm_image templ, int min_area,
+  * fast path, and mode 2 produces mode 0's bytes from a cheaper sampling loop.
+  * Coarse ncc_mode 2 samples tiles with the exact Q28 rule and mode 3 adds binary32
+  * screening of the scores (binary64 only for windows that may reach the
+- * threshold); both keep outputs bit-identical. Coarse ncc_mode 4 and fine mode 3
+- * use binary32 sampling and scores: an INEXACT ablation whose outputs differ from
+- * the CPU backend's. fpm_frame_set_transfer_mode selects how frames transfer and wait.
++ * threshold); both keep outputs bit-identical. Coarse ncc_mode 5 and 6 are mode 3
++ * with window products computed in warp-level tiles, by __dp4a and by int8 Tensor
++ * cores (mode 6 needs compute capability 8.0), also bit-identical. Coarse ncc_mode 4
++ * and fine mode 3 use binary32 sampling and scores: an INEXACT ablation whose outputs
++ * differ from the CPU backend's. fpm_frame_set_transfer_mode selects how frames transfer and wait.
+  * gpu_bytes counts device allocations only, not page-locked host staging.
+  */
+ FPM_API int fpm_coarse_create_backend(fpm_image templ, int min_area, int backend,
+diff --git a/cpp-core/tests/cuda_backend_test.cpp b/cpp-core/tests/cuda_backend_test.cpp
+index 78d96c5..c099b73 100644
+--- a/cpp-core/tests/cuda_backend_test.cpp
++++ b/cpp-core/tests/cuda_backend_test.cpp
+@@ -201,11 +201,13 @@ void runCase(Case& item, unsigned seed)
+             }
+         }
+     }
+-    // Exact kernel modes: coarse NCC 2/3, fine NCC 2, uploaded fine requests
++    // Exact kernel modes: coarse NCC 2/3/5/6, fine NCC 2, uploaded fine requests
+     // (transfer bit 4) and four copy threads, each prepared twice.
+     struct Variant { int coarse, fine, transfer, threads, batch; };
+     for (const Variant v : {Variant{2, 0, 0, 1, 64}, Variant{3, 2, 0, 1, 64}, Variant{3, 2, 3, 4, 3},
+-             Variant{0, 0, 7, 1, 64}, Variant{3, 2, 7, 4, 64}, Variant{3, 2, 1, 4, 0}}) {
++             Variant{0, 0, 7, 1, 64}, Variant{3, 2, 7, 4, 64}, Variant{3, 2, 1, 4, 0},
++             Variant{5, 0, 0, 1, 64}, Variant{5, 2, 3, 1, 3}, Variant{6, 0, 0, 1, 64}, Variant{6, 2, 3, 1, 64},
++             Variant{6, 2, 3, 4, 3}, Variant{6, 2, 1, 1, 0}, Variant{6, 4, 3, 1, 64}, Variant{3, 4, 0, 1, 3}}) {
+         Frame frame(2, 1, v.batch, v.coarse, v.transfer);
+         if (v.fine) frame.setFineMode(v.fine);
+         if (v.threads != 1) frame.setThreads(v.threads);
+@@ -314,6 +316,16 @@ void transferMetrics()
+     require(k.coarse_fp64_scores > 0 && k.coarse_fp64_scores < k.coarse_windows / 4,
+         "binary32 screen: " + std::to_string(k.coarse_fp64_scores) + " of " + std::to_string(k.coarse_windows));
+     require(threaded.transfer().upload_chunks == 3, "four copy threads changed the chunks");
++    // Warp-level window products screen the same way.
++    for (int mode : {5, 6}) {
++        Frame windows(2, 1, 64, mode, 3);
++        windows.setFineMode(2);
++        windows.prepare(source, {model.value}, 0);
++        same(expected, windows.match(model.value, c), "coarse " + std::to_string(mode) + ", fine 2");
++        const auto w = windows.kernel();
++        require(w.coarse_ncc_mode == mode && w.coarse_fp64_scores > 0 && w.coarse_fp64_scores < w.coarse_windows / 4,
++            "coarse " + std::to_string(mode) + " screen: " + std::to_string(w.coarse_fp64_scores) + " of " + std::to_string(w.coarse_windows));
++    }
+ }
+ 
+ void denseMaps()
+@@ -364,9 +376,12 @@ void validation()
+     FpmCoarseOptimizationConfigV1 optimization{1, sizeof(FpmCoarseOptimizationConfigV1), 1, 0, 0, 0};
+     require(fpm_frame_set_coarse_optimization(valid.value, &optimization, sizeof(optimization), nullptr, 0) == FPM_ERROR,
+         "CUDA peak mode 1 accepted");
++    optimization.peak_mode = 0; optimization.ncc_mode = 7;
++    require(fpm_frame_set_coarse_optimization(valid.value, &optimization, sizeof(optimization), nullptr, 0) == FPM_ERROR,
++        "CUDA coarse NCC mode 7 accepted");
+     require(fpm_frame_set_transfer_mode(valid.value, 8, nullptr, 0) == FPM_ERROR, "CUDA transfer mode 8 accepted");
+     require(fpm_frame_set_transfer_threads(valid.value, 17, nullptr, 0) == FPM_ERROR, "17 transfer threads accepted");
+-    require(fpm_frame_set_fine_ncc_mode(valid.value, 4, nullptr, 0) == FPM_ERROR, "CUDA fine NCC mode 4 accepted");
++    require(fpm_frame_set_fine_ncc_mode(valid.value, 5, nullptr, 0) == FPM_ERROR, "CUDA fine NCC mode 5 accepted");
+     Frame cpu(0, 0, 0);
+     require(fpm_frame_set_transfer_mode(cpu.value, 1, nullptr, 0) == FPM_ERROR, "CPU transfer mode 1 accepted");
+     require(fpm_frame_set_transfer_mode(cpu.value, 0, nullptr, 0) == FPM_OK, "CPU transfer mode 0 rejected");
+diff --git a/cpp-core/tests/cuda_kernel_test.cpp b/cpp-core/tests/cuda_kernel_test.cpp
+index a86831c..2048aef 100644
+--- a/cpp-core/tests/cuda_kernel_test.cpp
++++ b/cpp-core/tests/cuda_kernel_test.cpp
+@@ -231,9 +231,9 @@ void fine()
+         Image flat(17, 9);
+         for (int y = 0; y < 9; ++y) std::memset(flat.row(y), 77, 17);
+         const auto wide = learnLevel(texture(300, 70, rng));
+-        for (int mode : {0, 2}) {
++        for (int mode : {0, 2, 4}) {
+             gpu.setFineNccMode(mode);
+-            const std::string tag = mode ? ", fine mode 2" : "";
++            const std::string tag = mode ? ", fine mode " + std::to_string(mode) : "";
+             fineCase(gpu, source, learnLevel(flat), {{{100.5, 50.25}, 12}, {{3, 4}, 0}}, "flat template" + tag);
+             fineCase(gpu, source, wide, {{{150, 60}, 3}, {{140.25, 55.5}, -7}}, "wide template" + tag);
+         }
+@@ -280,9 +280,9 @@ void coarse()
+     // a flat source scores 0 everywhere (zero variance). Their own generator keeps
+     // the random trials below unchanged.
+     // Modes 2 and 3 (exact Q28 tiles, binary32 screening) run after 0 and 1 so the
+-    // earlier modes keep their data.
++    // earlier modes keep their data; so do 5 and 6 (warp-level window products).
+     Rng flatRng(99);
+-    for (int mode = 0; mode < 4; ++mode) {
++    for (int mode : {0, 1, 2, 3, 5, 6}) {
+         Gpu backend;
+         backend.value->setCoarseOptimization(0, mode);
+         Image flat(9, 7), flatSource(60, 40);
+@@ -292,7 +292,7 @@ void coarse()
+         sameCoarse(*backend.value, textured, learnLevel(flat), {0, 30, -90}, 0, 6, 0.3, 1.0, "flat template, threshold 1");
+         sameCoarse(*backend.value, flatSource, learnLevel(texture(9, 7, flatRng)), {0, 45}, 120, 6, 0.3, 0.0, "flat source, threshold 0");
+     }
+-    for (int mode = 0; mode < 4; ++mode) {
++    for (int mode : {0, 1, 2, 3, 5, 6}) {
+         Gpu backend;
+         auto& gpu = *backend.value;
+         gpu.setCoarseOptimization(0, mode);
+@@ -333,14 +333,32 @@ void coarse()
+         // The FP64 fallback and the binary32 screen were exercised, and the screen drops windows.
+         const auto k = gpu.cudaKernelMetrics();
+         if (mode >= 2) require(k.coarse_fp64_pixels > 0, "coarse mode " + std::to_string(mode) + ": no FP64 tile pixel");
+-        if (mode == 3) {
++        if (mode >= 3) {
+             require(k.coarse_fp64_scores > 0 && k.coarse_fp64_scores < k.coarse_windows / 2,
+-                "coarse mode 3: " + std::to_string(k.coarse_fp64_scores) + " of " + std::to_string(k.coarse_windows) +
++                "coarse mode " + std::to_string(mode) + ": " + std::to_string(k.coarse_fp64_scores) + " of " + std::to_string(k.coarse_windows) +
+                 " windows scored in binary64");
+-            std::cout << "coarse mode 3: " << k.coarse_fp64_pixels << " FP64 tile pixels, " << k.coarse_fp64_scores
++            std::cout << "coarse mode " << mode << ": " << k.coarse_fp64_pixels << " FP64 tile pixels, " << k.coarse_fp64_scores
+                       << " of " << k.coarse_windows << " windows scored in binary64\n";
+         }
+     }
++    // Warp-level window products: templates that need several 32-column steps, narrow and
++    // short ones, widths at every remainder mod 4, and sizes past what their tile can hold
++    // (those fall back to mode 3). Their own generator keeps the trials above unchanged.
++    Rng shapeRng(2024);
++    struct Shape { int tw, th, sw, sh; };
++    for (const Shape shape : {Shape{33, 3, 120, 60}, Shape{64, 9, 150, 70}, Shape{65, 8, 150, 70}, Shape{97, 2, 180, 40},
++             Shape{1, 1, 60, 40}, Shape{2, 30, 70, 90}, Shape{3, 9, 200, 30}, Shape{4, 1, 40, 200}, Shape{31, 33, 90, 90},
++             Shape{300, 260, 420, 380}}) {
++        const auto source = texture(shape.sw, shape.sh, shapeRng);
++        const auto templ = learnLevel(texture(shape.tw, shape.th, shapeRng));
++        for (int mode : {5, 6}) {
++            Gpu backend;
++            backend.value->setCoarseOptimization(0, mode);
++            const std::string name = "coarse mode " + std::to_string(mode) + " template " + std::to_string(shape.tw) + "x" + std::to_string(shape.th);
++            sameCoarse(*backend.value, source, templ, {0, 90, 17.3, -123.4}, 77, 12, 0.5, 0.2, name + " threshold 0.2");
++            sameCoarse(*backend.value, source, templ, {31.7}, 3, 40, 1.0, -0.5, name + " threshold -0.5");
++        }
++    }
+ }
+ 
+ void dense()

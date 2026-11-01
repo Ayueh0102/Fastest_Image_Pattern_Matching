@@ -201,11 +201,13 @@ void runCase(Case& item, unsigned seed)
             }
         }
     }
-    // Exact kernel modes: coarse NCC 2/3, fine NCC 2, uploaded fine requests
+    // Exact kernel modes: coarse NCC 2/3/5/6, fine NCC 2, uploaded fine requests
     // (transfer bit 4) and four copy threads, each prepared twice.
     struct Variant { int coarse, fine, transfer, threads, batch; };
     for (const Variant v : {Variant{2, 0, 0, 1, 64}, Variant{3, 2, 0, 1, 64}, Variant{3, 2, 3, 4, 3},
-             Variant{0, 0, 7, 1, 64}, Variant{3, 2, 7, 4, 64}, Variant{3, 2, 1, 4, 0}}) {
+             Variant{0, 0, 7, 1, 64}, Variant{3, 2, 7, 4, 64}, Variant{3, 2, 1, 4, 0},
+             Variant{5, 0, 0, 1, 64}, Variant{5, 2, 3, 1, 3}, Variant{6, 0, 0, 1, 64}, Variant{6, 2, 3, 1, 64},
+             Variant{6, 2, 3, 4, 3}, Variant{6, 2, 1, 1, 0}, Variant{6, 4, 3, 1, 64}, Variant{3, 4, 0, 1, 3}}) {
         Frame frame(2, 1, v.batch, v.coarse, v.transfer);
         if (v.fine) frame.setFineMode(v.fine);
         if (v.threads != 1) frame.setThreads(v.threads);
@@ -314,6 +316,16 @@ void transferMetrics()
     require(k.coarse_fp64_scores > 0 && k.coarse_fp64_scores < k.coarse_windows / 4,
         "binary32 screen: " + std::to_string(k.coarse_fp64_scores) + " of " + std::to_string(k.coarse_windows));
     require(threaded.transfer().upload_chunks == 3, "four copy threads changed the chunks");
+    // Warp-level window products screen the same way.
+    for (int mode : {5, 6}) {
+        Frame windows(2, 1, 64, mode, 3);
+        windows.setFineMode(2);
+        windows.prepare(source, {model.value}, 0);
+        same(expected, windows.match(model.value, c), "coarse " + std::to_string(mode) + ", fine 2");
+        const auto w = windows.kernel();
+        require(w.coarse_ncc_mode == mode && w.coarse_fp64_scores > 0 && w.coarse_fp64_scores < w.coarse_windows / 4,
+            "coarse " + std::to_string(mode) + " screen: " + std::to_string(w.coarse_fp64_scores) + " of " + std::to_string(w.coarse_windows));
+    }
 }
 
 void denseMaps()
@@ -364,9 +376,12 @@ void validation()
     FpmCoarseOptimizationConfigV1 optimization{1, sizeof(FpmCoarseOptimizationConfigV1), 1, 0, 0, 0};
     require(fpm_frame_set_coarse_optimization(valid.value, &optimization, sizeof(optimization), nullptr, 0) == FPM_ERROR,
         "CUDA peak mode 1 accepted");
+    optimization.peak_mode = 0; optimization.ncc_mode = 7;
+    require(fpm_frame_set_coarse_optimization(valid.value, &optimization, sizeof(optimization), nullptr, 0) == FPM_ERROR,
+        "CUDA coarse NCC mode 7 accepted");
     require(fpm_frame_set_transfer_mode(valid.value, 8, nullptr, 0) == FPM_ERROR, "CUDA transfer mode 8 accepted");
     require(fpm_frame_set_transfer_threads(valid.value, 17, nullptr, 0) == FPM_ERROR, "17 transfer threads accepted");
-    require(fpm_frame_set_fine_ncc_mode(valid.value, 4, nullptr, 0) == FPM_ERROR, "CUDA fine NCC mode 4 accepted");
+    require(fpm_frame_set_fine_ncc_mode(valid.value, 5, nullptr, 0) == FPM_ERROR, "CUDA fine NCC mode 5 accepted");
     Frame cpu(0, 0, 0);
     require(fpm_frame_set_transfer_mode(cpu.value, 1, nullptr, 0) == FPM_ERROR, "CPU transfer mode 1 accepted");
     require(fpm_frame_set_transfer_mode(cpu.value, 0, nullptr, 0) == FPM_OK, "CPU transfer mode 0 rejected");

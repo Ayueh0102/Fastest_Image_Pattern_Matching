@@ -309,9 +309,9 @@ FPM_API int fpm_frame_set_transfer_threads(fpm_frame_handle* frame, int32_t thre
     char* error, size_t error_capacity);
 /* CUDA kernel diagnostics of the last fpm_frame_match: the coarse and fine NCC
  * modes, coarse windows, coarse tile pixels sampled with the FP64 fallback (modes
- * 2-3; fine ones are FineMetricsV1.repair_pixels), coarse windows scored in
- * binary64 by mode 3's screening, and the lean prepare copy threads. Zeros for
- * other backends. */
+ * 2, 3, 5, 6; fine ones are FineMetricsV1.repair_pixels), coarse windows scored in
+ * binary64 by the screening of modes 3, 5 and 6, and the lean prepare copy threads.
+ * Zeros for other backends. */
 typedef struct FpmCudaKernelMetricsV1 {
     uint32_t version, struct_bytes;
     int32_t coarse_ncc_mode, fine_ncc_mode;
@@ -352,12 +352,15 @@ FPM_API int fpm_coarse_create(fpm_image templ, int min_area,
  * outputs equal the CPU backend's of the same build bit for bit. Coarse
  * optimization ncc_mode 1 keeps canvases in device memory (unfused ablation);
  * fine NCC mode 1 samples every fine pixel in FP64 instead of the guarded Q28
- * fast path, and mode 2 produces mode 0's bytes from a cheaper sampling loop.
- * Coarse ncc_mode 2 samples tiles with the exact Q28 rule and mode 3 adds binary32
+ * fast path, mode 2 produces mode 0's bytes from a cheaper sampling loop, and mode 4
+ * from a branch-free 32-bit screen that asks the guarded path only when the rounding
+ * is not clear. Coarse ncc_mode 2 samples tiles with the exact Q28 rule and mode 3 adds binary32
  * screening of the scores (binary64 only for windows that may reach the
- * threshold); both keep outputs bit-identical. Coarse ncc_mode 4 and fine mode 3
- * use binary32 sampling and scores: an INEXACT ablation whose outputs differ from
- * the CPU backend's. fpm_frame_set_transfer_mode selects how frames transfer and wait.
+ * threshold); both keep outputs bit-identical. Coarse ncc_mode 5 and 6 are mode 3
+ * with window products computed in warp-level tiles, by __dp4a and by int8 Tensor
+ * cores (mode 6 needs compute capability 8.0), also bit-identical. Coarse ncc_mode 4
+ * and fine mode 3 use binary32 sampling and scores: an INEXACT ablation whose outputs
+ * differ from the CPU backend's. fpm_frame_set_transfer_mode selects how frames transfer and wait.
  * gpu_bytes counts device allocations only, not page-locked host staging.
  */
 FPM_API int fpm_coarse_create_backend(fpm_image templ, int min_area, int backend,

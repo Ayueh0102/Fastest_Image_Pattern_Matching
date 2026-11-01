@@ -1,0 +1,500 @@
+{
+ "protocol": "protocol.json (ac0a538, registered 2026-11-01T10:34:34Z)",
+ "commits": {
+  "base": "5f2c6f7",
+  "after": "1d0e951"
+ },
+ "gates": {
+  "ctest_pc": {
+   "pass": true,
+   "detail": "35/35; experimental_cuda_backend and experimental_cuda_kernels ran; 6 Metal tests skipped"
+  },
+  "ctest_mac": {
+   "pass": true,
+   "detail": "91/91, research build of the 1d0e951 archive (cpp-core, macos-cli, Test Images)"
+  },
+  "inputs": {
+   "pass": true,
+   "detail": "27 PGM files, 0 mismatched against the manifest"
+  },
+  "identity": {
+   "pass": true,
+   "records": {
+    "timing-standard": 2856,
+    "identity-standard": 612,
+    "timing-shallow": 1088,
+    "identity-shallow": 272
+   },
+   "runs": 4828,
+   "cuda_runs": 4250,
+   "mismatches": 0,
+   "failures": 0,
+   "independent_recheck": "formal/identity_check.py compares the matches lists directly: within every (round, case, mode), over all rounds and across the files of a set"
+  },
+  "core_unchanged": {
+   "pass": true,
+   "detail": "git diff 5f2c6f7 1d0e951 -- cpp-core/src cpp-core/include is empty"
+  },
+  "mutants": {
+   "pass": true,
+   "totals": {
+    "KILLED": 71,
+    "SURVIVED": 8
+   },
+   "status": {
+    "baseline cpp-core/experiments/coarse_cuda.cu": "SURVIVED",
+    "baseline cpp-core/src/ncc.cpp": "SURVIVED",
+    "W1": "KILLED",
+    "W2": "KILLED",
+    "W3": "KILLED",
+    "W4": "KILLED",
+    "N1": "KILLED",
+    "N2": "SURVIVED",
+    "N3": "KILLED",
+    "C1": "KILLED",
+    "C2": "KILLED",
+    "C3": "KILLED",
+    "C4": "KILLED",
+    "C5": "KILLED",
+    "C6": "KILLED",
+    "F1": "KILLED",
+    "F2": "SURVIVED",
+    "F3": "KILLED",
+    "F4": "KILLED",
+    "F5": "KILLED",
+    "F6": "KILLED",
+    "F7": "KILLED",
+    "F8": "KILLED",
+    "P1": "KILLED",
+    "P2": "KILLED",
+    "S1": "KILLED",
+    "T1": "KILLED",
+    "T2": "KILLED",
+    "T3": "KILLED",
+    "T4": "KILLED",
+    "T5": "KILLED",
+    "T6": "KILLED",
+    "T7": "KILLED",
+    "T8": "KILLED",
+    "T9": "KILLED",
+    "T10": "KILLED",
+    "U1": "SURVIVED",
+    "U2": "SURVIVED",
+    "U3": "KILLED",
+    "U4": "KILLED",
+    "K1": "KILLED",
+    "K2": "KILLED",
+    "K3": "KILLED",
+    "K4": "KILLED",
+    "K5": "KILLED",
+    "K6": "KILLED",
+    "K7": "KILLED",
+    "K8": "KILLED",
+    "K9": "KILLED",
+    "K10": "KILLED",
+    "K11": "KILLED",
+    "K12": "KILLED",
+    "K13": "KILLED",
+    "U5": "SURVIVED",
+    "U6": "KILLED",
+    "L24": "KILLED",
+    "L1": "KILLED",
+    "L2": "KILLED",
+    "L3": "KILLED",
+    "L4": "KILLED",
+    "L5": "KILLED",
+    "L6": "KILLED",
+    "L7": "KILLED",
+    "L8": "KILLED",
+    "L9": "KILLED",
+    "L10": "KILLED",
+    "L11": "KILLED",
+    "L12": "KILLED",
+    "L13": "KILLED",
+    "L14": "KILLED",
+    "L15": "KILLED",
+    "L16": "KILLED",
+    "L17": "KILLED",
+    "L18": "KILLED",
+    "L19": "KILLED",
+    "L20": "KILLED",
+    "L21": "KILLED",
+    "L22": "KILLED",
+    "U7": "SURVIVED",
+    "U8": "SURVIVED",
+    "U9": "SURVIVED",
+    "restored cpp-core/experiments/coarse_cuda.cu": "SURVIVED",
+    "restored cpp-core/src/ncc.cpp": "SURVIVED"
+   }
+  }
+ },
+ "hypotheses": {
+  "H1": true,
+  "H2": true,
+  "H3": true,
+  "H4": true,
+  "H5": true
+ },
+ "src6_subpixel_f4_vs_b2": 0.815318726799505,
+ "standard_vs_b2": {
+  "k6": {
+   "exhaustive": {
+    "geomean": 0.9489086553430429,
+    "total_ratio": 0.9357739921701406,
+    "faster": 14,
+    "cases": 17,
+    "not_faster": [
+     "Src3",
+     "Src8",
+     "Src9"
+    ],
+    "cold_geomean": 0.9767723101847698
+   },
+   "fast": {
+    "geomean": 0.9467036838174638,
+    "total_ratio": 0.9465841116591458,
+    "faster": 13,
+    "cases": 17,
+    "not_faster": [
+     "Src2",
+     "Src3",
+     "Src8",
+     "Src9"
+    ],
+    "cold_geomean": 0.974217939665148
+   },
+   "subpixel": {
+    "geomean": 0.9609336773729905,
+    "total_ratio": 0.9111083378831604,
+    "faster": 14,
+    "cases": 17,
+    "not_faster": [
+     "Src3",
+     "Src8",
+     "Src9"
+    ],
+    "cold_geomean": 0.9710051304009595
+   }
+  },
+  "k5": {
+   "exhaustive": {
+    "geomean": 0.950788465697627,
+    "total_ratio": 0.9380594646069199,
+    "faster": 14,
+    "cases": 17,
+    "not_faster": [
+     "Src3",
+     "Src8",
+     "Src9"
+    ],
+    "cold_geomean": 0.995069527228069
+   },
+   "fast": {
+    "geomean": 0.9477429867582935,
+    "total_ratio": 0.9459282191205793,
+    "faster": 13,
+    "cases": 17,
+    "not_faster": [
+     "Src2",
+     "Src3",
+     "Src8",
+     "Src9"
+    ],
+    "cold_geomean": 0.9794276752183949
+   },
+   "subpixel": {
+    "geomean": 0.9640012304788486,
+    "total_ratio": 0.9128461118477498,
+    "faster": 14,
+    "cases": 17,
+    "not_faster": [
+     "Src3",
+     "Src8",
+     "Src9"
+    ],
+    "cold_geomean": 0.9843627255646303
+   }
+  },
+  "c5": {
+   "exhaustive": {
+    "geomean": 0.9568461662846078,
+    "total_ratio": 0.9548989524917997,
+    "faster": 14,
+    "cases": 17,
+    "not_faster": [
+     "Src3",
+     "Src8",
+     "Src9"
+    ],
+    "cold_geomean": 0.9907160759824291
+   },
+   "fast": {
+    "geomean": 0.9476327285647547,
+    "total_ratio": 0.9489977962010704,
+    "faster": 13,
+    "cases": 17,
+    "not_faster": [
+     "Src3",
+     "Src7",
+     "Src8",
+     "Src9"
+    ],
+    "cold_geomean": 0.9792113561599932
+   },
+   "subpixel": {
+    "geomean": 0.9848139097468711,
+    "total_ratio": 0.9883768816784962,
+    "faster": 13,
+    "cases": 17,
+    "not_faster": [
+     "Src3",
+     "Src6",
+     "Src7",
+     "Src9"
+    ],
+    "cold_geomean": 1.001798619800205
+   }
+  },
+  "c6": {
+   "exhaustive": {
+    "geomean": 0.9574774059063292,
+    "total_ratio": 0.9563749867738863,
+    "faster": 13,
+    "cases": 17,
+    "not_faster": [
+     "Src3",
+     "Src6",
+     "Src8",
+     "Src9"
+    ],
+    "cold_geomean": 0.9823126356511103
+   },
+   "fast": {
+    "geomean": 0.9460108796341677,
+    "total_ratio": 0.9467087312414734,
+    "faster": 12,
+    "cases": 17,
+    "not_faster": [
+     "Src2",
+     "Src3",
+     "Src6",
+     "Src8",
+     "Src9"
+    ],
+    "cold_geomean": 0.9732484099477045
+   },
+   "subpixel": {
+    "geomean": 0.9856840911202801,
+    "total_ratio": 0.9877981436705404,
+    "faster": 12,
+    "cases": 17,
+    "not_faster": [
+     "Src3",
+     "Src6",
+     "Src7",
+     "Src8",
+     "Src9"
+    ],
+    "cold_geomean": 0.9885558259751744
+   }
+  },
+  "f4": {
+   "exhaustive": {
+    "geomean": 0.9940811919904728,
+    "total_ratio": 0.9822558459422284,
+    "faster": 9,
+    "cases": 17,
+    "not_faster": [
+     "Src9",
+     "Src5-0",
+     "Src5-90",
+     "Src5-135",
+     "Src5-180",
+     "Src5-225",
+     "Src5-270",
+     "Src5-315"
+    ],
+    "cold_geomean": 1.000200336863018
+   },
+   "fast": {
+    "geomean": 1.005049180687194,
+    "total_ratio": 1.004171476545283,
+    "faster": 6,
+    "cases": 17,
+    "not_faster": [
+     "Src1",
+     "Src2",
+     "Src3",
+     "Src4",
+     "Src8",
+     "Src10",
+     "Src5-45",
+     "Src5-90",
+     "Src5-135",
+     "Src5-180",
+     "Src5-315"
+    ],
+    "cold_geomean": 0.993038587232123
+   },
+   "subpixel": {
+    "geomean": 0.9802858747649291,
+    "total_ratio": 0.925912175337337,
+    "faster": 6,
+    "cases": 17,
+    "not_faster": [
+     "Src3",
+     "Src4",
+     "Src8",
+     "Src9",
+     "Src10",
+     "Src5-0",
+     "Src5-45",
+     "Src5-90",
+     "Src5-225",
+     "Src5-270",
+     "Src5-315"
+    ],
+    "cold_geomean": 0.9855088576735
+   }
+  }
+ },
+ "standard_k6_vs_k5": {
+  "exhaustive": {
+   "geomean": 0.9980228931855996,
+   "total_ratio": 0.9975636166756902,
+   "faster": 9,
+   "cases": 17,
+   "not_faster": [
+    "Src2",
+    "Src3",
+    "Src6",
+    "Src9",
+    "Src5-45",
+    "Src5-180",
+    "Src5-225",
+    "Src5-270"
+   ],
+   "cold_geomean": 0.9816121220250117
+  },
+  "fast": {
+   "geomean": 0.9989033915783597,
+   "total_ratio": 1.000693385106088,
+   "faster": 9,
+   "cases": 17,
+   "not_faster": [
+    "Src1",
+    "Src2",
+    "Src3",
+    "Src6",
+    "Src10",
+    "Src5-45",
+    "Src5-180",
+    "Src5-225"
+   ],
+   "cold_geomean": 0.9946808368958072
+  },
+  "subpixel": {
+   "geomean": 0.9968178950307623,
+   "total_ratio": 0.9980963122458046,
+   "faster": 14,
+   "cases": 17,
+   "not_faster": [
+    "Src4",
+    "Src6",
+    "Src5-0"
+   ],
+   "cold_geomean": 0.9864302103109308
+  }
+ },
+ "standard_vs_cpu": {
+  "b2": {
+   "exhaustive": 0.04573036625708147,
+   "fast": 0.05557547507553986,
+   "subpixel": 0.038184810146358626
+  },
+  "k5": {
+   "exhaustive": 0.04347990476936102,
+   "fast": 0.05267126673860322,
+   "subpixel": 0.03681020396669094
+  },
+  "k6": {
+   "exhaustive": 0.04339394035335204,
+   "fast": 0.05261350698391924,
+   "subpixel": 0.036693070033729874
+  }
+ },
+ "shallow_vs_b2": {
+  "k6": {
+   "exhaustive": {
+    "geomean": 0.21892487925006995,
+    "total_ratio": 0.16800499204302147,
+    "faster": 17,
+    "cases": 17,
+    "not_faster": [],
+    "cold_geomean": 0.6896598162205098
+   },
+   "subpixel": {
+    "geomean": 0.28912642024219076,
+    "total_ratio": 0.21899502962185435,
+    "faster": 17,
+    "cases": 17,
+    "not_faster": [],
+    "cold_geomean": 0.7070203404538922
+   }
+  },
+  "k5": {
+   "exhaustive": {
+    "geomean": 0.2737161507792258,
+    "total_ratio": 0.22302417383871878,
+    "faster": 17,
+    "cases": 17,
+    "not_faster": [],
+    "cold_geomean": 0.7125661631884487
+   },
+   "subpixel": {
+    "geomean": 0.3431998584315174,
+    "total_ratio": 0.2692513965815866,
+    "faster": 17,
+    "cases": 17,
+    "not_faster": [],
+    "cold_geomean": 0.7265703477946256
+   }
+  },
+  "c5": {
+   "exhaustive": {
+    "geomean": 0.27578212376818356,
+    "total_ratio": 0.22386408205870462,
+    "faster": 17,
+    "cases": 17,
+    "not_faster": [],
+    "cold_geomean": 0.7143571859720662
+   },
+   "subpixel": {
+    "geomean": 0.350872138487073,
+    "total_ratio": 0.27725963191477443,
+    "faster": 17,
+    "cases": 17,
+    "not_faster": [],
+    "cold_geomean": 0.7321475217548583
+   }
+  }
+ },
+ "shallow_k6_vs_k5": {
+  "exhaustive": {
+   "geomean": 0.7998244846963765,
+   "total_ratio": 0.7533039542364374,
+   "faster": 17,
+   "cases": 17,
+   "not_faster": [],
+   "cold_geomean": 0.9678537262203946
+  },
+  "subpixel": {
+   "geomean": 0.8424432969277681,
+   "total_ratio": 0.813347794671498,
+   "faster": 17,
+   "cases": 17,
+   "not_faster": [],
+   "cold_geomean": 0.9730927536472221
+  }
+ }
+}

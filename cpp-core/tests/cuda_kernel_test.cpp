@@ -231,12 +231,32 @@ void fine()
         Image flat(17, 9);
         for (int y = 0; y < 9; ++y) std::memset(flat.row(y), 77, 17);
         const auto wide = learnLevel(texture(300, 70, rng));
-        for (int mode : {0, 2}) {
+        for (int mode : {0, 2, 4}) {
             gpu.setFineNccMode(mode);
-            const std::string tag = mode ? ", fine mode 2" : "";
+            const std::string tag = mode ? ", fine mode " + std::to_string(mode) : "";
             fineCase(gpu, source, learnLevel(flat), {{{100.5, 50.25}, 12}, {{3, 4}, 0}}, "flat template" + tag);
             fineCase(gpu, source, wide, {{{150, 60}, 3}, {{140.25, 55.5}, -7}}, "wide template" + tag);
         }
+        gpu.setFineNccMode(0);
+    }
+    // 5. ROIs wide enough for fine mode 4's screen: disagreeing, random, border,
+    //    out-of-image, special-angle and repairAll poses.
+    {
+        const auto source = noise(420, 260, rng, true);
+        const auto wide = learnLevel(texture(262, 41, rng));
+        std::size_t inspected = 0;
+        auto requests = disagreeingPoses(source, 262, 41, rng, 12, inspected);
+        require(!requests.empty(), "no disagreeing pose for the wide template");
+        for (int i = 0; i < 30; ++i) requests.push_back({{u(rng) * 420, u(rng) * 260}, (u(rng) * 2 - 1) * 180});
+        for (double angle : {0.0, 90.0, -90.0, 180.0, 1e-12, 45.0})
+            requests.push_back({{std::floor(u(rng) * 420), std::floor(u(rng) * 260)}, angle});
+        requests.push_back({{-300.0, -60.0}, 30});
+        requests.push_back({{425.0, 130.0}, -60});
+        requests.push_back({{3.5e9, 12.0}, 10});
+        gpu.setFineNccMode(4);
+        fineCase(gpu, source, wide, requests, "wide template, fine mode 4");
+        const auto bright = noise(420, 260, rng, false);
+        fineCase(gpu, bright, wide, requests, "wide template, other source, fine mode 4");
         gpu.setFineNccMode(0);
     }
     const auto metrics = gpu.fineMetrics();
@@ -280,9 +300,9 @@ void coarse()
     // a flat source scores 0 everywhere (zero variance). Their own generator keeps
     // the random trials below unchanged.
     // Modes 2 and 3 (exact Q28 tiles, binary32 screening) run after 0 and 1 so the
-    // earlier modes keep their data.
+    // earlier modes keep their data; so do 5 and 6 (warp-level window products).
     Rng flatRng(99);
-    for (int mode = 0; mode < 4; ++mode) {
+    for (int mode : {0, 1, 2, 3, 5, 6}) {
         Gpu backend;
         backend.value->setCoarseOptimization(0, mode);
         Image flat(9, 7), flatSource(60, 40);
@@ -292,7 +312,7 @@ void coarse()
         sameCoarse(*backend.value, textured, learnLevel(flat), {0, 30, -90}, 0, 6, 0.3, 1.0, "flat template, threshold 1");
         sameCoarse(*backend.value, flatSource, learnLevel(texture(9, 7, flatRng)), {0, 45}, 120, 6, 0.3, 0.0, "flat source, threshold 0");
     }
-    for (int mode = 0; mode < 4; ++mode) {
+    for (int mode : {0, 1, 2, 3, 5, 6}) {
         Gpu backend;
         auto& gpu = *backend.value;
         gpu.setCoarseOptimization(0, mode);
@@ -333,12 +353,43 @@ void coarse()
         // The FP64 fallback and the binary32 screen were exercised, and the screen drops windows.
         const auto k = gpu.cudaKernelMetrics();
         if (mode >= 2) require(k.coarse_fp64_pixels > 0, "coarse mode " + std::to_string(mode) + ": no FP64 tile pixel");
-        if (mode == 3) {
+        if (mode >= 3) {
             require(k.coarse_fp64_scores > 0 && k.coarse_fp64_scores < k.coarse_windows / 2,
-                "coarse mode 3: " + std::to_string(k.coarse_fp64_scores) + " of " + std::to_string(k.coarse_windows) +
+                "coarse mode " + std::to_string(mode) + ": " + std::to_string(k.coarse_fp64_scores) + " of " + std::to_string(k.coarse_windows) +
                 " windows scored in binary64");
-            std::cout << "coarse mode 3: " << k.coarse_fp64_pixels << " FP64 tile pixels, " << k.coarse_fp64_scores
+            std::cout << "coarse mode " << mode << ": " << k.coarse_fp64_pixels << " FP64 tile pixels, " << k.coarse_fp64_scores
                       << " of " << k.coarse_windows << " windows scored in binary64\n";
+        }
+    }
+    // Warp-level window products: templates that need several 32-column steps, narrow and
+    // short ones, widths at every remainder mod 4, and sizes past what their tile can hold
+    // (those fall back to mode 3). Their own generator keeps the trials above unchanged.
+    Rng shapeRng(2024);
+    struct Shape { int tw, th, sw, sh; };
+    for (const Shape shape : {Shape{33, 3, 120, 60}, Shape{64, 9, 150, 70}, Shape{65, 8, 150, 70}, Shape{97, 2, 180, 40},
+             Shape{1, 1, 60, 40}, Shape{2, 30, 70, 90}, Shape{3, 9, 200, 30}, Shape{4, 1, 40, 200}, Shape{31, 33, 90, 90},
+             Shape{300, 260, 420, 380}}) {
+        const auto source = texture(shape.sw, shape.sh, shapeRng);
+        const auto templ = learnLevel(texture(shape.tw, shape.th, shapeRng));
+        for (int mode : {5, 6}) {
+            Gpu backend;
+            backend.value->setCoarseOptimization(0, mode);
+            const std::string name = "coarse mode " + std::to_string(mode) + " template " + std::to_string(shape.tw) + "x" + std::to_string(shape.th);
+            sameCoarse(*backend.value, source, templ, {0, 90, 17.3, -123.4}, 77, 12, 0.5, 0.2, name + " threshold 0.2");
+            sameCoarse(*backend.value, source, templ, {31.7}, 3, 40, 1.0, -0.5, name + " threshold -0.5");
+        }
+    }
+    // A threshold exactly at a window's score keeps that window: the comparison after the binary64 score.
+    {
+        const auto source = texture(90, 70, shapeRng);
+        const auto templ = learnLevel(texture(23, 17, shapeRng));
+        const auto canvas = rotateCanvas(source.view(), 23, 17, 0.0, 9);
+        const auto map = ncc(canvas.image.view(), templ, fpm::Backend::Auto);
+        const double best = *std::max_element(map.values.begin(), map.values.end());
+        for (int mode : {0, 2, 3, 5, 6}) {
+            Gpu backend;
+            backend.value->setCoarseOptimization(0, mode);
+            sameCoarse(*backend.value, source, templ, {0.0}, 9, 8, 0.5, best, "threshold at a score, coarse mode " + std::to_string(mode));
         }
     }
 }

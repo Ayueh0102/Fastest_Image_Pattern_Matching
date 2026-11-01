@@ -1,0 +1,96 @@
+== Src1-exhaustive-area256-b2: 437 frames, kernels per frame 1.240 ms
+   fineStripes<2>                      5.00 x      125.4 us =     0.627 ms
+   coarseQ28<3>                        1.00 x      523.9 us =     0.524 ms
+   pyrDownKernel                       4.00 x       10.2 us =     0.041 ms
+   fineNormalize<(bool)0>              5.00 x        5.3 us =     0.026 ms
+   packEntries<CoarseQJob>             1.00 x       22.3 us =     0.022 ms
+   mem [CUDA memcpy Host-to-Device]      8.00 x     16.0 us
+   mem [CUDA memset]                     0.01 x      0.6 us
+== Src1-exhaustive-area256-k6: 471 frames, kernels per frame 0.838 ms
+   fineStripes<4>                      1.00 x      365.2 us =     0.365 ms
+   fineStripes<2>                      4.00 x       55.9 us =     0.223 ms
+   coarseWarpWindows<6>                1.00 x      158.8 us =     0.159 ms
+   pyrDownKernel                       4.00 x       10.2 us =     0.041 ms
+   fineNormalize<(bool)0>              5.00 x        5.3 us =     0.027 ms
+   packEntries<CoarseQJob>             1.00 x       23.2 us =     0.023 ms
+   mem [CUDA memcpy Host-to-Device]      8.00 x     16.1 us
+   mem [CUDA memset]                     0.01 x      0.6 us
+== Src1-exhaustive-area4096-b2: 24 frames, kernels per frame 441.154 ms
+   coarseQ28<3>                        1.00 x   427785.7 us =   427.786 ms
+   packEntries<CoarseQJob>             1.00 x    11827.8 us =    11.828 ms
+   fineStripes<2>                      6.00 x      245.2 us =     1.471 ms
+   pyrDownKernel                       2.00 x       18.1 us =     0.036 ms
+   fineNormalize<(bool)0>              6.00 x        5.5 us =     0.033 ms
+   mem [CUDA memcpy Host-to-Device]      6.00 x     22.3 us
+   mem [CUDA memset]                     0.12 x      0.8 us
+== Src1-exhaustive-area4096-k6: no data (see the disclosure)
+== Src5-0-exhaustive-area256-b2: 990 frames, kernels per frame 0.274 ms
+   fineStripes<2>                      4.00 x       27.1 us =     0.108 ms
+   coarseQ28<3>                        1.00 x      105.3 us =     0.105 ms
+   pyrDownKernel                       4.00 x       10.2 us =     0.041 ms
+   fineNormalize<(bool)0>              4.00 x        4.4 us =     0.017 ms
+   packEntries<CoarseQJob>             1.00 x        2.2 us =     0.002 ms
+   mem [CUDA memcpy Host-to-Device]      8.00 x     16.1 us
+   mem [CUDA memset]                     0.00 x      0.6 us
+== Src5-0-exhaustive-area256-k6: 1038 frames, kernels per frame 0.233 ms
+   fineStripes<2>                      4.00 x       27.3 us =     0.109 ms
+   coarseWarpWindows<6>                1.00 x       63.4 us =     0.063 ms
+   pyrDownKernel                       4.00 x       10.2 us =     0.041 ms
+   fineNormalize<(bool)0>              4.00 x        4.4 us =     0.017 ms
+   packEntries<CoarseQJob>             1.00 x        2.2 us =     0.002 ms
+   mem [CUDA memcpy Host-to-Device]      8.00 x     16.2 us
+   mem [CUDA memset]                     0.00 x      0.6 us
+== Src6-exhaustive-area4096-b2: 90 frames, kernels per frame 12.554 ms
+   coarseQ28<3>                        1.00 x    10076.6 us =    10.077 ms
+   fineStripes<2>                      6.00 x      391.9 us =     2.352 ms
+   pyrDownKernel                       4.00 x       23.0 us =     0.092 ms
+   fineNormalize<(bool)0>              6.00 x        5.3 us =     0.032 ms
+   packEntries<CoarseQJob>             1.00 x        2.4 us =     0.002 ms
+   mem [CUDA memcpy Host-to-Device]      9.00 x     37.6 us
+   mem [CUDA memset]                     0.03 x      0.7 us
+== Src6-exhaustive-area4096-k6: 219 frames, kernels per frame 3.485 ms
+   fineStripes<4>                      2.00 x      816.9 us =     1.634 ms
+   coarseWarpWindows<6>                1.00 x     1426.8 us =     1.427 ms
+   fineStripes<2>                      4.00 x       75.3 us =     0.301 ms
+   pyrDownKernel                       4.00 x       22.5 us =     0.090 ms
+   fineNormalize<(bool)0>              6.00 x        5.2 us =     0.031 ms
+   packEntries<CoarseQJob>             1.00 x        2.5 us =     0.003 ms
+   mem [CUDA memcpy Host-to-Device]      9.00 x     35.9 us
+   mem [CUDA memset]                     0.01 x      0.7 us
+== Src6-subpixel-area256-b2: 72 frames, kernels per frame 16.633 ms
+   fineStripes<2>                     27.00 x      606.9 us =    16.386 ms
+   fineNormalize<(bool)0>             27.00 x        4.6 us =     0.126 ms
+   pyrDownKernel                       6.00 x       15.9 us =     0.095 ms
+   coarseQ28<3>                        1.00 x       23.8 us =     0.024 ms
+   packEntries<CoarseQJob>             1.00 x        2.2 us =     0.002 ms
+   mem [CUDA memcpy Host-to-Device]     11.00 x     30.2 us
+   mem [CUDA memset]                     0.04 x      0.6 us
+== Src6-subpixel-area256-k6: 82 frames, kernels per frame 13.203 ms
+   fineStripes<4>                     22.00 x      578.8 us =    12.735 ms
+   fineStripes<2>                      5.00 x       45.4 us =     0.227 ms
+   fineNormalize<(bool)0>             27.00 x        4.6 us =     0.125 ms
+   pyrDownKernel                       6.00 x       15.7 us =     0.094 ms
+   coarseWarpWindows<6>                1.00 x       19.4 us =     0.019 ms
+   packEntries<CoarseQJob>             1.00 x        2.2 us =     0.002 ms
+   mem [CUDA memcpy Host-to-Device]     11.00 x     29.5 us
+   mem [CUDA memset]                     0.04 x      0.6 us
+== Src1-exhaustive-area4096-k6: 38 frames, kernels per frame 54.403 ms
+   coarseWarpWindows<6>                1.00 x    41248.9 us =    41.249 ms
+   packEntries<CoarseQJob>             1.00 x    11767.8 us =    11.768 ms
+   fineStripes<4>                      3.00 x      325.8 us =     0.977 ms
+   fineStripes<2>                      3.00 x      113.7 us =     0.341 ms
+   pyrDownKernel                       2.00 x       18.1 us =     0.036 ms
+   fineNormalize<(bool)0>              6.00 x        5.3 us =     0.032 ms
+   mem [CUDA memcpy Host-to-Device]      6.00 x     23.8 us
+   mem [CUDA memset]                     0.08 x      0.8 us
+== Nsight Compute
+coarseWarpWindows-Src1-area256-exhaustive-coarse6-fine4
+   {'Duration': '199.74', 'Elapsed Cycles': '395,001', 'Compute (SM) Throughput': '67.08', 'L1/TEX Cache Throughput': '69.97', 'Memory Throughput': '65.88', 'Executed Ipc Active': '2.85', 'Issue Slots Busy': '67.08', 'Executed Instructions': '73,259,519', 'Achieved Occupancy': '51.15', 'Theoretical Occupancy': '58.33', 'Dynamic Shared Memory Per Block': '2.57', 'Threads': '774,144', 'Static Shared Memory Per Block': '0', 'Grid Size': '6,048', 'Avg. Divergent Branches': '1,692.12'}
+coarseWarpWindows-Src1-area4096-exhaustive-coarse5-fine4
+   {'Duration': '67.44', 'Elapsed Cycles': '138,568,347', 'Compute (SM) Throughput': '96.19', 'L1/TEX Cache Throughput': '96.26', 'Memory Throughput': '96.19', 'Executed Ipc Active': '2.28', 'Issue Slots Busy': '57.04', 'Executed Instructions': '22,120,807,790', 'Achieved Occupancy': '56.19', 'Theoretical Occupancy': '58.33', 'Dynamic Shared Memory Per Block': '12.90', 'Threads': '43,524,096', 'Static Shared Memory Per Block': '0', 'Grid Size': '340,032', 'Avg. Divergent Branches': '139,074.81'}
+coarseWarpWindows-Src1-area4096-exhaustive-coarse6-fine4
+   {'Duration': '43.18', 'Elapsed Cycles': '88,696,507', 'Compute (SM) Throughput': '79.19', 'L1/TEX Cache Throughput': '79.40', 'Memory Throughput': '79.19', 'Executed Ipc Active': '2.18', 'Issue Slots Busy': '54.26', 'Executed Instructions': '13,465,247,840', 'Achieved Occupancy': '57.34', 'Theoretical Occupancy': '58.33', 'Dynamic Shared Memory Per Block': '12.90', 'Threads': '43,524,096', 'Static Shared Memory Per Block': '0', 'Grid Size': '340,032', 'Avg. Divergent Branches': '139,074.81'}
+fineStripes-Src6-area256-subpixel-coarse3-fine2
+   {'Duration': '1.49', 'Elapsed Cycles': '3,062,329', 'Compute (SM) Throughput': '40.82', 'L1/TEX Cache Throughput': '25.70', 'Memory Throughput': '25.33', 'Executed Ipc Active': '1.41', 'Issue Slots Busy': '34.75', 'Executed Instructions': '297,690,329', 'Achieved Occupancy': '32.75', 'Theoretical Occupancy': '33.33', 'Dynamic Shared Memory Per Block': '49.70', 'Threads': '645,120', 'Static Shared Memory Per Block': '96', 'Grid Size': '2,520', 'Avg. Divergent Branches': '2,146.33'}
+fineStripes-Src6-area256-subpixel-coarse3-fine4
+   {'Duration': '1.21', 'Elapsed Cycles': '2,473,062', 'Compute (SM) Throughput': '33.32', 'L1/TEX Cache Throughput': '32.04', 'Memory Throughput': '31.50', 'Executed Ipc Active': '1.36', 'Issue Slots Busy': '33.32', 'Executed Instructions': '230,214,684', 'Achieved Occupancy': '32.97', 'Theoretical Occupancy': '33.33', 'Dynamic Shared Memory Per Block': '49.70', 'Threads': '645,120', 'Static Shared Memory Per Block': '96', 'Grid Size': '2,520', 'Avg. Divergent Branches': '1,897.31'}

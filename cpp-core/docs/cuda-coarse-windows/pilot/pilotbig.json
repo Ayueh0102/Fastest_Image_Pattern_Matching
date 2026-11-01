@@ -1,0 +1,152 @@
+[
+ {
+  "case": [
+   "Src1.bmp",
+   "Dst1.bmp",
+   5,
+   0.8,
+   180,
+   0.0,
+   4096
+  ],
+  "steady": {
+   "c3f4": 437.42560000000003,
+   "c5f4": 86.9871,
+   "c6f4": 59.967099999999995
+  },
+  "same": true,
+  "kernel": {
+   "coarse_ncc_mode": 6,
+   "fine_ncc_mode": 4,
+   "coarse_windows": 131813920,
+   "coarse_fp64_pixels": 3353309,
+   "coarse_fp64_scores": 95118,
+   "copy_threads": 1
+  }
+ },
+ {
+  "case": [
+   "Src5-0.bmp",
+   "Dst5.bmp",
+   1,
+   0.8,
+   180,
+   0.0,
+   1024
+  ],
+  "steady": {
+   "c3f4": 3.1434,
+   "c5f4": 1.3883,
+   "c6f4": 1.2639
+  },
+  "same": true,
+  "kernel": {
+   "coarse_ncc_mode": 6,
+   "fine_ncc_mode": 4,
+   "coarse_windows": 6901954,
+   "coarse_fp64_pixels": 23216,
+   "coarse_fp64_scores": 569,
+   "copy_threads": 1
+  }
+ },
+ {
+  "case": [
+   "Src5-0.bmp",
+   "Dst5.bmp",
+   1,
+   0.8,
+   180,
+   0.0,
+   6000
+  ],
+  "steady": {
+   "c3f4": 73.06060000000001,
+   "c5f4": 17.0037,
+   "c6f4": 13.1454
+  },
+  "same": true,
+  "kernel": {
+   "coarse_ncc_mode": 6,
+   "fine_ncc_mode": 4,
+   "coarse_windows": 54518934,
+   "coarse_fp64_pixels": 883113,
+   "coarse_fp64_scores": 2035,
+   "copy_threads": 1
+  }
+ },
+ {
+  "case": [
+   "Src7.bmp",
+   "Dst7.bmp",
+   5,
+   0.8,
+   180,
+   0.0,
+   4096
+  ],
+  "steady": {
+   "c3f4": 12.056,
+   "c5f4": 4.0047,
+   "c6f4": 3.432
+  },
+  "same": true,
+  "kernel": {
+   "coarse_ncc_mode": 6,
+   "fine_ncc_mode": 4,
+   "coarse_windows": 7041140,
+   "coarse_fp64_pixels": 29675,
+   "coarse_fp64_scores": 790,
+   "copy_threads": 1
+  }
+ },
+ {
+  "case": [
+   "Src6.jpg",
+   "Dst6.bmp",
+   15,
+   0.8,
+   180,
+   0.0,
+   10000
+  ],
+  "steady": {
+   "c3f4": 313.2696,
+   "c5f4": 58.909200000000006,
+   "c6f4": 40.3739
+  },
+  "same": true,
+  "kernel": {
+   "coarse_ncc_mode": 6,
+   "fine_ncc_mode": 4,
+   "coarse_windows": 62216228,
+   "coarse_fp64_pixels": 2147008,
+   "coarse_fp64_scores": 1384,
+   "copy_threads": 1
+  }
+ },
+ {
+  "case": [
+   "Src3.bmp",
+   "Dst3.bmp",
+   38,
+   0.8,
+   0,
+   0.0,
+   4096
+  ],
+  "steady": {
+   "c3f4": 1.6701000000000001,
+   "c5f4": 0.6362,
+   "c6f4": 0.5724
+  },
+  "same": true,
+  "kernel": {
+   "coarse_ncc_mode": 6,
+   "fine_ncc_mode": 4,
+   "coarse_windows": 423160,
+   "coarse_fp64_pixels": 0,
+   "coarse_fp64_scores": 1190,
+   "copy_threads": 1
+  }
+ }
+]

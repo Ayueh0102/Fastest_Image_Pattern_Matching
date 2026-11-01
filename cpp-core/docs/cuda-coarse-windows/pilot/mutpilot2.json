@@ -1,0 +1,47 @@
+{
+ "results": [
+  {
+   "mutant": "baseline cpp-core/experiments/coarse_cuda.cu",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "baseline cpp-core/src/ncc.cpp",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "K10 coarse kernel counters not copied to the host",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: coarse mode 3: 10228159048 of 6946200 windows scored in binary64"
+  },
+  {
+   "mutant": "K12 coarse Q28 binary64 branch keeps only scores above the threshold",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: flat source, threshold 0 angle 0: peak count"
+  },
+  {
+   "mutant": "L13 binary64-scored windows not counted",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: coarse mode 5: 0 of 5018227 windows scored in binary64"
+  },
+  {
+   "mutant": "L22 window binary64 branch keeps only scores above the threshold",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: threshold at a score, coarse mode 5 angle 0: peak count"
+  },
+  {
+   "mutant": "restored cpp-core/experiments/coarse_cuda.cu",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "restored cpp-core/src/ncc.cpp",
+   "status": "SURVIVED",
+   "detail": ""
+  }
+ ],
+ "totals": {
+  "KILLED": 4
+ }
+}
