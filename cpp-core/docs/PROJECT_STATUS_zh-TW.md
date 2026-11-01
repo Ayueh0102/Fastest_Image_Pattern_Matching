@@ -22,6 +22,8 @@
 
 同日加入選配的[CUDA transfer mode](CUDA_TRANSFER_zh-TW.md)（`fpm_frame_set_transfer_mode`，預設0，非研究輪次）：lean prepare讓frame跨幀重用主機金字塔、以`cudaHostRegister` page-lock level 0、分段複製與上傳重疊且不等GPU金字塔；lean calls去掉計時event與memset（kernel自行清零計數器），細搜尋請求從mapped記憶體讀，改輪詢最後一個kernel寫入mapped記憶體的完成值，代價是`device_ms`回報-1。kernel算術與核心都不變。正式計時（protocol先登記）2142次CUDA執行全部和CPU逐位元相同；兩者都開（mode 3）時17張影像每幀時間的幾何平均是mode 0的0.422／0.404／0.478，合計59.4→24.9 ms（預設），每個模式17/17組變快，Src9也比CPU快（0.52→0.31 ms）。大圖prepare剩單執行緒的來源複製（Src7約0.64 ms）。
 
+同日加入選配的[CUDA kernel mode](CUDA_KERNELS_zh-TW.md)（非研究輪次）：粗搜尋`ncc_mode` 2用細搜尋的Q28精確規則取樣畫布區塊（guard內退回FP64），`ncc_mode` 3再用精確的中心化整數算binary32分數先篩，只有可能達到門檻的視窗（17組裡0.11%）才算binary64；細搜尋NCC mode 2改成一個warp取一列、Q28座標逐步相加。kernel算術的結果與核心都不變。正式計時（protocol先登記）3264次精確模式的CUDA執行全部和CPU逐位元相同；兩者合用時17張影像每幀時間的幾何平均是transfer mode 3的0.765／0.745／0.832（預設／FastMode／subpixel），合計24.8→18.9 ms（預設），17/17組變快，對CPU變成0.046／0.056／0.038。先上傳細搜尋請求（transfer bit 4）與4個複製執行緒（`fpm_frame_set_transfer_threads`）都比較慢（1.22／1.19／1.30倍、1.16／1.09／1.08倍）。binary32取樣與計分的不精確對照再快4～11%，4344個CPU匹配都找得到、沒有多的，最大差0.0012 px、0.0015°、分數1.35e-5，但只有8/408次逐位元相同。int8 Tensor core沒有試：細搜尋的乘加只占一小部分，粗搜尋改完後的瓶頸是逐byte讀shared memory，留給下一步。
+
 第42輪[完整GPU粗選峰改為精確平行回合](GPU_PARALLEL_PEAKS_zh-TW.md)：新增`full_gpu_peak_mode=2`，多張分數圖同批、每回合平行接受與抑制，完整有序輸出與mode 1逐位相同。fine4完整GPU時間128／512少27.3%／34.4%（587.22／1881.34ms），每換新影格對混合為−31.4%／−22.7%，六物件混合仍快1.5%、8K快80.1%，皆6/6 block同向。1538次直接GT零FP／FN、0筆失敗門檻；完整GPU研究建議改為peak2／fine4，預設不變。
 
 第43輪加入[細搜尋前的粗候選去重](CANDIDATE_DEDUP_zh-TW.md)，這是會改變語意、預設關閉的研究選項。k3在112／79個GT案例變體（混合／完整GPU）中沒有任何嚴格TP減少或FP增加，正式時間128／512物件混合少30.4%／37.0%、完整GPU少26.1%／25.7%（完整GPU臂用第40輪peak1／fine4，不與第42輪相乘），8K約不變。輸出不保證與基線逐位相同（matches相同者97/112、67/79）。k1與兩個刻意放寬的消融會失去物件，保留全部失敗；不改預設。

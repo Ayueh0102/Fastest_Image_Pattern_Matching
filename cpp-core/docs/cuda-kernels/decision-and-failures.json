@@ -1,0 +1,81 @@
+{
+ "decision": "Keep the CUDA kernel modes as opt-in research options of the frame API: coarse ncc_mode 3 (exact Q28 tiles with binary32 screening) with fine NCC mode 2 (row-wise Q28 sampling) on transfer mode 3 is the recommended CUDA frame setting for research runs. Transfer bit 4 (upload the fine requests) and several copy threads are kept as options but not recommended; coarse ncc_mode 4 / fine mode 3 stay an inexact ablation. Defaults, the core and the GUI are unchanged.",
+ "gates_passed": [
+  "ctest_pc",
+  "ctest_mac",
+  "inputs",
+  "identity",
+  "core_unchanged",
+  "mutants"
+ ],
+ "gates_failed": [],
+ "hypotheses": {
+  "H1": "held (best/m3 geomean 0.765 / 0.745 / 0.832; predicted about 0.76 / 0.76 / 0.84)",
+  "H2": "held (17/17 faster in every mode)",
+  "H3": "held (u7/m3 1.220 / 1.185 / 1.298)",
+  "H4": "held (t4/m3 1.155 / 1.088 / 1.084)",
+  "H5": "held (4344/4344 CPU matches found, 0 extra; worst score 1.35e-5, center 0.00123 px, angle 0.00145 degree; 8/408 runs bit-identical)"
+ },
+ "failures_and_disclosures": [
+  {
+   "what": "first screening version sent 42% of the windows to binary64 (development, before registration)",
+   "effect": "canvas border windows have zero variance and failed the screening condition",
+   "fix": "zero-variance windows get the exact score 0 that normalizeScore() returns; mutant K13 added; 0.11% of the formal windows are scored in binary64"
+  },
+  {
+   "what": "first coarseQ28 version requested the whole opt-in shared memory (development)",
+   "effect": "launch failed with invalid argument because the kernel also has static shared counters; the fine sampling variants differ in static shared memory as well",
+   "fix": "coarseQ28's dynamic limit is opt-in minus its static size; the fine budget uses the largest static size of the three variants"
+  },
+  {
+   "what": "SSH during the timing step",
+   "effect": "the waiting script polled formal.log every 60 s until timing-start appeared, so it read it once within 60 s after timing began (round 0, warm-up, not in the summary); then every 20 minutes (around rounds 3 and 7) and once after the end; each poll read the whole formal.log (under 200 bytes), not one line as the protocol said; no other connection to the PC during timing",
+   "fix": "disclosed"
+  },
+  {
+   "what": "fp32 ablation is not bit-identical (8/408 runs identical)",
+   "effect": "expected for the inexact ablation; H5 measures the distances; Src10 subpixel swaps the order of near-tied matches in all 8 rounds",
+   "fix": "reported; not recommended"
+  },
+  {
+   "what": "f2 alone not faster on every case in default and FastMode (14/17, 12/17)",
+   "effect": "descriptive arm; the cases with light fine search (Src10, some Src5) gain nothing",
+   "fix": "reported as measured"
+  },
+  {
+   "what": "cuda_kernel_test diagnostic differs by one from the development tree",
+   "effect": "23,122 FP64 tile pixels during development, 23,121 at c67ef78; a printed diagnostic, not a gate",
+   "fix": "disclosed"
+  },
+  {
+   "what": "post-hoc Nsight diagnosis (profile/posthoc) was not registered",
+   "effect": "decided after the formal results to explain H3 and H4; run after the mutants without the P-core affinity; its times are not formal",
+   "fix": "labelled as post-hoc in the report"
+  },
+  {
+   "what": "pilot arms all3 and all7 (with t4 and u7) were slower than best",
+   "effect": "left out of the formal arms",
+   "fix": "pilot results kept in pilot/"
+  }
+ ],
+ "ungated_mutants": {
+  "U1": "survived, as in the transfer step (no system fence before the completion signal; PCIe posted writes arrive in order on this host). The fence stays.",
+  "U2": "survived, as in the transfer step (prepare does not wait for the previous upload; the CPU copy is slower than the previous DMA). The wait stays.",
+  "U3": "killed",
+  "U4": "killed",
+  "U5": "survived as expected: without the zero-variance rule those windows go to binary64, where normalizeScore() also returns 0; outputs unchanged, only slower",
+  "U6": "killed"
+ },
+ "findings_posthoc": {
+  "mapped_requests": "Src6 subpixel fineStripes per launch: m0 780.3 us, m3 830.9 us, u7 800.1 us; about 60% of the lean-call kernel slowdown is the request read from mapped memory, but u7's extra copy costs 39 us more per fine call on the host",
+  "copy_threads": "with four copy threads the source uploads ran at 15-18 GB/s (2 MiB chunks) and 2.7-3.6 GB/s (last chunk) instead of 32-42 GB/s, although every chunk is queued only after all its shares are copied; the cause (freshly written lines in several cores' caches) is a guess, not verified"
+ },
+ "limits": [
+  "one GPU (RTX PRO 4000 Blackwell), one driver (596.71, WDDM), Windows only",
+  "frame API only; the handle API is unchanged",
+  "binary32 screening needs templates of at most 1e6 pixels; larger templates are not screened",
+  "small images (Src3, Src8, Src9) are dominated by fixed per-frame costs; no CUDA Graphs",
+  "after this step the coarse kernel is bound by byte-wise shared-memory reads and the fine kernel by 33% occupancy; dp4a words and int8 Tensor cores have not been tried",
+  "17 fixed fixtures only; no many-object or 8K scenes"
+ ]
+}

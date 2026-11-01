@@ -4,7 +4,7 @@
 
 **結論：CUDA後端的輸出和同一個建置的CPU後端逐位元相同（正式計時與對照共1632次執行，其中1122次CUDA執行全部和同一輪的CPU結果相同，0失敗）；17張影像每幀時間（prepare＋match）的幾何平均是CPU的0.142（預設）、0.187（FastMode）、0.097（subpixel），合計768.6→59.3 ms、377.3→53.8 ms、4966→135 ms。** 每個模式都是16/17組變快；最小的Src9在GPU上比較慢（0.52→0.64 ms），事前就預測到。大影像的時間現在大多在prepare：Src7的6.38 ms裡4.62 ms是複製來源與傳輸金字塔，match只要1.76 ms。CUDA的行程峰值RSS是126–171 MiB（CPU 5–60 MiB）。預先登記的突變gate沒有通過：24個中19個被抓到；補強測試後重跑是22/24，存活的2個是可論證的等價突變，見[驗證](#驗證)。
 
-後續：prepare與同步的成本由選配的[transfer mode](CUDA_TRANSFER_zh-TW.md)處理（mode 3每幀時間約為本文mode 0的0.42倍）。
+後續：prepare與同步的成本由選配的[transfer mode](CUDA_TRANSFER_zh-TW.md)處理（mode 3每幀時間約為本文mode 0的0.42倍），kernel本身由選配的[kernel mode](CUDA_KERNELS_zh-TW.md)處理（再降到transfer mode 3的約0.77倍，輸出不變）。
 
 ## 結果
 

@@ -1,0 +1,23 @@
+baseline cpp-core/experiments/coarse_cuda.cu ('SURVIVED', '')
+baseline cpp-core/src/ncc.cpp ('SURVIVED', '')
+KILLED   W4 warp inside bound w-1 instead of w | experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: coarse mode 0 trial 0 angle 0: peak count
+KILLED   C1 fused coarse keeps only scores above the threshold | experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: flat template, threshold 1 angle 0: peak count
+KILLED   C2 fused coarse tile one row short | experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: flat source, threshold 0 angle 0: peak differs
+KILLED   T6 lean copy ignores inversion | experiments/fpm_cuda_backend_test exit 1: FAIL 500x400 template 23x57 seed 186 transfer 1 batch 64 repeat 0: match 0 differs
+KILLED   K1 Q28 interior path reads past the row end | experiments/fpm_cuda_kernel_test exit 1: FAIL fine: fine mode 2 trial 0: fine map 1 differs
+KILLED   K2 Q28 bilinear weights the bottom row by dx | experiments/fpm_cuda_kernel_test exit 1: FAIL fine: disagreeing poses, fine mode 2: fine map 0 differs
+KILLED   K3 Q28 sample ignores the guard | experiments/fpm_cuda_kernel_test exit 1: FAIL fine: disagreeing poses, fine mode 2: fine map 0 differs
+KILLED   K4 Q28 sample outside the image is 0, not the border | experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: flat source, threshold 0 angle 1: peak differs
+KILLED   K5 coarse Q28 tile steps 31 columns | experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: coarse mode 2 trial 0 angle 0: peak differs
+KILLED   K6 screen drops windows up to the threshold plus the margin | experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: coarse mode 3 trial 16 angle 3: peak count
+KILLED   K7 fine mode 2 steps rows with the cosine twice | experiments/fpm_cuda_kernel_test exit 1: FAIL fine: fine mode 2 trial 0: fine map 0 differs
+KILLED   K8 fine mode 2 template padding not zero | experiments/fpm_cuda_kernel_test exit 1: FAIL fine: disagreeing poses, fine mode 2: fine map 0 differs
+KILLED   K9 copy thread shares skip their last row | experiments/fpm_cuda_backend_test exit 1: FAIL 320x240 template 40x30 seed 101 coarse 3 fine 2 transfer 3 threads 4 batch 3 repeat 0: match 2 differs
+KILLED   K10 coarse kernel counters not copied to the host | experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: coarse mode 3: 13176643089 of 6946200 windows scored in binary64
+KILLED   K11 coarse Q28 uniform template keeps only scores above the threshold | experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: flat template, threshold 1 angle 0: peak count
+KILLED   K12 coarse Q28 binary64 branch keeps only scores above the threshold | experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: flat source, threshold 0 angle 0: peak count
+KILLED   K13 screen gives zero-variance windows a nonzero score | experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: flat source, threshold 0 angle 0: peak differs
+SURVIVED U5 screen ignores the zero-variance rule | 
+KILLED   U6 upload queued before the copy threads finish the chunk | experiments/fpm_cuda_backend_test exit 1: FAIL 320x240 template 40x30 seed 101 coarse 3 fine 2 transfer 3 threads 4 batch 3 repeat 0: match count 3 vs 1
+totals {'KILLED': 18, 'SURVIVED': 1}
+MUTDONE 0 

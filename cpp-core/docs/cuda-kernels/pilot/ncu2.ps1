@@ -1,0 +1,8 @@
+# fineStripes launches of one Src6 subpixel call (and Src7 exhaustive): launch sizes and stall breakdown. Not formal.
+$ErrorActionPreference = "Continue"
+$ncu = "C:\Program Files\NVIDIA Corporation\Nsight Compute 2026.1.1\ncu.bat"
+$b = "C:\r-cuda\gpu2\formal\build-after-cuda\experiments\fpm_frame_bench.exe"; $p = "C:\r51\bundle\pgm"
+$o = "C:\r-cuda\gpu3\ncu2"; New-Item -ItemType Directory -Force $o | Out-Null
+cmd /c "`"$ncu`" --kernel-name regex:fineStripes --launch-count 40 --section SpeedOfLight --section LaunchStats --section Occupancy --section WarpStateStats --section ComputeWorkloadAnalysis -f -o $o\fine-src6-sub $b 2 1 256 0 subpixel 1 0 $p\Src6.pgm $p\Dst6.pgm 15 0.8 180 0 256 3 > $o\fine-src6-sub.stdout.txt 2>&1"
+cmd /c "`"$ncu`" --import $o\fine-src6-sub.ncu-rep --page raw --csv --metrics gpu__time_duration.sum,launch__grid_size,launch__block_size,launch__registers_per_thread,sm__warps_active.avg.pct_of_peak_sustained_active,smsp__average_warp_latency_issue_stalled_barrier.ratio,smsp__average_warp_latency_issue_stalled_long_scoreboard.ratio,smsp__average_warp_latency_issue_stalled_short_scoreboard.ratio,smsp__average_warp_latency_issue_stalled_mio_throttle.ratio,smsp__average_warp_latency_issue_stalled_math_pipe_throttle.ratio,smsp__average_warp_latency_issue_stalled_wait.ratio,smsp__issue_active.avg.pct_of_peak_sustained_active,sm__inst_executed_pipe_alu.avg.pct_of_peak_sustained_active,sm__inst_executed_pipe_fma.avg.pct_of_peak_sustained_active,sm__inst_executed_pipe_lsu.avg.pct_of_peak_sustained_active > $o\fine-src6-sub.csv 2>&1"
+"NCUDONE" | Out-File $o\done.txt
