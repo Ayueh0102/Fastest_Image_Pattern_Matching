@@ -3,8 +3,9 @@
 // result field must be bit-identical. Covered paths: the handle API (device
 // coarse search, CPU pyramid and fine search), frames with the device pyramid
 // and device fine search (several batch sizes, multiple models, the unfused
-// coarse ablation), dense score maps, and option validation. Exit 77 when no
-// CUDA device is available.
+// coarse ablation), dense score maps, and option validation; and the transfer
+// modes (lean prepare and lean calls) over repeated prepares, size and inversion
+// changes, and their metrics. Exit 77 when no CUDA device is available.
 #include "coarse_ncc.h"
 #include "fpm/matcher.hpp"
 #include <algorithm>
@@ -82,7 +83,7 @@ struct Handle {
 struct Frame {
     fpm_frame_handle* value = nullptr;
     char error[1024]{};
-    Frame(int backend, int pyramid, int fineBatch, int nccMode = 0) {
+    Frame(int backend, int pyramid, int fineBatch, int nccMode = 0, int transfer = 0) {
         FpmFrameConfigV1 config{}; fpm_frame_default_config(&config);
         config.backend = backend; config.pyramid_mode = pyramid; config.batch_angles = 1; config.fine_batch_size = fineBatch;
         require(fpm_frame_create(&config, sizeof(config), &value, error, sizeof(error)) == FPM_OK, error);
@@ -90,6 +91,15 @@ struct Frame {
             FpmCoarseOptimizationConfigV1 optimization{1, sizeof(FpmCoarseOptimizationConfigV1), 0, nccMode, 0, 0};
             require(fpm_frame_set_coarse_optimization(value, &optimization, sizeof(optimization), error, sizeof(error)) == FPM_OK, error);
         }
+        if (transfer) setTransfer(transfer);
+    }
+    void setTransfer(int mode) {
+        require(fpm_frame_set_transfer_mode(value, mode, error, sizeof(error)) == FPM_OK, error);
+    }
+    FpmTransferMetricsV1 transfer() {
+        FpmTransferMetricsV1 metrics{};
+        require(fpm_frame_get_transfer_metrics(value, &metrics, sizeof(metrics), error, sizeof(error)) == FPM_OK, error);
+        return metrics;
     }
     ~Frame() { fpm_frame_destroy(value); }
     Frame(const Frame&) = delete;
@@ -100,12 +110,14 @@ struct Frame {
     }
     std::vector<fpm_result> match(fpm_coarse_handle* model, const fpm_config& config) {
         std::vector<fpm_result> results(256); std::size_t count = 0;
-        FpmCoarseMetrics metrics{}; FpmCoarseExecutionMetricsV1 execution{}; FpmFineMetricsV1 fine{};
-        require(fpm_frame_match(value, model, &config, results.data(), results.size(), &count, &metrics, nullptr, 0,
-            &execution, sizeof(execution), &fine, sizeof(fine), error, sizeof(error)) == FPM_OK, error);
+        require(fpm_frame_match(value, model, &config, results.data(), results.size(), &count, &lastCoarse, nullptr, 0,
+            &lastExecution, sizeof(lastExecution), &lastFine, sizeof(lastFine), error, sizeof(error)) == FPM_OK, error);
         results.resize(count);
         return results;
     }
+    FpmCoarseMetrics lastCoarse{};
+    FpmCoarseExecutionMetricsV1 lastExecution{};
+    FpmFineMetricsV1 lastFine{};
 };
 std::vector<fpm_result> handleMatch(Handle& handle, const fpm::Image& source, const fpm_config& config)
 {
@@ -165,6 +177,99 @@ void runCase(Case& item, unsigned seed)
     Frame unfused(2, 0, 16, 1);
     unfused.prepare(source, {cpuModel.value}, item.config.invert_source);
     same(expected, unfused.match(cpuModel.value, item.config), name + " unfused coarse, CPU pyramid");
+    // Transfer modes, each prepared twice: the second prepare reuses the host
+    // levels and the second search starts from the counters the first cleared.
+    for (int mode : {1, 2, 3}) {
+        for (int batch : {64, 3, 0}) {
+            if (batch == 0 && mode != 1) continue; // fine batch 0: the CPU fine path reads lean host levels
+            Frame lean(2, 1, batch, 0, mode);
+            for (int repeat = 0; repeat < 2; ++repeat) {
+                lean.prepare(source, {cpuModel.value}, item.config.invert_source);
+                same(expected, lean.match(cpuModel.value, item.config), name + " transfer " + std::to_string(mode) +
+                    " batch " + std::to_string(batch) + " repeat " + std::to_string(repeat));
+            }
+        }
+    }
+}
+
+// One mode-3 frame (and one mode-1 frame without a fine batch) through a
+// sequence of sources: repeated, resized (also in height only), inverted, prepared without a match,
+// models of different depths, and a switch to mode 0 and back. Every match
+// must equal a fresh CPU frame's.
+void transferSequence()
+{
+    // ma has three levels and mb two, so a model change also changes the pyramid depth.
+    const auto a = makeTemplate(40, 30, 21), b = makeTemplate(70, 52, 22);
+    const auto big = makeScene(960, 720, a, 6, 30, 23), small = makeScene(320, 240, a, 3, 30, 24);
+    const auto other = makeScene(960, 720, b, 4, 30, 25), shorter = makeScene(960, 600, a, 5, 30, 26);
+    Handle ma(a, 64, 0), mb(b, 512, 0);
+    const auto c = config(8, 0.6, 0.2, 30, 1, 0, 0), ci = config(8, 0.6, 0.2, 30, 1, 0, 1);
+    struct Step { const fpm::Image* source; fpm_coarse_handle* model; bool invert; bool matchIt; int setMode; };
+    const Step steps[] = {
+        {&big, ma.value, false, true, -1}, {&big, ma.value, false, true, -1}, {&other, ma.value, false, false, -1},
+        {&other, mb.value, false, true, -1}, {&small, ma.value, false, true, -1}, {&big, ma.value, true, true, -1},
+        {&big, mb.value, false, true, -1}, {&big, ma.value, false, true, 0}, {&small, ma.value, true, true, 3},
+        {&big, ma.value, false, true, -1}, {&shorter, ma.value, false, true, -1}, {&other, mb.value, true, true, -1},
+    };
+    Frame lean(2, 1, 64, 0, 3), hostLevels(2, 1, 0, 0, 1);
+    for (std::size_t i = 0; i < sizeof(steps) / sizeof(steps[0]); ++i) {
+        const auto& step = steps[i];
+        if (step.setMode >= 0) lean.setTransfer(step.setMode);
+        const auto& cfg = step.invert ? ci : c;
+        Frame cpu(0, 0, 0);
+        cpu.prepare(*step.source, {step.model}, step.invert);
+        lean.prepare(*step.source, {step.model}, step.invert);
+        hostLevels.prepare(*step.source, {step.model}, step.invert);
+        if (!step.matchIt) continue;
+        const auto expected = cpu.match(step.model, cfg);
+        matchedTotal += int(expected.size());
+        same(expected, lean.match(step.model, cfg), "transfer sequence step " + std::to_string(i));
+        same(expected, hostLevels.match(step.model, cfg), "transfer sequence (fine batch 0) step " + std::to_string(i));
+    }
+}
+
+// The lean paths must actually run: their metrics show it. The 2400x1800
+// source is uploaded in three chunks of at most 2 MiB.
+void transferMetrics()
+{
+    const auto templ = makeTemplate(40, 30, 31);
+    const auto source = makeScene(2400, 1800, templ, 4, 180, 32);
+    Handle model(templ, 64, 0);
+    const auto c = config(6, 0.6, 0.2, 180, 0, 0, 0);
+    Frame cpu(0, 0, 0);
+    cpu.prepare(source, {model.value}, 0);
+    const auto expected = cpu.match(model.value, c);
+    require(!expected.empty(), "transfer metrics scene has no match");
+    matchedTotal += int(expected.size());
+    FpmFineMetricsV1 reference{};
+    for (int mode : {0, 1, 2, 3}) {
+        Frame frame(2, 1, 64, 0, mode);
+        frame.prepare(source, {model.value}, 0);
+        frame.prepare(source, {model.value}, 0);
+        same(expected, frame.match(model.value, c), "transfer metrics mode " + std::to_string(mode));
+        if (mode == 0) {
+            reference = frame.lastFine;
+            require(reference.repair_pixels > 0 && reference.calls > 1, "transfer metrics scene needs FP64 pixels and several fine calls");
+        }
+        // Lean calls clear the FP64-pixel count between fine calls too.
+        require(frame.lastFine.repair_pixels == reference.repair_pixels && frame.lastFine.roi_pixels == reference.roi_pixels &&
+            frame.lastFine.calls == reference.calls, "transfer mode " + std::to_string(mode) + ": fine counts differ from mode 0");
+        const auto m = frame.transfer();
+        const std::string tag = "transfer mode " + std::to_string(mode) + ": ";
+        require(m.version == 1 && m.struct_bytes == sizeof(m) && m.mode == mode, tag + "metrics header");
+        const bool leanPrepare = mode & 1, leanCalls = mode & 2;
+        require((m.lean_prepares == 1) == leanPrepare, tag + "lean prepare count " + std::to_string(m.lean_prepares));
+        if (leanPrepare) {
+            require(m.source_registered == 1 && m.registered_bytes == 2400u * 1800u, tag + "level 0 not page-locked");
+            require(m.upload_chunks == 3 && m.host_levels_skipped_bytes > 0 && m.host_level_rebuilds == 0,
+                tag + "chunks " + std::to_string(m.upload_chunks) + ", skipped " + std::to_string(m.host_levels_skipped_bytes) +
+                ", rebuilds " + std::to_string(m.host_level_rebuilds));
+        }
+        require((m.signal_waits >= 2) == leanCalls, tag + "signal waits " + std::to_string(m.signal_waits));
+        require((frame.lastFine.device_ms < 0) == leanCalls && (frame.lastCoarse.device_ms < 0) == leanCalls,
+            tag + "device times");
+        require(frame.lastFine.calls >= 1, tag + "no fine call");
+    }
 }
 
 void denseMaps()
@@ -215,6 +320,27 @@ void validation()
     FpmCoarseOptimizationConfigV1 optimization{1, sizeof(FpmCoarseOptimizationConfigV1), 1, 0, 0, 0};
     require(fpm_frame_set_coarse_optimization(valid.value, &optimization, sizeof(optimization), nullptr, 0) == FPM_ERROR,
         "CUDA peak mode 1 accepted");
+    require(fpm_frame_set_transfer_mode(valid.value, 4, nullptr, 0) == FPM_ERROR, "CUDA transfer mode 4 accepted");
+    Frame cpu(0, 0, 0);
+    require(fpm_frame_set_transfer_mode(cpu.value, 1, nullptr, 0) == FPM_ERROR, "CPU transfer mode 1 accepted");
+    require(fpm_frame_set_transfer_mode(cpu.value, 0, nullptr, 0) == FPM_OK, "CPU transfer mode 0 rejected");
+    // Changing the mode invalidates the prepared frame.
+    const auto templ = makeTemplate(24, 20, 41);
+    const auto source = makeScene(200, 150, templ, 1, 0, 42);
+    Handle model(templ, 64, 0);
+    valid.prepare(source, {model.value}, 0);
+    valid.setTransfer(3);
+    std::vector<fpm_result> results(8); std::size_t count = 0;
+    FpmCoarseMetrics metrics{}; FpmCoarseExecutionMetricsV1 execution{}; FpmFineMetricsV1 fine{};
+    fpm_config c{};
+    c.max_targets = 2; c.min_score = 0.5;
+    require(fpm_frame_match(valid.value, model.value, &c, results.data(), results.size(), &count, &metrics, nullptr, 0,
+        &execution, sizeof(execution), &fine, sizeof(fine), nullptr, 0) == FPM_ERROR, "match after a mode change accepted");
+    // Lean prepare needs the device pyramid; with the CPU pyramid only lean calls apply.
+    Frame cpuPyramid(2, 0, 16, 0, 3), reference(0, 0, 0);
+    cpuPyramid.prepare(source, {model.value}, 0); reference.prepare(source, {model.value}, 0);
+    same(reference.match(model.value, c), cpuPyramid.match(model.value, c), "transfer mode 3 with the CPU pyramid");
+    require(cpuPyramid.transfer().lean_prepares == 0, "lean prepare ran with the CPU pyramid");
 }
 }
 
@@ -248,7 +374,7 @@ int main()
         {60, 50, 80, 40, 1, 64, 0, config(2, 0.5, 0, 180, 0, 0, 0)},
     };
     const std::pair<const char*, void (*)()> named[] = {{"dense maps", denseMaps}, {"two models", multipleModels},
-        {"validation", validation}};
+        {"validation", validation}, {"transfer sequence", transferSequence}, {"transfer metrics", transferMetrics}};
     try {
         for (std::size_t i = 0; i < cases.size(); ++i) runCase(cases[i], unsigned(101 + 17 * i));
         for (const auto& test : named) test.second();

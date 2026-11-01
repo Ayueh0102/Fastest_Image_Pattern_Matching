@@ -3,8 +3,9 @@
 // process.
 //
 // usage: fpm_frame_bench BACKEND PYRAMID FINE_BATCH NCC_MODE MODE REPEAT WARMUP_MS
-//            SRC.pgm TMPL.pgm MAX_TARGETS MIN_SCORE TOLERANCE MAX_OVERLAP MIN_AREA
-// MODE is exhaustive, fast (stop_layer 1) or subpixel. Image decoding, frame
+//            SRC.pgm TMPL.pgm MAX_TARGETS MIN_SCORE TOLERANCE MAX_OVERLAP MIN_AREA [TRANSFER]
+// MODE is exhaustive, fast (stop_layer 1) or subpixel. TRANSFER is the frame's
+// transfer mode (fpm_frame_set_transfer_mode, default 0). Image decoding, frame
 // creation (which creates any GPU context) and pattern learning stay outside the
 // timed calls. A call is fpm_frame_prepare (source copy and pyramid) followed by
 // fpm_frame_match, each timed separately. The first call is reported on its own
@@ -97,9 +98,9 @@ std::string list(const std::vector<double>& values)
 
 int main(int argc, char** argv)
 {
-    if (argc != 15) {
+    if (argc != 15 && argc != 16) {
         std::fprintf(stderr, "usage: fpm_frame_bench BACKEND PYRAMID FINE_BATCH NCC_MODE MODE REPEAT WARMUP_MS "
-            "SRC.pgm TMPL.pgm MAX_TARGETS MIN_SCORE TOLERANCE MAX_OVERLAP MIN_AREA\n");
+            "SRC.pgm TMPL.pgm MAX_TARGETS MIN_SCORE TOLERANCE MAX_OVERLAP MIN_AREA [TRANSFER]\n");
         return 2;
     }
     char error[1024]{};
@@ -115,6 +116,7 @@ int main(int argc, char** argv)
         config.subpixel = mode == "subpixel"; config.stop_layer = mode == "fast";
         if (mode != "exhaustive" && mode != "fast" && mode != "subpixel") throw std::invalid_argument("unknown mode " + mode);
         const int minArea = std::atoi(argv[14]);
+        const int transfer = argc == 16 ? std::atoi(argv[15]) : 0;
 
         fpm_coarse_handle* pattern = nullptr;
         FpmCoarseMetrics metrics{};
@@ -131,6 +133,8 @@ int main(int argc, char** argv)
             if (fpm_frame_set_coarse_optimization(frame, &optimization, sizeof optimization, error, sizeof error) != FPM_OK)
                 throw std::runtime_error(error);
         }
+        if (transfer && fpm_frame_set_transfer_mode(frame, transfer, error, sizeof error) != FPM_OK)
+            throw std::runtime_error(error);
         std::vector<double> prepareMs, matchMs;
         std::vector<fpm_result> results(1024);
         std::size_t count = 0;
@@ -165,6 +169,9 @@ int main(int argc, char** argv)
             matches += "]";
         }
         matches += "]";
+        FpmTransferMetricsV1 transferMetrics{};
+        if (fpm_frame_get_transfer_metrics(frame, &transferMetrics, sizeof transferMetrics, error, sizeof error) != FPM_OK)
+            throw std::runtime_error(error);
         std::printf("{\"backend\":%d,\"pyramid\":%d,\"fine_batch\":%d,\"ncc_mode\":%d,\"mode\":\"%s\","
             "\"first_prepare_ms\":%.4f,\"first_match_ms\":%.4f,\"warmup_ms\":%.1f,\"warmup_calls\":%d,"
             "\"prepare_ms\":%s,\"match_ms\":%s,\"peak_rss_mib\":%.2f,"
@@ -174,6 +181,10 @@ int main(int argc, char** argv)
             ",\"source_uploads\":%" PRIu64 ",\"repair_pixels\":%" PRIu64 ",\"repair_all_maps\":%" PRIu64
             ",\"roi_pixels\":%" PRIu64 ",\"retained_gpu_bytes\":%" PRIu64 "},"
             "\"pyramid\":{\"prepare_wall_ms\":%.4f,\"pyramid_ms\":%.4f,\"source_copy_ms\":%.4f},"
+            "\"transfer\":{\"mode\":%d,\"source_registered\":%d,\"prepare_copy_ms\":%.4f,\"prepare_enqueue_ms\":%.4f,"
+            "\"signal_wait_ms\":%.4f,\"lean_prepares\":%" PRIu64 ",\"upload_chunks\":%" PRIu64 ",\"registered_bytes\":%" PRIu64
+            ",\"host_levels_skipped_bytes\":%" PRIu64 ",\"host_level_rebuilds\":%" PRIu64 ",\"signal_waits\":%" PRIu64
+            ",\"signal_queries\":%" PRIu64 "},"
             "\"count\":%zu,\"matches\":%s}\n",
             backend, pyramid, fineBatch, nccMode, mode.c_str(), first.first, first.second, warmupMs, warmupCalls,
             list(prepareMs).c_str(), list(matchMs).c_str(), peakRssMiB(),
@@ -182,6 +193,10 @@ int main(int argc, char** argv)
             fine.wall_ms, fine.device_ms, fine.wait_ms, fine.calls, fine.maps, fine.source_uploads, fine.repair_pixels, fine.repair_all_maps, fine.roi_pixels,
             fine.retained_gpu_bytes,
             frameMetrics.prepare_wall_ms, frameMetrics.pyramid_ms, frameMetrics.source_copy_ms,
+            transferMetrics.mode, transferMetrics.source_registered, transferMetrics.prepare_copy_ms,
+            transferMetrics.prepare_enqueue_ms, transferMetrics.signal_wait_ms, transferMetrics.lean_prepares,
+            transferMetrics.upload_chunks, transferMetrics.registered_bytes, transferMetrics.host_levels_skipped_bytes,
+            transferMetrics.host_level_rebuilds, transferMetrics.signal_waits, transferMetrics.signal_queries,
             count, matches.c_str());
         fpm_frame_destroy(frame);
         fpm_coarse_destroy(pattern);

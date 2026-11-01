@@ -3,7 +3,7 @@
 python cpp-core/tools/benchmark_frame_backend.py --bench build/x/experiments/fpm_frame_bench \
     --pgm-dir fixtures-pgm --arm cpu=0,0,0,0 --arm cuda=2,1,256,0 --rounds 8 --repeat 5 --output out.json
 
-Each arm is BACKEND,PYRAMID,FINE_BATCH,NCC_MODE for fpm_frame_bench. Every (round, case, mode,
+Each arm is BACKEND,PYRAMID,FINE_BATCH,NCC_MODE[,TRANSFER] for fpm_frame_bench. Every (round, case, mode,
 arm) is a fresh process; the arm order alternates between rounds. Per process, the first call is
 reported as the cold time; after --warmup-ms of untimed calls, the median of --repeat timed calls
 is the steady per-frame time (prepare + match; image decoding and frame/pattern creation are
@@ -30,12 +30,12 @@ from fixture_cases import CASES, pgm_path
 MODES = ("exhaustive", "fast", "subpixel")
 
 
-def run_arm(bench: Path, arm: tuple[int, int, int, int], mode: str, repeat: int, warmup_ms: float, case,
+def run_arm(bench: Path, arm: tuple[int, ...], mode: str, repeat: int, warmup_ms: float, case,
             pgm_dir: Path) -> dict:
     source, templ, targets, score, tolerance, overlap, area = case
-    cmd = [str(bench), *map(str, arm), mode, str(repeat), repr(warmup_ms), str(pgm_path(pgm_dir, source)),
+    cmd = [str(bench), *map(str, arm[:4]), mode, str(repeat), repr(warmup_ms), str(pgm_path(pgm_dir, source)),
            str(pgm_path(pgm_dir, templ)),
-           str(targets), repr(score), repr(float(tolerance)), repr(overlap), str(area)]
+           str(targets), repr(score), repr(float(tolerance)), repr(overlap), str(area), *map(str, arm[4:])]
     done = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
     if done.returncode:
         return {"error": done.stderr.strip() or f"exit {done.returncode}", "cmd": cmd}
@@ -49,7 +49,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--bench", type=Path, required=True)
     parser.add_argument("--pgm-dir", type=Path, required=True)
-    parser.add_argument("--arm", action="append", required=True, help="NAME=BACKEND,PYRAMID,FINE_BATCH,NCC_MODE")
+    parser.add_argument("--arm", action="append", required=True, help="NAME=BACKEND,PYRAMID,FINE_BATCH,NCC_MODE[,TRANSFER]")
     parser.add_argument("--modes", default=",".join(MODES))
     parser.add_argument("--rounds", type=int, default=8)
     parser.add_argument("--repeat", type=int, default=5)

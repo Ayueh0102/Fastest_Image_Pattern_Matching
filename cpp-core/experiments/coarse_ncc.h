@@ -273,6 +273,33 @@ FPM_API int fpm_frame_prepare(fpm_frame_handle* frame, fpm_image source,
 FPM_API int fpm_frame_get_metrics(fpm_frame_handle* frame, FpmFrameMetricsV1* metrics,
     size_t metrics_bytes, FpmCoarseExecutionMetricsV1* prepare_execution,
     size_t execution_bytes, char* error, size_t error_capacity);
+/* Opt-in CUDA transfer mode (backend 2 only; CPU and Metal accept 0). Bit 1,
+ * lean prepare (needs pyramid_mode 1): the frame keeps its host levels across
+ * prepares with the same dimensions, page-locks level 0 with cudaHostRegister,
+ * copies the source into it in chunks whose uploads overlap the copy, and
+ * returns without waiting for the device pyramid. Levels 1..top are copied back
+ * to the host only when fine_batch_size is 0 (the CPU fine path reads them);
+ * otherwise their host pixels are left unwritten and only device copies are
+ * used. Bit 2, lean calls: coarse and fine calls drop timing events and
+ * memsets (the last kernel clears its counters), fine requests are read from
+ * mapped host memory, and the host polls a completion value the last kernel
+ * writes to mapped memory instead of calling cudaStreamSynchronize; device_ms
+ * metrics are then -1. Outputs are unchanged. Idle frame only; changing the
+ * mode invalidates the prepared frame. Default 0. */
+FPM_API int fpm_frame_set_transfer_mode(fpm_frame_handle* frame, int32_t mode,
+    char* error, size_t error_capacity);
+/* Since the last prepare (that prepare and every later match). Times are host
+ * wall ms. source_registered is 1 while level 0 is page-locked (0 if
+ * cudaHostRegister failed and plain uploads are used). */
+typedef struct FpmTransferMetricsV1 {
+    uint32_t version, struct_bytes;
+    int32_t mode, source_registered;
+    double prepare_copy_ms, prepare_enqueue_ms, signal_wait_ms;
+    uint64_t lean_prepares, upload_chunks, registered_bytes, host_levels_skipped_bytes;
+    uint64_t host_level_rebuilds, signal_waits, signal_queries, reserved;
+} FpmTransferMetricsV1;
+FPM_API int fpm_frame_get_transfer_metrics(fpm_frame_handle* frame,
+    FpmTransferMetricsV1* metrics, size_t metrics_bytes, char* error, size_t error_capacity);
 /* config invert_source must agree with the prepared snapshot. Profile optional:
  * use NULL/0 to disable clocks. Result capacity semantics match coarse_match.
  * Coarse/execution/fine diagnostics are per model; prepare costs are separate
@@ -306,8 +333,8 @@ FPM_API int fpm_coarse_create(fpm_image templ, int min_area,
  * outputs equal the CPU backend's of the same build bit for bit. Coarse
  * optimization ncc_mode 1 keeps canvases in device memory (unfused ablation);
  * fine NCC mode 1 samples every fine pixel in FP64 instead of the guarded Q28
- * fast path. gpu_bytes counts device allocations only, not page-locked host
- * staging.
+ * fast path; fpm_frame_set_transfer_mode selects how frames transfer and wait.
+ * gpu_bytes counts device allocations only, not page-locked host staging.
  */
 FPM_API int fpm_coarse_create_backend(fpm_image templ, int min_area, int backend,
     fpm_coarse_handle** out, FpmCoarseMetrics* metrics, char* error, size_t error_capacity);

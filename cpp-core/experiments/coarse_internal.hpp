@@ -59,6 +59,20 @@ public:
         value.version = 1; value.struct_bytes = sizeof(value); value.batch_angles = 1;
         return value;
     }
+    // Frame transfer mode (fpm_frame_set_transfer_mode). A backend that reuses
+    // source levels keeps the frame's host levels across prepares and fills
+    // them in prepareSource(); releaseHostSource() must run before the frame
+    // frees or replaces those levels.
+    virtual void setTransferMode(int mode) {
+        if (mode) throw std::invalid_argument("transfer modes require CUDA");
+    }
+    virtual bool reusesSourceLevels() const { return false; }
+    virtual bool prepareSource(fpm::ImageView, bool, int, std::vector<fpm::Image>&, double*) { return false; }
+    virtual void releaseHostSource() noexcept {}
+    virtual void resetTransferMetrics() {}
+    virtual FpmTransferMetricsV1 transferMetrics() const {
+        FpmTransferMetricsV1 value{}; value.version = 1; value.struct_bytes = sizeof(value); return value;
+    }
 };
 std::unique_ptr<Backend> makeMetalBackend();
 std::unique_ptr<Backend> makeCudaBackend();

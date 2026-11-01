@@ -97,6 +97,14 @@ struct fpm_frame_handle {
     fpm::detail::CandidateDedupStats dedupStats{};
     uint64_t generation = 0;
     bool ready = false;
+    fpm_frame_handle() = default;
+    fpm_frame_handle(const fpm_frame_handle&) = delete;
+    fpm_frame_handle& operator=(const fpm_frame_handle&) = delete;
+    ~fpm_frame_handle() { if (backend) backend->releaseHostSource(); }
+    void clearPyramid() {
+        if (backend) backend->releaseHostSource();
+        pyramid = {};
+    }
     FpmFrameMetricsV1 metrics() const {
         auto value = frameMetrics;
         value.version = 1; value.struct_bytes = sizeof(value); value.generation = generation;
@@ -354,8 +362,12 @@ int fpm_frame_prepare(fpm_frame_handle* frame, fpm_image source,
     try {
         if (frame) {
             frame->ready = false;
-            if (frame->backend) { frame->backend->invalidateFineSource(); frame->backend->resetMetrics(); }
-            frame->pyramid = {}; frame->frameMetrics = {}; frame->prepareExecution = {};
+            if (frame->backend) {
+                frame->backend->invalidateFineSource(); frame->backend->resetMetrics();
+                frame->backend->resetTransferMetrics();
+            }
+            if (!frame->backend || !frame->backend->reusesSourceLevels()) frame->clearPyramid();
+            frame->frameMetrics = {}; frame->prepareExecution = {};
         }
         if (!frame || !patterns || !patternCount || !metrics || (invert != 0 && invert != 1))
             throw std::invalid_argument("frame, nonempty patterns, metrics and boolean invert are required");
@@ -367,18 +379,26 @@ int fpm_frame_prepare(fpm_frame_handle* frame, fpm_image source,
         }
         const auto copy = Clock::now();
         frame->pyramid.inverted = invert != 0;
-        frame->pyramid.levels.emplace_back(view(source));
-        if (invert) {
-            auto& level = frame->pyramid.levels.front();
-            for (int y = 0; y < level.height(); ++y)
-                for (int x = 0; x < level.width(); ++x) level.row(y)[x] = uint8_t(255-level.row(y)[x]);
+        double copyMs = 0;
+        if (frame->backend && frame->backend->prepareSource(view(source), invert != 0, top, frame->pyramid.levels, &copyMs)) {
+            // Copy and upload interleave: the copy part is source_copy_ms, the rest pyramid_ms.
+            frame->frameMetrics.source_copy_ms = copyMs;
+            frame->frameMetrics.pyramid_ms = elapsed(copy) - copyMs;
+        } else {
+            if (!frame->pyramid.levels.empty()) frame->clearPyramid();
+            frame->pyramid.levels.emplace_back(view(source));
+            if (invert) {
+                auto& level = frame->pyramid.levels.front();
+                for (int y = 0; y < level.height(); ++y)
+                    for (int x = 0; x < level.width(); ++x) level.row(y)[x] = uint8_t(255-level.row(y)[x]);
+            }
+            frame->frameMetrics.source_copy_ms = elapsed(copy);
+            const auto pyramid = Clock::now();
+            if (!frame->backend || !frame->backend->buildPyramid(frame->pyramid.levels, top))
+                for (int layer = 1; layer <= top; ++layer)
+                    frame->pyramid.levels.push_back(fpm::detail::pyrDown(frame->pyramid.levels.back().view()));
+            frame->frameMetrics.pyramid_ms = elapsed(pyramid);
         }
-        frame->frameMetrics.source_copy_ms = elapsed(copy);
-        const auto pyramid = Clock::now();
-        if (!frame->backend || !frame->backend->buildPyramid(frame->pyramid.levels, top))
-            for (int layer = 1; layer <= top; ++layer)
-                frame->pyramid.levels.push_back(fpm::detail::pyrDown(frame->pyramid.levels.back().view()));
-        frame->frameMetrics.pyramid_ms = elapsed(pyramid);
         if (frame->backend) frame->prepareExecution = frame->backend->executionMetrics();
         else {
             frame->prepareExecution.version = 1; frame->prepareExecution.struct_bytes = sizeof(frame->prepareExecution);
@@ -393,7 +413,7 @@ int fpm_frame_prepare(fpm_frame_handle* frame, fpm_image source,
     catch (...) { message(error, capacity, "unknown frame preparation exception"); }
     if (frame) {
         if (frame->backend) frame->backend->invalidateFineSource();
-        frame->pyramid = {};
+        frame->clearPyramid();
     }
     return FPM_ERROR;
 }
@@ -410,6 +430,36 @@ int fpm_frame_get_metrics(fpm_frame_handle* frame, FpmFrameMetricsV1* metrics,
         return FPM_OK;
     } catch (const std::exception& e) { message(error, capacity, e.what()); }
     catch (...) { message(error, capacity, "unknown frame metrics exception"); }
+    return FPM_ERROR;
+}
+int fpm_frame_set_transfer_mode(fpm_frame_handle* frame, int32_t mode, char* error, size_t capacity)
+{
+    message(error, capacity, "");
+    try {
+        if (!frame || mode < 0 || mode > 3) throw std::invalid_argument("valid frame and transfer mode 0..3 required");
+        if (!frame->backend && mode) throw std::invalid_argument("transfer modes require CUDA");
+        frame->ready = false;
+        if (frame->backend) frame->backend->invalidateFineSource();
+        frame->clearPyramid();
+        if (frame->backend) frame->backend->setTransferMode(mode);
+        return FPM_OK;
+    } catch (const std::exception& e) { message(error, capacity, e.what()); }
+    catch (...) { message(error, capacity, "unknown transfer mode exception"); }
+    return FPM_ERROR;
+}
+int fpm_frame_get_transfer_metrics(fpm_frame_handle* frame, FpmTransferMetricsV1* metrics,
+    size_t bytes, char* error, size_t capacity)
+{
+    static_assert(sizeof(FpmTransferMetricsV1) == 104, "transfer metrics v1 ABI changed");
+    message(error, capacity, "");
+    try {
+        if (!frame || !metrics || bytes != sizeof(*metrics))
+            throw std::invalid_argument("valid frame and exact transfer metrics size required");
+        FpmTransferMetricsV1 value{}; value.version = 1; value.struct_bytes = sizeof(value);
+        if (frame->backend) value = frame->backend->transferMetrics();
+        *metrics = value; return FPM_OK;
+    } catch (const std::exception& e) { message(error, capacity, e.what()); }
+    catch (...) { message(error, capacity, "unknown transfer metrics exception"); }
     return FPM_ERROR;
 }
 int fpm_frame_set_candidate_dedup(fpm_frame_handle* frame,
