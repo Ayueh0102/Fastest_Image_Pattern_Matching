@@ -1,0 +1,70 @@
+{
+ "decision": "Keep the CUDA backend as opt-in backend 2 of the research coarse/frame API (FPM_WITH_CUDA, default OFF). Defaults, the stable core path and the GUI are unchanged.",
+ "gates_passed": [
+  "ctest_pc",
+  "ctest_mac (after the Test Images rerun)",
+  "identity",
+  "core_unchanged",
+  "guard_exercised"
+ ],
+ "gates_failed": [
+  "mutants: 19 of 24 killed at 9623880"
+ ],
+ "hypotheses": {
+  "H1": "held",
+  "H2": "held (16/17 in every mode; Src9 slower, as predicted)"
+ },
+ "failures": [
+  {
+   "what": "pilot reference used border 0 while the GPU used borderColor()",
+   "effect": "11 of 17 fixtures mismatched in the first pilot run",
+   "fix": "pilot reference fixed; pilot1-border-bug.jsonl kept"
+  },
+  {
+   "what": "exploratory timing without warm-up",
+   "effect": "a GPU left idle ran at low clocks (Src8 calls 15.3, 14.7, 14.7, 12.2, 1.8 ms)",
+   "fix": "fpm_frame_bench reports the cold first call and times only after 500 ms of untimed calls"
+  },
+  {
+   "what": "PC formal attempt 1: formal.bat expanded %PATH% before vcvars ran on the same line",
+   "effect": "CUDA configure failed (cmake not found); steps 6 and 7 failed for the missing bench; no timing data; step 5 (core identity) completed",
+   "fix": "build-cuda.bat runs vcvars and extends PATH on separate lines; attempt 2 passed every step; attempt 1 logs kept"
+  },
+  {
+   "what": "Mac formal attempts 1 and 2: the git archive lacked macos-cli/ and then Test Images/",
+   "effect": "attempt 1: research configure failed; attempt 2: gui_workflow failed (90/91)",
+   "fix": "Test Images/ of 9623880 added to the attempt-2 tree and gui_workflow rerun: passed; both attempts logged"
+  },
+  {
+   "what": "SSH during timing",
+   "effect": "the poll waiting for step 6 read formal.log once within the first two minutes of the timing step (round 0, the warm-up round, which is not in the summary); no other connection until the timing finished",
+   "fix": "disclosed"
+  },
+  {
+   "what": "gpu_bytes left out the per-match fine template copies",
+   "effect": "formal gpu_bytes are up to 0.79 MiB low (the copies are in fine.retained_gpu_bytes)",
+   "fix": "1714c97 counts them; formal numbers reported as measured"
+  },
+  {
+   "what": "mutant gate",
+   "effect": "W1, W2 (re-associated / FMA-contracted warp coordinates) and C1 (scores equal to the threshold dropped) survived: no test reached an exact rounding tie or a score exactly at the threshold; N2 (saturation band 1.25) and F2 (repairAll ignored) survived and are equivalent on reachable inputs",
+   "fix": "1714c97: FP64 fine sampling mode with structured tie poses, flat template at threshold 1, flat source at threshold 0; red check kills W1, W2, C1; full rerun on 1714c97: {\"KILLED\": 21, \"SURVIVED\": 3} (N1 survived: the new cases changed the random coarse trials); 7f5737b gives the threshold cases their own generator and adds a bright near-flat dense case; full rerun on 7f5737b: {\"KILLED\": 22, \"SURVIVED\": 2}, survivors N2 normalization: saturation band 1.25 instead of 1.125, F2 fine repairAll ignored"
+  },
+  {
+   "what": "Nsight Compute of coarseFused on 9623880",
+   "effect": "--launch-skip 6 exceeded the four coarse launches of a three-call run, so no kernel was profiled (profile/ncu-coarseFused-nomatch.txt)",
+   "fix": "kernel analysis cites the pre-commit ncu reports in pilot/"
+  }
+ ],
+ "equivalent_mutants": {
+  "N2": "With exact integer statistics |product - sum*mean| <= sqrt(variance)*norm (Cauchy-Schwarz); the binary64 error is far below 12.5%, so ratios in [1.125, 1.25) are unreachable. The CPU core has the same branch.",
+  "F2": "repairAll is set only when the Q28 range check fails (|anchor|+extent+1 > 2^31) or the error bound reaches 0.25, which needs 510*(1+extent)/2^29 >= 0.25, i.e. ROI width+height above about 263,000 pixels; the template limits keep it below about 131,600. Out-of-range ROIs sample border zeros in FP64; the mutant samples one pixel with the zeroed descriptor. Both are constant ROIs with NCC 0."
+ },
+ "limits": [
+  "one GPU (RTX PRO 4000 Blackwell, sm_120), one driver (596.71, WDDM), Windows only",
+  "bit identity assumes a host that does not contract warpPixel (x86-64 without FMA); an aarch64 host whose compiler contracts needs __fma_rn on the device",
+  "only the research coarse/frame API; no CUDA for fpm_match(), the GUI, Session, pose refinement or the full GPU pipeline",
+  "17 fixed fixtures only; no many-object or 8K scenes; no comparison with Metal",
+  "prepare (source copy, PCIe) not optimized; no Tensor cores or CUDA Graphs"
+ ]
+}

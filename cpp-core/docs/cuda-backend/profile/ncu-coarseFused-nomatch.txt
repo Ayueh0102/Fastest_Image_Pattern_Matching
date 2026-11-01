@@ -1,0 +1,9 @@
+==PROF== Connected to process 17344 (C:\r-cuda\formal\build-after-cuda\experiments\fpm_frame_bench.exe)
+==PROF== Disconnected from process 17344
+{"backend":2,"pyramid":1,"fine_batch":256,"ncc_mode":0,"mode":"exhaustive","first_prepare_ms":6.2038,"first_match_ms":33.9688,"warmup_ms":0.0,"warmup_calls":0,"prepare_ms":[5.5891,5.6582,5.3615],"match_ms":[2.4459,1.8798,2.2801],"peak_rss_mib":278.58,"coarse":{"wall_ms":2.2793,"device_ms":0.3380,"wait_ms":0.0099,"select_ms":0.0257,"maps":40,"windows":115216,"syncs":1,"gpu_bytes":18356216},"fine":{"wall_ms":1.5861,"device_ms":1.2259,"wait_ms":0.6630,"calls":6,"maps":504,"source_uploads":0,"repair_pixels":13158,"repair_all_maps":0,"roi_pixels":19746000,"retained_gpu_bytes":751016},"pyramid":{"prepare_wall_ms":5.3611,"pyramid_ms":1.8164,"source_copy_ms":3.0441},"count":3,"matches":[["4095040000000000","4088880000000000","40a0760000000000","4088880000000000","40a0760000000000","4094680000000000","4095040000000000","4094680000000000","409af80000000000","4090560000000000","8000000000000000","3ff0000000000000"],["409b1c838d1acbf7","40a3fcd9d09d25ad","40952405fb156d96","409daca768ca5463","409c2f0b50089dd6","409997956abf4492","40a113c47106fe1b","40a1f250d1979dc5","409ba5c76e91b4e6","40a0645242fe63fb","405e063dbd8d3983","3fefb6c68d7c9027"],["40a80cb1a366830f","4094e6fa3999e13a","40a513c3d1259838","409f37dbc0c79f26","40a18cf1ad8451bf","409b2752ae08b80d","40a485df7fc53c96","4090d67126dafa21","40a4ccd1a8756a67","4098072673d14ca4","c05dfd0669ef0d31","3fef9d8c7f2a92ff"]]}
+==WARNING== No kernels were profiled.
+Available Kernels:
+1. fineNormalize
+2. fineStripes
+3. packEntries
+4. pyrDownKernel

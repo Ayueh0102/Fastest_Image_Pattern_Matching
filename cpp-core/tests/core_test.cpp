@@ -380,6 +380,22 @@ void peakExtraction()
 	ScoreMap tiny{2,1,{1,.9}};
 	const auto peaks=selectPeaks(tiny,1,1,5,1,0,true);
 	require(peaks.size()==2,"overlap=1 must always consume a peak");
+	// The sparse selector sees only entries >= threshold, shuffled; ties are common.
+	for (int trial=0;trial<300;++trial) {
+		const int w=1+int(rng()%60), h=1+int(rng()%40), tw=1+int(rng()%15), th=1+int(rng()%15);
+		ScoreMap random{w,h,std::vector<double>(std::size_t(w)*h)};
+		for (auto& v : random.values) v=double(rng()%21)/20-.5;
+		const double threshold=double(rng()%11)/10-.2, overlapRatio=double(rng()%9)/8;
+		const int count=int(rng()%12);
+		std::vector<Peak> entries;
+		for(int y=0;y<h;++y) for(int x=0;x<w;++x) if(!(random.at(x,y)<threshold)) entries.push_back({x,y,random.at(x,y)});
+		std::shuffle(entries.begin(),entries.end(),rng);
+		const auto dense=selectPeaks(random,tw,th,count,overlapRatio,threshold,trial%2==1);
+		const auto sparse=selectPeaksSparse(entries,w,h,tw,th,count,overlapRatio);
+		require(dense.size()==sparse.size(),"sparse peak count");
+		for(size_t i=0;i<dense.size();++i)
+			require(dense[i].x==sparse[i].x && dense[i].y==sparse[i].y && dense[i].score==sparse[i].score,"sparse peak order");
+	}
 }
 void geometry()
 {

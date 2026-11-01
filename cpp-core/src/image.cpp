@@ -375,10 +375,12 @@ FPM_TARGET_AVX2 static int warpRowAvx2(ImageView src, std::uint8_t* out, int wid
 }
 #endif
 
-static Image warp(ImageView src, int width, int height, Point anchor, double angle, std::uint8_t border)
+static Image warp(ImageView src, const WarpMap& map, std::uint8_t border)
 {
+	const int width = map.width, height = map.height;
+	const Point anchor = map.anchor;
+	const double c = map.c, s = map.s;
 	Image result(width, height);
-	const double c = std::cos(angle * D2R), s = std::sin(angle * D2R);
 #if FPM_X86_WARP
 	const auto warpRow = x86Isa() >= X86Isa::Avx2 ? warpRowAvx2 : warpRowSse2;
 #endif
@@ -395,30 +397,42 @@ static Image warp(ImageView src, int width, int height, Point anchor, double ang
 	return result;
 }
 
-Canvas rotateCanvas(ImageView src, int tw, int th, double angle, std::uint8_t border)
+WarpMap canvasWarp(int sourceWidth, int sourceHeight, int tw, int th, double angle, Point* translation)
 {
-	const Point center{(src.width - 1) * 0.5, (src.height - 1) * 0.5};
+	const Point center{(sourceWidth - 1) * 0.5, (sourceHeight - 1) * 0.5};
 	const double c = std::abs(std::cos(angle * D2R)), s = std::abs(std::sin(angle * D2R));
 	// Retain the original reduced rotation canvas, with a full-box fallback.
-	double w = 2 * std::ceil(((src.width - 1) * c + (src.height - 1) * s) * 0.5 - th * s * c);
-	double h = 2 * std::ceil(((src.width - 1) * s + (src.height - 1) * c) * 0.5 - tw * s * c);
-	if (s < 1e-12) { w = src.width; h = src.height; }
-	else if (c < 1e-12) { w = src.height; h = src.width; }
+	double w = 2 * std::ceil(((sourceWidth - 1) * c + (sourceHeight - 1) * s) * 0.5 - th * s * c);
+	double h = 2 * std::ceil(((sourceWidth - 1) * s + (sourceHeight - 1) * c) * 0.5 - tw * s * c);
+	if (s < 1e-12) { w = sourceWidth; h = sourceHeight; }
+	else if (c < 1e-12) { w = sourceHeight; h = sourceWidth; }
 	if (w < tw || h < th) {
-		w = std::ceil(src.width * c + src.height * s);
-		h = std::ceil(src.width * s + src.height * c);
+		w = std::ceil(sourceWidth * c + sourceHeight * s);
+		h = std::ceil(sourceWidth * s + sourceHeight * c);
 	}
 	if (w > INT_MAX - 1 || h > INT_MAX - 1) throw std::invalid_argument("rotation canvas is too large");
-	const Point translation{(w - 1) * 0.5 - center.x, (h - 1) * 0.5 - center.y};
-	const Point anchor = rotate({-translation.x, -translation.y}, center, -angle);
-	return {warp(src, int(w), int(h), anchor, angle, border), translation};
+	*translation = {(w - 1) * 0.5 - center.x, (h - 1) * 0.5 - center.y};
+	const Point anchor = rotate({-translation->x, -translation->y}, center, -angle);
+	return {anchor, std::cos(angle * D2R), std::sin(angle * D2R), int(w), int(h)};
+}
+
+WarpMap roiWarp(int width, int height, Point anchor, double angle)
+{
+	const Point origin = rotate({-PADDING, -PADDING}, {0, 0}, -angle);
+	return {{anchor.x + origin.x, anchor.y + origin.y}, std::cos(angle * D2R), std::sin(angle * D2R),
+		width + 2 * PADDING, height + 2 * PADDING};
+}
+
+Canvas rotateCanvas(ImageView src, int tw, int th, double angle, std::uint8_t border)
+{
+	Point translation;
+	const auto map = canvasWarp(src.width, src.height, tw, th, angle, &translation);
+	return {warp(src, map, border), translation};
 }
 
 Image rotatedRoi(ImageView src, int width, int height, Point anchor, double angle)
 {
-	const Point origin = rotate({-PADDING, -PADDING}, {0, 0}, -angle);
-	return warp(src, width + 2 * PADDING, height + 2 * PADDING,
-		{anchor.x + origin.x, anchor.y + origin.y}, angle, 0);
+	return warp(src, roiWarp(width, height, anchor, angle), 0);
 }
 } // namespace detail
 } // namespace fpm

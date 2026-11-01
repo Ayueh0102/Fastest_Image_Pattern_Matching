@@ -61,6 +61,14 @@ struct fpm_coarse_handle {
         fpm_coarse_execution_default_config(&executionConfig);
         cpuMetrics.device_ms = -1;
         if (backendMode == 0) return;
+        if (backendMode == 2) {
+#ifdef FPM_EXPERIMENT_CUDA
+            backend = fpm_coarse_detail::makeCudaBackend();
+            return;
+#else
+            throw std::runtime_error("CUDA coarse NCC is unavailable on this build");
+#endif
+        }
 #ifdef FPM_EXPERIMENT_METAL
         backend = fpm_coarse_detail::makeMetalBackend();
 #else
@@ -155,7 +163,7 @@ int fpm_frame_create(const FpmFrameConfigV1* config, size_t bytes,
         if (!out || !config || bytes != sizeof(*config) || config->version != 1 ||
             config->struct_bytes != sizeof(*config) || config->reserved)
             throw std::invalid_argument("valid frame config v1, exact size and output are required");
-        if (config->backend < 0 || config->backend > 1 || config->pyramid_mode < 0 ||
+        if (config->backend < 0 || config->backend > 2 || config->pyramid_mode < 0 ||
             config->pyramid_mode > 2 || config->batch_angles < 1 || config->batch_angles > 4 ||
             config->fine_batch_size < 0 || config->fine_batch_size > 1024)
             throw std::invalid_argument("invalid frame backend/pyramid/batch configuration");
@@ -167,7 +175,19 @@ int fpm_frame_create(const FpmFrameConfigV1* config, size_t bytes,
         frame->prepareExecution.struct_bytes = sizeof(frame->prepareExecution);
         frame->prepareExecution.pyramid_mode = config->pyramid_mode;
         frame->prepareExecution.batch_angles = config->batch_angles;
-        if (config->backend) {
+        if (config->backend == 2) {
+#ifdef FPM_EXPERIMENT_CUDA
+            frame->backend = fpm_coarse_detail::makeCudaBackend();
+            FpmCoarseExecutionConfigV1 execution{};
+            fpm_coarse_execution_default_config(&execution);
+            execution.pyramid_mode = config->pyramid_mode;
+            execution.batch_angles = config->batch_angles;
+            frame->backend->setExecution(execution);
+            frame->backend->setFineBatchSize(size_t(config->fine_batch_size));
+#else
+            throw std::runtime_error("CUDA shared frame is unavailable on this build");
+#endif
+        } else if (config->backend) {
 #ifdef FPM_EXPERIMENT_METAL
             frame->backend = fpm_coarse_detail::makeMetalBackend();
             FpmCoarseExecutionConfigV1 execution{};
@@ -537,7 +557,7 @@ int fpm_coarse_create_backend(fpm_image templ, int minArea, int backend,
     if (out) *out = nullptr;
     return protect(metrics, error, capacity, [&] {
         if (!out) throw std::invalid_argument("out handle pointer is required");
-        if (backend != 0 && backend != 1) throw std::invalid_argument("backend must be 0 (CPU) or 1 (Metal)");
+        if (backend < 0 || backend > 2) throw std::invalid_argument("backend must be 0 (CPU), 1 (Metal) or 2 (CUDA)");
         const auto start = Clock::now();
         auto handle = std::make_unique<fpm_coarse_handle>(templ, minArea, backend);
         *metrics = handle->metrics(); metrics->setup_ms = elapsed(start);

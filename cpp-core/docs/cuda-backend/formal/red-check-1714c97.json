@@ -1,0 +1,53 @@
+{
+ "results": [
+  {
+   "mutant": "baseline cpp-core/experiments/coarse_cuda.cu",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "baseline cpp-core/src/ncc.cpp",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "W1 warp sx re-associated: ax+(c*x-s*y)",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: arithmetic-sensitive poses, FP64 sampling: fine map 0 differs"
+  },
+  {
+   "mutant": "W2 warp sy contracted into an FMA",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: arithmetic-sensitive poses, FP64 sampling: fine map 3 differs"
+  },
+  {
+   "mutant": "N2 normalization: saturation band 1.25 instead of 1.125",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "C1 fused coarse keeps only scores above the threshold",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: flat template, threshold 1 angle 0: peak count"
+  },
+  {
+   "mutant": "F2 fine repairAll ignored",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "restored cpp-core/experiments/coarse_cuda.cu",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "restored cpp-core/src/ncc.cpp",
+   "status": "SURVIVED",
+   "detail": ""
+  }
+ ],
+ "totals": {
+  "KILLED": 3,
+  "SURVIVED": 2
+ }
+}

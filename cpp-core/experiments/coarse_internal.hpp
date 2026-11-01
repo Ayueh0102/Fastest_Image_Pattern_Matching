@@ -61,4 +61,5 @@ public:
     }
 };
 std::unique_ptr<Backend> makeMetalBackend();
+std::unique_ptr<Backend> makeCudaBackend();
 }

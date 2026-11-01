@@ -84,7 +84,7 @@ cmake --build build/core --config Release -j
 ctest --test-dir build/core -C Release --output-on-failure
 ```
 
-產物包含 `fpm_core`、`fpm_c` 與 `fpm_cli`；此設定 CLI 讀取 PGM，GUI 與一般圖片解碼需要另外啟用。GUI／Metal 研究建置請使用 [C++ README](../cpp-core/README_zh-TW.md) 的指令。新核心源碼可跨平台編譯，但目前大部分研究性能證據來自 Apple Silicon macOS；沒有 CUDA 實測可作硬體比較。
+產物包含 `fpm_core`、`fpm_c` 與 `fpm_cli`；此設定 CLI 讀取 PGM，GUI 與一般圖片解碼需要另外啟用。GUI／Metal 研究建置請使用 [C++ README](../cpp-core/README_zh-TW.md) 的指令。新核心源碼可跨平台編譯，但目前大部分研究性能證據來自 Apple Silicon macOS；CUDA 只有研究 coarse／frame API 的後端在一張 RTX PRO 4000 上實測過（[CUDA 後端](../cpp-core/docs/CUDA_BACKEND_zh-TW.md)），不同硬體只並列、不算倍率。
 
 重現某一輪結果時，優先使用那輪封存的來源、輸入、protocol 與執行器。只用目前 HEAD 執行舊 protocol，不一定是在比較當時的程式。先核對封存雜湊，再重算 summary，最後才重跑較昂貴的 CPU／GPU benchmark。
 

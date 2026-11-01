@@ -297,9 +297,17 @@ FPM_API int fpm_coarse_get_execution_metrics(fpm_coarse_handle* handle,
 FPM_API int fpm_coarse_create(fpm_image templ, int min_area,
     fpm_coarse_handle** out, FpmCoarseMetrics* metrics, char* error, size_t error_capacity);
 /* Additional explicit backend constructor: 0 portable CPU, 1 existing Metal
- * dense coarse NCC. CPU works without Metal and never creates a GPU context.
- * It shares the exact matching algorithm with the Metal constructor.
- * Original fpm_coarse_create remains equivalent to backend=1.
+ * dense coarse NCC, 2 experimental CUDA (FPM_WITH_CUDA builds only). CPU works
+ * without a GPU and never creates a GPU context. All share the exact matching
+ * algorithm. Original fpm_coarse_create remains equivalent to backend=1.
+ * CUDA rotates the top level on the device and returns only the scores that
+ * reach the coarse threshold; with a frame fine_batch_size it also runs fine
+ * search, and pyramid_mode 1 builds the exact pyramid on the device. Its
+ * outputs equal the CPU backend's of the same build bit for bit. Coarse
+ * optimization ncc_mode 1 keeps canvases in device memory (unfused ablation);
+ * fine NCC mode 1 samples every fine pixel in FP64 instead of the guarded Q28
+ * fast path. gpu_bytes counts device allocations only, not page-locked host
+ * staging.
  */
 FPM_API int fpm_coarse_create_backend(fpm_image templ, int min_area, int backend,
     fpm_coarse_handle** out, FpmCoarseMetrics* metrics, char* error, size_t error_capacity);

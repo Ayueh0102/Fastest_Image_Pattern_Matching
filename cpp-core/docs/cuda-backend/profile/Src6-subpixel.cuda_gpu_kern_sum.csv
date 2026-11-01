@@ -1,0 +1,6 @@
+Time (%),Total Time (ns),Instances,Avg (ns),Med (ns),Min (ns),Max (ns),StdDev (ns),Name
+98.7,1099705864,1404,783266.3,418609.0,13312,1776581,693543.2,"<unnamed>::fineStripes(const unsigned char *, int, int, const <unnamed>::FineWarp *, const unsigned char *, int, int, int, int, int, unsigned long long *, unsigned int *)"
+0.4,4855760,312,15563.3,3792.0,1664,65120,22751.1,"<unnamed>::pyrDownKernel(const unsigned char *, int, int, unsigned char *, int, int)"
+0.4,4737360,1404,3374.2,3552.0,2144,4512,491.9,"<unnamed>::fineNormalize(const unsigned long long *, int, double, double, double, int, const unsigned int *, double *)"
+0.4,4659531,52,89606.4,88848.0,87488,101024,2527.1,"<unnamed>::coarseFused(const unsigned char *, int, int, const <unnamed>::CoarseJob *, const unsigned char *, int, int, double, double, double, int, unsigned char, <unnamed>::Entry *, unsigned int *)"
+0.0,50688,52,974.8,960.0,960,1152,38.3,"<unnamed>::packEntries(const <unnamed>::Entry *, const unsigned int *, const <unnamed>::CoarseJob *, <unnamed>::Entry *, unsigned int *)"

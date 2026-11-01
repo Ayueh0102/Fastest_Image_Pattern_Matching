@@ -26,44 +26,44 @@
     "metadata": "Filesystem sidecar metadata",
     "other": "No recognized role; inspect manually"
   },
-  "artifact_count": 790,
-  "artifact_bytes": 2915777383,
+  "artifact_count": 830,
+  "artifact_bytes": 2917275228,
   "artifact_role_counts": {
-    "archive": 147,
+    "archive": 149,
     "calibration": 5,
-    "failure_review": 33,
-    "false_gate": 64,
-    "formal": 61,
+    "failure_review": 34,
+    "false_gate": 65,
+    "formal": 67,
     "input": 21,
-    "other": 65,
-    "pilot": 24,
-    "protocol": 53,
-    "provenance": 84,
-    "raw": 99,
-    "report": 81,
-    "source": 28,
-    "summary": 188,
-    "validation": 101,
+    "other": 83,
+    "pilot": 33,
+    "protocol": 54,
+    "provenance": 85,
+    "raw": 100,
+    "report": 82,
+    "source": 31,
+    "summary": 190,
+    "validation": 103,
     "visual": 68
   },
-  "archive_member_count": 146314,
+  "archive_member_count": 146405,
   "archive_member_role_counts": {
     "archive": 26,
     "binary": 47,
     "calibration": 1,
-    "failure_review": 122,
-    "formal": 32810,
+    "failure_review": 159,
+    "formal": 32820,
     "input": 616,
     "metadata": 6526,
-    "other": 61156,
-    "pilot": 4301,
+    "other": 61167,
+    "pilot": 4302,
     "protocol": 114,
     "provenance": 147,
-    "raw": 47799,
+    "raw": 47868,
     "report": 92,
-    "source": 13437,
+    "source": 13440,
     "summary": 1233,
-    "validation": 1210,
+    "validation": 1224,
     "visual": 1088
   },
   "artifacts": [
@@ -208,6 +208,16 @@
       ]
     },
     {
+      "path": "CUDA_BACKEND_zh-TW.md",
+      "group": "root",
+      "stage": null,
+      "bytes": 21161,
+      "sha256": "706218ca329d4fa9df78132588618e5ea3bfe947ba6b88052f27f1839836627a",
+      "roles": [
+        "report"
+      ]
+    },
+    {
       "path": "CURRENT_BEST_HISTORY_zh-TW.md",
       "group": "root",
       "stage": null,
@@ -251,8 +261,8 @@
       "path": "EXPERIMENT_GAPS_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 7315,
-      "sha256": "6fe3ae98bf7c1f2acfa57772fafe44ad979d79a0ec2409c903dd308eeb9a94b3",
+      "bytes": 7468,
+      "sha256": "6ccfeb2ec9731d8208f61b5943c7ac0307b5df15b63bc4ead5ec4260c4ca1af9",
       "roles": [
         "report"
       ]
@@ -623,8 +633,8 @@
       "path": "PROJECT_STATUS_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 18774,
-      "sha256": "71744483902393c5cd3bad71ba2c89e57c5571b71497a2a7e575d116dfb18063",
+      "bytes": 20303,
+      "sha256": "94995874b56ea2efd7d4ec21b208a3b077f1f13308c87c53025cb06d24d015d7",
       "roles": [
         "report"
       ]
@@ -2228,6 +2238,422 @@
       "sha256": "790e024f68e170f5ec4956cf847ed34b3b9fe5ac689f408aaf93eda55dbc2cfc",
       "roles": [
         "validation"
+      ]
+    },
+    {
+      "path": "cuda-backend/archive.json",
+      "group": "cuda-backend",
+      "stage": null,
+      "bytes": 3975,
+      "sha256": "876ee5c4f762800ce410d8bba0fc8e99b2a043f4f1a3da950716a4b7189d5c72",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "cuda-backend/decision-and-failures.json",
+      "group": "cuda-backend",
+      "stage": null,
+      "bytes": 4544,
+      "sha256": "a3824f3f50fa4451c0499e09f13d2839955d0dc99442b92e14cc643792bdf63b",
+      "roles": [
+        "failure_review"
+      ]
+    },
+    {
+      "path": "cuda-backend/formal/mutants-1714c97.json",
+      "group": "cuda-backend",
+      "stage": null,
+      "bytes": 5124,
+      "sha256": "dd1c116771817fb70d6a2c92b46bc8d21360023f8c1c151652929efc817d9990",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "cuda-backend/formal/mutants-7f5737b.json",
+      "group": "cuda-backend",
+      "stage": null,
+      "bytes": 5219,
+      "sha256": "76d4a70f1ea9b7d98f128b4050dfe5ef5f06e086788144342ce7fc3bf2112ed6",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "cuda-backend/formal/mutants-9623880.json",
+      "group": "cuda-backend",
+      "stage": null,
+      "bytes": 4856,
+      "sha256": "f1a022ac217cc7bce757190ba967e93a0913efb32732a79430effc7d8a7008e0",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "cuda-backend/formal/red-check-1714c97.json",
+      "group": "cuda-backend",
+      "stage": null,
+      "bytes": 1392,
+      "sha256": "7d94f2b0dcdbb5ae8786bf566eb2d266dabd5ab033dcf64084d8d761274b5450",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "cuda-backend/formal/red-check-n1-7f5737b.json",
+      "group": "cuda-backend",
+      "stage": null,
+      "bytes": 709,
+      "sha256": "4009617cd229442fe3a60aee54440f076ddc93584002ec9654b2cce33a0cb210",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "cuda-backend/formal/timing-summary.json",
+      "group": "cuda-backend",
+      "stage": null,
+      "bytes": 85932,
+      "sha256": "c31fcd2d3509a25521f155466f6f575e6403c863baf71a0976db37ab43558878",
+      "roles": [
+        "formal",
+        "summary"
+      ]
+    },
+    {
+      "path": "cuda-backend/pilot/CMakeLists.txt",
+      "group": "cuda-backend",
+      "stage": null,
+      "bytes": 562,
+      "sha256": "b96375ca4495813969939d30a6fce914f9939d383fa6098860f12ef72e76520d",
+      "roles": [
+        "pilot",
+        "source"
+      ]
+    },
+    {
+      "path": "cuda-backend/pilot/cuda_pilot.cu",
+      "group": "cuda-backend",
+      "stage": null,
+      "bytes": 19382,
+      "sha256": "d56535a421cf1c6953c73bf9b565b122690164f8cfff89f5464311ca4e2203e1",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-backend/pilot/ncu-fineFused-v1-src7.txt",
+      "group": "cuda-backend",
+      "stage": null,
+      "bytes": 18057,
+      "sha256": "4cd7daab99cf6ac84b351099bada67ec665a9b3b30fae8c0f0e9ab2b1054d1d5",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-backend/pilot/ncu-fineStripes-v2-src7.txt",
+      "group": "cuda-backend",
+      "stage": null,
+      "bytes": 16604,
+      "sha256": "8ac9e430d212b60d35ee72ed1f4707ac59a79b2498b1bd591a72cf8181baec12",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-backend/pilot/pilot.hpp",
+      "group": "cuda-backend",
+      "stage": null,
+      "bytes": 1486,
+      "sha256": "e79014f70edd4e702cb0e8f4933639faed4e65ebbada8c29302426ad193f19d8",
+      "roles": [
+        "pilot",
+        "source"
+      ]
+    },
+    {
+      "path": "cuda-backend/pilot/pilot1-border-bug.jsonl",
+      "group": "cuda-backend",
+      "stage": null,
+      "bytes": 11083,
+      "sha256": "629b78beefb1686777341ec598dc9288ed6cec07109a798998c5995f4c806223",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-backend/pilot/pilot2.jsonl",
+      "group": "cuda-backend",
+      "stage": null,
+      "bytes": 11022,
+      "sha256": "4b73776b552f605f3f56a6e05f4585db4fa6b4e12ff361862a35fab4ba832a89",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-backend/pilot/ref.cpp",
+      "group": "cuda-backend",
+      "stage": null,
+      "bytes": 5676,
+      "sha256": "9829d88ef105b8c29fb4ee1c310fc9f50c8c08f77945bc578d3b1909b38b4335",
+      "roles": [
+        "pilot",
+        "source"
+      ]
+    },
+    {
+      "path": "cuda-backend/pilot/run-pilot.ps1",
+      "group": "cuda-backend",
+      "stage": null,
+      "bytes": 748,
+      "sha256": "ed86f4220c0dbf2720395851c255b6911cf1e64aeadc0b3a06fc61b2a06b3a3f",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-backend/profile/Src6-exhaustive.cuda_api_sum.csv",
+      "group": "cuda-backend",
+      "stage": null,
+      "bytes": 1229,
+      "sha256": "0ea00449e62cd3d62a848dbc64110284b3641f3cc7ccdcbef26c6c282b74f86c",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-backend/profile/Src6-exhaustive.cuda_gpu_kern_sum.csv",
+      "group": "cuda-backend",
+      "stage": null,
+      "bytes": 1068,
+      "sha256": "4e1754f372563ac6d00ff78cddba177c3af3ca7ed0df56dc60d18c8cf0ab9ed7",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-backend/profile/Src6-exhaustive.cuda_gpu_mem_time_sum.csv",
+      "group": "cuda-backend",
+      "stage": null,
+      "bytes": 309,
+      "sha256": "843f4d9ea35be13de9707f02f54a53fd7f58aa2675e50fcb7fa05c54468100f9",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-backend/profile/Src6-exhaustive.nvtx_sum.csv",
+      "group": "cuda-backend",
+      "stage": null,
+      "bytes": 344,
+      "sha256": "1a65d067d85bea8d32a8638a19ab11391e8b5718b221396b6eba9ec399c5a267",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-backend/profile/Src6-subpixel.cuda_api_sum.csv",
+      "group": "cuda-backend",
+      "stage": null,
+      "bytes": 1227,
+      "sha256": "2f7a582a621af22493c41226b00647748020fbb76a9f9549480924dd8fe5ac68",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-backend/profile/Src6-subpixel.cuda_gpu_kern_sum.csv",
+      "group": "cuda-backend",
+      "stage": null,
+      "bytes": 1058,
+      "sha256": "253da75c8bee81fa0f3654e15d82479c9365d374a89f0899ee3b87602722e7b1",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-backend/profile/Src6-subpixel.cuda_gpu_mem_time_sum.csv",
+      "group": "cuda-backend",
+      "stage": null,
+      "bytes": 309,
+      "sha256": "0adf8ba5f94f06be92abf4687ad03596b001c3b6ad797e457c6627c9789b715f",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-backend/profile/Src6-subpixel.nvtx_sum.csv",
+      "group": "cuda-backend",
+      "stage": null,
+      "bytes": 343,
+      "sha256": "10ed6c4ace974c3c7a192f837d5b177b09406aa759f1bbcaac8f0778f91e1d97",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-backend/profile/Src7-exhaustive.cuda_api_sum.csv",
+      "group": "cuda-backend",
+      "stage": null,
+      "bytes": 1210,
+      "sha256": "268a40a6dfae4cea98280bd93ca44b9afd21d04bdd7370d64b39995e2fb679ad",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-backend/profile/Src7-exhaustive.cuda_gpu_kern_sum.csv",
+      "group": "cuda-backend",
+      "stage": null,
+      "bytes": 1058,
+      "sha256": "3859e88560eab0d5fbaf2de0bcd0ac780a8a9cf112ffd8f5ba5d511318ff8533",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-backend/profile/Src7-exhaustive.cuda_gpu_mem_time_sum.csv",
+      "group": "cuda-backend",
+      "stage": null,
+      "bytes": 308,
+      "sha256": "228148afd6ecc549f005a4936b2f24c15ef30fd89aca05303fb3978b93badb35",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-backend/profile/Src7-exhaustive.nvtx_sum.csv",
+      "group": "cuda-backend",
+      "stage": null,
+      "bytes": 343,
+      "sha256": "4df9e030a783fbc2957b9f32d20e3c50fa51f0bc17d52880242ab26c0f722103",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-backend/profile/Src9-exhaustive.cuda_api_sum.csv",
+      "group": "cuda-backend",
+      "stage": null,
+      "bytes": 1227,
+      "sha256": "f61c5d1f1e02d0aa2275e9e82e5a3ec33ed2c8e1454afc35fc6a300afefce019",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-backend/profile/Src9-exhaustive.cuda_gpu_kern_sum.csv",
+      "group": "cuda-backend",
+      "stage": null,
+      "bytes": 1055,
+      "sha256": "3edd26dea80a7bfb30c50d1c473a4120d35c4e6028c5957767ed1a89ee742ab9",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-backend/profile/Src9-exhaustive.cuda_gpu_mem_time_sum.csv",
+      "group": "cuda-backend",
+      "stage": null,
+      "bytes": 303,
+      "sha256": "adcef4993e7c2c6eb30253688915f9608808ec8ba603b3f51d2b05aea70ec7a4",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-backend/profile/Src9-exhaustive.nvtx_sum.csv",
+      "group": "cuda-backend",
+      "stage": null,
+      "bytes": 341,
+      "sha256": "db7f76eb8a07cfee3d15e266eef077910e66e6961adef36f923742277364b6ac",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-backend/profile/ncu-coarseFused-nomatch.txt",
+      "group": "cuda-backend",
+      "stage": null,
+      "bytes": 1647,
+      "sha256": "747d849e39eae522e3c5f1c6f16a3bd6477858fc1a3f4ca5e8fd173055f3b12d",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-backend/profile/ncu-fineStripes-Src7.txt",
+      "group": "cuda-backend",
+      "stage": null,
+      "bytes": 21696,
+      "sha256": "39be0626f43ef4301fe229989516a237d6819f12de690fe99f31f49a97d3db3d",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-backend/protocol.json",
+      "group": "cuda-backend",
+      "stage": null,
+      "bytes": 5418,
+      "sha256": "7f5688a7efdd409295e1e4bfe5171a60fee64078241ebd3c121da2a56c696a22",
+      "roles": [
+        "protocol"
+      ]
+    },
+    {
+      "path": "cuda-backend/raw-results.tar.gz",
+      "group": "cuda-backend",
+      "stage": null,
+      "bytes": 1156173,
+      "sha256": "a99952e6130f644585ddcb7247769c6434883ec119b58a3437175b8641acc557",
+      "roles": [
+        "archive",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 6,
+      "archive_role_counts": {
+        "formal": 4,
+        "other": 2
+      }
+    },
+    {
+      "path": "cuda-backend/validation-logs.tar.gz",
+      "group": "cuda-backend",
+      "stage": null,
+      "bytes": 77791,
+      "sha256": "8b271cff1c490c87cbc20834019ca2a5c3f3f75c4c410d51c107283d33389e81",
+      "roles": [
+        "archive",
+        "validation"
+      ],
+      "archive_file_count": 85,
+      "archive_role_counts": {
+        "failure_review": 37,
+        "formal": 6,
+        "other": 9,
+        "pilot": 1,
+        "raw": 69,
+        "source": 3,
+        "validation": 14
+      }
+    },
+    {
+      "path": "cuda-backend/validation.json",
+      "group": "cuda-backend",
+      "stage": null,
+      "bytes": 4174,
+      "sha256": "f5c802d5b35b1db5a848ac0a076a71500ab6c0837b1cc1030456cfd8373e1b46",
+      "roles": [
+        "false_gate",
+        "validation"
+      ],
+      "explicit_false_gates": [
+        "/gates/mutants/pass"
       ]
     },
     {
@@ -10411,5 +10837,5 @@
       ]
     }
   ],
-  "archive_member_index_sha256": "d198ff5b025b594b3d75bdcc14b6897644b8ceb56f286b06cd2473f278ccfc95"
+  "archive_member_index_sha256": "759d18dd5513bfb4bab5fcc73867794cf023820d7ba8c2ff710449197ef79ab4"
 }

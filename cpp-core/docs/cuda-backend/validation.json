@@ -1,0 +1,180 @@
+{
+ "protocol": "protocol.json (078a109, registered 2026-10-31T16:53:49Z)",
+ "commits": {
+  "base": "c67ca33",
+  "core_hooks": "500d1cd",
+  "after": "9623880",
+  "tests_strengthened": "1714c97",
+  "test_sequence_fixed": "7f5737b"
+ },
+ "gates": {
+  "ctest_pc": {
+   "pass": true,
+   "detail": "35/35 at 9623880; experimental_cuda_backend and experimental_cuda_kernels ran; 6 Metal tests skipped"
+  },
+  "ctest_mac": {
+   "pass": true,
+   "detail": "pure core c67ca33 3/3 and 9623880 3/3; research build 9623880 90/91 with gui_workflow failing because the archive lacked Test Images/, then gui_workflow passed after Test Images/ of 9623880 was added to the same tree",
+   "log": [
+    "start 2026-10-31T16:57:48Z  0:57  up 9 days, 10:38, 1 user, load averages: 2.46 3.48 3.11",
+    "pgm 0",
+    "core-base ctest 0",
+    "core-after ctest 0",
+    "core-identity 0",
+    "research ctest 8",
+    "formal-finished 2026-10-31T16:59:37Z",
+    "gui rerun 0"
+   ]
+  },
+  "identity": {
+   "pass": true,
+   "runs": 1632,
+   "cuda_runs_compared": 1122,
+   "timing_records": 1224,
+   "ablation_records": 408
+  },
+  "core_unchanged": {
+   "pass": true,
+   "pc_runs": 272,
+   "mac_runs": 272,
+   "different": 0
+  },
+  "guard_exercised": {
+   "pass": true,
+   "log": [
+    "Q28/binary64 disagreements: 24 poses in 20466380 pixels",
+    "fine: 436 maps, 55852 FP64 pixels, 16 FP64 maps",
+    "PASS fine",
+    "PASS coarse",
+    "PASS dense",
+    "PASS pyramid"
+   ]
+  },
+  "mutants": {
+   "pass": false,
+   "killed": 19,
+   "survived": [
+    "W1 warp sx re-associated: ax+(c*x-s*y)",
+    "W2 warp sy contracted into an FMA",
+    "N2 normalization: saturation band 1.25 instead of 1.125",
+    "C1 fused coarse keeps only scores above the threshold",
+    "F2 fine repairAll ignored"
+   ],
+   "totals": {
+    "SURVIVED": 5,
+    "KILLED": 19
+   }
+  }
+ },
+ "hypotheses": {
+  "H1": true,
+  "H2": true,
+  "per_mode": {
+   "exhaustive": {
+    "geomean": 0.14209530039443766,
+    "total_ratio": 0.077175108255183,
+    "faster": 16,
+    "cases": 17,
+    "not_faster": [
+     "Src9"
+    ],
+    "cold_geomean": 0.2630872392634549
+   },
+   "fast": {
+    "geomean": 0.18733033973368343,
+    "total_ratio": 0.14254483673504548,
+    "faster": 16,
+    "cases": 17,
+    "not_faster": [
+     "Src9"
+    ],
+    "cold_geomean": 0.36866740024893485
+   },
+   "subpixel": {
+    "geomean": 0.09701801562029579,
+    "total_ratio": 0.027159099336378577,
+    "faster": 16,
+    "cases": 17,
+    "not_faster": [
+     "Src9"
+    ],
+    "cold_geomean": 0.13343945761435685
+   }
+  }
+ },
+ "after_the_gate": {
+  "red_check_1714c97": {
+   "totals": {
+    "KILLED": 3,
+    "SURVIVED": 2
+   },
+   "results": [
+    [
+     "baseline cpp-core/experiments/coarse_cuda.cu",
+     "SURVIVED"
+    ],
+    [
+     "baseline cpp-core/src/ncc.cpp",
+     "SURVIVED"
+    ],
+    [
+     "W1 warp sx re-associated: ax+(c*x-s*y)",
+     "KILLED"
+    ],
+    [
+     "W2 warp sy contracted into an FMA",
+     "KILLED"
+    ],
+    [
+     "N2 normalization: saturation band 1.25 instead of 1.125",
+     "SURVIVED"
+    ],
+    [
+     "C1 fused coarse keeps only scores above the threshold",
+     "KILLED"
+    ],
+    [
+     "F2 fine repairAll ignored",
+     "SURVIVED"
+    ],
+    [
+     "restored cpp-core/experiments/coarse_cuda.cu",
+     "SURVIVED"
+    ],
+    [
+     "restored cpp-core/src/ncc.cpp",
+     "SURVIVED"
+    ]
+   ]
+  },
+  "mutants_1714c97": {
+   "totals": {
+    "KILLED": 21,
+    "SURVIVED": 3
+   },
+   "survived": [
+    "N1 normalization: no 0.5 cap on the variance guard",
+    "N2 normalization: saturation band 1.25 instead of 1.125",
+    "F2 fine repairAll ignored"
+   ],
+   "note": "N1 survived because the new threshold cases changed the random coarse trials"
+  },
+  "red_check_7f5737b_N1": "KILLED (coarse mode 1 trial 29 angle 26)",
+  "mutants_7f5737b": {
+   "totals": {
+    "KILLED": 22,
+    "SURVIVED": 2
+   },
+   "survived": [
+    "N2 normalization: saturation band 1.25 instead of 1.125",
+    "F2 fine repairAll ignored"
+   ]
+  }
+ },
+ "not_formal": [
+  "pilot/ (cuda_pilot.cu outputs)",
+  "explore1.json and explore2.json in raw-results.tar.gz",
+  "pilot/ncu-*.txt",
+  "profile/ (Nsight Systems of 9623880 after the formal runs)"
+ ]
+}
