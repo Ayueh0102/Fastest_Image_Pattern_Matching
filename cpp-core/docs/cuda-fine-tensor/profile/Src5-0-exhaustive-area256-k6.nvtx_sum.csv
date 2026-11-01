@@ -1,0 +1,7 @@
+Generating SQLite file C:\r-cuda\gpu5\formal\profile\Src5-0-exhaustive-area256-k6.sqlite from C:\r-cuda\gpu5\formal\profile\Src5-0-exhaustive-area256-k6.nsys-rep
+Processing [C:\r-cuda\gpu5\formal\profile\Src5-0-exhaustive-area256-k6.sqlite] with [C:\Program Files\NVIDIA Corporation\Nsight Systems 2025.6.3\host-windows-x64\reports\nvtx_sum.py]... 
+Time (%),Total Time (ns),Instances,Avg (ns),Med (ns),Min (ns),Max (ns),StdDev (ns),Style,Range
+40.1,389223635,1167,333525.0,328809.0,311463,2572843,67479.9,PushPop,:fpm lean prepare
+30.4,295216279,1167,252970.2,247717.0,200718,2513542,83449.2,PushPop,:fpm coarse
+29.5,286317154,4668,61336.2,60316.5,46551,1135646,18221.6,PushPop,:fpm fine batch
+

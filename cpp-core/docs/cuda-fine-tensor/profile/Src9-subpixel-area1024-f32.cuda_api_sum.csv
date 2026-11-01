@@ -1,0 +1,26 @@
+Generating SQLite file C:\r-cuda\gpu5\formal\profile\Src9-subpixel-area1024-f32.sqlite from C:\r-cuda\gpu5\formal\profile\Src9-subpixel-area1024-f32.nsys-rep
+Processing [C:\r-cuda\gpu5\formal\profile\Src9-subpixel-area1024-f32.sqlite] with [C:\Program Files\NVIDIA Corporation\Nsight Systems 2025.6.3\host-windows-x64\reports\cuda_api_sum.py]... 
+Time (%),Total Time (ns),Num Calls,Avg (ns),Med (ns),Min (ns),Max (ns),StdDev (ns),Name
+69.8,227640599,43335,5253.0,4989.0,3538,1966258,12329.1,cudaLaunchKernel
+27.8,90665886,14445,6276.6,4980.0,4204,173700,3328.7,cudaMemcpyAsync
+1.0,3239581,43335,74.8,70.0,60,9836,94.9,cuKernelGetName
+0.5,1650876,2889,571.4,544.0,426,12377,344.6,cudaEventRecord
+0.5,1550486,2889,536.7,508.0,399,11086,266.1,cudaEventSynchronize
+0.1,338285,5,67657.0,3520.0,2435,324003,143305.0,cudaHostAlloc
+0.1,239952,5,47990.4,2351.0,1895,225569,99299.9,cudaFreeHost
+0.1,215859,1,215859.0,215859.0,215859,215859,0.0,cudaHostUnregister
+0.0,146643,8,18330.4,2226.0,1189,120522,41401.4,cudaFree
+0.0,129815,8,16226.9,1977.5,1659,113595,39350.5,cudaMalloc
+0.0,68108,1,68108.0,68108.0,68108,68108,0.0,cudaHostRegister
+0.0,44205,3,14735.0,7898.0,7789,28518,11936.6,cudaMemsetAsync
+0.0,32968,1,32968.0,32968.0,32968,32968,0.0,cudaStreamCreateWithFlags
+0.0,13440,1,13440.0,13440.0,13440,13440,0.0,cuCtxSynchronize
+0.0,7595,1,7595.0,7595.0,7595,7595,0.0,cuModuleGetLoadingMode
+0.0,5978,1,5978.0,5978.0,5978,5978,0.0,cudaStreamDestroy
+0.0,5703,2,2851.5,2851.5,665,5038,3092.2,cudaEventCreate
+0.0,3501,3,1167.0,495.0,223,2783,1406.1,cudaEventDestroy
+0.0,2300,3,766.7,604.0,571,1125,310.8,cuLibraryGetKernel
+0.0,2133,1,2133.0,2133.0,2133,2133,0.0,cudaGetDeviceProperties_v12000
+0.0,370,1,370.0,370.0,370,370,0.0,cudaEventCreateWithFlags
+0.0,353,1,353.0,353.0,353,353,0.0,cuDeviceGetLuid
+

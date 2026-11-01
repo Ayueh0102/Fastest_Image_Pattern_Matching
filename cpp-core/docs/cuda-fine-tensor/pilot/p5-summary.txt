@@ -1,0 +1,27 @@
+w0 mismatches 0 failures 0
+  exhaustive k6   12.36 m   11.66 m/k6 geo 0.941 | Src1:0.925 Src2:0.938 Src3:0.933 Src4:0.970 Src6:0.948 Src7:0.928 Src8:0.903 Src9:0.919 Src10:0.986 Src5-0:0.961
+  subpixel   k6   47.50 m   42.75 m/k6 geo 0.895 | Src1:0.849 Src2:0.875 Src3:0.926 Src4:0.918 Src6:0.941 Src7:0.875 Src8:0.880 Src9:0.818 Src10:0.972 Src5-0:0.905
+w64 mismatches 0 failures 0
+  exhaustive k6   12.30 m   11.77 m/k6 geo 0.956 | Src1:0.930 Src2:0.944 Src3:0.952 Src4:1.008 Src6:0.964 Src7:0.949 Src8:0.911 Src9:0.936 Src10:0.997 Src5-0:0.977
+  subpixel   k6   46.97 m   42.77 m/k6 geo 0.917 | Src1:0.849 Src2:0.873 Src3:0.939 Src4:0.991 Src6:0.945 Src7:0.877 Src8:0.892 Src9:0.914 Src10:0.999 Src5-0:0.906
+w128 mismatches 0 failures 0
+  exhaustive k6   12.27 m   11.94 m/k6 geo 0.979 | Src1:0.961 Src2:0.941 Src3:0.982 Src4:1.029 Src6:0.971 Src7:0.960 Src8:0.951 Src9:1.000 Src10:1.004 Src5-0:0.997
+  subpixel   k6   46.93 m   42.93 m/k6 geo 0.929 | Src1:0.850 Src2:0.877 Src3:0.957 Src4:1.006 Src6:0.947 Src7:0.878 Src8:0.897 Src9:0.988 Src10:0.995 Src5-0:0.910
+w256 mismatches 0 failures 0
+  exhaustive k6   12.25 m   12.09 m/k6 geo 0.996 | Src1:0.971 Src2:1.017 Src3:1.002 Src4:0.986 Src6:0.969 Src7:0.975 Src8:1.000 Src9:1.039 Src10:1.003 Src5-0:0.999
+  subpixel   k6   46.99 m   43.50 m/k6 geo 0.953 | Src1:0.855 Src2:0.884 Src3:0.993 Src4:0.995 Src6:0.947 Src7:0.887 Src8:0.999 Src9:0.999 Src10:0.993 Src5-0:0.996
+w512 mismatches 0 failures 0
+  exhaustive k6   12.24 m   12.06 m/k6 geo 0.986 | Src1:0.999 Src2:0.966 Src3:1.001 Src4:0.991 Src6:0.973 Src7:0.981 Src8:0.983 Src9:0.958 Src10:1.003 Src5-0:1.007
+  subpixel   k6   46.97 m   44.88 m/k6 geo 0.970 | Src1:1.001 Src2:0.893 Src3:1.009 Src4:0.999 Src6:0.946 Src7:0.883 Src8:1.000 Src9:0.973 Src10:1.004 Src5-0:1.001
+d3-m16 mismatches 0 failures 0
+  exhaustive k6   12.39 m   11.74 m/k6 geo 0.937 | Src1:0.947 Src2:0.959 Src3:0.948 Src4:0.970 Src6:0.941 Src7:0.955 Src8:0.896 Src9:0.840 Src10:0.994 Src5-0:0.925
+  subpixel   k6   48.66 m   44.38 m/k6 geo 0.908 | Src1:0.905 Src2:0.901 Src3:0.922 Src4:0.933 Src6:0.896 Src7:0.965 Src8:0.889 Src9:0.818 Src10:0.967 Src5-0:0.889
+d3-m8 mismatches 0 failures 0
+  exhaustive k6   12.18 m   11.58 m/k6 geo 0.935 | Src1:0.957 Src2:0.946 Src3:0.940 Src4:0.969 Src6:0.947 Src7:0.964 Src8:0.906 Src9:0.805 Src10:0.983 Src5-0:0.950
+  subpixel   k6   46.61 m   43.22 m/k6 geo 0.915 | Src1:0.897 Src2:0.895 Src3:0.919 Src4:0.941 Src6:0.941 Src7:0.968 Src8:0.888 Src9:0.847 Src10:0.977 Src5-0:0.885
+d4-m16 mismatches 0 failures 0
+  exhaustive k6   12.49 m   11.88 m/k6 geo 0.943 | Src1:1.003 Src2:0.950 Src3:0.955 Src4:0.942 Src6:0.927 Src7:0.968 Src8:0.886 Src9:0.891 Src10:0.964 Src5-0:0.951
+  subpixel   k6   48.95 m   45.39 m/k6 geo 0.924 | Src1:0.945 Src2:0.930 Src3:0.933 Src4:0.953 Src6:0.900 Src7:0.974 Src8:0.877 Src9:0.850 Src10:0.983 Src5-0:0.901
+d4-m8 mismatches 0 failures 0
+  exhaustive k6   12.53 m   12.01 m/k6 geo 0.946 | Src1:0.951 Src2:0.964 Src3:0.939 Src4:0.978 Src6:0.953 Src7:0.981 Src8:0.899 Src9:0.856 Src10:0.998 Src5-0:0.949
+  subpixel   k6   50.43 m   47.69 m/k6 geo 0.928 | Src1:0.943 Src2:0.936 Src3:0.938 Src4:0.931 Src6:0.938 Src7:1.019 Src8:0.877 Src9:0.843 Src10:0.971 Src5-0:0.894

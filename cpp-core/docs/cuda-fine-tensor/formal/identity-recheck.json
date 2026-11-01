@@ -1,0 +1,127 @@
+{
+ "files": {
+  "timing-standard": {
+   "records": 2448,
+   "errors": 0,
+   "groups": 408,
+   "arms": [
+    "b2",
+    "cpu",
+    "f32",
+    "k6",
+    "old32",
+    "t5"
+   ],
+   "differences_within_group": [],
+   "keys_with_more_than_one_result_over_all_rounds": [],
+   "driver_mismatches": 0,
+   "driver_failures": 0,
+   "exact_records": 1632,
+   "matches_total": 17376
+  },
+  "identity-standard": {
+   "records": 612,
+   "errors": 0,
+   "groups": 102,
+   "arms": [
+    "cpu",
+    "t5_batch8",
+    "t5_c3",
+    "t5_c5",
+    "t5_mode0",
+    "t5_threads"
+   ],
+   "differences_within_group": [],
+   "keys_with_more_than_one_result_over_all_rounds": [],
+   "driver_mismatches": 0,
+   "driver_failures": 0,
+   "exact_records": 612,
+   "matches_total": 6516
+  },
+  "timing-shallow": {
+   "records": 1088,
+   "errors": 0,
+   "groups": 272,
+   "arms": [
+    "b2",
+    "f32",
+    "k6",
+    "t5"
+   ],
+   "differences_within_group": [],
+   "keys_with_more_than_one_result_over_all_rounds": [],
+   "driver_mismatches": 0,
+   "driver_failures": 0,
+   "exact_records": 816,
+   "matches_total": 8688
+  },
+  "identity-shallow": {
+   "records": 204,
+   "errors": 0,
+   "groups": 68,
+   "arms": [
+    "b2",
+    "cpu",
+    "t5"
+   ],
+   "differences_within_group": [],
+   "keys_with_more_than_one_result_over_all_rounds": [],
+   "driver_mismatches": 0,
+   "driver_failures": 0,
+   "exact_records": 204,
+   "matches_total": 2172
+  }
+ },
+ "cross": {
+  "standard": {
+   "keys": 51,
+   "keys_with_more_than_one_result_across_files": []
+  },
+  "shallow": {
+   "keys": 34,
+   "keys_with_more_than_one_result_across_files": []
+  }
+ },
+ "f32_equals_old32": {
+  "cases": 51,
+  "different": [],
+  "stable_over_rounds": true
+ },
+ "shallow_cpu_ms": {
+  "Src1/exhaustive": 5609.6266,
+  "Src1/subpixel": 8179.0765,
+  "Src2/exhaustive": 480.2567,
+  "Src2/subpixel": 1571.5846,
+  "Src3/exhaustive": 27.5798,
+  "Src3/subpixel": 31.2591,
+  "Src4/exhaustive": 145.7982,
+  "Src4/subpixel": 165.4097,
+  "Src6/exhaustive": 632.6924,
+  "Src6/subpixel": 3805.3367,
+  "Src7/exhaustive": 331.7898,
+  "Src7/subpixel": 1912.0862000000002,
+  "Src8/exhaustive": 100.9441,
+  "Src8/subpixel": 454.7763,
+  "Src9/exhaustive": 3.2512,
+  "Src9/subpixel": 3.5561,
+  "Src10/exhaustive": 459.4303,
+  "Src10/subpixel": 460.7081,
+  "Src5-0/exhaustive": 1135.3432,
+  "Src5-0/subpixel": 1187.8237000000001,
+  "Src5-45/exhaustive": 1119.4881,
+  "Src5-45/subpixel": 1180.6182,
+  "Src5-90/exhaustive": 1118.9705000000001,
+  "Src5-90/subpixel": 1176.3034,
+  "Src5-135/exhaustive": 1116.497,
+  "Src5-135/subpixel": 1184.8383,
+  "Src5-180/exhaustive": 1120.1617999999999,
+  "Src5-180/subpixel": 1193.0089999999998,
+  "Src5-225/exhaustive": 1119.8048,
+  "Src5-225/subpixel": 1181.2805,
+  "Src5-270/exhaustive": 1122.9243,
+  "Src5-270/subpixel": 1188.7163,
+  "Src5-315/exhaustive": 1197.2477999999999,
+  "Src5-315/subpixel": 1185.7476000000001
+ },
+ "pass": true
+}

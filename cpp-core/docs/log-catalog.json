@@ -26,44 +26,44 @@
     "metadata": "Filesystem sidecar metadata",
     "other": "No recognized role; inspect manually"
   },
-  "artifact_count": 1142,
-  "artifact_bytes": 2931833773,
+  "artifact_count": 1292,
+  "artifact_bytes": 2939060472,
   "artifact_role_counts": {
-    "archive": 163,
+    "archive": 167,
     "calibration": 5,
-    "failure_review": 37,
+    "failure_review": 39,
     "false_gate": 65,
-    "formal": 104,
+    "formal": 130,
     "input": 21,
-    "other": 226,
-    "pilot": 98,
-    "protocol": 57,
-    "provenance": 90,
-    "raw": 163,
-    "report": 85,
-    "source": 40,
-    "summary": 208,
-    "validation": 110,
+    "other": 292,
+    "pilot": 128,
+    "protocol": 58,
+    "provenance": 92,
+    "raw": 187,
+    "report": 86,
+    "source": 48,
+    "summary": 219,
+    "validation": 113,
     "visual": 68
   },
-  "archive_member_count": 146490,
+  "archive_member_count": 146563,
   "archive_member_role_counts": {
     "archive": 26,
     "binary": 47,
     "calibration": 1,
     "failure_review": 159,
-    "formal": 32827,
+    "formal": 32828,
     "input": 616,
     "metadata": 6526,
-    "other": 61189,
-    "pilot": 4307,
+    "other": 61203,
+    "pilot": 4347,
     "protocol": 114,
     "provenance": 147,
-    "raw": 47922,
+    "raw": 47959,
     "report": 92,
     "source": 13440,
     "summary": 1233,
-    "validation": 1230,
+    "validation": 1232,
     "visual": 1088
   },
   "artifacts": [
@@ -211,8 +211,8 @@
       "path": "CUDA_BACKEND_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 21575,
-      "sha256": "2a8b79b8eebb6b2f4bb4b5106f037310945fec247cf8103a860ac40bb0c50088",
+      "bytes": 21657,
+      "sha256": "c79a0d53e28e99fcf2cb49593293d168f091c50c690ae9f02011b0378b9a8d56",
       "roles": [
         "report"
       ]
@@ -221,8 +221,18 @@
       "path": "CUDA_COARSE_WINDOWS_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 25933,
-      "sha256": "9b38e26edee69d29f73132e63277cf0ec99921480aa6e73947eff81a440c4795",
+      "bytes": 26392,
+      "sha256": "a27a2d317c3e7d9d4583553aa3a3693610c3887ebfe3383d26d87bf68ba64734",
+      "roles": [
+        "report"
+      ]
+    },
+    {
+      "path": "CUDA_FINE_TENSOR_zh-TW.md",
+      "group": "root",
+      "stage": null,
+      "bytes": 21727,
+      "sha256": "948b405934b9f05190dc64c257fa27c79cf2c3349d9face0bdc8ca5df2c52005",
       "roles": [
         "report"
       ]
@@ -663,8 +673,8 @@
       "path": "PROJECT_STATUS_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 23624,
-      "sha256": "e33b2b0b8d66f5d469d4b7fdacc2bb80995a2648526faf37778ad051b21e4acf",
+      "bytes": 24538,
+      "sha256": "77813004aaf9b2b72dd71114c8143ffee3da9e6e257dd802b48e5b8775ec7633",
       "roles": [
         "report"
       ]
@@ -3881,6 +3891,1544 @@
       "stage": null,
       "bytes": 10091,
       "sha256": "3f657497e38767289846c493970f0ef20d53094ebd189e85ae1d148247a86801",
+      "roles": [
+        "validation"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/archive.json",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 16611,
+      "sha256": "ad6330df996471d15d1a9f14e43ef688e6228fcef422a6dc94143898677f5117",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/decision-and-failures.json",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 5127,
+      "sha256": "ec7763423e7e45f03c9ebd79865594271b6476398e2903a862b141c76aafb984",
+      "roles": [
+        "failure_review"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/formal/after.bat",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 1316,
+      "sha256": "af7a13e047eb740afa1e229835584b3bdf5d42c6537ec702b5c216002116b828",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/formal/build-cuda.bat",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 890,
+      "sha256": "26ff29e815e7c446cc0cc14fdf142edea6fb71b6b4254d9aaaf9d2f94ec00102",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/formal/check_pgm.py",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 429,
+      "sha256": "54812833d760c4d83270a74c2e5cdcc9f8244e178a3406f1cb3c264888d3e41b",
+      "roles": [
+        "formal",
+        "source"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/formal/derived-tables.txt",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 19833,
+      "sha256": "273f84b951f8cc2d754f3c0932298b3e488925b2a60d3f953e595dd147f670a8",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/formal/derived_tables.py",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 3877,
+      "sha256": "fe8dd823d5f625fe198632a8b1bdf4d3bd7c5ef75a0d7c5cf96ee135c88b8b54",
+      "roles": [
+        "formal",
+        "source"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/formal/f32-deviation-shallow.json",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 79903,
+      "sha256": "b394a98f0094af4a89482698a15a2e9dad6cd07c718095de0dfef30a1aa36084",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/formal/f32-deviation-standard.json",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 116538,
+      "sha256": "bda87fbe80225cdd3cf34228fcf463dfa93ab5e2442824dd2820b8ee1368ba16",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/formal/formal.bat",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 2409,
+      "sha256": "4269710b56914e1818f0fb5d1741380a4a5aa4b2edd055ca9970663b3c8a64b6",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/formal/identity-recheck.json",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 2895,
+      "sha256": "d88dc1fd1f51fbeed501134d2b1792499d576f186d9527c0e524678b7d813005",
+      "roles": [
+        "formal",
+        "summary"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/formal/identity_check.py",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 3369,
+      "sha256": "aadf13f2df61f657e03fefce6ba4a2c7999d8950eb879feff2c387b28f479456",
+      "roles": [
+        "formal",
+        "source"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/formal/make_validation.py",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 4762,
+      "sha256": "56aae31ce84e94d2e4eae4d6e14c902d33c1f9babb824254906c883191ec2dca",
+      "roles": [
+        "formal",
+        "source",
+        "validation"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/formal/mutants-a6aa630.json",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 20258,
+      "sha256": "df49c435eb47dc404ab16a1c93a9b538f948cd1ed16c3f43a4ac3d60f9462bd1",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/formal/old32-deviation-standard.json",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 116540,
+      "sha256": "a505dbf7aea4d391649a79921a9310317209233b8965c201c0a772d3acc99818",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/formal/pgm-manifest.json",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 4272,
+      "sha256": "3a539fec058b4f42e613c074a8fcb0f697ae2ca671cd76645bc8a23b6cd8e64f",
+      "roles": [
+        "formal",
+        "provenance"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/formal/profile-tables.txt",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 11571,
+      "sha256": "da89675e2e887e572a4a179a341ce264b28600971abc48db51dadb3e30998c93",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/formal/profile.ps1",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 2659,
+      "sha256": "b5c0b9a7a3e51746adec0bce7080f22a2bfbb840760093f6ccd3ad23bccb3f81",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/formal/profile_tables.py",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 2394,
+      "sha256": "feb20f6ced8bab2582c7412389fc5f17a2f65687361822c61f5704dbf7147cc7",
+      "roles": [
+        "formal",
+        "source"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/formal/sass-phases.txt",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 5544,
+      "sha256": "45d280c94090a43a04fd4c2c91c82149cb17bee56829d8ab88dcb042d6ab2f42",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/formal/sass_phases.py",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 1140,
+      "sha256": "c7b9ae534a8b60b4246f4744c1c12adc791ac974cc9c04ca6e8f44d9f0358c43",
+      "roles": [
+        "formal",
+        "source"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/formal/timing-summary-shallow-vs-b2.json",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 75481,
+      "sha256": "6bf1b3c1636a062e3a17d428e5fddd222a08e70fd8a3e8fc40360fefb7b9275f",
+      "roles": [
+        "formal",
+        "summary"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/formal/timing-summary-shallow-vs-k6.json",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 56160,
+      "sha256": "6d8fbfd7fa98931c52eba67dc7949d190c8bbba7711ecdc774f7a897b0e251f2",
+      "roles": [
+        "formal",
+        "summary"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/formal/timing-summary-shallow-vs-t5.json",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 36926,
+      "sha256": "1a59db365153a4b3353531010739f51dd0b17e22e709fc6032721cef00b9ac66",
+      "roles": [
+        "formal",
+        "summary"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/formal/timing-summary-standard-vs-b2.json",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 111739,
+      "sha256": "7a88059832247c1b25974452465c418dfa68dfb255a0d3fbedee62d4385d7669",
+      "roles": [
+        "formal",
+        "summary"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/formal/timing-summary-standard-vs-cpu.json",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 139853,
+      "sha256": "b74c32da808a9041cba1b8f28394a29c3be134865cd799c4249f964c402a01c8",
+      "roles": [
+        "formal",
+        "summary"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/formal/timing-summary-standard-vs-k6.json",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 141181,
+      "sha256": "749f15a0efd43cd6c3367a309537a05319f0a0ed04e5a76e4be05d4fc8492297",
+      "roles": [
+        "formal",
+        "summary"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/formal/timing-summary-standard-vs-t5.json",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 83865,
+      "sha256": "5134293e0652014f46340300b111458e4f7cabc81a3cc899e6a3061b619c5fb9",
+      "roles": [
+        "formal",
+        "summary"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/pilot/dev-build.bat",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 663,
+      "sha256": "b8c4913526b7d6892d5b41b59c5cc67cc86320527d38dafa84d00adf9eec279c",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/pilot/mutpilot-first.log",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 2950,
+      "sha256": "c3004ae580950115b17156f9681d6a9ef394a38075e8b04d7a2d0e453aff7853",
+      "roles": [
+        "pilot",
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/pilot/mutpilot-last.json",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 4405,
+      "sha256": "b4a1701c380c7a6ab355142140954355d3d66bad2d21ff0ac59dcc569c0da4db",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/pilot/mutpilot-last.log",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 2921,
+      "sha256": "21cbfbe7c7566dad640dd9f2936d4c38e845e507a5604a68a01dcde371dc7382",
+      "roles": [
+        "pilot",
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/pilot/mutpilot-no-path-failure.log",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 1336,
+      "sha256": "7f06e6ffb7159559ae707ccdaa1ccad87ad9302ff81c79b597c5c99f24906eba",
+      "roles": [
+        "failure_review",
+        "pilot",
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/pilot/mutpilot6.bat",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 1630,
+      "sha256": "4045206b92513b61a46c1347b6ca6ed20663f643c2afa9358886c45c755cc3a2",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/pilot/ncu-first/fine5.txt",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 15166,
+      "sha256": "e32b7d63cd86c1ffbb2b6aee5c90a4336d077c42a000b4edf34f33cab3a402c4",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/pilot/ncu-second/fine5.txt",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 15166,
+      "sha256": "19cb84800e809e62050c0a833c553f75934c2d31395fc1ca4694dd540024ecc0",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/pilot/ncu-third/fine4.txt",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 14441,
+      "sha256": "49b72177bfd607268fa599dcd9df7bf4eb4c0c4fd39295d0713801c4ff4b9caf",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/pilot/ncu-third/fine5.txt",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 16741,
+      "sha256": "c0ec9d332fa34efa1340351f791ada0f870a676ef126d1a2f70bc17a850beddc",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/pilot/ncu-three-blocks-attempt.txt",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 16741,
+      "sha256": "5f29a8331b7775cb4c4b4ea7bba86c04fdcb8f3c9838e5cf092b0d7d202225ac",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/pilot/ncu-warps/t256.txt",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 16741,
+      "sha256": "87fcc0a8076d3b89667e462a9dce69728380ee58357c4153a3a1c90bba9463fe",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/pilot/ncu-warps/t320.txt",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 15167,
+      "sha256": "927730166196ef355d625c5f4da1695d6f7c6d693d2d0163193f1dd3e03bb7a0",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/pilot/ncu-warps/t384.txt",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 15166,
+      "sha256": "253627038c21242fb0c123196e58d702a2d38854097825a20216900ef60b5dca",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/pilot/ncu-warps/t448.txt",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 15167,
+      "sha256": "95e9a98b145032b254fa472c14f91df6accdb2c60f78d152df9eb89055db4612",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/pilot/ncu-warps/t512.txt",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 15167,
+      "sha256": "92fb9419eacfe861d36fdba610a3753da765f99b0e2f54ce1009854305cd996c",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/pilot/ncu-warps/t640.txt",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 16982,
+      "sha256": "cc9fb53b2a674e3c989f2dd20f26ec4e42d07e59f998cc926d67a0312142f007",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/pilot/ncu-warps/t768.txt",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 16983,
+      "sha256": "f99d7d29884b2629c9923f9aa41258dd93776ae3f00d9bc6df16c47e0efcb3e5",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/pilot/ncu5.ps1",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 846,
+      "sha256": "619fcc00b8579aaf4067a85f6fbe6fd1b84b88523273df62f098aa022e30304e",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/pilot/ncu7.ps1",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 1073,
+      "sha256": "4136a4ae7b02e723ac60d7645c1e05314748058c8bbcfd4c6371a571d4143324",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/pilot/p5-summary.txt",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 3216,
+      "sha256": "496c153f2508be9638fe5603166d8a8e332fb96916c2625133c1d051b5efbb7f",
+      "roles": [
+        "pilot",
+        "summary"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/pilot/p5sum.py",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 1121,
+      "sha256": "01174ba9343395b0804eed03a3a767601d863de05e570f561e9f7aaf37d61898",
+      "roles": [
+        "pilot",
+        "source"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/pilot/p7-summary.txt",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 2020,
+      "sha256": "778dabf3d82980416e19fec942a0be2a98c3f053ad9355d2d38e7ce005bf1068",
+      "roles": [
+        "pilot",
+        "summary"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/pilot/p7sum.py",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 978,
+      "sha256": "194ed790d70c07b1bbc51fde83c7c7ac306ee518e6a564cbe9c7a102c2f17bee",
+      "roles": [
+        "pilot",
+        "source"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/pilot/pilot-raw.tar.gz",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 3123444,
+      "sha256": "3d5072e5e6451649ce2bb8eaac803c226c160eff3c6360e245376a728221d00b",
+      "roles": [
+        "archive",
+        "pilot"
+      ],
+      "archive_file_count": 45,
+      "archive_role_counts": {
+        "other": 5,
+        "pilot": 40,
+        "raw": 18
+      }
+    },
+    {
+      "path": "cuda-fine-tensor/pilot/pilot5.bat",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 1247,
+      "sha256": "e156d08fa7949f632369c4af901597c3de6c12faf41655bfca6a521f506014c0",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/pilot/pilot6.bat",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 1447,
+      "sha256": "0c1ed514f73fa557e3f742ac5e8ed77e4c0b03216e91be7ae7fa030d1bf5dd34",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/pilot/pilot7.bat",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 763,
+      "sha256": "a1efb2752782aeee5a4855480c56dd6bae53cd52773b26c032581a53e8d2dd94",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/pilot/pilot8.bat",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 1627,
+      "sha256": "f8e4a80b4d3e2d99d108e349ee378810c2669d166c43333befd6c07c91efdc5d",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/pilot/sync.sh",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 518,
+      "sha256": "7c5b1deba60de9298f9e281f006b3e280e6744250b6b19fe3fcc44f6a75045d6",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src1-subpixel-area256-f32.cuda_api_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 1795,
+      "sha256": "05b0c8ef5c8e757d790f5af00f2c7e2e9b09c04be112ad1677f23b14322b51f6",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src1-subpixel-area256-f32.cuda_gpu_kern_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 1604,
+      "sha256": "65e27d9167f703fcbf2a871bc0890c8975ac8df95bf962d47e1b8d2b5e00c352",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src1-subpixel-area256-f32.cuda_gpu_mem_time_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 575,
+      "sha256": "2f48c468d24223bae120882eaac94887205cf6eee5d1afc9c40f8df4661ca3dd",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src1-subpixel-area256-f32.nvtx_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 684,
+      "sha256": "a2b468ac468a5c339133b828053da5fe90bae1ef0f67d804751aa32c59e1278e",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src1-subpixel-area256-f32.stdout.txt",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 5135,
+      "sha256": "df08ae889ff1c52f7cdba033190b167661797729c95455d70f296345f9a39b7c",
+      "roles": [
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src1-subpixel-area256-k6.cuda_api_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 1789,
+      "sha256": "d3aa358c5ab937aef128c6b7a0722675f5bdd69efe84a942ebab51fbfe5c52be",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src1-subpixel-area256-k6.cuda_gpu_kern_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 1843,
+      "sha256": "eb543ad3cde43baa7296b30126aab7571f056d643e6612e0ddd5acb8fef28065",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src1-subpixel-area256-k6.cuda_gpu_mem_time_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 571,
+      "sha256": "7a076a9d3044f25eb6c332885a212a0ce65a7a131790413a2c5cfe340e49f5a6",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src1-subpixel-area256-k6.nvtx_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 681,
+      "sha256": "822a887b852f98ea03cf34a988cee4546a95d385ad7bee9962ed2b99f4db3306",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src1-subpixel-area256-k6.stdout.txt",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 6059,
+      "sha256": "70faea341a6d4323e99045c60c58d8aea924444ffe14d2c75b426c43230596d7",
+      "roles": [
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src1-subpixel-area256-t5.cuda_api_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 1793,
+      "sha256": "678b490b62e1cf4c538189121d72d5ee4f1e696cff4ac4308bd8e362ef8c0e6c",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src1-subpixel-area256-t5.cuda_gpu_kern_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 1841,
+      "sha256": "1903a571ad2c417aa49de7d102764656e15ebc4e969387f1c4b2731619613ef6",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src1-subpixel-area256-t5.cuda_gpu_mem_time_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 572,
+      "sha256": "9955833ed918240eb36ccf65560ca1769c03a1bdbb85eff929ba0b75efb226b1",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src1-subpixel-area256-t5.nvtx_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 680,
+      "sha256": "c3833bfc35f76349bb5ddf1bd0d468e197d079336f8583002d135f18fec9c3f2",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src1-subpixel-area256-t5.stdout.txt",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 5846,
+      "sha256": "49aec62cef11f27188507ec3f7ce8ba9f8433613c3f2a8db9012a92604e5f0e8",
+      "roles": [
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src5-0-exhaustive-area256-f32.cuda_api_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 1810,
+      "sha256": "89d117775160488e7114c69e74b0a6a927798c505d8aaeae9299d8c9a90733b3",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src5-0-exhaustive-area256-f32.cuda_gpu_kern_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 1606,
+      "sha256": "deecf9009138ebef8f8475490182738a685e2c495916619ff103d151bf439982",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src5-0-exhaustive-area256-f32.cuda_gpu_mem_time_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 589,
+      "sha256": "c339ca5fe0dab61d5fa64c1c8f58929b8b3838a9537ea61ac13ebb3c26c6069c",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src5-0-exhaustive-area256-f32.nvtx_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 697,
+      "sha256": "a22952060d25b2871de7c528eed244e94b8888d662aab72b64f142df1859d96b",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src5-0-exhaustive-area256-f32.stdout.txt",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 4047,
+      "sha256": "d9ecd05eeb9745524b0619bed7d5d31bcf8428c738aecf21667172c9f34e02d3",
+      "roles": [
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src5-0-exhaustive-area256-k6.cuda_api_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 1809,
+      "sha256": "d2215a94e000d65e5377cdae5b7b0f1da121f6c06b88f0f18e5ea272a04c6820",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src5-0-exhaustive-area256-k6.cuda_gpu_kern_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 1606,
+      "sha256": "c17cbb02713c87622d7bfd0745e16b65f6f12af43fb12509376a4703db22dc77",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src5-0-exhaustive-area256-k6.cuda_gpu_mem_time_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 585,
+      "sha256": "0c5ce126eb2dc995584e6819184805d3d75cd85d29624d636ee3f0598c8b7c4e",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src5-0-exhaustive-area256-k6.nvtx_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 695,
+      "sha256": "0b58bfc4da1dbb2cfcc54c2eade80149eeeb6d18d3a3cdeb2687a28f9c126622",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src5-0-exhaustive-area256-k6.stdout.txt",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 5795,
+      "sha256": "e58c9241332dc123a83587b631fd1f1a122675fbeb5489b25f5454fb7df6e06c",
+      "roles": [
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src5-0-exhaustive-area256-t5.cuda_api_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 1814,
+      "sha256": "d7cfd2dbfd8781c6e8d6b651d192dbdc05b0b6f728546f142dc2210a730dec4d",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src5-0-exhaustive-area256-t5.cuda_gpu_kern_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 1604,
+      "sha256": "777978648070e1adc376592bfc47a2681011ab81c36256a8529600430a61413f",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src5-0-exhaustive-area256-t5.cuda_gpu_mem_time_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 585,
+      "sha256": "ef2a0ea91d98475679d98d88a5d5c1ff013588899ac35672a5e27cadefc11aed",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src5-0-exhaustive-area256-t5.nvtx_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 695,
+      "sha256": "8b37f9184665e73cb6ccf3f7f70d6daf5fb6399502fc8b93090a8d445476a138",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src5-0-exhaustive-area256-t5.stdout.txt",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 3845,
+      "sha256": "99420d881dd37b3b74b8980a42e63e3a2e39912126a7c53d13848982863882ee",
+      "roles": [
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src6-subpixel-area256-f32.cuda_api_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 1799,
+      "sha256": "9e8a5ebb27ab525bbed78f7904390d797380f296536308f3218d0b9e89745434",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src6-subpixel-area256-f32.cuda_gpu_kern_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 1591,
+      "sha256": "b0b2e9cc88d60aeae1a62b95192d51718c2b63303ada23031a13cd47dfd89393",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src6-subpixel-area256-f32.cuda_gpu_mem_time_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 576,
+      "sha256": "26496d78e436a64b9322b920b679050872506d7fabfd531a44190a0f74c16772",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src6-subpixel-area256-f32.nvtx_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 682,
+      "sha256": "6ea0c38b3e75dce571bef02c327a07ec11f32a78c67de69540fc956af06a3c04",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src6-subpixel-area256-f32.stdout.txt",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 6503,
+      "sha256": "5d0148d25b9a0c9e9da93efede784a2b646a41eea1cf7bea6204d2988ca090b8",
+      "roles": [
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src6-subpixel-area256-k6.cuda_api_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 1790,
+      "sha256": "f32ac9055af8945e8b6c9c005d3b7c94b400a3f753741e99d8a645d177920afc",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src6-subpixel-area256-k6.cuda_gpu_kern_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 1830,
+      "sha256": "954b3cc36099d37f64202b620433ee18c10c34194030de4d01990272eccc388d",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src6-subpixel-area256-k6.cuda_gpu_mem_time_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 572,
+      "sha256": "aa49656ed468145889dd395a58358a84bb27fd05cf6b1becae1f3be13aead920",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src6-subpixel-area256-k6.nvtx_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 681,
+      "sha256": "e78743752c513cce5f190ab89f6a9ee34fb861369c45e82bc0f8d357e72564df",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src6-subpixel-area256-k6.stdout.txt",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 6556,
+      "sha256": "10c7d191089339eafd39f65a918db6a12aa475b8b263c926ef447bf698f73923",
+      "roles": [
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src6-subpixel-area256-t5.cuda_api_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 1797,
+      "sha256": "e82b63e6c0b473029f9a93bdfc8b891c57b2b20977923209f0cc2854fdbc3c77",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src6-subpixel-area256-t5.cuda_gpu_kern_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 1829,
+      "sha256": "5c360ad95da313fa68e7c056df99d44fa36cdbfbc4b9bb9e9033c1706ff7e935",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src6-subpixel-area256-t5.cuda_gpu_mem_time_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 573,
+      "sha256": "e645506e1c423fe5ad9499a57545cac04829fde24af390be4c7d3e8a1eff9c44",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src6-subpixel-area256-t5.nvtx_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 680,
+      "sha256": "4bef11bd7f1fe3932f9abc4e24e87e8f13ff82ac7ff35a42f743a771b0b92ad3",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src6-subpixel-area256-t5.stdout.txt",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 6627,
+      "sha256": "0bc5d2d18a8246880cb8ed212ca73d13bf6bb3009a5b9dd8b9d726869b691b0c",
+      "roles": [
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src6-subpixel-area4096-f32.cuda_api_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 1810,
+      "sha256": "d574ae2beb6505647350cee466ad1e97070346ed391de8d3d9195328ac083b0c",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src6-subpixel-area4096-f32.cuda_gpu_kern_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 1611,
+      "sha256": "cecafc8626662513dada93a8a635b83de7bf4149e265a8a3e2db339f308061ef",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src6-subpixel-area4096-f32.cuda_gpu_mem_time_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 579,
+      "sha256": "632b699daa878237776cfabec3f79572262359351b7e23591c4f9c2e7b79be13",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src6-subpixel-area4096-f32.nvtx_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 694,
+      "sha256": "a48d111679a3d77f0d5a4e3e9d615f86cdf97b77205feba24b081d37072ac32d",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src6-subpixel-area4096-f32.stdout.txt",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 6957,
+      "sha256": "fdf0f211fb575f5022540c7f235233658ad691aa86c6bd8ee70a6f97d11e7efe",
+      "roles": [
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src6-subpixel-area4096-k6.cuda_api_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 1807,
+      "sha256": "bd482496473c653e408dccab569e7b9323fd931eb083f51c6e09a40f250608de",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src6-subpixel-area4096-k6.cuda_gpu_kern_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 1844,
+      "sha256": "782919de5482597e38607517be735609890fdb5d7bb0eddaf78978eb014736b2",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src6-subpixel-area4096-k6.cuda_gpu_mem_time_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 575,
+      "sha256": "965ec85392d446d4df86b10b4eb55bc503a128fd0539146081535190e9e24fc7",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src6-subpixel-area4096-k6.nvtx_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 690,
+      "sha256": "ddccd7fac198eaf9eccfae4b81bc857176ef03e34697ee0f37eda98cafc7a365",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src6-subpixel-area4096-k6.stdout.txt",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 7295,
+      "sha256": "04afc39aa8900961af148661ea03a254001bab80bfddee1bb76f5c65ec2c93f7",
+      "roles": [
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src6-subpixel-area4096-t5.cuda_api_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 1810,
+      "sha256": "c7d2e73d81a634a2da8acc9b460ec3b96a5bfee2eece9b0d97bdb5539b534db0",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src6-subpixel-area4096-t5.cuda_gpu_kern_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 1845,
+      "sha256": "37979257a0e3e4242ad7c2c729d154de5f1621352c689b2aedb80fa9be9517f3",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src6-subpixel-area4096-t5.cuda_gpu_mem_time_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 575,
+      "sha256": "68be28c2f375c1da03307bbf47aa73a3aa249ed67ebc77572e2c19be6cf13d2f",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src6-subpixel-area4096-t5.nvtx_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 691,
+      "sha256": "362d97e3220ba86cc7feb7ff8f06d95fe7a20fa9373fcacaa0d26738bc82f3e0",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src6-subpixel-area4096-t5.stdout.txt",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 7079,
+      "sha256": "1609569752b0fea85ce7e5c35d27ec01d926f234a4a198e6e585a1fb2a07899d",
+      "roles": [
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src9-subpixel-area1024-f32.cuda_api_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 1793,
+      "sha256": "624e8d2163111b02be10ec39e02198343475ca0e7c56385487d181b87399844a",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src9-subpixel-area1024-f32.cuda_gpu_kern_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 1597,
+      "sha256": "0251f4dfc98acf43fd3c782a8a96861bfd93d251b6791d51a846304eda6c83a3",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src9-subpixel-area1024-f32.cuda_gpu_mem_time_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 577,
+      "sha256": "2378f1a38b99d6c426a5bb1507f5bda444eb534d00096ef69b24bea8bb63f9c8",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src9-subpixel-area1024-f32.nvtx_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 685,
+      "sha256": "a26846f1ab698e1ca0396ae3b9c0883a5ca6f849c9302c724adf493a52b8e5ef",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src9-subpixel-area1024-f32.stdout.txt",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 4183,
+      "sha256": "f3165a890c4e42fb33e1d4ee6056901e060daffcc217f0680252027b5bbf435d",
+      "roles": [
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src9-subpixel-area1024-k6.cuda_api_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 1788,
+      "sha256": "8f84b110c63e5f85e92ee5237eec83a31e663cab71bddb1668edaad9f4a14ed4",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src9-subpixel-area1024-k6.cuda_gpu_kern_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 1592,
+      "sha256": "a26230bf36ddc0f448ab3ec13e60a4b41f0b3ec27041a253c1aded883697a62a",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src9-subpixel-area1024-k6.cuda_gpu_mem_time_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 574,
+      "sha256": "cc390aad3cb43156f09833a1a575de17527b1201ae3e21c9bdd5521261e17d71",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src9-subpixel-area1024-k6.nvtx_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 680,
+      "sha256": "59b3db9e79a276689c2155a58ebe78eac34a3677843ddc79e010777ba666e47c",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src9-subpixel-area1024-k6.stdout.txt",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 4271,
+      "sha256": "4ff0306079ac4a2731f0b8fdeaf17230b0b721efab48b8ae428d08c571c1ede1",
+      "roles": [
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src9-subpixel-area1024-t5.cuda_api_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 1787,
+      "sha256": "c03aef1037103a9ecd056a78e4da01de100d32d3e046eeb56cac14f86aadcb60",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src9-subpixel-area1024-t5.cuda_gpu_kern_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 1594,
+      "sha256": "70cc66febab84896a3ecbf989474817791ca70b57a55fa81aef2ee3de312599f",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src9-subpixel-area1024-t5.cuda_gpu_mem_time_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 574,
+      "sha256": "b4a01945358902fa6547c944c859c490cc6c92023ce20d1a06e95d39339fa775",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src9-subpixel-area1024-t5.nvtx_sum.csv",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 683,
+      "sha256": "fc697caba1c0a78a5e9371ab5205c52b8c37c2b41e05e84f168c0b8737e2ce8b",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/Src9-subpixel-area1024-t5.stdout.txt",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 3983,
+      "sha256": "9c4a9ff6f9facf3890a78e2c45bbfab7a9bc669fffb312146b4ba015003de603",
+      "roles": [
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/done.txt",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 28,
+      "sha256": "44fa0cb255074d6e9cd8b0c82facd23e9cbf2bdf95c3e07a25a56e148631e5c9",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/ncu-fineStripes-Src4-subpixel-coarse6-fine4.stdout.txt",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 2576,
+      "sha256": "25e272d2de8ca893f3541169e51ce2d33d91adb7d9a6ec8a06a4fa5b351579cb",
+      "roles": [
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/ncu-fineStripes-Src4-subpixel-coarse6-fine4.txt",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 19405,
+      "sha256": "25f0cbe1bd93e106636eb95fb795e8952588a82099eeea8f05cde69ab67d4370",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/ncu-fineStripes-Src4-subpixel-coarse6-fine5.stdout.txt",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 2574,
+      "sha256": "1b24fed8b8885655b8df34e1a119c5705df91543fa3a4f3fbb80d97c8a5ce8fd",
+      "roles": [
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/ncu-fineStripes-Src4-subpixel-coarse6-fine5.txt",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 21582,
+      "sha256": "45d25754a025ec46ab7b173e08806287bd198203fcaf65e0ed23efd8bfe49795",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/ncu-fineStripes-Src6-subpixel-coarse6-fine4.stdout.txt",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 4894,
+      "sha256": "a06efc4055cb6edeb3192f47fbaedadb16c1b83b217b484d010750f09113d946",
+      "roles": [
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/ncu-fineStripes-Src6-subpixel-coarse6-fine4.txt",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 14441,
+      "sha256": "04f6366b4fe46009676460a4b6facc1606b85bd38bda33d8709d67f6d9fa8498",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/ncu-fineStripes-Src6-subpixel-coarse6-fine5.stdout.txt",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 4895,
+      "sha256": "8156ca3af339623d584e2727ccac87b99cf6f393b66cbefc06ef0de7492a930e",
+      "roles": [
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/ncu-fineStripes-Src6-subpixel-coarse6-fine5.txt",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 15167,
+      "sha256": "51f64694d9a0ebc3c60b6651b02f388c4a70632598207171f3e8a37304943388",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/ncu-fineStripes-Src6-subpixel-coarse7-fine6.stdout.txt",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 4882,
+      "sha256": "e59203288acc398e32fcd99b63b2f430b9f1bea307a43e013da66d3b2b9d83d5",
+      "roles": [
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/ncu-fineStripes-Src6-subpixel-coarse7-fine6.txt",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 15167,
+      "sha256": "fdb38d5adc1406d77d0b5aa6cb6debccd0a9a2f64fa81f56d2c1cf0a950f33e9",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/profile/sass.tar.gz",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 212830,
+      "sha256": "52cf2e700cacb19c938ee0b1b99d88decea4ea7f318072e8b00d69dc107ed817",
+      "roles": [
+        "archive"
+      ],
+      "archive_file_count": 5,
+      "archive_role_counts": {
+        "other": 5
+      }
+    },
+    {
+      "path": "cuda-fine-tensor/protocol.json",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 7069,
+      "sha256": "80daa0812341af76f2bf2d5cb38053a021cb7d0994be76cbe0aff1170b62be05",
+      "roles": [
+        "protocol"
+      ]
+    },
+    {
+      "path": "cuda-fine-tensor/raw-results.tar.gz",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 2288332,
+      "sha256": "e2093952477f7af365bf328af50c88703be675e5024b7ad5a91d1fc6502912e4",
+      "roles": [
+        "archive",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 4,
+      "archive_role_counts": {
+        "other": 4
+      }
+    },
+    {
+      "path": "cuda-fine-tensor/validation-logs.tar.gz",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 15429,
+      "sha256": "d4d80d553dc58b9bb5dbac602a3749a7aa441d49d736e3ee8be5bf3b7976f5d5",
+      "roles": [
+        "archive",
+        "validation"
+      ],
+      "archive_file_count": 19,
+      "archive_role_counts": {
+        "formal": 1,
+        "raw": 19,
+        "validation": 2
+      }
+    },
+    {
+      "path": "cuda-fine-tensor/validation.json",
+      "group": "cuda-fine-tensor",
+      "stage": null,
+      "bytes": 9312,
+      "sha256": "640a56135384b32360bd701707647156fb3073654e9ecfdff76c73193fa8bea2",
       "roles": [
         "validation"
       ]
@@ -14052,5 +15600,5 @@
       ]
     }
   ],
-  "archive_member_index_sha256": "64b9f09c5149143a0c292c60a0a73ae6c0964260576293745755d52f98945929"
+  "archive_member_index_sha256": "94e6efbe4e3d08a1768f6cabf20b4df77cdeb6975c714591c0bed9e43768fa50"
 }

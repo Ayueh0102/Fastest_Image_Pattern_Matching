@@ -1,0 +1,19 @@
+Traceback (most recent call last):
+  File "C:\r-cuda\gpu5\wt\cpp-core\tools\cuda_mutants.py", line 234, in <module>
+    status = check(rel)
+             ^^^^^^^^^^
+  File "C:\r-cuda\gpu5\wt\cpp-core\tools\cuda_mutants.py", line 218, in check
+    built = run(['cmake', '--build', str(build), '--target', *TARGETS], 1800)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\r-cuda\gpu5\wt\cpp-core\tools\cuda_mutants.py", line 207, in run
+    return subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, errors='replace')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ptri\AppData\Local\Programs\Python\Python312\Lib\subprocess.py", line 548, in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ptri\AppData\Local\Programs\Python\Python312\Lib\subprocess.py", line 1026, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "C:\Users\ptri\AppData\Local\Programs\Python\Python312\Lib\subprocess.py", line 1538, in _execute_child
+    hp, ht, pid, tid = _winapi.CreateProcess(executable, args,
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [WinError 2] 系統找不到指定的檔案。
