@@ -37,7 +37,7 @@ MUTANTS = [
     ('N3 normalization: s*(s/area) instead of (s*s)/area', CU,
      '__ddiv_rn(__dmul_rn(s, s), area)', '__dmul_rn(s, __ddiv_rn(s, area))', 1, 1),
     ('C1 fused coarse keeps only scores above the threshold', CU,
-     'keep = !(score < threshold);', 'keep = score > threshold;', 1, 6),
+     'keep = !(score < threshold);', 'keep = score > threshold;', 1, 8),
     ('C2 fused coarse tile one row short', CU,
      'const int tileW = TILE_X + tw - 1, tileH = TILE_Y + th - 1, tid',
      'const int tileW = TILE_X + tw - 1, tileH = TILE_Y + th - 2, tid', 1, 2),
@@ -112,7 +112,7 @@ MUTANTS = [
     ('K4 Q28 sample outside the image is 0, not the border', CU,
      'u64 numerator = u64(border) << 56;', 'u64 numerator = 0;', 1, 1),
     ('K5 coarse Q28 tile steps 31 columns', CU,
-     'const long long stepX = 32 * q.c, stepY = 32 * q.s;', 'const long long stepX = 31 * q.c, stepY = 32 * q.s;', 1, 1),
+     'const long long stepX = 32 * q.c, stepY = 32 * q.s;', 'const long long stepX = 31 * q.c, stepY = 32 * q.s;', 2, 2),
     ('K6 screen drops windows up to the threshold plus the margin', CU,
      'const double cut = threshold - SCREEN_MARGIN;', 'const double cut = threshold + SCREEN_MARGIN;', 1, 1),
     ('K7 fine mode 2 steps rows with the cosine twice', CU,
@@ -126,9 +126,9 @@ MUTANTS = [
     ('K10 coarse kernel counters not copied to the host', CU,
      'if (counter) hostCounts[gridDim.x + threadIdx.x] = counts[gridDim.x + threadIdx.x];', '', 1, 1),
     ('K11 coarse Q28 uniform template keeps only scores above the threshold', CU,
-     'keep = !(score < threshold);', 'keep = score > threshold;', 3, 6),
+     'keep = !(score < threshold);', 'keep = score > threshold;', 3, 8),
     ('K12 coarse Q28 binary64 branch keeps only scores above the threshold', CU,
-     'keep = !(score < threshold);', 'keep = score > threshold;', 6, 6),
+     'keep = !(score < threshold);', 'keep = score > threshold;', 6, 8),
     # Reported, not gated: a degenerate-variance window screened in binary32 needs a
     # near-zero but nonzero variance and a threshold at or below its score; a missing
     # wait for the copy threads is a race.
@@ -138,6 +138,41 @@ MUTANTS = [
      'score32(sum, square, product, n, stats, 4.0f, s32)', 'score32(sum, square, product, n, stats, 0.0f, s32)', 1, 1),
     ('U6 upload queued before the copy threads finish the chunk', CU,
      'while (!copyPool_.chunkDone(c)) {}', '', 1, 1),
+    # Warp-level window products (coarse NCC modes 5 and 6) and the 32-bit sampling screen.
+('L24 screen row steps 31 columns', CU,
+     'const long long stepX = 32 * q.c, stepY = 32 * q.s;', 'const long long stepX = 31 * q.c, stepY = 32 * q.s;', 1, 2),
+    ('L1 mma template column taken from lane & 7', CU, 'const int tr = rho - group;', 'const int tr = rho - (lane & 7);', 1, 1),
+    ('L2 mma stops one 32-column step early', CU, 'for (int k = 0; k < templateWords; k += 8) {', 'for (int k = 0; k + 8 < templateWords; k += 8) {', 1, 1),
+    ('L3 mma uses template rows outside the window', CU, 'const unsigned rowMask = tr >= 0 && tr < th ? ~0u : 0u;', 'const unsigned rowMask = ~0u;', 1, 1),
+    ('L4 window products ignore the byte shift', CU, 'const int shift = (group & 3) * 8;', 'const int shift = 0;', 1, 1),
+    ('L5 dp4a second window column one word off', CU, 'word1 = word0 + 2;', 'word1 = word0 + 1;', 1, 1),
+    ('L6 slide removes the wrong row', CU, 'tile + size_t(dy) * pitchWords + first / 4, tw, lane, ds, dq',
+     'tile + size_t(dy + 1) * pitchWords + first / 4, tw, lane, ds, dq', 1, 1),
+    ('L7 lane scan stops at 8', CU, 'for (int offset = 1; offset < COARSE_WARP_X; offset <<= 1) {', 'for (int offset = 1; offset < 8; offset <<= 1) {', 1, 1),
+    ('L8 column totals skip the last row', CU, 'for (int r = 0; r < th; ++r) { const unsigned v = tileBytes[', 'for (int r = 0; r + 1 < th; ++r) { const unsigned v = tileBytes[', 1, 1),
+    ('L9 slide tail not masked', CU, 'if (j == full) { a &= tail; b &= tail; }', '', 1, 1),
+    ('L10 padded template not zeroed', CU, 'std::memset(stagedRows, 0, stagedTemplate);', '', 1, 1),
+    ('L11 uniform template takes the warp windows', CU, 'coarseMode_ >= 5 && !uniform && u64(tw)', 'coarseMode_ >= 5 && u64(tw)', 1, 1),
+    ('L12 windows past the map are scored', CU, 'if (x < job.mapWidth && y < job.mapHeight) {\n            const u64 sum = windowSum[i]',
+     'if (true) {\n            const u64 sum = windowSum[i]', 1, 1),
+    ('L13 binary64-scored windows not counted', CU, 'if (exact) atomicAdd(counts + jobCount + 1, exact);', '', 1, 1),
+    ('L14 screen margin ignores the guard', CU, 'return 258 + (units < (1u << 23) ? int(units) : 1 << 23);', 'return 258;', 1, 1),
+    ('L15 screen rounds down', CU, 'return inner ? u8((value + HALF) >> 23) : border;', 'return inner ? u8(value >> 23) : border;', 1, 1),
+    ('L16 edge band not sent to q28Sample', CU, 'unsure = inner ? distance <= margin : (!outside) | (margin >= HALF);',
+     'unsure = inner ? distance <= margin : (margin >= HALF);', 1, 1),
+    ('L17 repair asks the first pixel of the chunk', CU, 'const int tx = chunk + 32 * (__ffs(unsureBits) - 1), cx = column0 + tx;',
+     'const int tx = chunk, cx = column0 + tx;', 1, 1),
+    ('L18 chunk keeps only the last unsure pixel', CU, 'unsureBits |= unsigned(unsure) << bit;', 'unsureBits = unsigned(unsure) << bit;', 1, 1),
+    ('L19 screen x weight off by a bit', CU, 'const int dx = int((unsigned(sx) << 4) >> 9),', 'const int dx = int((unsigned(sx) << 4) >> 10),', 1, 1),
+    ('L20 screen y multiply not doubled', CU, 'const int value = top + 2 * __mulhi(bottom - top, dy);', 'const int value = top + __mulhi(bottom - top, dy);', 1, 1),
+    ('L21 zero-variance window keeps only scores above the threshold', CU, 'keep = !(score < threshold); // zero variance', 'keep = score > threshold; // zero variance', 1, 1),
+    ('L22 window binary64 branch keeps only scores above the threshold', CU, 'keep = !(score < threshold);', 'keep = score > threshold;', 8, 8),
+    # Reported, not gated: the overflow guard is unreachable while shared memory is far below
+    # 66051 pixels' tile; an unclipped tile only reads more; the small-image guard needs a source
+    # of one row or column and an out-of-bounds read need not fail.
+    ('U7 no uint32 overflow guard', CU, 'u64(tw) * th <= MAX_U32_PIXELS &&\n            windowShared', '\n            windowShared', 1, 1),
+    ('U8 window tile not clipped to the map', CU, 'columns = min(job.mapWidth - x0, tileX) + tw - 1;', 'columns = tileX + tw - 1;', 1, 1),
+    ('U9 no small-image guard', CU, 'SAMPLING == 4 && !m.repairAll && sw > 1 && sh > 1', 'SAMPLING == 4 && !m.repairAll', 1, 1),
 ]
 TARGETS = ['fpm_cuda_kernel_test', 'fpm_cuda_backend_test', 'fpm_core_test']
 EXE = '.exe' if sys.platform == 'win32' else ''

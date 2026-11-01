@@ -56,6 +56,7 @@ def main() -> int:
     parser.add_argument("--repeat", type=int, default=5)
     parser.add_argument("--warmup-ms", type=float, default=500)
     parser.add_argument("--cases", default="", help="comma-separated source stems; default all 17")
+    parser.add_argument("--min-area-scale", type=int, default=1, help="multiply each case's minimum top-level area (shallower pyramids)")
     parser.add_argument("--inexact", action="append", default=[], help="arm whose outputs may differ (ablation)")
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
@@ -65,7 +66,7 @@ def main() -> int:
         arms[name] = tuple(int(v) for v in values.split(","))
     names = list(arms)
     modes = args.modes.split(",")
-    cases = [c for c in CASES if not args.cases or Path(c[0]).stem in args.cases.split(",")]
+    cases = [(*c[:6], c[6] * args.min_area_scale) for c in CASES if not args.cases or Path(c[0]).stem in args.cases.split(",")]
     records, mismatches, failures, inexact = [], [], [], []
     started = time.time()
     for round_index in range(args.rounds):
