@@ -1,0 +1,128 @@
+{
+ "results": [
+  {
+   "mutant": "baseline cpp-core/experiments/coarse_cuda.cu",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "baseline cpp-core/src/ncc.cpp",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "M1 even windows miss the second row of the pair",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 5: fine map 0 differs"
+  },
+  {
+   "mutant": "M2 odd windows miss the first row of the pair",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 5: fine map 0 differs"
+  },
+  {
+   "mutant": "M3 template row one off",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 5: fine map 0 differs"
+  },
+  {
+   "mutant": "M4 rows outside the stripe use its last row",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 5: fine map 0 differs"
+  },
+  {
+   "mutant": "M5 zero row holds template data",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 5: fine map 0 differs"
+  },
+  {
+   "mutant": "M6 warps repeat pairs",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 5: fine map 0 differs"
+  },
+  {
+   "mutant": "M7 second row of the pair is the first",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 5: fine map 0 differs"
+  },
+  {
+   "mutant": "M8 second row ignores the byte shift",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 5: fine map 0 differs"
+  },
+  {
+   "mutant": "M9 template columns 16-31 dropped",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 5: fine map 0 differs"
+  },
+  {
+   "mutant": "M10 ROI word offset ignores dx",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 5: fine map 0 differs"
+  },
+  {
+   "mutant": "M11 warps overwrite each other's products",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 5: fine map 0 differs"
+  },
+  {
+   "mutant": "M12 last stage skips a warp",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 5: fine map 0 differs"
+  },
+  {
+   "mutant": "M13 row statistics skip the first row of each warp",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 5: fine map 0 differs"
+  },
+  {
+   "mutant": "M14 template rows not padded to 32 bytes",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 5: fine map 0 differs"
+  },
+  {
+   "mutant": "M15 fine mode 5 runs the binary32 kernel",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 5: fine map 0 differs"
+  },
+  {
+   "mutant": "M16 no zero row",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 5: fine map 0 differs"
+  },
+  {
+   "mutant": "U10 fine mode 5 without the screen",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "U11 shared size leaves out the zero row",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: CUDA fine: an illegal memory access was encountered"
+  },
+  {
+   "mutant": "M17 wide launches keep the narrow products size",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: CUDA fine: an illegal memory access was encountered"
+  },
+  {
+   "mutant": "U12 no fine Tensor core overflow guard",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "restored cpp-core/experiments/coarse_cuda.cu",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "restored cpp-core/src/ncc.cpp",
+   "status": "SURVIVED",
+   "detail": ""
+  }
+ ],
+ "totals": {
+  "KILLED": 18,
+  "SURVIVED": 2
+ }
+}

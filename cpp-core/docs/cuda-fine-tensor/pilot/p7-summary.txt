@@ -1,0 +1,16 @@
+256 mismatches 0 failures 0
+  exhaustive k6   12.31 m   11.63 geo 0.936 | Src1:0.939 Src2:0.919 Src3:0.937 Src4:0.977 Src6:0.956 Src7:0.945 Src8:0.894 Src9:0.871 Src10:0.974 Src5-0:0.950
+  fast       k6    9.51 m    9.13 geo 0.943 | Src1:0.984 Src2:0.968 Src3:0.949 Src4:0.958 Src6:0.960 Src7:0.973 Src8:0.862 Src9:0.863 Src10:0.981 Src5-0:0.944
+  subpixel   k6   47.07 m   42.37 geo 0.895 | Src1:0.853 Src2:0.878 Src3:0.906 Src4:0.937 Src6:0.935 Src7:0.874 Src8:0.880 Src9:0.840 Src10:0.973 Src5-0:0.887
+320 mismatches 0 failures 0
+  exhaustive k6   12.22 m   11.47 geo 0.936 | Src1:0.919 Src2:0.933 Src3:0.929 Src4:1.020 Src6:0.929 Src7:0.932 Src8:0.896 Src9:0.869 Src10:0.998 Src5-0:0.946
+  fast       k6    9.44 m    9.10 geo 0.955 | Src1:0.980 Src2:0.973 Src3:0.910 Src4:1.039 Src6:0.941 Src7:0.969 Src8:0.925 Src9:0.854 Src10:1.011 Src5-0:0.967
+  subpixel   k6   46.97 m   41.46 geo 0.889 | Src1:0.816 Src2:0.858 Src3:0.910 Src4:0.974 Src6:0.890 Src7:0.896 Src8:0.898 Src9:0.833 Src10:0.956 Src5-0:0.872
+384 mismatches 0 failures 0
+  exhaustive k6   12.25 m   11.56 geo 0.938 | Src1:0.935 Src2:0.967 Src3:0.934 Src4:0.958 Src6:0.935 Src7:0.942 Src8:0.943 Src9:0.864 Src10:0.967 Src5-0:0.941
+  fast       k6    9.42 m    9.16 geo 0.968 | Src1:0.985 Src2:0.956 Src3:0.956 Src4:0.980 Src6:0.977 Src7:0.970 Src8:0.936 Src9:0.978 Src10:0.988 Src5-0:0.960
+  subpixel   k6   46.87 m   41.33 geo 0.888 | Src1:0.826 Src2:0.844 Src3:0.910 Src4:0.991 Src6:0.892 Src7:0.875 Src8:0.869 Src9:0.824 Src10:0.987 Src5-0:0.878
+448 mismatches 0 failures 0
+  exhaustive k6   12.26 m   11.46 geo 0.931 | Src1:0.924 Src2:0.928 Src3:0.936 Src4:0.985 Src6:0.914 Src7:0.952 Src8:0.913 Src9:0.845 Src10:0.978 Src5-0:0.946
+  fast       k6    9.37 m    9.17 geo 0.977 | Src1:0.982 Src2:1.029 Src3:0.939 Src4:1.032 Src6:0.957 Src7:0.963 Src8:0.959 Src9:0.948 Src10:1.005 Src5-0:0.965
+  subpixel   k6   46.91 m   41.16 geo 0.879 | Src1:0.804 Src2:0.839 Src3:0.894 Src4:0.987 Src6:0.891 Src7:0.897 Src8:0.856 Src9:0.785 Src10:0.975 Src5-0:0.882

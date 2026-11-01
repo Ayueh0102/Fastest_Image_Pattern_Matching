@@ -1,0 +1,164 @@
+{
+ "Dst1.pgm": {
+  "source": "Dst1.bmp",
+  "width": 466,
+  "height": 135,
+  "sha256": "109ed71811cac6862e3e9fce9947ae152d5a44bab533d6def69448eca3f76841"
+ },
+ "Dst10.pgm": {
+  "source": "Dst10.jpg",
+  "width": 54,
+  "height": 54,
+  "sha256": "ab4b2214dbe6cc999b9fbd7bdce34a62876ff5c7653f8cb5ebeaa8ffa6588419"
+ },
+ "Dst2.pgm": {
+  "source": "Dst2.bmp",
+  "width": 529,
+  "height": 133,
+  "sha256": "782d94c0398160f2277968bdec738418f45486263ec4c550a91480ce817f454e"
+ },
+ "Dst3.pgm": {
+  "source": "Dst3.bmp",
+  "width": 140,
+  "height": 102,
+  "sha256": "3b5506e5439597abaea1a211a80d820f6f3584d372c297bb0df79fbaceb4b82f"
+ },
+ "Dst4.pgm": {
+  "source": "Dst4.bmp",
+  "width": 33,
+  "height": 17,
+  "sha256": "88ca9bcb490c0638c0975382fdf2c3da77f49c4500975855ec40b0f55aa8e165"
+ },
+ "Dst5.pgm": {
+  "source": "Dst5.bmp",
+  "width": 160,
+  "height": 159,
+  "sha256": "115782df126869b43c781da4bd64917bc8fe7af177e014371fb58f71e12991be"
+ },
+ "Dst6.pgm": {
+  "source": "Dst6.bmp",
+  "width": 848,
+  "height": 446,
+  "sha256": "ddf77b1be3ab682a30d4636c27bd3f8464f66f1944baedf5a8a542d8c14e81f7"
+ },
+ "Dst7.pgm": {
+  "source": "Dst7.bmp",
+  "width": 762,
+  "height": 521,
+  "sha256": "63fac099b19a36548cd1eb35ae590fcbd647133b1992f5efce266b79eccbcc22"
+ },
+ "Dst8.pgm": {
+  "source": "Dst8.bmp",
+  "width": 200,
+  "height": 200,
+  "sha256": "f500a80aa27bd45cc2d394926fb7775e881d22147572c529e62cd62365c4d6c4"
+ },
+ "Dst9.pgm": {
+  "source": "Dst9.bmp",
+  "width": 179,
+  "height": 159,
+  "sha256": "6c7ab2ceee01bfc27077581280558221da914eb2614bdd084ec323b185810ccf"
+ },
+ "Src1.pgm": {
+  "source": "Src1.bmp",
+  "width": 2592,
+  "height": 1944,
+  "sha256": "b4c116d87bd6e57cd3e0a0458dc648a76fc1910dfbe083000bcef0be6f6e9886"
+ },
+ "Src10.pgm": {
+  "source": "Src10.bmp",
+  "width": 3648,
+  "height": 3648,
+  "sha256": "7ac55e7c695cfd366756ee7c410d75f2fbcc23c14ae589fc716c3815e046b0a6"
+ },
+ "Src2.pgm": {
+  "source": "Src2.bmp",
+  "width": 2592,
+  "height": 1944,
+  "sha256": "bcaee496fc1d5e8a11b013a96c99529dbfa8ff5f971a02df64f8285ea656e655"
+ },
+ "Src3.pgm": {
+  "source": "Src3.bmp",
+  "width": 1628,
+  "height": 1236,
+  "sha256": "d7d3a557b6e539fd27198d916acc88b41231ccf53b2c593f6a13dbf8a7bc20d8"
+ },
+ "Src4.pgm": {
+  "source": "Src4.bmp",
+  "width": 260,
+  "height": 260,
+  "sha256": "89b6b7055e1b90c181fd6e6a0e2ce9bebfe213ee78984d0e6ee4c509baa35b50"
+ },
+ "Src5-0.pgm": {
+  "source": "Src5-0.bmp",
+  "width": 2592,
+  "height": 1944,
+  "sha256": "03f180451fb59efe1faa0337dddf21e0b07e2bd5311d9f1e88e5af0a67dc2e3c"
+ },
+ "Src5-135.pgm": {
+  "source": "Src5-135.bmp",
+  "width": 2592,
+  "height": 1944,
+  "sha256": "2652dbf985800057a591857db4f03bf2779f268b20de0b3faabf404d9f9b65e3"
+ },
+ "Src5-180.pgm": {
+  "source": "Src5-180.bmp",
+  "width": 2592,
+  "height": 1944,
+  "sha256": "1052f094d889f42656541df51aea30cff48d6c4435efa4aeff1ada81c6759678"
+ },
+ "Src5-225.pgm": {
+  "source": "Src5-225.bmp",
+  "width": 2592,
+  "height": 1944,
+  "sha256": "a3dcaa29c2477fdd446140bddcae2a8007d179a929fabe152080bf1311ba7c2d"
+ },
+ "Src5-270.pgm": {
+  "source": "Src5-270.bmp",
+  "width": 2592,
+  "height": 1944,
+  "sha256": "690ac91f7433d070f7206de4f1cf58a97fd6f698063c835b52ad2348d8596ea4"
+ },
+ "Src5-315.pgm": {
+  "source": "Src5-315.bmp",
+  "width": 2592,
+  "height": 1944,
+  "sha256": "304b9dc99085eb5e8a232eea69bd6a5c054be03691bc4a39bc699594d0309687"
+ },
+ "Src5-45.pgm": {
+  "source": "Src5-45.bmp",
+  "width": 2592,
+  "height": 1944,
+  "sha256": "2e8b893ef9077405bc378853ecb3e9efd3287a845ee9c78491e2330d14235fa1"
+ },
+ "Src5-90.pgm": {
+  "source": "Src5-90.bmp",
+  "width": 2592,
+  "height": 1944,
+  "sha256": "761438fca8566009b713dc783f146cf6425a7725250fc52b02f9105863c2e2b3"
+ },
+ "Src6.pgm": {
+  "source": "Src6.jpg",
+  "width": 4096,
+  "height": 3000,
+  "sha256": "c13064f846b2f17709d5e6dc6d896c65392dd5fdddab5891a144aa2ee7f76439"
+ },
+ "Src7.pgm": {
+  "source": "Src7.bmp",
+  "width": 4024,
+  "height": 3036,
+  "sha256": "a839c92104c51c8ac745a6acd3a2bab081511d6ac9745a512245955d042dfb24"
+ },
+ "Src8.pgm": {
+  "source": "Src8.bmp",
+  "width": 640,
+  "height": 480,
+  "sha256": "18177966b77ebc8f94332d31587f280a08ff6bf0dfc08fe0aeba70e8c09636ee"
+ },
+ "Src9.pgm": {
+  "source": "Src9.bmp",
+  "width": 640,
+  "height": 480,
+  "sha256": "5619f2c4e970e6f69d2d32a31e3c56d7e1e6ee6c70b4f8c8a86b4a7aa7e5a4c5"
+ }
+}

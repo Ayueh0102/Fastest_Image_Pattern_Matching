@@ -231,7 +231,7 @@ void fine()
         Image flat(17, 9);
         for (int y = 0; y < 9; ++y) std::memset(flat.row(y), 77, 17);
         const auto wide = learnLevel(texture(300, 70, rng));
-        for (int mode : {0, 2, 4}) {
+        for (int mode : {0, 2, 4, 5}) {
             gpu.setFineNccMode(mode);
             const std::string tag = mode ? ", fine mode " + std::to_string(mode) : "";
             fineCase(gpu, source, learnLevel(flat), {{{100.5, 50.25}, 12}, {{3, 4}, 0}}, "flat template" + tag);
@@ -257,6 +257,30 @@ void fine()
         fineCase(gpu, source, wide, requests, "wide template, fine mode 4");
         const auto bright = noise(420, 260, rng, false);
         fineCase(gpu, bright, wide, requests, "wide template, other source, fine mode 4");
+        gpu.setFineNccMode(5);
+        fineCase(gpu, source, wide, requests, "wide template, fine mode 5");
+        fineCase(gpu, bright, wide, requests, "wide template, other source, fine mode 5");
+        gpu.setFineNccMode(0);
+    }
+    // 6. Fine mode 5 on template shapes around its 32-column step, its 7 product warps and the
+    //    stripe height, with narrow ROIs too, and on saturated pixels where products are largest.
+    {
+        const auto source = noise(420, 260, rng, true);
+        Image white(420, 260);
+        for (int y = 0; y < 260; ++y) std::memset(white.row(y), 255, 420);
+        gpu.setFineNccMode(5);
+        const int shapes[][2] = {{1, 2}, {2, 1}, {3, 9}, {7, 7}, {26, 8}, {31, 33}, {32, 6}, {33, 14}, {34, 15}, {58, 3}, {63, 40},
+                                 {64, 21}, {65, 28}, {96, 34}, {97, 2}, {120, 70}, {250, 12}, {251, 49}, {256, 7}, {300, 33}};
+        for (const auto& shape : shapes) {
+            const auto level = learnLevel(texture(shape[0], shape[1], rng));
+            std::vector<FineRequest> requests;
+            for (int i = 0; i < 6; ++i) requests.push_back({{u(rng) * 420, u(rng) * 260}, (u(rng) * 2 - 1) * 180});
+            requests.push_back({{0, 0}, 0});
+            requests.push_back({{419.5, 259.5}, 90});
+            const std::string tag = "fine mode 5, shape " + std::to_string(shape[0]) + "x" + std::to_string(shape[1]);
+            fineCase(gpu, source, level, requests, tag);
+            fineCase(gpu, white, level, {{{210, 130}, 0}, {{100.25, 70.5}, 33}}, tag + ", saturated source");
+        }
         gpu.setFineNccMode(0);
     }
     const auto metrics = gpu.fineMetrics();

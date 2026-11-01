@@ -1,0 +1,23 @@
+baseline cpp-core/experiments/coarse_cuda.cu ('SURVIVED', '')
+baseline cpp-core/src/ncc.cpp ('SURVIVED', '')
+KILLED   M1 even windows miss the second row of the pair | experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 5: fine map 0 differs
+KILLED   M2 odd windows miss the first row of the pair | experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 5: fine map 0 differs
+KILLED   M3 template row one off | experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 5: fine map 0 differs
+KILLED   M4 rows outside the stripe use its last row | experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 5: fine map 0 differs
+KILLED   M5 zero row holds template data | experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 5: fine map 0 differs
+KILLED   M6 warps repeat pairs | experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 5: fine map 0 differs
+KILLED   M7 second row of the pair is the first | experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 5: fine map 0 differs
+KILLED   M8 second row ignores the byte shift | experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 5: fine map 0 differs
+KILLED   M9 template columns 16-31 dropped | experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 5: fine map 0 differs
+KILLED   M10 ROI word offset ignores dx | experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 5: fine map 0 differs
+KILLED   M11 warps overwrite each other's products | experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 5: fine map 0 differs
+KILLED   M12 last stage skips a warp | experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 5: fine map 0 differs
+KILLED   M13 row statistics skip the first row of each warp | experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 5: fine map 0 differs
+KILLED   M14 template rows not padded to 32 bytes | experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 5: fine map 0 differs
+KILLED   M15 fine mode 5 runs the binary32 kernel | experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 5: fine map 0 differs
+KILLED   M16 no zero row | experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 5: fine map 0 differs
+SURVIVED U10 fine mode 5 without the screen | 
+KILLED   U11 shared size leaves out the zero row | experiments/fpm_cuda_kernel_test exit 1: FAIL fine: CUDA fine: an illegal memory access was encountered
+KILLED   M17 wide launches keep the narrow products size | experiments/fpm_cuda_kernel_test exit 1: FAIL fine: CUDA fine: an illegal memory access was encountered
+SURVIVED U12 no fine Tensor core overflow guard | 
+totals {'KILLED': 18, 'SURVIVED': 2}

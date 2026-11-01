@@ -1,0 +1,447 @@
+{
+ "protocol": "protocol.json (6e7cd03)",
+ "commits": {
+  "base": "806fb0d",
+  "after": "a6aa630"
+ },
+ "gates": {
+  "ctest_pc": {
+   "pass": true,
+   "detail": "35/35; experimental_cuda_backend and experimental_cuda_kernels ran; 6 Metal tests skipped"
+  },
+  "ctest_mac": {
+   "pass": true,
+   "detail": "91/91, research build of the a6aa630 archive (cpp-core, macos-cli, Test Images)"
+  },
+  "inputs": {
+   "pass": true,
+   "detail": "27 PGM files, 0 mismatched against the manifest"
+  },
+  "identity": {
+   "pass": true,
+   "records": {
+    "timing-standard": 2448,
+    "identity-standard": 612,
+    "timing-shallow": 1088,
+    "identity-shallow": 204
+   },
+   "runs": 4352,
+   "exact_records": {
+    "timing-standard": 1632,
+    "identity-standard": 612,
+    "timing-shallow": 816,
+    "identity-shallow": 204
+   },
+   "exact_runs": 3264,
+   "exact_cuda_runs": 2686,
+   "failures": 0,
+   "mismatches": 0,
+   "f32_equals_old32": {
+    "cases": 51,
+    "different": [],
+    "stable_over_rounds": true
+   },
+   "independent_recheck": "formal/identity_check.py compares the matches lists directly: within every (round, case, mode), over all rounds and across the files of a set; f32 and old32 are excluded"
+  },
+  "core_unchanged": {
+   "pass": true,
+   "detail": "git diff 806fb0d a6aa630 -- cpp-core/src cpp-core/include is empty"
+  },
+  "mutants": {
+   "pass": true,
+   "totals": {
+    "KILLED": 89,
+    "SURVIVED": 10
+   },
+   "status": {
+    "baseline cpp-core/experiments/coarse_cuda.cu": "SURVIVED",
+    "baseline cpp-core/src/ncc.cpp": "SURVIVED",
+    "W1": "KILLED",
+    "W2": "KILLED",
+    "W3": "KILLED",
+    "W4": "KILLED",
+    "N1": "KILLED",
+    "N2": "SURVIVED",
+    "N3": "KILLED",
+    "C1": "KILLED",
+    "C2": "KILLED",
+    "C3": "KILLED",
+    "C4": "KILLED",
+    "C5": "KILLED",
+    "C6": "KILLED",
+    "F1": "KILLED",
+    "F2": "SURVIVED",
+    "F3": "KILLED",
+    "F4": "KILLED",
+    "F5": "KILLED",
+    "F6": "KILLED",
+    "F7": "KILLED",
+    "F8": "KILLED",
+    "P1": "KILLED",
+    "P2": "KILLED",
+    "S1": "KILLED",
+    "T1": "KILLED",
+    "T2": "KILLED",
+    "T3": "KILLED",
+    "T4": "KILLED",
+    "T5": "KILLED",
+    "T6": "KILLED",
+    "T7": "KILLED",
+    "T8": "KILLED",
+    "T9": "KILLED",
+    "T10": "KILLED",
+    "U1": "SURVIVED",
+    "U2": "SURVIVED",
+    "U3": "KILLED",
+    "U4": "KILLED",
+    "K1": "KILLED",
+    "K2": "KILLED",
+    "K3": "KILLED",
+    "K4": "KILLED",
+    "K5": "KILLED",
+    "K6": "KILLED",
+    "K7": "KILLED",
+    "K8": "KILLED",
+    "K9": "KILLED",
+    "K10": "KILLED",
+    "K11": "KILLED",
+    "K12": "KILLED",
+    "K13": "KILLED",
+    "U5": "SURVIVED",
+    "U6": "KILLED",
+    "L24": "KILLED",
+    "L1": "KILLED",
+    "L2": "KILLED",
+    "L3": "KILLED",
+    "L4": "KILLED",
+    "L5": "KILLED",
+    "L6": "KILLED",
+    "L7": "KILLED",
+    "L8": "KILLED",
+    "L9": "KILLED",
+    "L10": "KILLED",
+    "L11": "KILLED",
+    "L12": "KILLED",
+    "L13": "KILLED",
+    "L14": "KILLED",
+    "L15": "KILLED",
+    "L16": "KILLED",
+    "L17": "KILLED",
+    "L18": "KILLED",
+    "L19": "KILLED",
+    "L20": "KILLED",
+    "L21": "KILLED",
+    "L22": "KILLED",
+    "U7": "SURVIVED",
+    "U8": "SURVIVED",
+    "U9": "SURVIVED",
+    "M1": "KILLED",
+    "M2": "KILLED",
+    "M3": "KILLED",
+    "M4": "KILLED",
+    "M5": "KILLED",
+    "M6": "KILLED",
+    "M7": "KILLED",
+    "M8": "KILLED",
+    "M9": "KILLED",
+    "M10": "KILLED",
+    "M11": "KILLED",
+    "M12": "KILLED",
+    "M13": "KILLED",
+    "M14": "KILLED",
+    "M15": "KILLED",
+    "M16": "KILLED",
+    "M17": "KILLED",
+    "U10": "SURVIVED",
+    "U11": "KILLED",
+    "U12": "SURVIVED",
+    "restored cpp-core/experiments/coarse_cuda.cu": "SURVIVED",
+    "restored cpp-core/src/ncc.cpp": "SURVIVED"
+   }
+  }
+ },
+ "hypotheses": {
+  "H1": true,
+  "H2": true,
+  "H3": true,
+  "H4": true,
+  "H5": true,
+  "H6": true,
+  "H7": true
+ },
+ "src6_subpixel_t5_vs_k6": 0.8848120458677659,
+ "standard_t5_vs_k6": {
+  "exhaustive": {
+   "geomean": 0.9380853872305026,
+   "total_ratio": 0.9370743296753026,
+   "faster": 17,
+   "cases": 17,
+   "not_faster": [],
+   "cold_geomean": 0.978233756368223
+  },
+  "fast": {
+   "geomean": 0.9595670889290149,
+   "total_ratio": 0.9617040514693097,
+   "faster": 16,
+   "cases": 17,
+   "not_faster": [
+    "Src4"
+   ],
+   "cold_geomean": 0.9958313460514984
+  },
+  "subpixel": {
+   "geomean": 0.8796326156927757,
+   "total_ratio": 0.8704840555366449,
+   "faster": 17,
+   "cases": 17,
+   "not_faster": [],
+   "cold_geomean": 0.9463574470316455
+  }
+ },
+ "standard_f32_vs_t5": {
+  "exhaustive": {
+   "geomean": 0.9545336161550619,
+   "total_ratio": 0.9533672188148935,
+   "faster": 16,
+   "cases": 17,
+   "not_faster": [
+    "Src10"
+   ],
+   "cold_geomean": 1.0047230982775652
+  },
+  "fast": {
+   "geomean": 0.958824818176906,
+   "total_ratio": 0.9623342904049353,
+   "faster": 16,
+   "cases": 17,
+   "not_faster": [
+    "Src10"
+   ],
+   "cold_geomean": 0.9916271514791982
+  },
+  "subpixel": {
+   "geomean": 0.8940633270671731,
+   "total_ratio": 0.8972558729035872,
+   "faster": 17,
+   "cases": 17,
+   "not_faster": [],
+   "cold_geomean": 0.9542454357097142
+  }
+ },
+ "standard_old32_vs_t5": {
+  "exhaustive": {
+   "geomean": 1.0626763454632098,
+   "total_ratio": 1.0706584729801516,
+   "faster": 0,
+   "cases": 17,
+   "not_faster": [
+    "Src1",
+    "Src2",
+    "Src3",
+    "Src4",
+    "Src6",
+    "Src7",
+    "Src8",
+    "Src9",
+    "Src10",
+    "Src5-0",
+    "Src5-45",
+    "Src5-90",
+    "Src5-135",
+    "Src5-180",
+    "Src5-225",
+    "Src5-270",
+    "Src5-315"
+   ],
+   "cold_geomean": 1.017939427620397
+  },
+  "fast": {
+   "geomean": 1.0645631496187116,
+   "total_ratio": 1.064338354945794,
+   "faster": 0,
+   "cases": 17,
+   "not_faster": [
+    "Src1",
+    "Src2",
+    "Src3",
+    "Src4",
+    "Src6",
+    "Src7",
+    "Src8",
+    "Src9",
+    "Src10",
+    "Src5-0",
+    "Src5-45",
+    "Src5-90",
+    "Src5-135",
+    "Src5-180",
+    "Src5-225",
+    "Src5-270",
+    "Src5-315"
+   ],
+   "cold_geomean": 1.0056774753205178
+  },
+  "subpixel": {
+   "geomean": 1.059275581429217,
+   "total_ratio": 1.0833574046236527,
+   "faster": 0,
+   "cases": 17,
+   "not_faster": [
+    "Src1",
+    "Src2",
+    "Src3",
+    "Src4",
+    "Src6",
+    "Src7",
+    "Src8",
+    "Src9",
+    "Src10",
+    "Src5-0",
+    "Src5-45",
+    "Src5-90",
+    "Src5-135",
+    "Src5-180",
+    "Src5-225",
+    "Src5-270",
+    "Src5-315"
+   ],
+   "cold_geomean": 1.0177000849744287
+  }
+ },
+ "standard_vs_b2": {
+  "k6": {
+   "exhaustive": 0.9471584812160913,
+   "fast": 0.9385063282162038,
+   "subpixel": 0.9594539796440208
+  },
+  "t5": {
+   "exhaustive": 0.8885155306202517,
+   "fast": 0.9005597853078813,
+   "subpixel": 0.8439670137511133
+  },
+  "f32": {
+   "exhaustive": 0.8481179424528825,
+   "fast": 0.8634790724052628,
+   "subpixel": 0.7545599562492669
+  }
+ },
+ "standard_vs_cpu": {
+  "b2": {
+   "exhaustive": 0.04474102823451041,
+   "fast": 0.05482257704146257,
+   "subpixel": 0.03776670348695297
+  },
+  "k6": {
+   "exhaustive": 0.04237684435064514,
+   "fast": 0.05145133548253296,
+   "subpixel": 0.036235413958592734
+  },
+  "t5": {
+   "exhaustive": 0.03975309844228168,
+   "fast": 0.049371008210484284,
+   "subpixel": 0.031873851961107445
+  },
+  "f32": {
+   "exhaustive": 0.03794566880947929,
+   "fast": 0.04733814797062813,
+   "subpixel": 0.028497242130794256
+  }
+ },
+ "shallow_t5_vs_k6": {
+  "exhaustive": {
+   "geomean": 0.9854176097795226,
+   "total_ratio": 0.9949648955712006,
+   "faster": 14,
+   "cases": 17,
+   "not_faster": [
+    "Src4",
+    "Src5-0",
+    "Src5-180"
+   ],
+   "cold_geomean": 0.9976057816254315
+  },
+  "subpixel": {
+   "geomean": 0.9520858405426962,
+   "total_ratio": 0.9519189117614614,
+   "faster": 17,
+   "cases": 17,
+   "not_faster": [],
+   "cold_geomean": 0.980777363807628
+  }
+ },
+ "shallow_f32_vs_t5": {
+  "exhaustive": {
+   "geomean": 0.9553763968096114,
+   "total_ratio": 0.950096647633461,
+   "faster": 14,
+   "cases": 17,
+   "not_faster": [
+    "Src3",
+    "Src9",
+    "Src10"
+   ],
+   "cold_geomean": 0.9884268192262936
+  },
+  "subpixel": {
+   "geomean": 0.9389024560445791,
+   "total_ratio": 0.934404445420687,
+   "faster": 15,
+   "cases": 17,
+   "not_faster": [
+    "Src9",
+    "Src10"
+   ],
+   "cold_geomean": 0.9842374397569897
+  }
+ },
+ "shallow_vs_b2": {
+  "k6": {
+   "exhaustive": 0.2195513406243352,
+   "subpixel": 0.2898526525179313
+  },
+  "t5": {
+   "exhaustive": 0.21634975730192227,
+   "subpixel": 0.2759646063060647
+  },
+  "f32": {
+   "exhaustive": 0.20669545158174435,
+   "subpixel": 0.25910384664213953
+  }
+ },
+ "f32_deviation_standard": {
+  "totals": {
+   "runs": 408,
+   "identical_runs": 8,
+   "same_count_runs": 400,
+   "different_count_runs": 0,
+   "reference_matches": 4344,
+   "matches_found": 4344,
+   "extra_matches": 0,
+   "order_changed_runs": 8
+  },
+  "worst_found_pairs": {
+   "center_px": 0.0012331886662765496,
+   "corner_px": 0.0029278199317559483,
+   "angle_deg": 0.0014534564553798646,
+   "score": 1.348295652836562e-05
+  }
+ },
+ "f32_deviation_shallow": {
+  "totals": {
+   "runs": 272,
+   "identical_runs": 8,
+   "same_count_runs": 264,
+   "different_count_runs": 0,
+   "reference_matches": 2896,
+   "matches_found": 2896,
+   "extra_matches": 0,
+   "order_changed_runs": 8
+  },
+  "worst_found_pairs": {
+   "center_px": 0.0012331886662765496,
+   "corner_px": 0.0037165073287042105,
+   "angle_deg": 0.001037782264972975,
+   "score": 1.348295652836562e-05
+  }
+ }
+}

@@ -59,7 +59,7 @@ ctest --test-dir build/core -C Release --output-on-failure
 
 x86-64 會在執行期依 CPU 選 SSE2、AVX2 或 AVX-VNNI-INT8 分級，輸出逐位元相同；`-DFPM_X86_MAX_ISA=SSE2|AVX2|VNNI_INT8`（預設 `VNNI_INT8`）可設定上限，見[x86 SIMD 報告](docs/CORE_X86_SIMD_zh-TW.md)。
 
-研究 coarse／frame API 另有 CUDA 後端（backend 2）：`-DFPM_BUILD_EXPERIMENTS=ON -DFPM_WITH_CUDA=ON`，需要 CUDA Toolkit（實測 13.2）與對應的主機編譯器，`CMAKE_CUDA_ARCHITECTURES` 未指定時用本機 GPU。輸出和 CPU 後端逐位元相同，只在 Windows x64 與 RTX PRO 4000 上驗證過，見 [CUDA 後端報告](docs/CUDA_BACKEND_zh-TW.md)。frame 可用 `fpm_frame_set_transfer_mode` 選擇傳輸與等待方式（預設 0；3 在 17 張影像上把每幀時間降到約 0.42 倍），見 [transfer mode 報告](docs/CUDA_TRANSFER_zh-TW.md)。粗搜尋 `ncc_mode` 3 與細搜尋 NCC mode 2 在輸出不變下再把每幀時間降到 transfer mode 3 的約 0.77 倍，見 [kernel 報告](docs/CUDA_KERNELS_zh-TW.md)。粗搜尋 `ncc_mode` 6 與細搜尋 NCC mode 4 在輸出不變下再降到約 0.95 倍；頂層面積下限放大 16 倍、粗搜尋成為主要成本時約 0.22 倍，見 [粗搜尋視窗報告](docs/CUDA_COARSE_WINDOWS_zh-TW.md)。
+研究 coarse／frame API 另有 CUDA 後端（backend 2）：`-DFPM_BUILD_EXPERIMENTS=ON -DFPM_WITH_CUDA=ON`，需要 CUDA Toolkit（實測 13.2）與對應的主機編譯器，`CMAKE_CUDA_ARCHITECTURES` 未指定時用本機 GPU。輸出和 CPU 後端逐位元相同，只在 Windows x64 與 RTX PRO 4000 上驗證過，見 [CUDA 後端報告](docs/CUDA_BACKEND_zh-TW.md)。frame 可用 `fpm_frame_set_transfer_mode` 選擇傳輸與等待方式（預設 0；3 在 17 張影像上把每幀時間降到約 0.42 倍），見 [transfer mode 報告](docs/CUDA_TRANSFER_zh-TW.md)。粗搜尋 `ncc_mode` 3 與細搜尋 NCC mode 2 在輸出不變下再把每幀時間降到 transfer mode 3 的約 0.77 倍，見 [kernel 報告](docs/CUDA_KERNELS_zh-TW.md)。粗搜尋 `ncc_mode` 6 與細搜尋 NCC mode 4 在輸出不變下再降到約 0.95 倍；頂層面積下限放大 16 倍、粗搜尋成為主要成本時約 0.22 倍，見 [粗搜尋視窗報告](docs/CUDA_COARSE_WINDOWS_zh-TW.md)。細搜尋 NCC mode 5 再降到約 0.94／0.96／0.88 倍（預設／FastMode／subpixel），輸出不變；全部改 32 位元只再快 4～11%，輸出不再和 CPU 逐位元相同，見 [細搜尋 Tensor core 報告](docs/CUDA_FINE_TENSOR_zh-TW.md)。
 
 也可從根目錄 CMake 編譯；MSVC 預設同時保留原 MFC 工具，要只編譯新核心請加 `-DFPM_BUILD_MFC=OFF`。
 

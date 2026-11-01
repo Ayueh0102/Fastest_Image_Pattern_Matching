@@ -1,0 +1,10 @@
+Generating SQLite file C:\r-cuda\gpu5\formal\profile\Src6-subpixel-area256-k6.sqlite from C:\r-cuda\gpu5\formal\profile\Src6-subpixel-area256-k6.nsys-rep
+Processing [C:\r-cuda\gpu5\formal\profile\Src6-subpixel-area256-k6.sqlite] with [C:\Program Files\NVIDIA Corporation\Nsight Systems 2025.6.3\host-windows-x64\reports\cuda_gpu_kern_sum.py]... 
+Time (%),Total Time (ns),Instances,Avg (ns),Med (ns),Min (ns),Max (ns),StdDev (ns),Name
+96.4,1063481083,1848,575476.8,553153.0,62688,1051554,388309.9,"void <unnamed>::fineStripes<(int)4>(const unsigned char *, int, int, const <unnamed>::FineWarp *, const unsigned char *, int, int, int, int, int, unsigned long long *, unsigned int *)"
+1.7,19146069,420,45585.9,26080.0,18464,104640,31309.1,"void <unnamed>::fineStripes<(int)2>(const unsigned char *, int, int, const <unnamed>::FineWarp *, const unsigned char *, int, int, int, int, int, unsigned long long *, unsigned int *)"
+1.0,10504638,2268,4631.7,4832.0,3360,8544,526.7,"void <unnamed>::fineNormalize<(bool)0>(unsigned long long *, int, double, double, double, int, unsigned int *, double *, unsigned int *, unsigned int *, unsigned int, <unnamed>::ScoreTemplate)"
+0.7,7762058,504,15400.9,3648.0,1632,72993,22723.8,"<unnamed>::pyrDownKernel(const unsigned char *, int, int, unsigned char *, int, int)"
+0.1,1629412,84,19397.8,19392.0,19072,19712,121.9,"void <unnamed>::coarseWarpWindows<(int)6>(const unsigned char *, int, int, const <unnamed>::CoarseQJob *, const unsigned int *, int, int, double, double, double, unsigned char, <unnamed>::ScoreTemplate, <unnamed>::Entry *, unsigned int *, int)"
+0.0,184033,84,2190.9,2176.0,2144,2496,38.3,"void <unnamed>::packEntries<<unnamed>::CoarseQJob>(const <unnamed>::Entry *, unsigned int *, const T1 *, <unnamed>::Entry *, unsigned int *, unsigned int *, unsigned int *, unsigned int)"
+

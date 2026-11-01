@@ -1,0 +1,6 @@
+Generating SQLite file C:\r-cuda\gpu5\formal\profile\Src6-subpixel-area256-k6.sqlite from C:\r-cuda\gpu5\formal\profile\Src6-subpixel-area256-k6.nsys-rep
+Processing [C:\r-cuda\gpu5\formal\profile\Src6-subpixel-area256-k6.sqlite] with [C:\Program Files\NVIDIA Corporation\Nsight Systems 2025.6.3\host-windows-x64\reports\cuda_gpu_mem_time_sum.py]... 
+Time (%),Total Time (ns),Count,Avg (ns),Med (ns),Min (ns),Max (ns),StdDev (ns),Operation
+100.0,27287012,924,29531.4,3232.0,256,96928,36493.7,[CUDA memcpy Host-to-Device]
+0.0,1568,3,522.7,512.0,384,672,144.3,[CUDA memset]
+

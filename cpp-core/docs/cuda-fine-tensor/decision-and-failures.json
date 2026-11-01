@@ -1,0 +1,93 @@
+{
+ "decision": "Keep fine NCC mode 5 as an opt-in research option of the frame API: coarse ncc_mode 6 with fine mode 5 on transfer mode 3 is the recommended CUDA frame setting for research runs. Coarse ncc_mode 7 and fine mode 6 stay an inexact ablation, about 4-11% faster but bit-identical on only 8/408 runs. Defaults, the core and the GUI are unchanged.",
+ "gates_passed": [
+  "ctest_pc",
+  "ctest_mac",
+  "inputs",
+  "identity",
+  "core_unchanged",
+  "mutants"
+ ],
+ "gates_failed": [],
+ "hypotheses": {
+  "H1": "held (standard t5/k6 geomean 0.938 / 0.960 / 0.880; pilot 0.929 / 0.947 / 0.881)",
+  "H2": "held (standard Src6 subpixel t5/k6 0.885; pilot 0.882-0.890)",
+  "H3": "held (t5 faster than k6 on 17 / 16 / 17 of 17 cases)",
+  "H4": "held (standard f32/t5 0.955 / 0.959 / 0.894)",
+  "H5": "held (4344/4344 CPU matches found, 0 extra; worst score 1.35e-5, center 0.00123 px, angle 0.00145 degree; 8/408 runs bit-identical)",
+  "H6": "held (shallow t5/k6 0.985 / 0.952)",
+  "H7": "held (standard old32/t5 1.063 / 1.065 / 1.059)"
+ },
+ "failures_and_disclosures": [
+  {
+   "what": "my earlier advice on occupancy and my Tensor core estimate were wrong",
+   "effect": "CUDA_COARSE_WINDOWS_zh-TW.md advised reducing shared memory per block first and estimated at most about 10% fewer instructions; at 36 KB per block occupancy did not change (still two blocks per SM), more warps per block is what raised it, and one launch went 1.20 to 1.00 ms with 9% fewer instructions; during the pilot I also said raising occupancy did not help when it had not been raised",
+   "fix": "corrected in that report and here"
+  },
+  {
+   "what": "the Tensor core's share is not separated",
+   "effect": "the formal arms compare the three changes together (Tensor core products, statistics on all warps, 14 warps on wide ROIs); Tensor core alone was slower; __dp4a with the same warp arrangement was not measured and may come close",
+   "fix": "disclosed; not measured"
+  },
+  {
+   "what": "first Tensor core version slower (development)",
+   "effect": "Src6 subpixel launch 1.26 ms against 1.21 ms: about 27.5 instructions per m16n8k32 from bounds checks and zero registers, stripes shorter",
+   "fix": "two ROI rows per m16n8k32, templates padded to 32 bytes, a zero row; kept in pilot/"
+  },
+  {
+   "what": "second Tensor core version slower (development)",
+   "effect": "Src6 subpixel launch 1.30 ms against 1.20 ms: product instructions halved but the barrier wait did not change, warp 7's row statistics became the slowest",
+   "fix": "row statistics on all warps: 1.12 ms; kept in pilot/"
+  },
+  {
+   "what": "smaller shared memory rejected (development)",
+   "effect": "a third of the SM's shared memory gave 36.4 KB per block, still two blocks per SM and 33% occupancy, 1.25 ms against 1.12 ms; a quarter was slower in total; occupancy at a quarter was not confirmed with Nsight",
+   "fix": "kept the two-block target; pilots in pilot/"
+  },
+  {
+   "what": "16 or more warps per block slower (development)",
+   "effect": "Src6 subpixel launch 1.45-1.52 ms: one block per SM",
+   "fix": "14 warps on ROIs at least 256 wide, 8 on narrower ones (narrow ROIs got slower with more warps)"
+  },
+  {
+   "what": "first mutant pilot failed (development)",
+   "effect": "pilot6.bat did not set up the toolchain, cmake was not found",
+   "fix": "rerun with vcvars and the CUDA bin on PATH; the failed log is pilot/mutpilot-no-path-failure.log"
+  },
+  {
+   "what": "first width pilot stopped (development)",
+   "effect": "stopped after two widths when the first design proved slower",
+   "fix": "w0 and w64 kept in pilot-raw.tar.gz, designs/first"
+  },
+  {
+   "what": "FastMode Src4 did not get faster",
+   "effect": "1.007; H3 allows three cases per mode",
+   "fix": "disclosed"
+  },
+  {
+   "what": "fine mode 4's code also changed slightly",
+   "effect": "the sampling loop shares warps = blockDim.x / 32; one launch went 230M to 236M instructions at the same 1.20 ms",
+   "fix": "every ratio uses the same build's k6"
+  },
+  {
+   "what": "SSH during the timing step",
+   "effect": "the waiting script polled formal.log every 60 s until timing-start appeared, so once within 60 s after timing began; then every 20 minutes and once after the end, under 400 bytes each, as the protocol says; when the user asked for progress during timing I read only the local waiter output; the Mac ran ctest and a disk cleanup, neither touched the PC",
+   "fix": "disclosed"
+  },
+  {
+   "what": "small images vary between rounds",
+   "effect": "up to 19% (Src9 FastMode); single-case ratios of small images are rough",
+   "fix": "disclosed; geometric means reported"
+  },
+  {
+   "what": "mutants U1, U2, U5, U7, U8, U9, U10, U12 survive",
+   "effect": "report-only by protocol; U10 only makes mode 5 slower, U12 is out of reach of what fits shared memory",
+   "fix": "disclosed"
+  },
+  {
+   "what": "f32 is not bit-identical (8/408 runs)",
+   "effect": "expected for the inexact ablation; H5 measures the distances; Src10 subpixel swaps near-tied matches in all rounds; f32 equals old32 bit for bit on all 51 case-mode pairs",
+   "fix": "disclosed"
+  }
+ ]
+}

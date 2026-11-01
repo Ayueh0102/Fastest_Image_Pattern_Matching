@@ -1,0 +1,62 @@
+{
+ "registered_before_timing": "2026-11-01T14:51:11Z",
+ "question": "On the RTX PRO 4000, does the opt-in fine NCC mode 5 (m16n8k32 products of two ROI rows at a time, row statistics on all warps, blocks of 14 warps on ROIs at least 256 wide) keep the outputs bit-identical to the same build's CPU backend, how much does it cut the per-frame time against the previous best CUDA setting (coarse ncc_mode 6, fine mode 4) of the same build on the 17 fixtures and with shallower pyramids, and how much would going all binary32 on the same kernels (coarse ncc_mode 7, fine mode 6, inexact) add, at what deviation from the CPU backend?",
+ "commits": {
+  "base": "806fb0d (main: coarse windows)",
+  "after": "a6aa630 (this mode, the ablations, tests and tools)"
+ },
+ "core_unchanged": "git diff 806fb0d a6aa630 -- cpp-core/src cpp-core/include is empty",
+ "sources": "git archive of a6aa630 (cpp-core without docs for the PC; cpp-core, macos-cli and Test Images for the Mac), unpacked into fresh directories",
+ "pc": {
+  "host": "PTRI-PRO-4000",
+  "cpu": "Intel Core Ultra 9 285K (8 P-cores + 16 E-cores)",
+  "gpu": "NVIDIA RTX PRO 4000 Blackwell, compute capability 12.0, 24 GB, PCIe 5.0 x16, driver 596.71, WDDM, no display attached",
+  "toolchain": "MSVC 19.44, CUDA 13.2 Update 2 (nvcc V13.2.86), CMake, Ninja, Release, CMAKE_CUDA_ARCHITECTURES=120, nvcc -fmad=false -lineinfo, static cudart",
+  "build": "a6aa630 with FPM_BUILD_EXPERIMENTS=ON FPM_WITH_CUDA=ON; every timing and identity arm runs this one build's fpm_frame_bench",
+  "affinity": "timing drivers start with `start /affinity C03C02` (P-cores 1,10-13,22,23); children inherit it"
+ },
+ "mac": "Apple M4 Pro: research build of a6aa630 (no CUDA) passes ctest",
+ "inputs": "the 17 compare_versions cases as 8-bit PGM (C:\\r51\\bundle\\pgm), checked against the manifest before any run",
+ "sets": {
+  "standard": "the 17 cases as registered in fixture_cases.py",
+  "shallow": "the same cases with --min-area-scale 16 (minimum top-level area x16)"
+ },
+ "arms": {
+  "note": "BACKEND,PYRAMID,FINE_BATCH,COARSE_NCC_MODE,TRANSFER,FINE_MODE,THREADS",
+  "cpu": "0,0,0,0: CPU backend (identity reference)",
+  "b2": "2,1,256,3,3,2: the best CUDA setting two steps back (reported, so one build gives the whole chain)",
+  "k6": "2,1,256,6,3,4: the previous best CUDA setting (timing baseline)",
+  "t5": "2,1,256,6,3,5: fine mode 5",
+  "f32": "2,1,256,7,3,6: all binary32 on the same kernels (inexact)",
+  "old32": "2,1,256,4,3,3: all binary32 on the older kernels (inexact)"
+ },
+ "metric": "per-frame time = fpm_frame_prepare + fpm_frame_match (image decoding and frame/pattern creation excluded); steady = median of 5 calls after 500 ms of untimed calls in the same process; cold = the process's first call",
+ "gates": {
+  "ctest": "the PC a6aa630 build passes ctest with experimental_cuda_backend and experimental_cuda_kernels run (not skipped); the Mac a6aa630 research build passes ctest",
+  "identity": "every run of every exact arm (timing rounds and identity-only runs) returns matches bit-identical to the first exact arm of the same round, case and mode, and b2 was shown equal to cpu in the shallow set by the identity-only runs; f32 and old32 are excluded (inexact, see H5); zero mismatches and zero failed runs",
+  "mutants": "cuda_mutants.py on a6aa630: M1-M17, L1-L22, L24, K1-K13 and T1-T10 all KILLED; the 24 earlier mutants give the earlier outcome (22 KILLED, N2 and F2 SURVIVED, argued equivalent in CUDA_BACKEND_zh-TW.md); the unmutated and restored trees pass. U1-U12 are reported, not gated"
+ },
+ "hypotheses": {
+  "H1": "standard set: steady geometric mean of t5/k6 is below 0.97 in each mode (pilot on ten of the cases 0.929/0.947/0.881)",
+  "H2": "standard set, Src6 subpixel: t5/k6 is below 0.93 (pilot 0.882-0.890)",
+  "H3": "standard set: t5 is faster than k6 on at least 14 of 17 cases in each mode (pilot 10/10, 9/10, 10/10)",
+  "H4": "standard set: f32/t5 geometric mean is between 0.85 and 1 in each mode: going all binary32 still gains something but less than 15% (pilot 0.955/0.960/0.913)",
+  "H5": "standard set: against the CPU backend f32 finds every match (center within 1 px, angle within 1 degree) with no extra match, and the worst differences of the found pairs are below 1e-4 in score, 0.01 px in the center and 0.01 degree in the angle (pilot 1566/1566, 1.35e-5, 0.0012 px, 0.0003 degree)",
+  "H6": "shallow set: t5/k6 geometric mean is below 1 in both modes (pilot on six cases 0.981/0.945)",
+  "H7": "standard set: old32/t5 is above 1 in each mode: after this mode the older all-binary32 kernels are slower than the exact ones (pilot 1.074/1.080/1.074)",
+  "descriptive": "b2 against k6 and t5, f32 on the shallow set, the ratios to the CPU, cold first calls, process peak RSS and retained device bytes are reported, not gated"
+ },
+ "timing": {
+  "tool": "benchmark_frame_backend.py --rounds 8 --repeat 5 --warmup-ms 500 (round 0 kept but left out of the summary; arm order alternates by round; fresh process per run)",
+  "standard_run": "arms cpu, b2, k6, t5, f32, old32, all modes, --inexact f32 --inexact old32",
+  "shallow_run": "--min-area-scale 16 --modes exhaustive,subpixel, arms b2, k6, t5, f32, --inexact f32",
+  "identity_only_standard": "--rounds 2 --repeat 1 --warmup-ms 0, arms cpu, t5_batch8 2,1,8,6,3,5, t5_mode0 2,1,256,6,0,5 (no lean calls), t5_c5 2,1,256,5,3,5, t5_c3 2,1,256,3,0,5, t5_threads 2,1,256,6,3,5,4",
+  "identity_only_shallow": "--min-area-scale 16 --modes exhaustive,subpixel --rounds 2 --repeat 1 --warmup-ms 0, arms cpu, b2, t5",
+  "summaries": "frame_backend_summary.py --reference k6 (H1, H2, H3, H6), --reference t5 (H4, H7), --reference b2 and --reference cpu; frame_output_deviation.py --reference cpu --arm f32 (H5) on the standard run and --reference t5 --arm f32 on the shallow run",
+  "quiet": "nothing else runs on the PC during the timing runs; the poll waiting for them reads formal.log (under 400 bytes) at most every 20 minutes, plus once within 60 s of the timing start while waiting for it; mutants and profiling run afterwards",
+  "no_drops": "no run is dropped or repeated; a failed run is reported as failed"
+ },
+ "decision_rule": "Modes that pass every gate stay as opt-in research options; f32 and old32 stay inexact ablations. H1-H7 are reported as measured; a failure is disclosed, not tuned away. Defaults do not change.",
+ "not_formal": "the two earlier Tensor core versions (first: one ROI row per m16n8k32, row statistics on one warp; second: two rows per m16n8k32, row statistics still on one warp), the pilots of ROI width and of smaller shared memory, the Nsight Compute runs of 8 to 24 warps per block, the block-size pilot and the mutant pilots are archived as selection evidence only",
+ "profiling": "Nsight Systems of k6, t5 and f32 on Src1, Src6 and Src9 subpixel and Src5-0 exhaustive (standard) and Src6 subpixel (shallow), and Nsight Compute of fineStripes on Src6 and Src4 subpixel, after the formal runs; a failed nsys run is retried once and its first attempt's output kept; their times are not formal"
+}
