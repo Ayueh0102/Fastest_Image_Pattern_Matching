@@ -1,0 +1,5 @@
+baseline cpp-core/experiments/coarse_cuda.cu ('SURVIVED', '')
+baseline cpp-core/src/ncc.cpp ('SURVIVED', '')
+KILLED   T7 lean prepare ignores a change of height | experiments/fpm_cuda_backend_test exit 1: FAIL
+totals {'KILLED': 1}
+MUTDONE 0 

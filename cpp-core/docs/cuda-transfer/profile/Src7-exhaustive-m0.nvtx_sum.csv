@@ -1,0 +1,5 @@
+Time (%),Total Time (ns),Instances,Avg (ns),Med (ns),Min (ns),Max (ns),StdDev (ns),Style,Range
+53.5,298998796,155,1929024.5,1896273.0,1808816,3651285,188754.0,PushPop,:fpm pyramid
+41.7,232774812,930,250295.5,202306.5,141170,548450,114313.6,PushPop,:fpm fine batch
+4.8,27094498,155,174803.2,170565.0,150032,304533,22839.5,PushPop,:fpm coarse
+

@@ -1,0 +1,222 @@
+{
+ "protocol": "protocol.json (0cbf3f6, registered 2026-11-01T02:40:40Z)",
+ "commits": {
+  "base": "31820ad",
+  "after": "c1068b2"
+ },
+ "gates": {
+  "ctest_pc": {
+   "pass": true,
+   "detail": "35/35; both CUDA tests ran; 6 Metal tests skipped"
+  },
+  "ctest_mac": {
+   "pass": true,
+   "detail": "research build of the c1068b2 archive (cpp-core, macos-cli, Test Images)"
+  },
+  "identity": {
+   "pass": true,
+   "runs": 2652,
+   "cuda_runs_compared": 2142,
+   "timing_records": 2040,
+   "identity_only_records": 612
+  },
+  "core_unchanged": {
+   "pass": true,
+   "detail": "git diff 31820ad c1068b2 -- cpp-core/src cpp-core/include is empty"
+  },
+  "mutants": {
+   "pass": true,
+   "totals": {
+    "KILLED": 34,
+    "SURVIVED": 4
+   },
+   "status": {
+    "W1": "KILLED",
+    "W2": "KILLED",
+    "W3": "KILLED",
+    "W4": "KILLED",
+    "N1": "KILLED",
+    "N2": "SURVIVED",
+    "N3": "KILLED",
+    "C1": "KILLED",
+    "C2": "KILLED",
+    "C3": "KILLED",
+    "C4": "KILLED",
+    "C5": "KILLED",
+    "C6": "KILLED",
+    "F1": "KILLED",
+    "F2": "SURVIVED",
+    "F3": "KILLED",
+    "F4": "KILLED",
+    "F5": "KILLED",
+    "F6": "KILLED",
+    "F7": "KILLED",
+    "F8": "KILLED",
+    "P1": "KILLED",
+    "P2": "KILLED",
+    "S1": "KILLED",
+    "T1": "KILLED",
+    "T2": "KILLED",
+    "T3": "KILLED",
+    "T4": "KILLED",
+    "T5": "KILLED",
+    "T6": "KILLED",
+    "T7": "KILLED",
+    "T8": "KILLED",
+    "T9": "KILLED",
+    "T10": "KILLED",
+    "U1": "SURVIVED",
+    "U2": "SURVIVED",
+    "U3": "KILLED",
+    "U4": "KILLED"
+   }
+  }
+ },
+ "hypotheses": {
+  "H1": true,
+  "H2": true,
+  "H3": true,
+  "m3_vs_m0": {
+   "exhaustive": {
+    "geomean": 0.42161197214541135,
+    "total_ratio": 0.4183298854192793,
+    "faster": 17,
+    "cases": 17,
+    "not_faster": [],
+    "cold_geomean": 0.8395970484308485
+   },
+   "fast": {
+    "geomean": 0.40397747501844805,
+    "total_ratio": 0.3818317228025098,
+    "faster": 17,
+    "cases": 17,
+    "not_faster": [],
+    "cold_geomean": 0.8716651832138866
+   },
+   "subpixel": {
+    "geomean": 0.47772935853834947,
+    "total_ratio": 0.5924458950375271,
+    "faster": 17,
+    "cases": 17,
+    "not_faster": [],
+    "cold_geomean": 0.7720482044599963
+   }
+  },
+  "m3_vs_cpu": {
+   "exhaustive": {
+    "geomean": 0.060381788505862725,
+    "total_ratio": 0.03306313873983278,
+    "faster": 17,
+    "cases": 17,
+    "not_faster": [],
+    "cold_geomean": 0.1832752767917034
+   },
+   "fast": {
+    "geomean": 0.07533262232937146,
+    "total_ratio": 0.05355522355241102,
+    "faster": 17,
+    "cases": 17,
+    "not_faster": [],
+    "cold_geomean": 0.25886918116198404
+   },
+   "subpixel": {
+    "geomean": 0.04635800709622733,
+    "total_ratio": 0.015917748180681583,
+    "faster": 17,
+    "cases": 17,
+    "not_faster": [],
+    "cold_geomean": 0.09012212138753257
+   }
+  },
+  "m0_vs_cpu": {
+   "exhaustive": {
+    "geomean": 0.14321649406349735,
+    "total_ratio": 0.07903604282704929,
+    "faster": 16,
+    "cases": 17,
+    "not_faster": [
+     "Src9"
+    ],
+    "cold_geomean": 0.21828956775661948
+   },
+   "fast": {
+    "geomean": 0.1864772839771111,
+    "total_ratio": 0.14025870653002484,
+    "faster": 16,
+    "cases": 17,
+    "not_faster": [
+     "Src9"
+    ],
+    "cold_geomean": 0.29698235761524433
+   },
+   "subpixel": {
+    "geomean": 0.0970382210506453,
+    "total_ratio": 0.026867851248548718,
+    "faster": 16,
+    "cases": 17,
+    "not_faster": [
+     "Src9"
+    ],
+    "cold_geomean": 0.11673121039193128
+   }
+  },
+  "descriptive_m1_vs_m0": {
+   "exhaustive": {
+    "geomean": 0.5437672941902945,
+    "total_ratio": 0.5117164552189187,
+    "faster": 17,
+    "cases": 17,
+    "not_faster": [],
+    "cold_geomean": 0.9242678002059533
+   },
+   "fast": {
+    "geomean": 0.5070953186600287,
+    "total_ratio": 0.4631923886127093,
+    "faster": 17,
+    "cases": 17,
+    "not_faster": [],
+    "cold_geomean": 0.9318936171566851
+   },
+   "subpixel": {
+    "geomean": 0.7224217708811478,
+    "total_ratio": 0.7775178922614434,
+    "faster": 17,
+    "cases": 17,
+    "not_faster": [],
+    "cold_geomean": 0.9469342691257706
+   }
+  },
+  "descriptive_m2_vs_m0": {
+   "exhaustive": {
+    "geomean": 0.8470172284330737,
+    "total_ratio": 0.88937329883736,
+    "faster": 17,
+    "cases": 17,
+    "not_faster": [],
+    "cold_geomean": 0.9208382626333234
+   },
+   "fast": {
+    "geomean": 0.869683720837857,
+    "total_ratio": 0.900778268074252,
+    "faster": 16,
+    "cases": 17,
+    "not_faster": [
+     "Src4"
+    ],
+    "cold_geomean": 0.9327278008969702
+   },
+   "subpixel": {
+    "geomean": 0.7288095543701878,
+    "total_ratio": 0.7944886398753742,
+    "faster": 17,
+    "cases": 17,
+    "not_faster": [],
+    "cold_geomean": 0.8074429277920042
+   }
+  }
+ },
+ "not_formal": [
+  "pilot/ (xfer_pilot.cu outputs, pilot1 summary, mutant pilot)",
+  "profile/ (Nsight Systems after the formal runs)"
+ ]
+}

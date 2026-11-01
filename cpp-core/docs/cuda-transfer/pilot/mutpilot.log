@@ -1,0 +1,18 @@
+baseline cpp-core/experiments/coarse_cuda.cu ('SURVIVED', '')
+baseline cpp-core/src/ncc.cpp ('SURVIVED', '')
+KILLED   T1 lean coarse counts not cleared | experiments/fpm_cuda_backend_test exit 1: FAIL transfer sequence step 4: match 0 differs
+KILLED   T2 lean fine statistics not cleared | experiments/fpm_cuda_backend_test exit 1: FAIL 320x240 template 40x30 seed 101 transfer 2 batch 64 repeat 0: match count 3 vs 0
+KILLED   T3 lean FP64-pixel count not cleared | experiments/fpm_cuda_backend_test exit 1: FAIL transfer mode 2: fine counts differ from mode 0
+KILLED   T4 lean completion signalled by the first block | experiments/fpm_cuda_backend_test exit 1: FAIL transfer metrics mode 2: match 5 differs
+KILLED   T5 lean upload drops the last row of each chunk | experiments/fpm_cuda_backend_test exit 1: FAIL 320x240 template 40x30 seed 118 transfer 1 batch 64 repeat 0: match count 4 vs 5
+KILLED   T6 lean copy ignores inversion | experiments/fpm_cuda_backend_test exit 1: FAIL 500x400 template 23x57 seed 186 transfer 1 batch 64 repeat 0: match 0 differs
+SURVIVED T7 lean prepare keeps levels of another size | 
+KILLED   T8 lean prepare never copies levels back for the CPU fine path | experiments/fpm_cuda_backend_test exit 1: FAIL 320x240 template 40x30 seed 101 transfer 1 batch 0 repeat 0: match count 3 vs 0
+KILLED   T9 fine block loads the first request | experiments/fpm_cuda_kernel_test exit 1: FAIL fine: disagreeing poses: fine map 1 differs
+KILLED   T10 mode change keeps the lean counters marked clean | experiments/fpm_cuda_backend_test exit 1: FAIL transfer sequence step 8: match count 6 vs 1
+SURVIVED U1 lean signal without the system fence | 
+SURVIVED U2 lean prepare does not wait for the previous upload | 
+KILLED   U3 lean coarse counts not zeroed when allocated | experiments/fpm_cuda_backend_test exit 1: FAIL
+KILLED   U4 lean fine statistics not zeroed when allocated | experiments/fpm_cuda_backend_test exit 1: FAIL 320x240 template 40x30 seed 101 transfer 2 batch 64 repeat 0: match 0 differs
+totals {'KILLED': 11, 'SURVIVED': 3}
+MUTDONE 0 

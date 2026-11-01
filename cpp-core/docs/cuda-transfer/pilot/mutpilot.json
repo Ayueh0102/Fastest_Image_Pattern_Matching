@@ -1,0 +1,98 @@
+{
+ "results": [
+  {
+   "mutant": "baseline cpp-core/experiments/coarse_cuda.cu",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "baseline cpp-core/src/ncc.cpp",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "T1 lean coarse counts not cleared",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_backend_test exit 1: FAIL transfer sequence step 4: match 0 differs"
+  },
+  {
+   "mutant": "T2 lean fine statistics not cleared",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_backend_test exit 1: FAIL 320x240 template 40x30 seed 101 transfer 2 batch 64 repeat 0: match count 3 vs 0"
+  },
+  {
+   "mutant": "T3 lean FP64-pixel count not cleared",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_backend_test exit 1: FAIL transfer mode 2: fine counts differ from mode 0"
+  },
+  {
+   "mutant": "T4 lean completion signalled by the first block",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_backend_test exit 1: FAIL transfer metrics mode 2: match 5 differs"
+  },
+  {
+   "mutant": "T5 lean upload drops the last row of each chunk",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_backend_test exit 1: FAIL 320x240 template 40x30 seed 118 transfer 1 batch 64 repeat 0: match count 4 vs 5"
+  },
+  {
+   "mutant": "T6 lean copy ignores inversion",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_backend_test exit 1: FAIL 500x400 template 23x57 seed 186 transfer 1 batch 64 repeat 0: match 0 differs"
+  },
+  {
+   "mutant": "T7 lean prepare keeps levels of another size",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "T8 lean prepare never copies levels back for the CPU fine path",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_backend_test exit 1: FAIL 320x240 template 40x30 seed 101 transfer 1 batch 0 repeat 0: match count 3 vs 0"
+  },
+  {
+   "mutant": "T9 fine block loads the first request",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: disagreeing poses: fine map 1 differs"
+  },
+  {
+   "mutant": "T10 mode change keeps the lean counters marked clean",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_backend_test exit 1: FAIL transfer sequence step 8: match count 6 vs 1"
+  },
+  {
+   "mutant": "U1 lean signal without the system fence",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "U2 lean prepare does not wait for the previous upload",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "U3 lean coarse counts not zeroed when allocated",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_backend_test exit 1: FAIL"
+  },
+  {
+   "mutant": "U4 lean fine statistics not zeroed when allocated",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_backend_test exit 1: FAIL 320x240 template 40x30 seed 101 transfer 2 batch 64 repeat 0: match 0 differs"
+  },
+  {
+   "mutant": "restored cpp-core/experiments/coarse_cuda.cu",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "restored cpp-core/src/ncc.cpp",
+   "status": "SURVIVED",
+   "detail": ""
+  }
+ ],
+ "totals": {
+  "KILLED": 11,
+  "SURVIVED": 3
+ }
+}
