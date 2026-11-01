@@ -1,0 +1,61 @@
+{
+ "registered_before_timing": "2026-11-01T10:34:34Z",
+ "question": "On the RTX PRO 4000, do the new opt-in CUDA kernel modes (coarse ncc_mode 5: warp-level window tiles with sliding sums and __dp4a products; ncc_mode 6: the same with int8 Tensor core products; fine NCC mode 4: a branch-free 32-bit screen of the sampling rounding on ROIs at least 256 wide) keep the outputs bit-identical to the same build's CPU backend, how much do they cut the per-frame time against the previous best CUDA setting of the same build on the 17 fixtures, and how much on the same fixtures with shallower pyramids (minimum top-level area x16), where coarse search dominates?",
+ "commits": {
+  "base": "5f2c6f7 (main: kernel modes)",
+  "after": "1d0e951 (these modes, tests and tools)"
+ },
+ "core_unchanged": "git diff 5f2c6f7 1d0e951 -- cpp-core/src cpp-core/include is empty",
+ "sources": "git archive of 1d0e951 (cpp-core without docs for the PC; cpp-core, macos-cli and Test Images for the Mac), unpacked into fresh directories",
+ "pc": {
+  "host": "PTRI-PRO-4000",
+  "cpu": "Intel Core Ultra 9 285K (8 P-cores + 16 E-cores)",
+  "gpu": "NVIDIA RTX PRO 4000 Blackwell, compute capability 12.0, 24 GB, PCIe 5.0 x16, driver 596.71, WDDM, no display attached",
+  "toolchain": "MSVC 19.44, CUDA 13.2 Update 2 (nvcc V13.2.86), CMake, Ninja, Release, CMAKE_CUDA_ARCHITECTURES=120, nvcc -fmad=false -lineinfo, static cudart",
+  "build": "1d0e951 with FPM_BUILD_EXPERIMENTS=ON FPM_WITH_CUDA=ON; every timing and identity arm runs this one build's fpm_frame_bench",
+  "affinity": "timing drivers start with `start /affinity C03C02` (P-cores 1,10-13,22,23); children inherit it"
+ },
+ "mac": "Apple M4 Pro: research build of 1d0e951 (no CUDA) passes ctest",
+ "inputs": "the 17 compare_versions cases as 8-bit PGM (C:\\r51\\bundle\\pgm), checked against the manifest before any run",
+ "sets": {
+  "standard": "the 17 cases as registered in fixture_cases.py",
+  "shallow": "the same cases with --min-area-scale 16 (minimum top-level area x16, so larger top-level templates and more windows)"
+ },
+ "arms": {
+  "note": "BACKEND,PYRAMID,FINE_BATCH,COARSE_NCC_MODE,TRANSFER,FINE_MODE,THREADS",
+  "cpu": "0,0,0,0: CPU backend (identity reference)",
+  "b2": "2,1,256,3,3,2: the previous best CUDA setting (timing baseline)",
+  "c5": "2,1,256,5,3,2: coarse __dp4a window tiles",
+  "c6": "2,1,256,6,3,2: coarse Tensor core window tiles",
+  "f4": "2,1,256,3,3,4: fine screen",
+  "k5": "2,1,256,5,3,4: c5 and f4",
+  "k6": "2,1,256,6,3,4: c6 and f4"
+ },
+ "metric": "per-frame time = fpm_frame_prepare + fpm_frame_match (image decoding and frame/pattern creation excluded); steady = median of 5 calls after 500 ms of untimed calls in the same process; cold = the process's first call",
+ "gates": {
+  "ctest": "the PC 1d0e951 build passes ctest with experimental_cuda_backend and experimental_cuda_kernels run (not skipped); the Mac 1d0e951 research build passes ctest",
+  "identity": "every run of every arm (timing rounds and identity-only runs) returns matches bit-identical to the first arm of the same round, case and mode, and the first arm of the timing runs (b2) was shown equal to cpu in the same set by the identity-only runs; zero mismatches and zero failed runs",
+  "mutants": "cuda_mutants.py on 1d0e951: L1-L22, L24, K1-K13 and T1-T10 all KILLED; the 24 earlier mutants give the earlier outcome (22 KILLED, N2 and F2 SURVIVED, argued equivalent in CUDA_BACKEND_zh-TW.md); the unmutated and restored trees pass. U1-U9 are reported, not gated"
+ },
+ "hypotheses": {
+  "H1": "standard set: steady geometric mean of k6/b2 is below 0.98 in each mode (pilot on ten of the cases before the ROI threshold: 0.957/0.949/0.963)",
+  "H2": "standard set, Src6 subpixel: f4/b2 is below 0.90 (pilot 0.816-0.832)",
+  "H3": "shallow set, exhaustive mode: steady geometric mean of k6/b2 is below 0.5 (pilot on six larger-template cases 0.129-0.402)",
+  "H4": "shallow set, exhaustive mode: steady geometric mean of k6/k5 is below 1: Tensor cores beat __dp4a once templates are large (pilot 0.69-0.91)",
+  "H5": "standard set: k6/k5 geometric mean is within 3% of 1 in each mode: on these small top-level templates Tensor cores make no real difference (pilot 0.995, 0.993, 1.005)",
+  "descriptive": "c5, c6 and f4 alone against b2, the ratios to the CPU, cold first calls, process peak RSS and retained device bytes are reported, not gated"
+ },
+ "timing": {
+  "tool": "benchmark_frame_backend.py --rounds 8 --repeat 5 --warmup-ms 500 (round 0 kept but left out of the summary; arm order alternates by round; fresh process per run)",
+  "standard_run": "arms cpu, b2, c5, c6, f4, k5, k6, all modes",
+  "shallow_run": "--min-area-scale 16 --modes exhaustive,subpixel, arms b2, c5, k5, k6",
+  "identity_only_standard": "--rounds 2 --repeat 1 --warmup-ms 0, arms cpu, k6_batch8 2,1,8,6,3,4, k6_mode0 2,1,256,6,0,4 (no lean calls), k6_cpu_fine 2,1,0,6,1, k5_mode0 2,1,256,5,0,4, k6_threads 2,1,256,6,3,4,4",
+  "identity_only_shallow": "--min-area-scale 16 --modes exhaustive,subpixel --rounds 2 --repeat 1 --warmup-ms 0, arms cpu, b2, k5, k6",
+  "summaries": "frame_backend_summary.py --reference b2 (H1, H2, H5 through a second summary with --reference k5) on the standard run; the same on the shallow run with --reference b2 and --reference k5",
+  "quiet": "nothing else runs on the PC during the timing runs; the poll waiting for them reads formal.log (under 400 bytes) at most every 20 minutes, plus once within 60 s of the timing start while waiting for it; mutants and profiling run afterwards",
+  "no_drops": "no run is dropped or repeated; a failed run is reported as failed"
+ },
+ "decision_rule": "Modes that pass every gate stay as opt-in research options. H1-H5 are reported as measured; a failure is disclosed, not tuned away. Defaults do not change.",
+ "not_formal": "the probe of the m16n8k32 layout, the pilots of warps per block, of fine column tiles (rejected), of the ROI width threshold, the Nsight Compute comparison of fine modes that led to the branch-free screen, the larger-template pilot and the mutant pilots are archived as selection evidence only",
+ "profiling": "Nsight Systems of b2 and k6 on Src1, Src5-0 and Src6 subpixel (standard) and on Src1 and Src6 (shallow), and Nsight Compute of coarseWarpWindows modes 5 and 6 on Src1 shallow and of fineStripes on Src6 subpixel, after the formal runs; their times are not formal"
+}
