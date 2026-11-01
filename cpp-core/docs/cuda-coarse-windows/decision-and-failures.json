@@ -1,0 +1,91 @@
+{
+ "decision": "Keep coarse ncc_mode 5 and 6 and fine NCC mode 4 as opt-in research options of the frame API. Coarse ncc_mode 6 with fine mode 4 on transfer mode 3 is the recommended CUDA frame setting for research runs (ncc_mode 5 where compute capability is below 8.0, since the Tensor core needs at least 8.0). Defaults, the core and the GUI are unchanged.",
+ "gates_passed": [
+  "ctest_pc",
+  "ctest_mac",
+  "inputs",
+  "identity",
+  "core_unchanged",
+  "mutants"
+ ],
+ "gates_failed": [],
+ "hypotheses": {
+  "H1": "held (standard k6/b2 geomean 0.949 / 0.947 / 0.961; pilot 0.957 / 0.949 / 0.963)",
+  "H2": "held (standard Src6 subpixel f4/b2 0.815; pilot 0.816-0.832)",
+  "H3": "held (shallow exhaustive k6/b2 geomean 0.219; pilot 0.129-0.402 on six cases)",
+  "H4": "held (shallow exhaustive k6/k5 geomean 0.800; pilot 0.69-0.91)",
+  "H5": "held (standard k6/k5 geomean 0.998 / 0.999 / 0.997)"
+ },
+ "failures_and_disclosures": [
+  {
+   "what": "first Tensor core data layout was wrong (development, before registration)",
+   "effect": "I assumed B's column n was lane & 7; the kernel test failed in mode 6",
+   "fix": "a probe (pilot/probe) set single non-zero bytes and derived the layout, all 896 points matched; test kept; mutant L1 added"
+  },
+  {
+   "what": "fine column tiles rejected (development)",
+   "effect": "c6f4 against best, exhaustive/subpixel: T0 0.944/0.968, T256 0.957/0.978, T128 1.003/1.078, T64 1.114/1.316",
+   "fix": "removed; the tree with tiles is pilot/dev-tree-with-tiles.diff; the cause was not investigated"
+  },
+  {
+   "what": "first two fine screens were not worth keeping (development)",
+   "effect": "Src6 subpixel one launch: per-pixel branches 1.40 ms, row-level repair 1.95 ms (about 0.1% of pixels are flagged, so nearly every warp-row was redone), against 1.50 ms for fine mode 2",
+   "fix": "pixel-level repair per chunk of 32: 1.21 ms; Nsight outputs kept in pilot/ncu-*"
+  },
+  {
+   "what": "fine mode 4 slowed narrow-ROI images before the width threshold (development)",
+   "effect": "pilot subpixel without a threshold: Src4 1.079, Src8 1.058",
+   "fix": "FINE_SCREEN_MIN_WIDTH 256 selected on a pilot of widths 0-512; pilot env vars removed before the formal commit"
+  },
+  {
+   "what": "mutant pilot left L22 surviving (development)",
+   "effect": "no test had a score exactly at the threshold",
+   "fix": "added the threshold-at-a-score test; L22 killed; L23 and L25 removed before registration as equivalent by construction"
+  },
+  {
+   "what": "data race on the coarseQ28 diagnostic counters (found here, present in the merged kernel modes)",
+   "effect": "tid 0 zeroed the block counters while other warps could already add, so a few FP64 tile pixels could be lost from the diagnostic count; outputs not affected; this explains the off-by-one disclosed in CUDA_KERNELS_zh-TW.md",
+   "fix": "direct atomicAdd to the global counters, no static shared variables; the count in the kernel test is stable at 23125; the baseline b2 of this report includes the fix, so ratios use the same build"
+  },
+  {
+   "what": "one development build was not recompiled",
+   "effect": "after a mutant restore the PC's coarse_cuda.cu was newer than the unpacked Mac copy, so ninja kept the old kernel and I still saw the counter jitter",
+   "fix": "rebuilt; the formal run used a fresh git archive and a fresh build directory, so it was not affected"
+  },
+  {
+   "what": "SSH during the timing step",
+   "effect": "the waiting script polled formal.log every 60 s until timing-start appeared, so it read it once within 60 s after timing began (round 0 of the standard run, warm-up, not in the summary); then every 20 minutes and once after the end; each poll read the whole formal.log (under 400 bytes), as the protocol says; no other connection to the PC during timing",
+   "fix": "disclosed"
+  },
+  {
+   "what": "one Nsight Systems run failed",
+   "effect": "Src1 shallow k6 in after.bat reported Connection to Agent lost and produced no data; the empty files stay in profile/",
+   "fix": "rerun once by hand with the same arguments into profile/retry after the mutants; profiling only, not a formal timing"
+  },
+  {
+   "what": "Src3, Src8, Src9 and FastMode Src2 did not get faster",
+   "effect": "up to 2.1% slower on the standard set; H1 measures the geometric mean, so this is no gate failure; the cause was not profiled",
+   "fix": "disclosed"
+  },
+  {
+   "what": "f4 alone has almost no benefit in default and FastMode",
+   "effect": "geomean 0.994 and 1.005; the gain is in subpixel on images with wide ROIs (Src6 0.815, Src1 0.931, Src2 0.932, Src7 0.952)",
+   "fix": "disclosed"
+  },
+  {
+   "what": "mutants U1, U2, U5, U7, U8, U9 survive",
+   "effect": "report-only by protocol; U7 needs a template over 66051 pixels and a bright image, U8 only computes windows that are never scored, U9 only protects a few bytes of over-read on sources under 2 px",
+   "fix": "disclosed"
+  },
+  {
+   "what": "the fine search Tensor core was not tried",
+   "effect": "the user asked about Src6 subpixel fine search; only an estimate from SASS exists: at most about 10% of the instructions, and occupancy (33%, Nsight's bound 66%) looks like the better next step",
+   "fix": "disclosed; not measured"
+  },
+  {
+   "what": "the coarse result buffer is sized for the worst case",
+   "effect": "shallow Src1 peak RSS 2152 MiB and 2.1 GB of device bytes in every arm, one 16-byte entry per window; this design predates the round",
+   "fix": "disclosed as a limit; not changed"
+  }
+ ]
+}

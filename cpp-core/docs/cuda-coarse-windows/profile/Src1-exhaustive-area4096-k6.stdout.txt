@@ -1,0 +1,4 @@
+Connection to Agent lost. This is most likely a bug. Internal reason: '遠端主機已強制關閉一個現存的連線。'.
+Please refer to the troubleshooting section of the docs:
+https://docs.nvidia.com/nsight-systems/UserGuide/index.html#troubleshooting
+Collecting data...

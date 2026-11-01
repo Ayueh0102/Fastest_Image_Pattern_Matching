@@ -1,0 +1,8 @@
+baseline cpp-core/experiments/coarse_cuda.cu ('SURVIVED', '')
+baseline cpp-core/src/ncc.cpp ('SURVIVED', '')
+KILLED   K10 coarse kernel counters not copied to the host | experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: coarse mode 3: 10228159048 of 6946200 windows scored in binary64
+KILLED   K12 coarse Q28 binary64 branch keeps only scores above the threshold | experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: flat source, threshold 0 angle 0: peak count
+KILLED   L13 binary64-scored windows not counted | experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: coarse mode 5: 0 of 5018227 windows scored in binary64
+KILLED   L22 window binary64 branch keeps only scores above the threshold | experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: threshold at a score, coarse mode 5 angle 0: peak count
+totals {'KILLED': 4}
+MUTDONE 0 

@@ -1,0 +1,55 @@
+== warps per block
+['c3', 'cpu', 'k5', 'k6']
+w8.json mismatches 0 failures 0 cases 10 rounds [0, 1]
+  exhaustive c3 13.30ms | c3 1.000/13.30ms | k5 0.964/12.76ms | k6 0.958/12.67ms
+['c3', 'cpu', 'k5', 'k6']
+w4.json mismatches 0 failures 0 cases 10 rounds [0, 1]
+  exhaustive c3 13.30ms | c3 1.000/13.30ms | k5 0.964/12.78ms | k6 0.951/12.66ms
+['c3', 'cpu', 'k5', 'k6']
+w2.json mismatches 0 failures 0 cases 10 rounds [0, 1]
+  exhaustive c3 13.32ms | c3 1.000/13.32ms | k5 0.973/12.87ms | k6 0.958/12.71ms
+['c3', 'cpu', 'k5', 'k6']
+w1.json mismatches 0 failures 0 cases 10 rounds [0, 1]
+  exhaustive c3 13.33ms | c3 1.000/13.33ms | k5 0.972/12.86ms | k6 0.970/12.91ms
+== fine column tiles
+t0.json mismatches 0 failures 0 cases 10 rounds [0, 1]
+  exhaustive best 13.32ms | c5f4 0.957/12.61ms | c6f2 0.956/12.69ms | c6f4 0.944/12.45ms
+  subpixel   best 52.22ms | c5f4 0.966/49.87ms | c6f2 0.989/51.67ms | c6f4 0.968/49.99ms
+t256.json mismatches 0 failures 0 cases 10 rounds [0, 1]
+  exhaustive best 13.21ms | c5f4 0.956/12.59ms | c6f2 0.951/12.50ms | c6f4 0.957/12.58ms
+  subpixel   best 52.31ms | c5f4 0.975/51.04ms | c6f2 0.986/51.42ms | c6f4 0.978/51.11ms
+t128.json mismatches 0 failures 0 cases 10 rounds [0, 1]
+  exhaustive best 13.28ms | c5f4 1.005/13.75ms | c6f2 0.954/12.57ms | c6f4 1.003/13.65ms
+  subpixel   best 51.96ms | c5f4 1.082/61.57ms | c6f2 0.996/51.46ms | c6f4 1.078/61.47ms
+t64.json mismatches 0 failures 0 cases 10 rounds [0, 1]
+  exhaustive best 13.18ms | c5f4 1.116/16.36ms | c6f2 0.958/12.57ms | c6f4 1.114/16.38ms
+  subpixel   best 51.87ms | c5f4 1.312/88.27ms | c6f2 0.994/51.46ms | c6f4 1.316/87.80ms
+== pilot3 (row-level screen fixed, warps)
+w2.json mismatches 0 failures 0 cases 10 rounds [0, 1]
+  exhaustive best 13.14ms | c3f4 0.996/12.96ms | c5f4 0.966/12.44ms | c6f4 0.960/12.42ms
+  fast       best 10.03ms | c3f4 1.005/10.07ms | c5f4 0.952/9.52ms | c6f4 0.952/9.57ms
+  subpixel   best 52.32ms | c3f4 0.967/48.01ms | c5f4 0.962/47.56ms | c6f4 0.958/47.54ms
+w4.json mismatches 0 failures 0 cases 10 rounds [0, 1]
+  exhaustive best 13.19ms | c3f4 1.003/13.00ms | c5f4 0.965/12.45ms | c6f4 0.958/12.39ms
+  fast       best 10.06ms | c3f4 1.017/10.19ms | c5f4 0.955/9.59ms | c6f4 0.951/9.58ms
+  subpixel   best 52.12ms | c3f4 0.974/48.07ms | c5f4 0.962/47.42ms | c6f4 0.960/47.31ms
+w8.json mismatches 0 failures 0 cases 10 rounds [0, 1]
+  exhaustive best 13.19ms | c3f4 0.997/12.92ms | c5f4 0.955/12.40ms | c6f4 0.954/12.37ms
+  fast       best 9.99ms | c3f4 1.004/10.02ms | c5f4 0.957/9.54ms | c6f4 0.944/9.40ms
+  subpixel   best 52.46ms | c3f4 0.954/47.85ms | c5f4 0.941/47.22ms | c6f4 0.941/47.31ms
+== fine ROI width threshold
+w0.json mismatches 0 failures 0 cases 10 rounds [0, 1, 2]
+  subpixel   best 52.47ms | f4 0.978/48.56ms
+    {'Src1': 0.935, 'Src2': 0.932, 'Src4': 1.079, 'Src6': 0.832, 'Src7': 0.961, 'Src8': 1.058}
+w64.json mismatches 0 failures 0 cases 10 rounds [0, 1, 2]
+  subpixel   best 52.11ms | f4 0.963/47.58ms
+    {'Src1': 0.928, 'Src2': 0.934, 'Src4': 1.023, 'Src6': 0.824, 'Src7': 0.953, 'Src8': 1.044}
+w128.json mismatches 0 failures 0 cases 10 rounds [0, 1, 2]
+  subpixel   best 52.22ms | f4 0.965/47.56ms
+    {'Src1': 0.937, 'Src2': 0.926, 'Src4': 1.008, 'Src6': 0.817, 'Src7': 0.949, 'Src8': 1.039}
+w256.json mismatches 0 failures 0 cases 10 rounds [0, 1, 2]
+  subpixel   best 52.27ms | f4 0.957/47.31ms
+    {'Src1': 0.93, 'Src2': 0.932, 'Src4': 0.992, 'Src6': 0.816, 'Src7': 0.946, 'Src8': 0.998}
+w512.json mismatches 0 failures 0 cases 10 rounds [0, 1, 2]
+  subpixel   best 52.34ms | f4 0.966/48.14ms
+    {'Src1': 0.999, 'Src2': 0.927, 'Src4': 1.002, 'Src6': 0.816, 'Src7': 0.949, 'Src8': 1.002}

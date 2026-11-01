@@ -1,0 +1,178 @@
+{
+ "results": [
+  {
+   "mutant": "baseline cpp-core/experiments/coarse_cuda.cu",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "baseline cpp-core/src/ncc.cpp",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "C1 fused coarse keeps only scores above the threshold",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: flat template, threshold 1 angle 0: peak count"
+  },
+  {
+   "mutant": "K5 coarse Q28 tile steps 31 columns",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: coarse mode 2 trial 0 angle 0: peak differs"
+  },
+  {
+   "mutant": "K11 coarse Q28 uniform template keeps only scores above the threshold",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: flat template, threshold 1 angle 0: peak count"
+  },
+  {
+   "mutant": "K12 coarse Q28 binary64 branch keeps only scores above the threshold",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: flat source, threshold 0 angle 0: peak count"
+  },
+  {
+   "mutant": "L24 screen row steps 31 columns",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 4: fine map 0 differs"
+  },
+  {
+   "mutant": "L1 mma template column taken from lane & 7",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: coarse mode 6 trial 0 angle 0: peak count"
+  },
+  {
+   "mutant": "L2 mma stops one 32-column step early",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: coarse mode 6 trial 0 angle 0: peak count"
+  },
+  {
+   "mutant": "L3 mma uses template rows outside the window",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: coarse mode 6 trial 0 angle 0: peak count"
+  },
+  {
+   "mutant": "L4 window products ignore the byte shift",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: coarse mode 5 trial 0 angle 0: peak count"
+  },
+  {
+   "mutant": "L5 dp4a second window column one word off",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: coarse mode 5 trial 0 angle 0: peak differs"
+  },
+  {
+   "mutant": "L6 slide removes the wrong row",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: coarse mode 5 trial 0 angle 0: peak differs"
+  },
+  {
+   "mutant": "L7 lane scan stops at 8",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: coarse mode 5 trial 0 angle 0: peak count"
+  },
+  {
+   "mutant": "L8 column totals skip the last row",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: coarse mode 5 trial 0 angle 0: peak differs"
+  },
+  {
+   "mutant": "L9 slide tail not masked",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: coarse mode 5 trial 0 angle 0: peak differs"
+  },
+  {
+   "mutant": "L10 padded template not zeroed",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: coarse mode 5 trial 1 angle 0: peak count"
+  },
+  {
+   "mutant": "L11 uniform template takes the warp windows",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: flat template, threshold 1 angle 0: peak count"
+  },
+  {
+   "mutant": "L12 windows past the map are scored",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: coarse mode 5 trial 0 angle 5: peak count"
+  },
+  {
+   "mutant": "L13 binary64-scored windows not counted",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: coarse mode 5: 0 of 5018227 windows scored in binary64"
+  },
+  {
+   "mutant": "L14 screen margin ignores the guard",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 4: fine map 1 differs"
+  },
+  {
+   "mutant": "L15 screen rounds down",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 4: fine map 0 differs"
+  },
+  {
+   "mutant": "L16 edge band not sent to q28Sample",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 4: fine map 0 differs"
+  },
+  {
+   "mutant": "L17 repair asks the first pixel of the chunk",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 4: fine map 0 differs"
+  },
+  {
+   "mutant": "L18 chunk keeps only the last unsure pixel",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 4: fine map 0 differs"
+  },
+  {
+   "mutant": "L19 screen x weight off by a bit",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 4: fine map 0 differs"
+  },
+  {
+   "mutant": "L20 screen y multiply not doubled",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 4: fine map 0 differs"
+  },
+  {
+   "mutant": "L21 zero-variance window keeps only scores above the threshold",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: flat source, threshold 0 angle 0: peak count"
+  },
+  {
+   "mutant": "L22 window binary64 branch keeps only scores above the threshold",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "U7 no uint32 overflow guard",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "U8 window tile not clipped to the map",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "U9 no small-image guard",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "restored cpp-core/experiments/coarse_cuda.cu",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "restored cpp-core/src/ncc.cpp",
+   "status": "SURVIVED",
+   "detail": ""
+  }
+ ],
+ "totals": {
+  "KILLED": 26,
+  "SURVIVED": 4
+ }
+}

@@ -1,0 +1,120 @@
+{
+ "files": {
+  "timing-standard": {
+   "records": 2856,
+   "errors": 0,
+   "groups": 408,
+   "arms": [
+    "b2",
+    "c5",
+    "c6",
+    "cpu",
+    "f4",
+    "k5",
+    "k6"
+   ],
+   "differences_within_group": [],
+   "keys_with_more_than_one_result_over_all_rounds": [],
+   "driver_mismatches": 0,
+   "driver_failures": 0,
+   "matches_total": 30408
+  },
+  "identity-standard": {
+   "records": 612,
+   "errors": 0,
+   "groups": 102,
+   "arms": [
+    "cpu",
+    "k5_mode0",
+    "k6_batch8",
+    "k6_cpu_fine",
+    "k6_mode0",
+    "k6_threads"
+   ],
+   "differences_within_group": [],
+   "keys_with_more_than_one_result_over_all_rounds": [],
+   "driver_mismatches": 0,
+   "driver_failures": 0,
+   "matches_total": 6516
+  },
+  "timing-shallow": {
+   "records": 1088,
+   "errors": 0,
+   "groups": 272,
+   "arms": [
+    "b2",
+    "c5",
+    "k5",
+    "k6"
+   ],
+   "differences_within_group": [],
+   "keys_with_more_than_one_result_over_all_rounds": [],
+   "driver_mismatches": 0,
+   "driver_failures": 0,
+   "matches_total": 11584
+  },
+  "identity-shallow": {
+   "records": 272,
+   "errors": 0,
+   "groups": 68,
+   "arms": [
+    "b2",
+    "cpu",
+    "k5",
+    "k6"
+   ],
+   "differences_within_group": [],
+   "keys_with_more_than_one_result_over_all_rounds": [],
+   "driver_mismatches": 0,
+   "driver_failures": 0,
+   "matches_total": 2896
+  }
+ },
+ "cross": {
+  "standard": {
+   "keys": 51,
+   "keys_with_more_than_one_result_across_files": []
+  },
+  "shallow": {
+   "keys": 34,
+   "keys_with_more_than_one_result_across_files": []
+  }
+ },
+ "shallow_cpu_ms": {
+  "Src1/exhaustive": 5577.3955000000005,
+  "Src1/subpixel": 8177.2031,
+  "Src2/exhaustive": 451.2759,
+  "Src2/subpixel": 1569.4495,
+  "Src3/exhaustive": 27.3061,
+  "Src3/subpixel": 31.457099999999997,
+  "Src4/exhaustive": 147.5391,
+  "Src4/subpixel": 166.94699999999997,
+  "Src6/exhaustive": 628.6908999999999,
+  "Src6/subpixel": 3798.0567,
+  "Src7/exhaustive": 331.4469,
+  "Src7/subpixel": 1903.5912,
+  "Src8/exhaustive": 99.215,
+  "Src8/subpixel": 448.2632,
+  "Src9/exhaustive": 3.2896,
+  "Src9/subpixel": 3.5421,
+  "Src10/exhaustive": 456.74120000000005,
+  "Src10/subpixel": 458.92220000000003,
+  "Src5-0/exhaustive": 1107.696,
+  "Src5-0/subpixel": 1174.7633,
+  "Src5-45/exhaustive": 1110.8893,
+  "Src5-45/subpixel": 1172.8558,
+  "Src5-90/exhaustive": 1109.7525,
+  "Src5-90/subpixel": 1168.3586,
+  "Src5-135/exhaustive": 1116.3283999999999,
+  "Src5-135/subpixel": 1176.2175,
+  "Src5-180/exhaustive": 1109.4773,
+  "Src5-180/subpixel": 1179.6343000000002,
+  "Src5-225/exhaustive": 1112.4939,
+  "Src5-225/subpixel": 1171.9789,
+  "Src5-270/exhaustive": 1111.7870999999998,
+  "Src5-270/subpixel": 1182.2941,
+  "Src5-315/exhaustive": 1112.8318000000002,
+  "Src5-315/subpixel": 1184.0921
+ },
+ "pass": true
+}

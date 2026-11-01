@@ -1,0 +1,34 @@
+baseline cpp-core/experiments/coarse_cuda.cu ('SURVIVED', '')
+baseline cpp-core/src/ncc.cpp ('SURVIVED', '')
+KILLED   C1 fused coarse keeps only scores above the threshold | experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: flat template, threshold 1 angle 0: peak count
+KILLED   K5 coarse Q28 tile steps 31 columns | experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: coarse mode 2 trial 0 angle 0: peak differs
+KILLED   K11 coarse Q28 uniform template keeps only scores above the threshold | experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: flat template, threshold 1 angle 0: peak count
+KILLED   K12 coarse Q28 binary64 branch keeps only scores above the threshold | experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: flat source, threshold 0 angle 0: peak count
+KILLED   L24 screen row steps 31 columns | experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 4: fine map 0 differs
+KILLED   L1 mma template column taken from lane & 7 | experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: coarse mode 6 trial 0 angle 0: peak count
+KILLED   L2 mma stops one 32-column step early | experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: coarse mode 6 trial 0 angle 0: peak count
+KILLED   L3 mma uses template rows outside the window | experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: coarse mode 6 trial 0 angle 0: peak count
+KILLED   L4 window products ignore the byte shift | experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: coarse mode 5 trial 0 angle 0: peak count
+KILLED   L5 dp4a second window column one word off | experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: coarse mode 5 trial 0 angle 0: peak differs
+KILLED   L6 slide removes the wrong row | experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: coarse mode 5 trial 0 angle 0: peak differs
+KILLED   L7 lane scan stops at 8 | experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: coarse mode 5 trial 0 angle 0: peak count
+KILLED   L8 column totals skip the last row | experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: coarse mode 5 trial 0 angle 0: peak differs
+KILLED   L9 slide tail not masked | experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: coarse mode 5 trial 0 angle 0: peak differs
+KILLED   L10 padded template not zeroed | experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: coarse mode 5 trial 1 angle 0: peak count
+KILLED   L11 uniform template takes the warp windows | experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: flat template, threshold 1 angle 0: peak count
+KILLED   L12 windows past the map are scored | experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: coarse mode 5 trial 0 angle 5: peak count
+KILLED   L13 binary64-scored windows not counted | experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: coarse mode 5: 0 of 5018227 windows scored in binary64
+KILLED   L14 screen margin ignores the guard | experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 4: fine map 1 differs
+KILLED   L15 screen rounds down | experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 4: fine map 0 differs
+KILLED   L16 edge band not sent to q28Sample | experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 4: fine map 0 differs
+KILLED   L17 repair asks the first pixel of the chunk | experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 4: fine map 0 differs
+KILLED   L18 chunk keeps only the last unsure pixel | experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 4: fine map 0 differs
+KILLED   L19 screen x weight off by a bit | experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 4: fine map 0 differs
+KILLED   L20 screen y multiply not doubled | experiments/fpm_cuda_kernel_test exit 1: FAIL fine: wide template, fine mode 4: fine map 0 differs
+KILLED   L21 zero-variance window keeps only scores above the threshold | experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: flat source, threshold 0 angle 0: peak count
+SURVIVED L22 window binary64 branch keeps only scores above the threshold | 
+SURVIVED U7 no uint32 overflow guard | 
+SURVIVED U8 window tile not clipped to the map | 
+SURVIVED U9 no small-image guard | 
+totals {'KILLED': 26, 'SURVIVED': 4}
+MUTDONE 0 

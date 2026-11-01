@@ -26,44 +26,44 @@
     "metadata": "Filesystem sidecar metadata",
     "other": "No recognized role; inspect manually"
   },
-  "artifact_count": 1025,
-  "artifact_bytes": 2926528919,
+  "artifact_count": 1142,
+  "artifact_bytes": 2931833773,
   "artifact_role_counts": {
-    "archive": 160,
+    "archive": 163,
     "calibration": 5,
-    "failure_review": 36,
+    "failure_review": 37,
     "false_gate": 65,
-    "formal": 85,
+    "formal": 104,
     "input": 21,
-    "other": 176,
-    "pilot": 73,
-    "protocol": 56,
-    "provenance": 88,
-    "raw": 143,
-    "report": 84,
-    "source": 33,
-    "summary": 199,
-    "validation": 107,
+    "other": 226,
+    "pilot": 98,
+    "protocol": 57,
+    "provenance": 90,
+    "raw": 163,
+    "report": 85,
+    "source": 40,
+    "summary": 208,
+    "validation": 110,
     "visual": 68
   },
-  "archive_member_count": 146446,
+  "archive_member_count": 146490,
   "archive_member_role_counts": {
     "archive": 26,
     "binary": 47,
     "calibration": 1,
     "failure_review": 159,
-    "formal": 32826,
+    "formal": 32827,
     "input": 616,
     "metadata": 6526,
-    "other": 61167,
-    "pilot": 4304,
+    "other": 61189,
+    "pilot": 4307,
     "protocol": 114,
     "provenance": 147,
-    "raw": 47903,
+    "raw": 47922,
     "report": 92,
     "source": 13440,
     "summary": 1233,
-    "validation": 1228,
+    "validation": 1230,
     "visual": 1088
   },
   "artifacts": [
@@ -211,8 +211,18 @@
       "path": "CUDA_BACKEND_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 21436,
-      "sha256": "da0bbc25ef705b0446bfcd024d3c3c5abc7346db9342fac0cbf8d4a4a9f6f07d",
+      "bytes": 21575,
+      "sha256": "2a8b79b8eebb6b2f4bb4b5106f037310945fec247cf8103a860ac40bb0c50088",
+      "roles": [
+        "report"
+      ]
+    },
+    {
+      "path": "CUDA_COARSE_WINDOWS_zh-TW.md",
+      "group": "root",
+      "stage": null,
+      "bytes": 25933,
+      "sha256": "9b38e26edee69d29f73132e63277cf0ec99921480aa6e73947eff81a440c4795",
       "roles": [
         "report"
       ]
@@ -221,8 +231,8 @@
       "path": "CUDA_KERNELS_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 26626,
-      "sha256": "9316b029a8f1e90bcb6039f4bc76b1c19e01fd9c3d9984db724538ed5a4deabe",
+      "bytes": 27233,
+      "sha256": "21d77b5904556c3495648f4670b8485423ba3850cb6bf73ddceac754d770bad4",
       "roles": [
         "report"
       ]
@@ -653,8 +663,8 @@
       "path": "PROJECT_STATUS_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 22417,
-      "sha256": "48a76574374780014063f44e8a86ab79bf9da872b7a283463bb208746269b197",
+      "bytes": 23624,
+      "sha256": "e33b2b0b8d66f5d469d4b7fdacc2bb80995a2648526faf37778ad051b21e4acf",
       "roles": [
         "report"
       ]
@@ -2674,6 +2684,1205 @@
       ],
       "explicit_false_gates": [
         "/gates/mutants/pass"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/archive.json",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 13058,
+      "sha256": "9741fb47a5a08adb34e02b0d5ff4c7983a445334292c25bd82e29eb9e0335d7c",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/decision-and-failures.json",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 5508,
+      "sha256": "fa4877685ceeb4e46ccf1d7920eb2b9557f2c3c073f7c057887e79fc9b5b7dd9",
+      "roles": [
+        "failure_review"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/formal/after.bat",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 1316,
+      "sha256": "285538eb007288f261c7cfe81d7f8fe8714143c5509961182a2738f4221a4f1c",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/formal/build-cuda.bat",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 890,
+      "sha256": "1468a8c38202ace0d824bf1098e261dcfedd82faa0b6b85a543f93d852bb1d0d",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/formal/check_pgm.py",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 429,
+      "sha256": "54812833d760c4d83270a74c2e5cdcc9f8244e178a3406f1cb3c264888d3e41b",
+      "roles": [
+        "formal",
+        "source"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/formal/derived-tables.txt",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 21344,
+      "sha256": "f79883f70b4bcd3a79aba26c130fdd5b46fb43e0f8dbd7c9d471bd695cdb2ddf",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/formal/derived_tables.py",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 3877,
+      "sha256": "02aa0d77cc443402e9723bc6b4eb9324bf8bd10f8d9ebcfca6c13cb71f15c9dd",
+      "roles": [
+        "formal",
+        "source"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/formal/formal.bat",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 2424,
+      "sha256": "4d5fb57f7cb3f2d8b7c411fb04e6f2e9779f6085e5a1dff1f3cbf9ba18942513",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/formal/identity-recheck.json",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 2759,
+      "sha256": "22e2369f15b69e856a6a72d957df3d6478c118dc134a2293f5dcbdcc2bf91151",
+      "roles": [
+        "formal",
+        "summary"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/formal/identity_check.py",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 2842,
+      "sha256": "99ccad6aa285f7cf6b7c482cb5a9334dcf03d805526d39f2bb069dcd491730b3",
+      "roles": [
+        "formal",
+        "source"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/formal/make_validation.py",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 3864,
+      "sha256": "1eb246bafa71fd3479ed9f9511eaed0279fd8a844e1dc064ddcf24385290052b",
+      "roles": [
+        "formal",
+        "source",
+        "validation"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/formal/mutants-1d0e951.json",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 16341,
+      "sha256": "9dde1fbb3516ed5765ee89c632ed4a90974d334fe5455b4b6f5407d06e0892d5",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/formal/pgm-manifest.json",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 4272,
+      "sha256": "3a539fec058b4f42e613c074a8fcb0f697ae2ca671cd76645bc8a23b6cd8e64f",
+      "roles": [
+        "formal",
+        "provenance"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/formal/profile-tables.txt",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 8766,
+      "sha256": "e7ba498a10a23c0b7ad72fdc08b2c7e741362ae27e9b64b9e71cd360fe7557d1",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/formal/profile.ps1",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 2361,
+      "sha256": "87d09e9d867096a506b672ca4bafb1871dfdc7a8523888f6aaf9065242034894",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/formal/profile_tables.py",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 2394,
+      "sha256": "feb20f6ced8bab2582c7412389fc5f17a2f65687361822c61f5704dbf7147cc7",
+      "roles": [
+        "formal",
+        "source"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/formal/timing-summary-shallow-k6-vs-k5.json",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 36989,
+      "sha256": "7bc2c12390ae1d2f31e8f3da29a058c69fecb2aa21b0b9b7eebfe847b6a50879",
+      "roles": [
+        "formal",
+        "summary"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/formal/timing-summary-shallow-vs-b2.json",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 75680,
+      "sha256": "02c7a2a9c66fd142a63bb7894feb6a351387cb91252198153f4247c69f6e5621",
+      "roles": [
+        "formal",
+        "summary"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/formal/timing-summary-standard-k6-vs-k5.json",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 55087,
+      "sha256": "160fda8790add96e198ea6623f99b0712b2cff48ca5b14056ef544e70ab5eac1",
+      "roles": [
+        "formal",
+        "summary"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/formal/timing-summary-standard-vs-b2.json",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 170283,
+      "sha256": "f5420c26351915990ea3938118a5126b2765f1a57d16d35688911378680943c0",
+      "roles": [
+        "formal",
+        "summary"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/formal/timing-summary-standard-vs-cpu.json",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 111409,
+      "sha256": "2c2b11e2de349838af45f593418fb70fd979698da56aa8cc1ae473ff059b41d5",
+      "roles": [
+        "formal",
+        "summary"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/pilot/dev-tree-with-tiles.diff",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 41563,
+      "sha256": "2e538466c0b683bbbef2595b142289fd2b31580ff9d71167df5a1735f4a84a69",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/pilot/mutpilot.bat",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 602,
+      "sha256": "27364dfc6bba56c55c87c38da6a11c9c7ff7b1e69323d3c5afef6fbcd74cb8fe",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/pilot/mutpilot.json",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 6329,
+      "sha256": "213712f5a1125994b349d6bad810cbfe4886dce1a79efc88bcb29848c5319498",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/pilot/mutpilot.log",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 4293,
+      "sha256": "bd4383815ad751f8342ef3fc88ae7991d5e1c2f111777d9b40a21dfeb3c9dfbc",
+      "roles": [
+        "pilot",
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/pilot/mutpilot2.json",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 1423,
+      "sha256": "5436d0c91cc727d93e6d8f13a2c514681a098192dbc85815899b48a06f554a49",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/pilot/mutpilot2.log",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 854,
+      "sha256": "beecbe90596619eabb7cd9296e0569d8a13dbd8f9653b9755d396550130c54f0",
+      "roles": [
+        "pilot",
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/pilot/ncu-branchy/fine4.txt",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 15415,
+      "sha256": "681d40f2db827948b6e5368d913ea868f8618686663b06f86f2c6abc1c717eab",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/pilot/ncu-final/fine2.txt",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 14441,
+      "sha256": "329e0c518f04693476e0a09c2acaa4fd3aaadef1bdcd5937d4dc68721f83a1b9",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/pilot/ncu-final/fine3.txt",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 16015,
+      "sha256": "e50a7282d3bd87d323d9651f1d41c58ed7a77fd065fc108bb01dec332c275783",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/pilot/ncu-final/fine4.txt",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 14441,
+      "sha256": "a4721008d08136ba7143e9dd4cb6c2c74d907d6f65d9510b3fd8afc3abc2e183",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/pilot/ncu-rowrepair/fine4.txt",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 15424,
+      "sha256": "388e0e86b7f60c7f448f69a2f996806d262b450d0492246b1b350c76fcbdc0a8",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/pilot/ncu3.ps1",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 900,
+      "sha256": "c1c0e04d03d4cbc063d760ca41643fa7b3170f19ef83b0b094bd97ed902c1afa",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/pilot/pilot-raw.tar.gz",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 1901492,
+      "sha256": "2a011085d0073e45d726c17ab8fac104496341c9a916dd8f2eea8d9d20cc3308",
+      "roles": [
+        "archive",
+        "pilot"
+      ],
+      "archive_file_count": 21,
+      "archive_role_counts": {
+        "other": 18,
+        "pilot": 3
+      }
+    },
+    {
+      "path": "cuda-coarse-windows/pilot/pilot-summary.txt",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 3650,
+      "sha256": "84b4a6f100e38e6d5dff5d2eeef403c97f7112f8e3855d3854a0a1e89560f973",
+      "roles": [
+        "pilot",
+        "summary"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/pilot/pilot3.bat",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 950,
+      "sha256": "e2d925aa1c68f28a41ec73b421bb49413aad71d205831f24a53dabdbff6cbe04",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/pilot/pilot4.bat",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 757,
+      "sha256": "126304c87722587f75e6c56a6bd63bf717ffd62b7b6a3509e24083ab35ad7e0d",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/pilot/pilot_summary.py",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 2444,
+      "sha256": "720027053aee63af8981a75f83c628db4f1492acf658945b4420c58001451eff",
+      "roles": [
+        "pilot",
+        "source",
+        "summary"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/pilot/pilotbig.json",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 2403,
+      "sha256": "3b8a78dbe77cccd379a160455a3a149280a1b2494e25b4a38b54aea63a163780",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/pilot/pilotbig.log",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 662,
+      "sha256": "20531c0b9130cb05f6369e81e4e7483c469177300458ec352e663c9373e96611",
+      "roles": [
+        "pilot",
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/pilot/pilotbig.py",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 1629,
+      "sha256": "1ed2e351e8b58c73451f368cf672dfb01668d81278c20802db76758a8a2c77e8",
+      "roles": [
+        "pilot",
+        "source"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/pilot/pilott.bat",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 806,
+      "sha256": "d0aeb08c99f094c0d799d4df3454a27d3836cb6bf7b2bc5e2e35edbdf9c5afc8",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/pilot/pilotw.bat",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 753,
+      "sha256": "70060653adbd400aaf233b4fa68f8e40593f3ee6a99d3c6224f43ea5da4a6b5d",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/pilot/probe/mma_probe.cu",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 3038,
+      "sha256": "5c5b074083fbaa7f60d13f6469eaeea3e1892de9b885c99c65bcb37a7b8fb8cd",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/pilot/probe/probe.txt",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 50352,
+      "sha256": "800890688e8ef90d9a22c4e812a4ca0a7f357d5476f737295893f14f63acd139",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/pilot/probe/run.bat",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 388,
+      "sha256": "873541c833ed5edfe9bba6ad9df2a85e7d04c721d2be07999347434fb25cffe1",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src1-exhaustive-area256-b2.cuda_api_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 1816,
+      "sha256": "0ab73f5b7414855af8c515a42eff783cb42b489c81b5b738bc2c363df7d41ca1",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src1-exhaustive-area256-b2.cuda_gpu_kern_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 1610,
+      "sha256": "4bdfaf7c7a74f5e2ad63e8c2599c95d08cfa7239e747c570f1175a0bb978fef2",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src1-exhaustive-area256-b2.cuda_gpu_mem_time_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 578,
+      "sha256": "7ce7f9fc080baa21f0734f5720c29224a40569d42de550c4c7dc5afd38ce7755",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src1-exhaustive-area256-b2.nvtx_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 692,
+      "sha256": "2304dc0edfb51bde7aa125977c7330c39b3331ed9e20d3762e6bdc342d456701",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src1-exhaustive-area256-b2.stdout.txt",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 5351,
+      "sha256": "2706c4b92b90050ea686d7f077430fe9d9b73c7a9991955541b4b1f1791c8d68",
+      "roles": [
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src1-exhaustive-area256-k6.cuda_api_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 1812,
+      "sha256": "434fc0468373cff6108e05d24f54472934d774d0dadda33d0072929fe33e3356",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src1-exhaustive-area256-k6.cuda_gpu_kern_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 1855,
+      "sha256": "1ef0633ab8cedcd760bcf82adb285ae01245196f7d73b1840a61408cb5bcc860",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src1-exhaustive-area256-k6.cuda_gpu_mem_time_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 578,
+      "sha256": "7fa65a13fd53ba06f9b40179fb72fb235f85bdb80d7b5282c06ab0403c7c0cf2",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src1-exhaustive-area256-k6.nvtx_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 691,
+      "sha256": "580e4b884d0c14658f3c1591ab3c8836b572490c152bea2ade8192f5caa49143",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src1-exhaustive-area256-k6.stdout.txt",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 4183,
+      "sha256": "f89d68d03e047542e7867de87fd0fa898349497488d9c27df7cb0f7fd21044b2",
+      "roles": [
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src1-exhaustive-area4096-b2.cuda_api_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 1839,
+      "sha256": "a180b0111943a6f3c792e2b9e45c7168f1bfc301bf9e4e65038c0666181b56ad",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src1-exhaustive-area4096-b2.cuda_gpu_kern_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 1636,
+      "sha256": "44f65be5895c675b58c5af295f0e7ecf2c6ce5e5330f1644688622211c894de0",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src1-exhaustive-area4096-b2.cuda_gpu_mem_time_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 581,
+      "sha256": "626b2beb9a30e7d572a254c8e6ce6eb3101c04367eda84dab1744eb0e9502bac",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src1-exhaustive-area4096-b2.nvtx_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 703,
+      "sha256": "4d9955ee874f1ce98e048410986400e297581649f4e8bce09557dec1975a304d",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src1-exhaustive-area4096-b2.stdout.txt",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 7569,
+      "sha256": "42323421c25efe0e1ec7308d8706fe07be2ad9c614650de1eb86d9ef47e2b763",
+      "roles": [
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src1-exhaustive-area4096-k6.cuda_api_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 113,
+      "sha256": "be4a138514090944703d99f2b1b32ab17c3f72544198a8c98d32500b3538e287",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src1-exhaustive-area4096-k6.cuda_gpu_kern_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 113,
+      "sha256": "be4a138514090944703d99f2b1b32ab17c3f72544198a8c98d32500b3538e287",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src1-exhaustive-area4096-k6.cuda_gpu_mem_time_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 113,
+      "sha256": "be4a138514090944703d99f2b1b32ab17c3f72544198a8c98d32500b3538e287",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src1-exhaustive-area4096-k6.nvtx_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 113,
+      "sha256": "be4a138514090944703d99f2b1b32ab17c3f72544198a8c98d32500b3538e287",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src1-exhaustive-area4096-k6.stdout.txt",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 260,
+      "sha256": "4ee34c24b3739d3e55a685e77da52bed874aecf4f683b8cb5e99489af64853dd",
+      "roles": [
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src5-0-exhaustive-area256-b2.cuda_api_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 1819,
+      "sha256": "b3b2c1fa24fd22fefe59a54c6a2e8b2de5679c7d815f471bd2541a1d0f23bc5a",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src5-0-exhaustive-area256-b2.cuda_gpu_kern_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 1606,
+      "sha256": "4cc74c0f38e1e966997fd5adf6b6f3dabeadcf8221d1295650365217b49986b7",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src5-0-exhaustive-area256-b2.cuda_gpu_mem_time_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 585,
+      "sha256": "80a37eaae0a9cab0f574593c604349e4cb028c632195bdbc505eb7da83ef1b40",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src5-0-exhaustive-area256-b2.nvtx_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 693,
+      "sha256": "0911cfbd8770c075882f3017d6ed37599484e3eda3c7a7b20f2bad6474691b72",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src5-0-exhaustive-area256-b2.stdout.txt",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 3920,
+      "sha256": "23a1759c191d7f7d1c0dea452d0e1cf8edc0206b7e89ae9cbaa24e56c47796e2",
+      "roles": [
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src5-0-exhaustive-area256-k6.cuda_api_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 1824,
+      "sha256": "be096baca6ccb2a2410709be2b35390374e6cc18dbef9080c6dce3f1da52156c",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src5-0-exhaustive-area256-k6.cuda_gpu_kern_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 1605,
+      "sha256": "048f3f70177a4a889150f7a72e7f4cf950bcecc8dc7e83fbf0feee3d43dba7c7",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src5-0-exhaustive-area256-k6.cuda_gpu_mem_time_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 585,
+      "sha256": "b85800348d31a713c959cdf249ab8f4dd3615bd3fb8f81c0e2ebf99a6769082c",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src5-0-exhaustive-area256-k6.nvtx_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 695,
+      "sha256": "92d17be291d25802857e723dfa1dd6d81312218699e83bb6cd9c560dd4530b84",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src5-0-exhaustive-area256-k6.stdout.txt",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 3995,
+      "sha256": "20dcf239301980a18d555ce4d2d8467a42bc9d1dcf60e9660e0b2a8e17a463a7",
+      "roles": [
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src6-exhaustive-area4096-b2.cuda_api_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 1831,
+      "sha256": "99c1db77073d96a1926391326438b80a2bf06614b69d5c0c015aec2c0ebdd270",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src6-exhaustive-area4096-b2.cuda_gpu_kern_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 1614,
+      "sha256": "0f5a2dd741bd3c2e549cd1d89892f5ea32b9552f1dac89c764907b52dad512c2",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src6-exhaustive-area4096-b2.cuda_gpu_mem_time_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 581,
+      "sha256": "118da0bde6b9f4d104d316247b7d166744e19d92adfc86514167ec5872484a3e",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src6-exhaustive-area4096-b2.nvtx_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 700,
+      "sha256": "d1d3b3573d620868dbaa15c76a83bfc49b4636568a341d46239cf872dd1839e1",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src6-exhaustive-area4096-b2.stdout.txt",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 6903,
+      "sha256": "d73905f6e5c975f43e9f7efada2a1dad4efb1af5eb2bc957288d333aadf422bc",
+      "roles": [
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src6-exhaustive-area4096-k6.cuda_api_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 1811,
+      "sha256": "558c9597ba848c137ed7e098fe2f57c886fd2c0beeea469814a3a3fa283603d3",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src6-exhaustive-area4096-k6.cuda_gpu_kern_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 1854,
+      "sha256": "eac866d41521ee6b509ed184b847ff3ae829556bdfeb5dc59c677f9cdb6d66d7",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src6-exhaustive-area4096-k6.cuda_gpu_mem_time_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 582,
+      "sha256": "064143f170ec51d96aeb8748247d40a9b2137a0d37b1d23df9c195d8ba201534",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src6-exhaustive-area4096-k6.nvtx_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 700,
+      "sha256": "ff7e0ea4f0ebd0adb144aafee9e96215a0d0a979a7fff3dd0244f2340021dd78",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src6-exhaustive-area4096-k6.stdout.txt",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 6607,
+      "sha256": "e5999dbd0e65fc97dfc01c6db4cbae28f71eba19a5a4bb85816b2fa0058b8e4b",
+      "roles": [
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src6-subpixel-area256-b2.cuda_api_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 1801,
+      "sha256": "318b97dd82dee51e8789c43ffb811edd2098178f77db4a2d9d2ce3cd006a80c4",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src6-subpixel-area256-b2.cuda_gpu_kern_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 1587,
+      "sha256": "405a715f0de27833054693e1f0d0aaf4d217bd8d94b33615b5489bc32049c2df",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src6-subpixel-area256-b2.cuda_gpu_mem_time_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 571,
+      "sha256": "03eed21cc9bf49853480ac4bd3d1a7645d920a86fd8a2950442f163ae81b9bfb",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src6-subpixel-area256-b2.nvtx_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 683,
+      "sha256": "071f5ec767ea46fdfcf81d9e70a3fb460098ddbafed139af1cfe3f99b57c965c",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src6-subpixel-area256-b2.stdout.txt",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 7053,
+      "sha256": "e30e9282035fe7fbab937978aa893fb59684b425ddf4cd99949e97186f14d257",
+      "roles": [
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src6-subpixel-area256-k6.cuda_api_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 1802,
+      "sha256": "3f8ab425d801267f6ca1f410c3282201ab91fa4b2a41f098712595cc1c00a3e6",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src6-subpixel-area256-k6.cuda_gpu_kern_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 1830,
+      "sha256": "dcb1ecff217297ea20998f1615b4da096d36feebc1219953da02c9f8af8277e8",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src6-subpixel-area256-k6.cuda_gpu_mem_time_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 571,
+      "sha256": "18b5a73dd3933764ccd38fbd785ecd8de43b179c2bd0f5de4bea2de71799fe66",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src6-subpixel-area256-k6.nvtx_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 683,
+      "sha256": "3782b119c80f887241816d975da32eedbdb787c19bab1a1ec68d8954aa5d6ebb",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/Src6-subpixel-area256-k6.stdout.txt",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 6414,
+      "sha256": "ca5ab629160a504f27db4f279d85cea6dd4638dc89b87b07bbad707a6d676133",
+      "roles": [
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/done.txt",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 28,
+      "sha256": "44fa0cb255074d6e9cd8b0c82facd23e9cbf2bdf95c3e07a25a56e148631e5c9",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/ncu-coarseWarpWindows-Src1-area256-exhaustive-coarse6-fine4.stdout.txt",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 2605,
+      "sha256": "63b1b705849c457c2d1f393b6e3ffda78be97f3cb22e4acfaed99736712b5e51",
+      "roles": [
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/ncu-coarseWarpWindows-Src1-area256-exhaustive-coarse6-fine4.txt",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 15951,
+      "sha256": "3f8a6b77e2a432bb5d8347f5e107431cd1618297fbc5935fbf76576d9f2a236e",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/ncu-coarseWarpWindows-Src1-area4096-exhaustive-coarse5-fine4.stdout.txt",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 2930,
+      "sha256": "ed3ed1c823786afbe11399a9a4d4b0f8145e3e528e893ea22c84c07263e3352b",
+      "roles": [
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/ncu-coarseWarpWindows-Src1-area4096-exhaustive-coarse5-fine4.txt",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 17240,
+      "sha256": "2a4166f01ad8bc200f714edeb474061464bad182f4158d039d80327e5b5632c5",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/ncu-coarseWarpWindows-Src1-area4096-exhaustive-coarse6-fine4.stdout.txt",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 2930,
+      "sha256": "a49b2bd9573833d84bab8e7c6f3bd27e20461a506cc2e306766cdcc36b42e0e2",
+      "roles": [
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/ncu-coarseWarpWindows-Src1-area4096-exhaustive-coarse6-fine4.txt",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 16378,
+      "sha256": "e6612c74049c57182e984f29159473154c8f4a867c6b55ddf3d54ed9ff9737ab",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/ncu-fineStripes-Src6-area256-subpixel-coarse3-fine2.stdout.txt",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 4901,
+      "sha256": "34deb4a638fc94a72506a47f0809fc49f16377c051be0b165d8932a33b615917",
+      "roles": [
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/ncu-fineStripes-Src6-area256-subpixel-coarse3-fine2.txt",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 14440,
+      "sha256": "b07ed3b00537c7a7dc306ce8f4719cd2dd81b06f2d839c81da83a4a35dcf2446",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/ncu-fineStripes-Src6-area256-subpixel-coarse3-fine4.stdout.txt",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 4903,
+      "sha256": "ac41d70bfddb284ef45b5a504f503fb953f77359a9d4da8ebf6d486b8780b180",
+      "roles": [
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/ncu-fineStripes-Src6-area256-subpixel-coarse3-fine4.txt",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 14441,
+      "sha256": "28a015f355b9e6e868ad5e0d132a4968dd59c28e06a1d4bd77e706b924fabcff",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/retry/Src1-exhaustive-area4096-k6.cuda_api_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 1851,
+      "sha256": "a89a53926c94550092c3bd5838402cc678c81c5e1590b96623ac8530041e52a8",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/retry/Src1-exhaustive-area4096-k6.cuda_gpu_kern_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 1896,
+      "sha256": "a840422a18528a36ba3e0873eba716d3ae7ead3e77dfe4d88fb2f284ec755449",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/retry/Src1-exhaustive-area4096-k6.cuda_gpu_mem_time_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 601,
+      "sha256": "08709ef0131e4b6e3fa8221d6f22da3efa4885e79fef9e8cf0b46bbb2c783c7e",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/retry/Src1-exhaustive-area4096-k6.nvtx_sum.csv",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 716,
+      "sha256": "24c4f22468c3be9cf5fe5344b2d904a9bc37e74ad5287504dd61a36b29a9ea82",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/profile/retry/Src1-exhaustive-area4096-k6.stdout.txt",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 8019,
+      "sha256": "3190d5e0763093a73edfd5b36cc45111390571edaf0081a5bcc43b56bd9559fb",
+      "roles": [
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/protocol.json",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 6405,
+      "sha256": "6171584dbc7f576ec5d901667b739e604bb4cbee5b6e04864401dc6f840d2fb2",
+      "roles": [
+        "protocol"
+      ]
+    },
+    {
+      "path": "cuda-coarse-windows/raw-results.tar.gz",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 2396846,
+      "sha256": "e57435dce058bacfd34437ee1e48910b336d33bb68d1d99d0a21117b7594af1e",
+      "roles": [
+        "archive",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 4,
+      "archive_role_counts": {
+        "other": 4
+      }
+    },
+    {
+      "path": "cuda-coarse-windows/validation-logs.tar.gz",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 15168,
+      "sha256": "b01e07fd0ffe22aa04ec112cffbce273eb2e4fe0afe9e3429b0737554b099e67",
+      "roles": [
+        "archive",
+        "validation"
+      ],
+      "archive_file_count": 19,
+      "archive_role_counts": {
+        "formal": 1,
+        "raw": 19,
+        "validation": 2
+      }
+    },
+    {
+      "path": "cuda-coarse-windows/validation.json",
+      "group": "cuda-coarse-windows",
+      "stage": null,
+      "bytes": 10091,
+      "sha256": "3f657497e38767289846c493970f0ef20d53094ebd189e85ae1d148247a86801",
+      "roles": [
+        "validation"
       ]
     },
     {
@@ -12843,5 +14052,5 @@
       ]
     }
   ],
-  "archive_member_index_sha256": "9ee4f2d523f1376461221f3c06bd8a593b6af05a418b402e82d1f288e46cf887"
+  "archive_member_index_sha256": "64b9f09c5149143a0c292c60a0a73ae6c0964260576293745755d52f98945929"
 }
