@@ -1,0 +1,35 @@
+{"spin":0}
+{"name":"cpu memcpy warm pageable 12MB","median_ms":0.28110,"p10_ms":0.28040,"p90_ms":0.28560,"n":40}
+{"name":"cpu fresh vector(N)+memcpy 12MB","median_ms":2.56790,"p10_ms":2.43170,"p90_ms":2.62090,"n":20}
+{"name":"cudaHostRegister 12MB","median_ms":0.06970,"p10_ms":0.06030,"p90_ms":0.20120,"n":10}
+{"name":"cpu memcpy into registered 12MB","median_ms":0.29600,"p10_ms":0.29580,"p90_ms":0.30120,"n":40}
+{"name":"h2d pageable 12MB","median_ms":0.43690,"p10_ms":0.43280,"p90_ms":0.44110,"n":60}
+{"name":"h2d registered 12MB","median_ms":0.29670,"p10_ms":0.27190,"p90_ms":0.30180,"n":60}
+{"name":"h2d hostalloc 12MB","median_ms":0.22970,"p10_ms":0.22860,"p90_ms":0.23130,"n":60}
+{"name":"warm copy + pageable h2d 12MB","median_ms":1.19710,"p10_ms":1.18870,"p90_ms":1.20720,"n":60}
+{"name":"chunked copy+h2d registered chunks=1 flush=0","median_ms":0.61130,"p10_ms":0.59320,"p90_ms":0.61790,"n":60}
+{"name":"chunked copy+h2d registered chunks=1 flush=1","median_ms":0.61240,"p10_ms":0.58470,"p90_ms":0.61760,"n":60}
+{"name":"chunked copy+h2d registered chunks=4 flush=0","median_ms":0.47180,"p10_ms":0.46440,"p90_ms":0.47780,"n":60}
+{"name":"chunked copy+h2d registered chunks=4 flush=1","median_ms":0.47090,"p10_ms":0.46640,"p90_ms":0.47880,"n":60}
+{"name":"chunked copy+h2d registered chunks=8 flush=0","median_ms":0.74330,"p10_ms":0.73980,"p90_ms":0.90140,"n":60}
+{"name":"chunked copy+h2d registered chunks=8 flush=1","median_ms":0.90230,"p10_ms":0.89730,"p90_ms":0.90950,"n":60}
+{"name":"chunked copy+h2d registered chunks=16 flush=0","median_ms":0.91080,"p10_ms":0.90460,"p90_ms":0.92010,"n":60}
+{"name":"chunked copy+h2d registered chunks=16 flush=1","median_ms":0.91590,"p10_ms":0.90680,"p90_ms":0.92370,"n":60}
+{"name":"chunked copy+h2d registered chunks=32 flush=0","median_ms":0.97100,"p10_ms":0.95240,"p90_ms":0.98950,"n":60}
+{"name":"chunked copy+h2d registered chunks=32 flush=1","median_ms":0.97130,"p10_ms":0.95810,"p90_ms":0.98690,"n":60}
+{"name":"d2h pageable 4MB","median_ms":0.33930,"p10_ms":0.33260,"p90_ms":0.34820,"n":60}
+{"name":"d2h registered 4MB","median_ms":0.12750,"p10_ms":0.12500,"p90_ms":0.13060,"n":60}
+{"name":"api launch","median_ms":0.00280,"p10_ms":0.00270,"p90_ms":0.00340,"n":200}
+{"name":"api eventRecord timing","median_ms":0.00230,"p10_ms":0.00220,"p90_ms":0.00300,"n":200}
+{"name":"api eventRecord disableTiming","median_ms":0.00010,"p10_ms":0.00010,"p90_ms":0.00020,"n":200}
+{"name":"api memset 64B","median_ms":0.00220,"p10_ms":0.00210,"p90_ms":0.00280,"n":200}
+{"name":"api memcpy 512B pageable","median_ms":0.00240,"p10_ms":0.00230,"p90_ms":0.00320,"n":200}
+{"name":"api memcpy 512B pinned","median_ms":0.00260,"p10_ms":0.00240,"p90_ms":0.02280,"n":200}
+{"name":"api streamQuery idle","median_ms":0.00010,"p10_ms":0.00000,"p90_ms":0.00010,"n":200}
+{"name":"roundtrip upload+kernel streamSync","median_ms":0.07270,"p10_ms":0.07160,"p90_ms":0.07370,"n":200}
+{"name":"roundtrip upload+kernel eventSync","median_ms":0.07270,"p10_ms":0.07160,"p90_ms":0.07370,"n":200}
+{"name":"roundtrip upload+kernel mapped-flag poll flush=0 timeouts=0","median_ms":0.07110,"p10_ms":0.04310,"p90_ms":0.07240,"n":200}
+{"name":"roundtrip upload+kernel mapped-flag poll flush=1 timeouts=0","median_ms":0.04510,"p10_ms":0.04170,"p90_ms":0.04730,"n":200}
+{"name":"fine-shape round1 (ev,cpy,memset,k,k,ev,sync)","median_ms":0.11360,"p10_ms":0.09790,"p90_ms":0.11710,"n":200}
+{"name":"fine-shape lean (cpy,k,k,sync)","median_ms":0.07270,"p10_ms":0.07160,"p90_ms":0.08500,"n":200}
+{"done":1}

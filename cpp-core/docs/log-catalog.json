@@ -26,44 +26,44 @@
     "metadata": "Filesystem sidecar metadata",
     "other": "No recognized role; inspect manually"
   },
-  "artifact_count": 830,
-  "artifact_bytes": 2917275228,
+  "artifact_count": 895,
+  "artifact_bytes": 2920887131,
   "artifact_role_counts": {
-    "archive": 149,
+    "archive": 151,
     "calibration": 5,
-    "failure_review": 34,
+    "failure_review": 35,
     "false_gate": 65,
-    "formal": 67,
+    "formal": 73,
     "input": 21,
-    "other": 83,
-    "pilot": 33,
-    "protocol": 54,
-    "provenance": 85,
-    "raw": 100,
-    "report": 82,
+    "other": 116,
+    "pilot": 46,
+    "protocol": 55,
+    "provenance": 86,
+    "raw": 110,
+    "report": 83,
     "source": 31,
-    "summary": 190,
-    "validation": 103,
+    "summary": 194,
+    "validation": 105,
     "visual": 68
   },
-  "archive_member_count": 146405,
+  "archive_member_count": 146425,
   "archive_member_role_counts": {
     "archive": 26,
     "binary": 47,
     "calibration": 1,
     "failure_review": 159,
-    "formal": 32820,
+    "formal": 32823,
     "input": 616,
     "metadata": 6526,
     "other": 61167,
-    "pilot": 4302,
+    "pilot": 4303,
     "protocol": 114,
     "provenance": 147,
-    "raw": 47868,
+    "raw": 47885,
     "report": 92,
     "source": 13440,
     "summary": 1233,
-    "validation": 1224,
+    "validation": 1226,
     "visual": 1088
   },
   "artifacts": [
@@ -211,8 +211,18 @@
       "path": "CUDA_BACKEND_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 21161,
-      "sha256": "706218ca329d4fa9df78132588618e5ea3bfe947ba6b88052f27f1839836627a",
+      "bytes": 21309,
+      "sha256": "73b23c02719d6ae27a09930765a7aa3ad2f6b52297b88bb03eda889347bd27e6",
+      "roles": [
+        "report"
+      ]
+    },
+    {
+      "path": "CUDA_TRANSFER_zh-TW.md",
+      "group": "root",
+      "stage": null,
+      "bytes": 15892,
+      "sha256": "f832cf3c9ad6f65c8182fe1f711fe1a62190535f15ba08e832d403be80c0bb5f",
       "roles": [
         "report"
       ]
@@ -633,8 +643,8 @@
       "path": "PROJECT_STATUS_zh-TW.md",
       "group": "root",
       "stage": null,
-      "bytes": 20303,
-      "sha256": "94995874b56ea2efd7d4ec21b208a3b077f1f13308c87c53025cb06d24d015d7",
+      "bytes": 21169,
+      "sha256": "693ce54baaba0067188b9e686d76c9c270f15eb58fcadedbf4b21e9ce7e096f9",
       "roles": [
         "report"
       ]
@@ -2654,6 +2664,666 @@
       ],
       "explicit_false_gates": [
         "/gates/mutants/pass"
+      ]
+    },
+    {
+      "path": "cuda-transfer/archive.json",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 6886,
+      "sha256": "da2430a8000a36b5316ce96d0de64052242249e2daac18dc7958fc3ba82ac661",
+      "roles": [
+        "provenance"
+      ]
+    },
+    {
+      "path": "cuda-transfer/decision-and-failures.json",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 3553,
+      "sha256": "ba3aa1d870af157b975c28c974dfd18510b1579284bd751f1b9c1e115b8d6f3a",
+      "roles": [
+        "failure_review"
+      ]
+    },
+    {
+      "path": "cuda-transfer/formal/after.bat",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 1316,
+      "sha256": "0e8f17dd742fc60f48d34607b32f8f77764110512ce9ecbd981672e74db05efb",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "cuda-transfer/formal/build-cuda.bat",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 890,
+      "sha256": "a0cdfcd6bb77000e43d0a40bd844c24c144a202a5538e6f559ad574cc1f97d31",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "cuda-transfer/formal/formal.bat",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 1804,
+      "sha256": "9c027341964ca9e0699563badfa182474e2f6dbf0ab996c88277979147c960b9",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "cuda-transfer/formal/mutants-c1068b2.json",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 7981,
+      "sha256": "38730ca7f84b8a0266faec2ea484a1f5c8787d6d819994a12126a3482e4631ed",
+      "roles": [
+        "formal"
+      ]
+    },
+    {
+      "path": "cuda-transfer/formal/timing-summary-vs-cpu.json",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 140266,
+      "sha256": "7698e04bde842dd49dc5775b59b67aab2baaad0bf49e17021cdbe2a7ab912ff1",
+      "roles": [
+        "formal",
+        "summary"
+      ]
+    },
+    {
+      "path": "cuda-transfer/formal/timing-summary-vs-m0.json",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 112106,
+      "sha256": "d40fbc56e445ed7523a77e8a65d4e98b1696a222885319268c4e2f3f807b52df",
+      "roles": [
+        "formal",
+        "summary"
+      ]
+    },
+    {
+      "path": "cuda-transfer/pilot/default.jsonl",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 3518,
+      "sha256": "ca548e8e5ea65116984236eac9ea912effa2bd47debdb4998934342571f72d70",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-transfer/pilot/mutpilot-t7.bat",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 604,
+      "sha256": "371cdce54129fce78a62711d69d310a3938fc72fd8a09c7ba803dc47b590901c",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-transfer/pilot/mutpilot-t7.json",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 648,
+      "sha256": "d1c639633216d477083e5cab4cb02c703bca5b6aacc6455f607afb00cf5b7b3d",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-transfer/pilot/mutpilot-t7.log",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 247,
+      "sha256": "62b2fb48a7ceb9279fbbe7ace0a1897a8079f75991f56eb212b8701b63cacd4a",
+      "roles": [
+        "pilot",
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-transfer/pilot/mutpilot.bat",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 635,
+      "sha256": "45db5f47a0da7978da0bd9690c7731bbe1807a6a6782d06007c48c14bc26e2fd",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-transfer/pilot/mutpilot.json",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 3229,
+      "sha256": "7043048ab7794e0efedfe6bafadbde29050ea1ce6415e0952c92ad22d3797238",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-transfer/pilot/mutpilot.log",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 2091,
+      "sha256": "32a88529f5edf604049a7cda3dd45a6e0cafd581f9ea4456ee98469e858ba6b2",
+      "roles": [
+        "pilot",
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-transfer/pilot/pilot1-summary-vs-m0.json",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 112064,
+      "sha256": "531fc57f513c91f231c5a025edd42d452925c4aa809b3d5358d5fb868a296461",
+      "roles": [
+        "pilot",
+        "summary"
+      ]
+    },
+    {
+      "path": "cuda-transfer/pilot/pilot1.bat",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 473,
+      "sha256": "0a1867b9c098e039504ba82d1adba3b67e61f8df77db5a6fadb889dda686770c",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-transfer/pilot/pilot1.log",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 1993,
+      "sha256": "17e6d8c069d06c2c13abb9029a6303cea67f3148df184ce1722fdf609837811c",
+      "roles": [
+        "pilot",
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-transfer/pilot/spin.jsonl",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 3518,
+      "sha256": "75b42deb2d6110386e34cd1ccd3d0d499a93ce37e176feb2d817c8bc4e0cf673",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-transfer/pilot/xfer-build.bat",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 323,
+      "sha256": "603455bd9564953555fc333bfa0b9a6ba9b3a3fc4300f12710a43aabdcb4edf4",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-transfer/pilot/xfer_pilot.cu",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 10130,
+      "sha256": "ac224c19d7de57aee1914e82f44542762e173f9bf5d78f8934984e2e9472d776",
+      "roles": [
+        "pilot"
+      ]
+    },
+    {
+      "path": "cuda-transfer/profile/Src5-0-exhaustive-m0.cuda_api_sum.csv",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 1294,
+      "sha256": "ac8e1ca170f5dbe887bbbd90396eecf4fa7bf04ef581ff5e3510d90032383101",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-transfer/profile/Src5-0-exhaustive-m0.cuda_gpu_kern_sum.csv",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 1136,
+      "sha256": "7551adeeb10b1813ed524813dab70194c9951f27aa341efac0e9fa41be13d7d8",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-transfer/profile/Src5-0-exhaustive-m0.cuda_gpu_mem_time_sum.csv",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 308,
+      "sha256": "492c71ad7d455c0422c92a49774484a45a46323d06c12b0a0f75f1a51ccc4ee0",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-transfer/profile/Src5-0-exhaustive-m0.nvtx_sum.csv",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 342,
+      "sha256": "d7f28383a9b232361483219b2575b9f0a88278da13a412c8396127c4bb30f567",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-transfer/profile/Src5-0-exhaustive-m3.cuda_api_sum.csv",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 1403,
+      "sha256": "428ed24545afa7ae960f1f57a62483307c2d87092e686bb77256a0361b6d0d41",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-transfer/profile/Src5-0-exhaustive-m3.cuda_gpu_kern_sum.csv",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 1142,
+      "sha256": "265f6887b6efae05e2efdd2eaa17f0dc72f2649d0417b97d70ad45cb7c0983a2",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-transfer/profile/Src5-0-exhaustive-m3.cuda_gpu_mem_time_sum.csv",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 222,
+      "sha256": "2c256e124faabe70d1f779ad6041af3a71a814be6953e24d5662d9c8947bfdb2",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-transfer/profile/Src5-0-exhaustive-m3.nvtx_sum.csv",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 344,
+      "sha256": "ab62daaa66fa50dd2f4625c32405de6a7891e70b841ef3ba4cd7db92c0e9c3ed",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-transfer/profile/Src6-subpixel-m0.cuda_api_sum.csv",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 1290,
+      "sha256": "62029ed4e3573d90babf093d1795fa533d2ce5304b1a32e101987e502bc0b4bd",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-transfer/profile/Src6-subpixel-m0.cuda_gpu_kern_sum.csv",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 1132,
+      "sha256": "26cb785e731ea8febdfdb3ba7ebba5d5aa7ca7af6d7723f3b997d151402f3fa0",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-transfer/profile/Src6-subpixel-m0.cuda_gpu_mem_time_sum.csv",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 309,
+      "sha256": "d4a534d9cb2b27659a3ecf6a503eb0c3724513d6a663561f34c5aa9a9a5d9d01",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-transfer/profile/Src6-subpixel-m0.nvtx_sum.csv",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 344,
+      "sha256": "2db886633c892986ffa479e7746834d2623bc7130a886d7275b7fc0d6033e38b",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-transfer/profile/Src6-subpixel-m3.cuda_api_sum.csv",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 1402,
+      "sha256": "f69987fe04ca5c1c287aaeaf42feb29a34de6a2f5a245705c7e0ed49bc562e09",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-transfer/profile/Src6-subpixel-m3.cuda_gpu_kern_sum.csv",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 1136,
+      "sha256": "5dc4dc82f62105b869d8d06b7037f328743dd8cf6424d60d8b5a4bb1cbc3c26c",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-transfer/profile/Src6-subpixel-m3.cuda_gpu_mem_time_sum.csv",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 221,
+      "sha256": "d5e4ea9992497fc8a73beb6b2672781ac7a3c598e8b17ad9d30665ae02192490",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-transfer/profile/Src6-subpixel-m3.nvtx_sum.csv",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 346,
+      "sha256": "51754f62407d5ded9c49b93b14e6cb13ebda0bc10dc479f10845322cfcd7e976",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-transfer/profile/Src7-exhaustive-m0.cuda_api_sum.csv",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 1268,
+      "sha256": "db9323d0845da83beab3804fcee2c6dce673719289c2eac5f5829c383579e748",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-transfer/profile/Src7-exhaustive-m0.cuda_gpu_kern_sum.csv",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 1133,
+      "sha256": "668b4f589ff7fef49085a6c284a5f76df347d5c4f4c3b69a329a53eb0e72bf26",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-transfer/profile/Src7-exhaustive-m0.cuda_gpu_mem_time_sum.csv",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 309,
+      "sha256": "f1fb68f8b66969c65ffd443c7c4dd81364548bd3ff97477f78289d0ae1f0b375",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-transfer/profile/Src7-exhaustive-m0.nvtx_sum.csv",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 342,
+      "sha256": "77eaa59a5ca8118a2d6c46ffe9665c97591c2b3290dee2f118ba4bf1fc01577f",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-transfer/profile/Src7-exhaustive-m3.cuda_api_sum.csv",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 1397,
+      "sha256": "25480604cd80e6db6ed6b55222fabd752813a346dfea010c975d952a1e8d101d",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-transfer/profile/Src7-exhaustive-m3.cuda_gpu_kern_sum.csv",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 1138,
+      "sha256": "e6b29649d3d23d74e3b6776c00f7a947d8e34db1cef97984c7b2c87e8aadb0d1",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-transfer/profile/Src7-exhaustive-m3.cuda_gpu_mem_time_sum.csv",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 224,
+      "sha256": "7456172fe0caa4b403cdb1176166391603e5087f03846aaf2814633101180fe8",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-transfer/profile/Src7-exhaustive-m3.nvtx_sum.csv",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 346,
+      "sha256": "799a1636bf68c08987e17bcfb5e92b0a5fbbf7820fba4f39efdf2959cafb61d4",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-transfer/profile/Src9-exhaustive-m0.cuda_api_sum.csv",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 1274,
+      "sha256": "768e02c0fd95e5f2fa5ff55b4dd5a7ef806f1d77b3a28402506230f104a0710f",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-transfer/profile/Src9-exhaustive-m0.cuda_gpu_kern_sum.csv",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 1128,
+      "sha256": "9c2b6d8760654169c828f937dfb5d02cb97c11df99e66fb38953a81cd560a3c2",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-transfer/profile/Src9-exhaustive-m0.cuda_gpu_mem_time_sum.csv",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 304,
+      "sha256": "5a4cca74a5b0176743c12dbaef619fb2c38094d1e234d189d1b3767c7f9f16d0",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-transfer/profile/Src9-exhaustive-m0.nvtx_sum.csv",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 341,
+      "sha256": "e0c94acf76bb4bf8b2345b3b20a82a0902843b391e26b4001546a51fcd8b0a7a",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-transfer/profile/Src9-exhaustive-m3.cuda_api_sum.csv",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 1387,
+      "sha256": "9115f5092d60dd0446ddfc1e88871007c7c3b11c3c355be32c773aa2d6d46574",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-transfer/profile/Src9-exhaustive-m3.cuda_gpu_kern_sum.csv",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 1136,
+      "sha256": "e0d1a20258b1c27ef951cd59e22c63a39558290e7c8b7a5abe8ec86c7ce79e9d",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-transfer/profile/Src9-exhaustive-m3.cuda_gpu_mem_time_sum.csv",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 221,
+      "sha256": "a60d28d878206b325553b1631bfc4c484737c8e2fd2311eaba5a9093e123614e",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-transfer/profile/Src9-exhaustive-m3.nvtx_sum.csv",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 342,
+      "sha256": "e6de25e41604c2715c14ed12375b49758ad4fc97522296cd3cde04058e0a07dd",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-transfer/profile/profile.ps1",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 1711,
+      "sha256": "8bbadbc933bea30b2b99cea2498455c900bafedd55c2a428490bce167b894002",
+      "roles": [
+        "other"
+      ]
+    },
+    {
+      "path": "cuda-transfer/profile/trace-Src7-exhaustive-m0.cuda_api_trace.csv",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 193780,
+      "sha256": "0240f55df282f65a1ba699bcc8b9f241bf9d1f25535e5b264e7e867eedf5efb6",
+      "roles": [
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-transfer/profile/trace-Src7-exhaustive-m0.cuda_gpu_trace.csv",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 323054,
+      "sha256": "cf04c2613d20fa82487fa6bfe4ab55236b5596c36b17a06190f6164c2ae2e480",
+      "roles": [
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-transfer/profile/trace-Src7-exhaustive-m0.nvtx_pushpop_trace.csv",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 29513,
+      "sha256": "e24fb10495b8d76579c1008fbe76392df24210cd75f9afbd44a911da79468ff9",
+      "roles": [
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-transfer/profile/trace-Src7-exhaustive-m3.cuda_api_trace.csv",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 328445,
+      "sha256": "f3eb33e33275ccb42143496a1f1fb47d0faf8bc328ea1917c88f98c7865bb5a2",
+      "roles": [
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-transfer/profile/trace-Src7-exhaustive-m3.cuda_gpu_trace.csv",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 715990,
+      "sha256": "be4c1f7e101e3d45934a17dbf76cc8b01e6a1605af414eac4dbf00937705611c",
+      "roles": [
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-transfer/profile/trace-Src7-exhaustive-m3.nvtx_pushpop_trace.csv",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 85293,
+      "sha256": "3097adcacf276dd7d4601f491d087a746e540f45e3df9601f574f04bafa15a76",
+      "roles": [
+        "raw"
+      ]
+    },
+    {
+      "path": "cuda-transfer/protocol.json",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 6236,
+      "sha256": "eca380f4d21d3e4e6beffc3b6dc15fd7d7719aa0d7e6853abadeff20ea7dd64b",
+      "roles": [
+        "protocol"
+      ]
+    },
+    {
+      "path": "cuda-transfer/raw-results.tar.gz",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 1453421,
+      "sha256": "16a40e3d4b23084ac4625a97ee66d726f81dba4fa0d5fbe6db31e5d540ddc598",
+      "roles": [
+        "archive",
+        "raw",
+        "summary"
+      ],
+      "archive_file_count": 3,
+      "archive_role_counts": {
+        "formal": 2,
+        "pilot": 1
+      }
+    },
+    {
+      "path": "cuda-transfer/validation-logs.tar.gz",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 13788,
+      "sha256": "913d6d4c09e7cf6999e45eee5a7c92f3330d0a0d0db5f489a68173bacd5419ba",
+      "roles": [
+        "archive",
+        "validation"
+      ],
+      "archive_file_count": 17,
+      "archive_role_counts": {
+        "formal": 1,
+        "raw": 17,
+        "validation": 2
+      }
+    },
+    {
+      "path": "cuda-transfer/validation.json",
+      "group": "cuda-transfer",
+      "stage": null,
+      "bytes": 4830,
+      "sha256": "0e28bb78406f445274ed561429367625926606a740ac5d2201d44025a1fb3545",
+      "roles": [
+        "validation"
       ]
     },
     {
@@ -10837,5 +11507,5 @@
       ]
     }
   ],
-  "archive_member_index_sha256": "759d18dd5513bfb4bab5fcc73867794cf023820d7ba8c2ff710449197ef79ab4"
+  "archive_member_index_sha256": "aee3b6d8eb092d78e22f5d809aa2c50334b71c3e2e87487594855d8f032698f8"
 }

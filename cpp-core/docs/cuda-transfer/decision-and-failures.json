@@ -1,0 +1,62 @@
+{
+ "decision": "Keep the CUDA transfer modes as an opt-in research option of the frame API (fpm_frame_set_transfer_mode, default 0). Mode 3 (lean prepare + lean calls) is the recommended CUDA frame setting for research runs. Defaults, the core and the GUI are unchanged.",
+ "gates_passed": [
+  "ctest_pc",
+  "ctest_mac",
+  "identity",
+  "core_unchanged",
+  "mutants"
+ ],
+ "gates_failed": [],
+ "hypotheses": {
+  "H1": "held (m3/m0 geomean 0.422 / 0.404 / 0.478)",
+  "H2": "held (17/17 faster in every mode)",
+  "H3": "held (m3 faster than cpu on 17/17 in every mode; closest Src9 FastMode 0.26 vs 0.30 ms)"
+ },
+ "failures_and_disclosures": [
+  {
+   "what": "mutant pilot before registration: the original T7 (`same = !levels.empty()`) survived",
+   "effect": "when the level count shrinks the extra host level is unused (equivalent); when it grows the loop reads past the vector (undefined behaviour) and the tests need not see it",
+   "fix": "replaced before registration by T7 = compare width only (a height-only change keeps the old levels) and a test step that changes only the height; the pilot rerun killed it; pilot/mutpilot.log keeps the original result"
+  },
+  {
+   "what": "SSH during the timing step",
+   "effect": "about 20 s after the timing step began (round 0, the warm-up round, not in the summary) one poll read formal.log and I listed the log directory; around round 6 the waiting script read formal.log and the last lines of timing.log once; no other connection until the timing finished",
+   "fix": "disclosed"
+  },
+  {
+   "what": "lean calls record no timing events",
+   "effect": "device_ms is -1 for m2 and m3 in the formal records",
+   "fix": "GPU times come from the Nsight runs in profile/"
+  },
+  {
+   "what": "kernel time grows in m3 (Nsight, not formal)",
+   "effect": "fineStripes 709 -> 794 us per frame on Src7 and 20.65 -> 22.05 ms on Src6 subpixel, fineNormalize 91 -> 126 us; likely the per-block request load from mapped host memory and the per-thread system fence, not isolated by the arms",
+   "fix": "reported; uploading the requests again is a candidate follow-up"
+  },
+  {
+   "what": "m2 not faster on Src4 FastMode (0.89 vs 0.89 ms)",
+   "effect": "descriptive arm only; that case has one coarse wait and no fine call",
+   "fix": "reported as measured"
+  },
+  {
+   "what": "pilot/default.jsonl and pilot/spin.jsonl were written by PowerShell as UTF-16LE with CRLF",
+   "effect": "none on the values",
+   "fix": "converted to UTF-8 with LF for the archive"
+  }
+ ],
+ "ungated_mutants": {
+  "U1": "survived: without the system fence before the barrier the completion value could in principle reach the host before the outputs; on this x86 host PCIe posted writes arrive in order, so no test sees it. The fence stays.",
+  "U2": "survived: without waiting for the previous upload, the next prepare could overwrite host level 0 while its DMA reads it; the CPU copy of each chunk is slower than the previous DMA, so no test sees it. The wait stays.",
+  "U3": "killed: fresh device memory was not zero",
+  "U4": "killed"
+ },
+ "limits": [
+  "one GPU (RTX PRO 4000 Blackwell), one driver (596.71, WDDM), Windows only; the cudaStreamQuery submission and the polling gain may differ under TCC or Linux",
+  "frame API only; the handle API is unchanged",
+  "polling keeps one CPU core busy while waiting",
+  "the single-threaded source copy (about 19 GB/s, Src7 0.64 ms) now dominates prepare on large images",
+  "kernels unchanged; no Tensor cores or CUDA Graphs",
+  "17 fixed fixtures only; no many-object or 8K scenes"
+ ]
+}

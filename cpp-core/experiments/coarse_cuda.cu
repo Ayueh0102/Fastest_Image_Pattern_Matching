@@ -19,19 +19,28 @@
 // integer sampling (fine_sampling.hpp); a pixel whose value lies within the
 // host's rounding guard, or a request the guard cannot cover, is sampled with
 // the FP64 warpPixel() instead, so every ROI byte equals rotatedRoi()'s.
+//
+// Opt-in transfer modes (fpm_frame_set_transfer_mode) change only how work
+// reaches the device and how the host waits: lean prepare reuses a page-locked
+// host level 0 and overlaps its chunked copy with the uploads; lean calls drop
+// timing events and memsets and poll a completion value in mapped memory that
+// the last kernel of each call writes. The kernels' arithmetic is unchanged.
 #include "coarse_internal.hpp"
 #include "fine_sampling.hpp"
 #include <cuda_runtime.h>
 #include <nvtx3/nvToolsExt.h>
 #include <algorithm>
+#include <atomic>
 #include <cfloat>
 #include <chrono>
 #include <climits>
 #include <cmath>
 #include <cstring>
 #include <limits>
+#include <new>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 namespace {
@@ -230,14 +239,36 @@ __global__ void coarseFromCanvas(const u8* canvases, const u64* canvasOffsets, c
     appendEntry(keep, x, y, score, counts + blockIdx.z, entries + job.entryOffset);
 }
 
-// Copies counts and each angle's kept entries to mapped host memory (one block per angle).
-__global__ void packEntries(const Entry* entries, const unsigned* counts, const CoarseJob* jobs,
-    Entry* hostEntries, unsigned* hostCounts)
+// Lean calls: the last block of the grid to finish writes `value` to the
+// mapped completion flag the host polls. Every thread fences its own writes at
+// system scope before the barrier, so the flag follows all of the grid's
+// output writes; `done` is left zero for the next call.
+__device__ void signalLast(unsigned* done, unsigned* flag, unsigned value)
+{
+    __threadfence_system();
+    __syncthreads();
+    if (threadIdx.x == 0 && atomicAdd(done, 1u) == gridDim.x * gridDim.y * gridDim.z - 1) {
+        *done = 0;
+        __threadfence_system();
+        *static_cast<volatile unsigned*>(flag) = value;
+    }
+}
+
+// Copies counts and each angle's kept entries to mapped host memory (one block
+// per angle). With a flag (lean calls) it also clears the counts for the next
+// search and signals completion.
+__global__ void packEntries(const Entry* entries, unsigned* counts, const CoarseJob* jobs,
+    Entry* hostEntries, unsigned* hostCounts, unsigned* done, unsigned* flag, unsigned value)
 {
     const unsigned n = counts[blockIdx.x];
     const u64 offset = jobs[blockIdx.x].entryOffset;
     if (threadIdx.x == 0) hostCounts[blockIdx.x] = n;
     for (unsigned i = threadIdx.x; i < n; i += blockDim.x) hostEntries[offset + i] = entries[offset + i];
+    if (flag) {
+        __syncthreads();
+        if (threadIdx.x == 0) counts[blockIdx.x] = 0;
+        signalLast(done, flag, value);
+    }
 }
 
 // Dense score map of one image (fpm_coarse_scoremap diagnostics).
@@ -301,9 +332,11 @@ __global__ void fineStripes(const u8* source, int sw, int sh, const FineWarp* re
     u8* roi = shared;
     u8* t = shared + size_t(roiRows) * pitch;
     unsigned* rowStats = reinterpret_cast<unsigned*>(t + size_t(rows) * tpitch);
-    if (threadIdx.x == 0) blockRepaired = 0;
+    // One load per block: lean calls read requests from mapped host memory.
+    __shared__ FineWarp request;
+    if (threadIdx.x == 0) { blockRepaired = 0; request = requests[blockIdx.y]; }
     __syncthreads();
-    const FineWarp m = requests[blockIdx.y];
+    const FineWarp m = request;
     unsigned repaired = 0;
     for (int i = threadIdx.x; i < roiRows * rw; i += blockDim.x) {
         const int x = i % rw, y = i / rw;
@@ -377,12 +410,19 @@ __global__ void fineStripes(const u8* source, int sw, int sh, const FineWarp* re
     if (threadIdx.x == 0 && blockRepaired) atomicAdd(repairedTotal, blockRepaired);
 }
 // Scores to mapped host memory, followed by the count of FP64-sampled pixels.
-__global__ void fineNormalize(const u64* acc, int windows, double mean, double norm, double area, int uniform,
-    const unsigned* repaired, double* out)
+// With a flag (lean calls) each thread also clears the statistics it read, so
+// the accumulators are zero for the next batch, and the grid signals completion.
+__global__ void fineNormalize(u64* acc, int windows, double mean, double norm, double area, int uniform,
+    unsigned* repaired, double* out, unsigned* done, unsigned* flag, unsigned value)
 {
     const int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i < windows) out[i] = uniform ? 1.0 : normalizeScore(acc[3 * i], acc[3 * i + 1], acc[3 * i + 2], mean, norm, area);
     if (i == 0) *reinterpret_cast<unsigned*>(out + windows) = uniform ? 0 : *repaired;
+    if (flag) {
+        if (i < windows) acc[3 * i] = acc[3 * i + 1] = acc[3 * i + 2] = 0;
+        if (i == 0) *repaired = 0;
+        signalLast(done, flag, value);
+    }
 }
 
 // ---- host buffers -------------------------------------------------------------
@@ -419,6 +459,7 @@ public:
         check(cudaHostGetDevicePointer(&p, data_, 0), "mapped pointer");
         return p;
     }
+    void* host() const { return data_; }
     size_t capacity() const { return capacity_; }
 private:
     void* data_ = nullptr;
@@ -426,6 +467,8 @@ private:
 };
 
 size_t align16(size_t n) { return (n + 15) & ~size_t(15); }
+// Lean prepare copies the source in chunks of at least 2 MiB, at most four per image.
+constexpr size_t MIN_UPLOAD_CHUNK = size_t(2) << 20, MAX_UPLOAD_CHUNKS = 4;
 
 class CudaBackend final : public fpm_coarse_detail::Backend {
 public:
@@ -448,10 +491,17 @@ public:
         check(cudaFuncSetAttribute(fineStripes, cudaFuncAttributeMaxDynamicSharedMemorySize, fineSharedLimit_), "fine shared");
         check(cudaStreamCreateWithFlags(&stream_, cudaStreamNonBlocking), "stream");
         check(cudaEventCreate(&begin_), "event"); check(cudaEventCreate(&end_), "event");
+        check(cudaEventCreateWithFlags(&sourceRead_, cudaEventDisableTiming), "event");
+        // Lean-call completion flag (mapped) and grid counters [coarse, fine] (device).
+        flag_ = new (signal_.reserve(64)) std::atomic<unsigned>(0);
+        flagDevice_ = static_cast<unsigned*>(signal_.device());
+        check(cudaMemsetAsync(leanDone(), 0, 16, stream_), "lean counters");
         resetMetrics();
+        resetTransferMetrics();
     }
     ~CudaBackend() override {
-        cudaEventDestroy(begin_); cudaEventDestroy(end_);
+        releaseHostSource();
+        cudaEventDestroy(begin_); cudaEventDestroy(end_); cudaEventDestroy(sourceRead_);
         cudaStreamDestroy(stream_);
     }
 
@@ -475,14 +525,33 @@ public:
         if (mode < 0 || mode > 1) throw std::invalid_argument("CUDA fine NCC mode is 0 (Q28 with guard) or 1 (FP64 sampling)");
         exactFine_ = mode == 1;
     }
+    // Transfer mode bit 1: lean prepare; bit 2: lean calls (fpm_frame_set_transfer_mode).
+    void setTransferMode(int mode) override {
+        if (mode < 0 || mode > 3) throw std::invalid_argument("CUDA transfer mode is 0..3");
+        releaseHostSource();
+        leanPrepare_ = (mode & 1) != 0; leanCalls_ = (mode & 2) != 0;
+        // Mode 0 leaves counters dirty; lean calls clear them once before relying on that.
+        leanCountsZeroed_ = leanAccZeroed_ = 0;
+        transfer_.mode = mode;
+        resetMetrics();
+    }
+    bool reusesSourceLevels() const override { return leanPrepare_ && pyramidMode_; }
 
     // ---- metrics ----
     void resetMetrics() override {
-        metrics_ = {}; metrics_.device_ms = 0;
-        fine_ = {}; fine_.version = 1; fine_.struct_bytes = sizeof(fine_); fine_.device_ms = 0;
+        // Lean modes record no timing events: their device times are unavailable (-1).
+        metrics_ = {}; metrics_.device_ms = leanCalls_ ? -1 : 0;
+        fine_ = {}; fine_.version = 1; fine_.struct_bytes = sizeof(fine_); fine_.device_ms = leanCalls_ ? -1 : 0;
         execution_ = {}; execution_.version = 1; execution_.struct_bytes = sizeof(execution_);
         execution_.pyramid_mode = pyramidMode_; execution_.batch_angles = 1; execution_.pyramid_device_ms = 0;
     }
+    void resetTransferMetrics() override {
+        const int mode = transfer_.mode, registered = transfer_.source_registered;
+        const u64 bytes = transfer_.registered_bytes;
+        transfer_ = {}; transfer_.version = 1; transfer_.struct_bytes = sizeof(transfer_);
+        transfer_.mode = mode; transfer_.source_registered = registered; transfer_.registered_bytes = bytes;
+    }
+    FpmTransferMetricsV1 transferMetrics() const override { return transfer_; }
     FpmCoarseMetrics metrics() const override {
         auto m = metrics_;
         m.gpu_bytes = retainedDeviceBytes();
@@ -550,6 +619,109 @@ public:
         execution_.pyramid_wall_ms += elapsed(start);
         return true;
     }
+    // Lean prepare (transfer mode bit 1). The frame's host levels persist across
+    // prepares of one size, so level 0 stays page-locked and its pages resident.
+    // The source is copied into level 0 in chunks; each chunk's upload is queued
+    // as soon as it is copied and overlaps the next copy. The device pyramid is
+    // not waited for: later calls are ordered after it on the stream. Levels
+    // 1..top reach the host only for the CPU fine path (no fine batch).
+    bool prepareSource(fpm::ImageView source, bool invert, int top, std::vector<fpm::Image>& levels,
+        double* copyMs) override
+    {
+        if (!leanPrepare_ || !pyramidMode_) return false;
+        const Range range("fpm lean prepare");
+        const auto start = Clock::now();
+        waitSourceRead();
+        struct Level { int width, height; size_t offset; };
+        std::vector<Level> shape{{source.width, source.height, 0}};
+        size_t total = size_t(source.width) * source.height;
+        for (int layer = 1; layer <= top; ++layer) {
+            const auto& p = shape.back();
+            shape.push_back({p.width / 2 + p.width % 2, p.height / 2 + p.height % 2, align16(total)});
+            total = shape.back().offset + size_t(shape.back().width) * shape.back().height;
+        }
+        const int width = source.width, height = source.height;
+        const size_t bytes = size_t(width) * height;
+        bool same = levels.size() == shape.size();
+        for (size_t i = 0; same && i < shape.size(); ++i)
+            same = levels[i].width() == shape[i].width && levels[i].height() == shape[i].height;
+        if (!same) {
+            releaseHostSource();
+            levels.clear();
+            levels.reserve(shape.size());
+            for (const auto& level : shape) levels.emplace_back(level.width, level.height);
+            ++transfer_.host_level_rebuilds;
+            if (cudaHostRegister(levels[0].row(0), bytes, cudaHostRegisterDefault) == cudaSuccess) {
+                registered_ = levels[0].row(0); transfer_.source_registered = 1; transfer_.registered_bytes = bytes;
+            } else {
+                cudaGetLastError(); // e.g. a page shared with another registered range: plain uploads
+            }
+        }
+        auto* device = static_cast<u8*>(pyramid_.reserve(total));
+        const size_t chunk = std::max(MIN_UPLOAD_CHUNK, (bytes + MAX_UPLOAD_CHUNKS - 1) / MAX_UPLOAD_CHUNKS);
+        const int chunkRows = int(std::min<size_t>(size_t(height), std::max<size_t>(1, chunk / size_t(width))));
+        u8* host = levels[0].row(0);
+        double copy = 0;
+        for (int y0 = 0; y0 < height; y0 += chunkRows) {
+            const int rows = std::min(chunkRows, height - y0);
+            const auto copyStart = Clock::now();
+            for (int y = y0; y < y0 + rows; ++y) {
+                const u8* in = source.data + size_t(y) * source.stride;
+                u8* out = host + size_t(y) * width;
+                if (invert) for (int x = 0; x < width; ++x) out[x] = u8(255 - in[x]);
+                else std::memcpy(out, in, size_t(width));
+            }
+            copy += elapsed(copyStart);
+            const size_t offset = size_t(y0) * width;
+            check(cudaMemcpyAsync(device + offset, host + offset, size_t(rows) * width, cudaMemcpyHostToDevice, stream_),
+                "lean upload");
+            ++transfer_.upload_chunks;
+        }
+        check(cudaEventRecord(sourceRead_, stream_), "event");
+        sourceReadPending_ = true;
+        for (int layer = 1; layer <= top; ++layer) {
+            const auto& in = shape[layer - 1]; const auto& out = shape[layer];
+            const dim3 block(32, 8), grid((out.width + 31) / 32, (out.height + 7) / 8);
+            pyrDownKernel<<<grid, block, 0, stream_>>>(device + in.offset, in.width, in.height,
+                device + out.offset, out.width, out.height);
+            check(cudaGetLastError(), "pyramid kernel");
+        }
+        execution_.pyramid_input_bytes += bytes; execution_.pyramid_levels += top;
+        ++execution_.pyramid_command_buffers; execution_.pyramid_device_ms = -1;
+        hostless_.clear();
+        if (!fineBatchSize_) {
+            for (int layer = 1; layer <= top; ++layer) {
+                const size_t levelBytes = size_t(shape[layer].width) * shape[layer].height;
+                check(cudaMemcpyAsync(levels[layer].row(0), device + shape[layer].offset, levelBytes,
+                    cudaMemcpyDeviceToHost, stream_), "pyramid copyout");
+                execution_.pyramid_output_bytes += levelBytes;
+            }
+            const auto wait = Clock::now();
+            check(cudaStreamSynchronize(stream_), "pyramid");
+            execution_.pyramid_wait_ms += elapsed(wait);
+            sourceReadPending_ = false;
+        } else {
+            for (int layer = 1; layer <= top; ++layer) {
+                hostless_.insert(levels[layer].row(0));
+                transfer_.host_levels_skipped_bytes += size_t(shape[layer].width) * shape[layer].height;
+            }
+            flush();
+        }
+        for (int layer = 0; layer <= top; ++layer)
+            resident_[levels[layer].row(0)] = {device + shape[layer].offset, shape[layer].width, shape[layer].height};
+        ++transfer_.lean_prepares;
+        transfer_.prepare_copy_ms += copy; transfer_.prepare_enqueue_ms += elapsed(start) - copy;
+        execution_.pyramid_wall_ms += elapsed(start);
+        *copyMs = copy;
+        return true;
+    }
+    void releaseHostSource() noexcept override {
+        if (sourceReadPending_) { cudaEventSynchronize(sourceRead_); sourceReadPending_ = false; }
+        if (registered_ && cudaHostUnregister(registered_) != cudaSuccess) cudaGetLastError();
+        registered_ = nullptr;
+        hostless_.clear();
+        transfer_.source_registered = 0; transfer_.registered_bytes = 0;
+    }
 
     // ---- coarse ----
     std::vector<CoarseAngle> computeCoarseDevice(fpm::ImageView top, const fpm::TemplateLevel& templ,
@@ -595,20 +767,24 @@ public:
         std::memcpy(hostStage + jobsBytes, canvasOffsets.data(), canvasOffsets.size() * sizeof(u64));
         std::memcpy(hostStage + jobsBytes + offsetsBytes, templ.image.row(0), templateBytes);
         const size_t countsBytes = align16(jobs.size() * sizeof(unsigned));
-        auto* device = static_cast<u8*>(coarseDevice_.reserve(stageBytes + countsBytes + windows * sizeof(Entry) +
+        // Lean calls keep the counts in their own buffer, which every search leaves zero.
+        const size_t inlineCounts = leanCalls_ ? 0 : countsBytes;
+        auto* device = static_cast<u8*>(coarseDevice_.reserve(stageBytes + inlineCounts + windows * sizeof(Entry) +
             (fused ? 0 : canvasBytes)));
         const auto* dJobs = reinterpret_cast<const CoarseJob*>(device);
         const auto* dOffsets = reinterpret_cast<const u64*>(device + jobsBytes);
         const u8* dTemplate = device + jobsBytes + offsetsBytes;
-        auto* dCounts = reinterpret_cast<unsigned*>(device + stageBytes);
-        auto* dEntries = reinterpret_cast<Entry*>(device + stageBytes + countsBytes);
-        u8* dCanvases = device + stageBytes + countsBytes + windows * sizeof(Entry);
+        auto* dCounts = leanCalls_ ? leanCounts(countsBytes) : reinterpret_cast<unsigned*>(device + stageBytes);
+        auto* dEntries = reinterpret_cast<Entry*>(device + stageBytes + inlineCounts);
+        u8* dCanvases = device + stageBytes + inlineCounts + windows * sizeof(Entry);
         auto* hostOut = static_cast<u8*>(coarseOut_.reserve(countsBytes + windows * sizeof(Entry)));
         auto* mapped = static_cast<u8*>(coarseOut_.device());
+        LeanGuard guard(*this);
+        const unsigned signal = leanCalls_ ? nextSignal() : 0;
         const auto encode = Clock::now();
-        check(cudaEventRecord(begin_, stream_), "event");
+        if (!leanCalls_) check(cudaEventRecord(begin_, stream_), "event");
         check(cudaMemcpyAsync(device, hostStage, stageBytes, cudaMemcpyHostToDevice, stream_), "coarse upload");
-        check(cudaMemsetAsync(dCounts, 0, countsBytes, stream_), "coarse counts");
+        if (!leanCalls_) check(cudaMemsetAsync(dCounts, 0, countsBytes, stream_), "coarse counts");
         const dim3 block(TILE_X, TILE_Y), grid((maxMapW + TILE_X - 1) / TILE_X, (maxMapH + TILE_Y - 1) / TILE_Y, unsigned(jobs.size()));
         if (fused) {
             coarseFused<<<grid, block, sharedBytes, stream_>>>(source, top.width, top.height, dJobs, dTemplate,
@@ -621,14 +797,17 @@ public:
         }
         check(cudaGetLastError(), "coarse kernel");
         packEntries<<<unsigned(jobs.size()), 256, 0, stream_>>>(dEntries, dCounts, dJobs,
-            reinterpret_cast<Entry*>(mapped + countsBytes), reinterpret_cast<unsigned*>(mapped));
+            reinterpret_cast<Entry*>(mapped + countsBytes), reinterpret_cast<unsigned*>(mapped),
+            leanCalls_ ? leanDone() : nullptr, leanCalls_ ? flagDevice() : nullptr, signal);
         check(cudaGetLastError(), "coarse pack");
-        check(cudaEventRecord(end_, stream_), "event");
+        if (!leanCalls_) check(cudaEventRecord(end_, stream_), "event");
         metrics_.upload_ms += elapsed(encode);
         const auto wait = Clock::now();
-        check(cudaStreamSynchronize(stream_), "coarse");
+        if (leanCalls_) waitSignal(signal);
+        else check(cudaStreamSynchronize(stream_), "coarse");
+        guard.done();
         metrics_.wait_ms += elapsed(wait);
-        metrics_.device_ms += eventMs();
+        if (!leanCalls_) metrics_.device_ms += eventMs();
         ++metrics_.command_buffers;
         const auto select = Clock::now();
         const auto* hostCounts = reinterpret_cast<const unsigned*>(hostOut);
@@ -715,7 +894,8 @@ public:
         const size_t warpsBytes = align16(warps.size() * sizeof(FineWarp));
         auto* host = static_cast<u8*>(fineStage_.reserve(warpsBytes));
         std::memcpy(host, warps.data(), warps.size() * sizeof(FineWarp));
-        auto* device = static_cast<u8*>(fineDevice_.reserve(warpsBytes));
+        // Lean calls let the kernel read the requests from the mapped staging buffer.
+        auto* device = leanCalls_ ? static_cast<u8*>(fineStage_.device()) : static_cast<u8*>(fineDevice_.reserve(warpsBytes));
         const u8* deviceTemplate = fineTemplate(templ);
         const size_t windows = requests.size() * FINE_WINDOWS;
         auto* acc = static_cast<u64*>(fineAcc_.reserve(windows * 3 * sizeof(u64) + 16));
@@ -723,10 +903,18 @@ public:
         auto* out = static_cast<double*>(fineOut_.reserve(windows * sizeof(double) + 16));
         auto* mappedOut = static_cast<double*>(fineOut_.device());
         const bool uniform = templ.norm * templ.norm / (double(tw) * th) < DBL_EPSILON;
+        LeanGuard guard(*this);
+        const unsigned signal = leanCalls_ ? nextSignal() : 0;
+        if (leanCalls_ && leanAccZeroed_ != fineAcc_.capacity()) {
+            check(cudaMemsetAsync(acc, 0, fineAcc_.capacity(), stream_), "fine accumulators");
+            leanAccZeroed_ = fineAcc_.capacity();
+        }
         const auto encode = Clock::now();
-        check(cudaEventRecord(begin_, stream_), "event");
-        check(cudaMemcpyAsync(device, host, warpsBytes, cudaMemcpyHostToDevice, stream_), "fine upload");
-        check(cudaMemsetAsync(acc, 0, windows * 3 * sizeof(u64) + 16, stream_), "fine accumulators");
+        if (!leanCalls_) {
+            check(cudaEventRecord(begin_, stream_), "event");
+            check(cudaMemcpyAsync(device, host, warpsBytes, cudaMemcpyHostToDevice, stream_), "fine upload");
+            check(cudaMemsetAsync(acc, 0, windows * 3 * sizeof(u64) + 16, stream_), "fine accumulators");
+        }
         if (!uniform) {
             fineStripes<<<dim3((th + stripe - 1) / stripe, unsigned(requests.size())), FINE_THREADS, sharedFor(stripe), stream_>>>(
                 level, source.width, source.height, reinterpret_cast<const FineWarp*>(device), deviceTemplate,
@@ -734,14 +922,17 @@ public:
             check(cudaGetLastError(), "fine kernel");
         }
         fineNormalize<<<unsigned((windows + 255) / 256), 256, 0, stream_>>>(acc, int(windows), templ.mean, templ.norm,
-            double(tw) * th, uniform, repairedCount, mappedOut);
+            double(tw) * th, uniform, repairedCount, mappedOut,
+            leanCalls_ ? leanDone() + 1 : nullptr, leanCalls_ ? flagDevice() : nullptr, signal);
         check(cudaGetLastError(), "fine normalize");
-        check(cudaEventRecord(end_, stream_), "event");
+        if (!leanCalls_) check(cudaEventRecord(end_, stream_), "event");
         fine_.encode_ms += elapsed(encode);
         const auto wait = Clock::now();
-        check(cudaStreamSynchronize(stream_), "fine");
+        if (leanCalls_) waitSignal(signal);
+        else check(cudaStreamSynchronize(stream_), "fine");
+        guard.done();
         fine_.wait_ms += elapsed(wait);
-        fine_.device_ms += eventMs();
+        if (!leanCalls_) fine_.device_ms += eventMs();
         ++fine_.calls; ++fine_.command_buffers;
         fine_.maps += requests.size();
         fine_.roi_pixels += u64(requests.size()) * rw * (th + 2 * PAD);
@@ -780,6 +971,7 @@ private:
         auto it = resident_.find(image.data);
         if (it != resident_.end() && it->second.width == image.width && it->second.height == image.height &&
             image.stride == size_t(image.width)) return it->second.data;
+        if (hostless_.count(image.data)) throw std::logic_error("CUDA lean prepare left this pyramid level on the device only");
         const Range range("fpm source upload");
         auto& buffer = uploaded_[image.data];
         const size_t bytes = size_t(image.width) * image.height;
@@ -806,18 +998,89 @@ private:
     }
     size_t retainedDeviceBytes() const {
         size_t bytes = pyramid_.capacity() + coarseDevice_.capacity() + fineDevice_.capacity() + fineAcc_.capacity();
+        bytes += leanCounts_.capacity() + leanDone_.capacity();
         for (const auto& item : uploaded_) bytes += item.second.capacity();
         for (const auto& buffer : templateBuffers_) bytes += buffer.capacity();
         return bytes;
     }
 
+    // ---- lean calls ----
+    // A lean call that fails may leave its counters dirty; the next one clears them.
+    struct LeanGuard {
+        explicit LeanGuard(CudaBackend& owner) : backend(owner) {}
+        ~LeanGuard() {
+            if (finished || !backend.leanCalls_) return;
+            backend.leanCountsZeroed_ = backend.leanAccZeroed_ = 0;
+            backend.leanDoneDirty_ = true;
+        }
+        void done() { finished = true; }
+        CudaBackend& backend;
+        bool finished = false;
+    };
+    unsigned nextSignal() {
+        if (leanDoneDirty_) {
+            check(cudaMemsetAsync(leanDone(), 0, leanDone_.capacity(), stream_), "lean counters");
+            leanDoneDirty_ = false;
+        }
+        if (++signalValue_ == 0) ++signalValue_;
+        return signalValue_;
+    }
+    unsigned* leanDone() { return static_cast<unsigned*>(leanDone_.reserve(16)); }
+    unsigned* flagDevice() const { return flagDevice_; }
+    unsigned* leanCounts(size_t bytes) {
+        auto* counts = static_cast<unsigned*>(leanCounts_.reserve(bytes));
+        if (leanCountsZeroed_ != leanCounts_.capacity()) {
+            check(cudaMemsetAsync(counts, 0, leanCounts_.capacity(), stream_), "coarse counts");
+            leanCountsZeroed_ = leanCounts_.capacity();
+        }
+        return counts;
+    }
+    // Submits the queued commands (WDDM batches them until a query or a wait).
+    void flush() {
+        const cudaError_t status = cudaStreamQuery(stream_);
+        if (status == cudaErrorNotReady) cudaGetLastError();
+        else check(status, "stream");
+    }
+    // Spins on the mapped flag the call's last kernel writes; an occasional
+    // stream query reports asynchronous errors.
+    void waitSignal(unsigned value) {
+        const auto start = Clock::now();
+        flush();
+        for (unsigned spins = 1; flag_->load(std::memory_order_acquire) != value; ++spins) {
+            if (spins % 4096) continue;
+            ++transfer_.signal_queries;
+            const cudaError_t status = cudaStreamQuery(stream_);
+            if (status == cudaSuccess) {
+                if (flag_->load(std::memory_order_acquire) == value) break;
+                throw std::runtime_error("CUDA lean call finished without its completion signal");
+            }
+            if (status != cudaErrorNotReady) check(status, "lean wait");
+            cudaGetLastError();
+        }
+        ++transfer_.signal_waits;
+        transfer_.signal_wait_ms += elapsed(start);
+    }
+    void waitSourceRead() {
+        if (!sourceReadPending_) return;
+        check(cudaEventSynchronize(sourceRead_), "source read");
+        sourceReadPending_ = false;
+    }
+
     int sharedOptin_ = 0, fineSharedLimit_ = 0, fineSharedTarget_ = 0, pyramidMode_ = 0;
     bool fusedCoarse_ = true, exactFine_ = false;
-    size_t fineBatchSize_ = 0, uploadedBytes_ = 0;
+    bool leanPrepare_ = false, leanCalls_ = false, sourceReadPending_ = false, leanDoneDirty_ = false;
+    size_t fineBatchSize_ = 0, uploadedBytes_ = 0, leanCountsZeroed_ = 0, leanAccZeroed_ = 0;
+    unsigned signalValue_ = 0;
     cudaStream_t stream_ = nullptr;
-    cudaEvent_t begin_ = nullptr, end_ = nullptr;
-    DeviceBytes pyramid_, coarseDevice_, fineDevice_, fineAcc_;
-    HostBytes coarseStage_, coarseOut_, fineStage_, fineOut_;
+    cudaEvent_t begin_ = nullptr, end_ = nullptr, sourceRead_ = nullptr;
+    DeviceBytes pyramid_, coarseDevice_, fineDevice_, fineAcc_, leanCounts_, leanDone_;
+    HostBytes coarseStage_, coarseOut_, fineStage_, fineOut_, signal_;
+    std::atomic<unsigned>* flag_ = nullptr;
+    unsigned* flagDevice_ = nullptr;
+    void* registered_ = nullptr;
+    // Host levels lean prepare did not fill; residentLevel() never uploads them.
+    std::unordered_set<const void*> hostless_;
+    FpmTransferMetricsV1 transfer_{};
     std::unordered_map<const void*, Resident> resident_;
     std::unordered_map<const void*, DeviceBytes> uploaded_;
     static constexpr size_t TEMPLATE_SLOTS = 16;

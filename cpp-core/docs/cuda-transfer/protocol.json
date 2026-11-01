@@ -1,0 +1,57 @@
+{
+ "registered_before_timing": "2026-11-01T02:40:40Z",
+ "question": "Do the opt-in CUDA transfer modes (bit 1 lean prepare: reused page-locked host level 0, chunked copy overlapped with the uploads, no wait for the device pyramid, no host copy of levels 1..top when the fine search runs on the device; bit 2 lean calls: no timing events or memsets, fine requests read from mapped memory, completion polled in mapped memory instead of cudaStreamSynchronize) keep the CUDA backend's outputs bit-identical to the same build's CPU backend, and how do they change the per-frame time (prepare + match) of the 17 fixtures on the RTX PRO 4000 against transfer mode 0 of the same build?",
+ "commits": {
+  "base": "31820ad (main: the merged CUDA backend round)",
+  "after": "c1068b2 (transfer modes, tests and tools)"
+ },
+ "core_unchanged": "git diff 31820ad c1068b2 -- cpp-core/src cpp-core/include is empty, so no core identity run is needed this round",
+ "sources": "git archive of c1068b2 (cpp-core without docs for the PC; cpp-core, macos-cli and Test Images for the Mac), unpacked into fresh directories",
+ "pc": {
+  "host": "PTRI-PRO-4000",
+  "cpu": "Intel Core Ultra 9 285K (8 P-cores + 16 E-cores)",
+  "gpu": "NVIDIA RTX PRO 4000 Blackwell, compute capability 12.0, 24 GB, PCIe 5.0 x16, driver 596.71, WDDM, no display attached",
+  "os": "Windows 11 10.0.26300",
+  "toolchain": "MSVC 19.44, CUDA 13.2 Update 2 (nvcc V13.2.86), CMake, Ninja, Release, CMAKE_CUDA_ARCHITECTURES=120, nvcc -fmad=false -lineinfo, static cudart",
+  "build": "c1068b2 with FPM_BUILD_EXPERIMENTS=ON FPM_WITH_CUDA=ON; every timing and identity arm runs this one build's fpm_frame_bench",
+  "affinity": "drivers start with `start /affinity C03C02` (P-cores 1,10-13,22,23); children inherit it"
+ },
+ "mac": "Apple M4 Pro: research build of c1068b2 (GUI, OpenCV, experiments; no CUDA) passes ctest, since coarse_ncc.cpp's frame prepare changed for every backend",
+ "inputs": "the 17 compare_versions cases as 8-bit PGM (C:\\r51\\bundle\\pgm), checked against the round-1 manifest (sha256 3a539fec058b4f42e613c074a8fcb0f697ae2ca671cd76645bc8a23b6cd8e64f) before any run",
+ "arms": {
+  "cpu": "0,0,0,0: CPU backend (identity reference and context)",
+  "m0": "2,1,256,0,0: CUDA, device pyramid, fine batch 256, fused coarse, transfer mode 0 (the merged backend's behaviour; the timing baseline)",
+  "m1": "2,1,256,0,1: lean prepare only",
+  "m2": "2,1,256,0,2: lean calls only",
+  "m3": "2,1,256,0,3: both",
+  "identity_only": {
+   "m3_batch8": "2,1,8,0,3",
+   "m3_unfused": "2,1,256,1,3",
+   "m3_cpu_pyramid": "2,0,256,0,3 (lean prepare does not apply; lean calls do)",
+   "m1_cpu_fine": "2,1,0,0,1 (fine search on the CPU: lean prepare copies levels 1..top back and waits)",
+   "m3_cpu_fine": "2,1,0,0,3"
+  }
+ },
+ "metric": "per-frame time = fpm_frame_prepare + fpm_frame_match (image decoding and frame/pattern creation excluded); steady = median of 5 calls after 500 ms of untimed calls in the same process; cold = that process's first call. In lean modes prepare returns before the device pyramid is built, so only prepare + match is compared, never prepare alone. Lean calls report device_ms -1; device times come from the separate Nsight runs.",
+ "gates": {
+  "ctest": "the PC c1068b2 build passes ctest with experimental_cuda_backend and experimental_cuda_kernels run (not skipped); the Mac c1068b2 research build passes ctest",
+  "identity": "every run of every arm (timing rounds and identity-only runs) returns matches bit-identical to the cpu arm of the same round, case and mode; zero mismatches and zero failed runs",
+  "mutants": "cuda_mutants.py on c1068b2: T1-T10 (transfer modes) all KILLED; the 24 earlier mutants give the 7f5737b outcome again (22 KILLED, N2 and F2 SURVIVED, argued equivalent in CUDA_BACKEND_zh-TW.md); the unmutated and restored trees pass. U1-U4 (a missing system fence, a missing wait for the previous upload, counters not zeroed on allocation) are reported, not gated: a race or fresh-allocation contents the tests need not observe"
+ },
+ "hypotheses": {
+  "H1": "steady geometric mean of m3/m0 over the 17 cases is below 0.6 in each mode (exhaustive, fast, subpixel); pilot 0.42/0.41/0.48",
+  "H2": "at least 16 of the 17 cases are faster with m3 than m0 in each mode; pilot 17/17, closest Src4 fast (0.93)",
+  "H3": "m3 is faster than cpu on all 17 cases in each mode; pilot closest Src9 fast (0.26 vs 0.29 ms), the case where m0 was slower than cpu",
+  "descriptive": "m1 and m2 (each change alone), cold first-call times, process peak RSS and retained device bytes are reported, not gated"
+ },
+ "timing": {
+  "tool": "benchmark_frame_backend.py --rounds 8 --repeat 5 --warmup-ms 500, arms cpu, m0, m1, m2, m3 (round 0 kept but left out of the summary; arm order alternates by round; fresh process per run)",
+  "identity_only_run": "benchmark_frame_backend.py --rounds 2 --repeat 1 --warmup-ms 0 with arms cpu and the five identity-only arms",
+  "summary": "frame_backend_summary.py --reference m0 --arm m1 --arm m2 --arm m3 --h1 0.6 --h2 16 for H1/H2, and --reference cpu --arm m3 for H3 (all 17 faster)",
+  "quiet": "nothing else runs on the PC during the timing run; mutants and profiling run afterwards",
+  "no_drops": "no run is dropped or repeated; a failed run is reported as failed"
+ },
+ "decision_rule": "The transfer modes are kept as opt-in research options when every gate passes. H1-H3 are reported as measured; a failure is disclosed, not tuned away. Defaults (transfer mode 0, core and GUI) do not change.",
+ "not_formal": "pilot/xfer_pilot.cu (transfer and wait latencies), pilot1 (two rounds of the five arms on the development tree, 0 mismatches) and the mutant pilot (the original T7, `same = !levels.empty()`, survived: it is equivalent when the level count shrinks and undefined behaviour when it grows, so it was replaced before this registration by the height-change mutant and a test step that changes only the height) chose the design and the thresholds and are archived as selection evidence only",
+ "profiling": "Nsight Systems (--trace=cuda,nvtx,wddm) of m0 and m3 on Src7, Src9, Src5-0 exhaustive and Src6 subpixel, plus short traces of Src7, after the formal runs; their times are not formal"
+}

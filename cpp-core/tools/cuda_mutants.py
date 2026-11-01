@@ -71,6 +71,36 @@ MUTANTS = [
      'while (p < 0 || p >= n) p = p < 0 ? -p - 1 : 2 * n - p - 2;', 1, 1),
     ('S1 sparse peaks: suppression right edge inclusive', NCC,
      'return p.x >= r.x0 && p.x < r.x1 && p.y >= r.y0 && p.y < r.y1; }))', 'return p.x >= r.x0 && p.x <= r.x1 && p.y >= r.y0 && p.y < r.y1; }))', 1, 1),
+    # Transfer modes (lean prepare, lean calls).
+    ('T1 lean coarse counts not cleared', CU,
+     'if (threadIdx.x == 0) counts[blockIdx.x] = 0;', '', 1, 1),
+    ('T2 lean fine statistics not cleared', CU,
+     'if (i < windows) acc[3 * i] = acc[3 * i + 1] = acc[3 * i + 2] = 0;', '', 1, 1),
+    ('T3 lean FP64-pixel count not cleared', CU, 'if (i == 0) *repaired = 0;', '', 1, 1),
+    ('T4 lean completion signalled by the first block', CU,
+     'atomicAdd(done, 1u) == gridDim.x * gridDim.y * gridDim.z - 1', 'atomicAdd(done, 1u) == 0', 1, 1),
+    ('T5 lean upload drops the last row of each chunk', CU,
+     'check(cudaMemcpyAsync(device + offset, host + offset, size_t(rows) * width, cudaMemcpyHostToDevice, stream_),',
+     'check(cudaMemcpyAsync(device + offset, host + offset, size_t(rows - 1) * width, cudaMemcpyHostToDevice, stream_),', 1, 1),
+    ('T6 lean copy ignores inversion', CU,
+     'if (invert) for (int x = 0; x < width; ++x) out[x] = u8(255 - in[x]);',
+     'if (false) for (int x = 0; x < width; ++x) out[x] = u8(255 - in[x]);', 1, 1),
+    ('T7 lean prepare ignores a change of height', CU,
+     'same = levels[i].width() == shape[i].width && levels[i].height() == shape[i].height;',
+     'same = levels[i].width() == shape[i].width;', 1, 1),
+    ('T8 lean prepare never copies levels back for the CPU fine path', CU,
+     'if (!fineBatchSize_) {', 'if (false) {', 1, 1),
+    ('T9 fine block loads the first request', CU, 'request = requests[blockIdx.y];', 'request = requests[0];', 1, 1),
+    ('T10 mode change keeps the lean counters marked clean', CU, 'leanCountsZeroed_ = leanAccZeroed_ = 0;', '', 1, 1),
+    # Ordering and fresh-allocation mutants: a race or uninitialized memory that
+    # the tests need not observe; reported, not gated (protocol).
+    ('U1 lean signal without the system fence', CU,
+     '    __threadfence_system();\n    __syncthreads();', '    __syncthreads();', 1, 1),
+    ('U2 lean prepare does not wait for the previous upload', CU, '        waitSourceRead();', '', 1, 1),
+    ('U3 lean coarse counts not zeroed when allocated', CU,
+     'if (leanCountsZeroed_ != leanCounts_.capacity()) {', 'if (false) {', 1, 1),
+    ('U4 lean fine statistics not zeroed when allocated', CU,
+     'if (leanCalls_ && leanAccZeroed_ != fineAcc_.capacity()) {', 'if (false) {', 1, 1),
 ]
 TARGETS = ['fpm_cuda_kernel_test', 'fpm_cuda_backend_test', 'fpm_core_test']
 EXE = '.exe' if sys.platform == 'win32' else ''

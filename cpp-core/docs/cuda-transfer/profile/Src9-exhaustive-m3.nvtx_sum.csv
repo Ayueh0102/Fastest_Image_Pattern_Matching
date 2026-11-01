@@ -1,0 +1,5 @@
+Time (%),Total Time (ns),Instances,Avg (ns),Med (ns),Min (ns),Max (ns),StdDev (ns),Style,Range
+44.5,441166227,2645,166792.5,162397.0,103600,2828416,61340.6,PushPop,:fpm coarse
+41.5,412099823,7935,51934.4,50590.0,41919,1385880,16509.9,PushPop,:fpm fine batch
+14.0,138839526,2645,52491.3,52064.0,37304,507728,11839.3,PushPop,:fpm lean prepare
+
