@@ -3,12 +3,13 @@
 python cpp-core/tools/benchmark_frame_backend.py --bench build/x/experiments/fpm_frame_bench \
     --pgm-dir fixtures-pgm --arm cpu=0,0,0,0 --arm cuda=2,1,256,0 --rounds 8 --repeat 5 --output out.json
 
-Each arm is BACKEND,PYRAMID,FINE_BATCH,NCC_MODE[,TRANSFER] for fpm_frame_bench. Every (round, case, mode,
+Each arm is BACKEND,PYRAMID,FINE_BATCH,NCC_MODE[,TRANSFER[,FINE_MODE[,THREADS]]] for fpm_frame_bench. Every (round, case, mode,
 arm) is a fresh process; the arm order alternates between rounds. Per process, the first call is
 reported as the cold time; after --warmup-ms of untimed calls, the median of --repeat timed calls
 is the steady per-frame time (prepare + match; image decoding and frame/pattern creation are
 excluded). Round 0 is a warm-up and is kept in the raw records but left out of the summary. Matches are compared bit for bit with the
-first arm in every run; any difference or failed run gives a nonzero exit status. On Windows,
+first arm in every run; any difference or failed run gives a nonzero exit status, except that differences of an arm named by
+--inexact (an approximate ablation) are recorded separately as inexact_differences. On Windows,
 start this driver with `start /affinity MASK` so every child inherits the CPU set.
 """
 from __future__ import annotations
@@ -49,12 +50,13 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--bench", type=Path, required=True)
     parser.add_argument("--pgm-dir", type=Path, required=True)
-    parser.add_argument("--arm", action="append", required=True, help="NAME=BACKEND,PYRAMID,FINE_BATCH,NCC_MODE[,TRANSFER]")
+    parser.add_argument("--arm", action="append", required=True, help="NAME=BACKEND,PYRAMID,FINE_BATCH,NCC_MODE[,TRANSFER[,FINE_MODE[,THREADS]]]")
     parser.add_argument("--modes", default=",".join(MODES))
     parser.add_argument("--rounds", type=int, default=8)
     parser.add_argument("--repeat", type=int, default=5)
     parser.add_argument("--warmup-ms", type=float, default=500)
     parser.add_argument("--cases", default="", help="comma-separated source stems; default all 17")
+    parser.add_argument("--inexact", action="append", default=[], help="arm whose outputs may differ (ablation)")
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     arms = {}
@@ -64,7 +66,7 @@ def main() -> int:
     names = list(arms)
     modes = args.modes.split(",")
     cases = [c for c in CASES if not args.cases or Path(c[0]).stem in args.cases.split(",")]
-    records, mismatches, failures = [], [], []
+    records, mismatches, failures, inexact = [], [], [], []
     started = time.time()
     for round_index in range(args.rounds):
         order = names if round_index % 2 == 0 else names[::-1]
@@ -82,7 +84,8 @@ def main() -> int:
                 reference = by_arm.get(names[0])
                 for name, record in by_arm.items():
                     if reference is not None and record["matches"] != reference["matches"]:
-                        mismatches.append({"round": round_index, "case": record["case"], "mode": mode, "arm": name})
+                        entry = {"round": round_index, "case": record["case"], "mode": mode, "arm": name}
+                        (inexact if name in args.inexact else mismatches).append(entry)
         print(f"round {round_index} done, {time.time() - started:.0f}s, mismatches {len(mismatches)}, failures {len(failures)}",
               flush=True)
     summary = {}
@@ -117,7 +120,8 @@ def main() -> int:
         "tool": "benchmark_frame_backend.py", "arms": arms, "modes": modes, "rounds": args.rounds,
         "repeat": args.repeat, "warmup_ms": args.warmup_ms, "platform": platform.platform(), "machine": platform.machine(),
         "cpu_count": os.cpu_count(), "bench": str(args.bench), "summary": summary, "ratios": ratios,
-        "mismatches": mismatches, "failures": failures, "records": records,
+        "mismatches": mismatches, "inexact_arms": args.inexact, "inexact_differences": inexact, "failures": failures,
+        "records": records,
     }
     args.output.write_text(json.dumps(report, indent=1))
     print(json.dumps({"ratios": ratios, "mismatches": len(mismatches), "failures": len(failures)}, indent=1))

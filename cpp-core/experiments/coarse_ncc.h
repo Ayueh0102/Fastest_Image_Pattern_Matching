@@ -284,8 +284,9 @@ FPM_API int fpm_frame_get_metrics(fpm_frame_handle* frame, FpmFrameMetricsV1* me
  * memsets (the last kernel clears its counters), fine requests are read from
  * mapped host memory, and the host polls a completion value the last kernel
  * writes to mapped memory instead of calling cudaStreamSynchronize; device_ms
- * metrics are then -1. Outputs are unchanged. Idle frame only; changing the
- * mode invalidates the prepared frame. Default 0. */
+ * metrics are then -1. Bit 4 (with bit 2): upload the fine requests instead of
+ * reading them from mapped memory. Outputs are unchanged. Idle frame only;
+ * changing the mode invalidates the prepared frame. Default 0. */
 FPM_API int fpm_frame_set_transfer_mode(fpm_frame_handle* frame, int32_t mode,
     char* error, size_t error_capacity);
 /* Since the last prepare (that prepare and every later match). Times are host
@@ -300,6 +301,24 @@ typedef struct FpmTransferMetricsV1 {
 } FpmTransferMetricsV1;
 FPM_API int fpm_frame_get_transfer_metrics(fpm_frame_handle* frame,
     FpmTransferMetricsV1* metrics, size_t metrics_bytes, char* error, size_t error_capacity);
+/* Lean prepare copies the source into page-locked memory with this many threads
+ * (CUDA only, 1..16, default 1; other backends accept 1). The threads are kept by
+ * the frame; each copies its share of every chunk, and the caller's thread queues
+ * each chunk's upload once all shares are copied. Idle frame only. */
+FPM_API int fpm_frame_set_transfer_threads(fpm_frame_handle* frame, int32_t threads,
+    char* error, size_t error_capacity);
+/* CUDA kernel diagnostics of the last fpm_frame_match: the coarse and fine NCC
+ * modes, coarse windows, coarse tile pixels sampled with the FP64 fallback (modes
+ * 2-3; fine ones are FineMetricsV1.repair_pixels), coarse windows scored in
+ * binary64 by mode 3's screening, and the lean prepare copy threads. Zeros for
+ * other backends. */
+typedef struct FpmCudaKernelMetricsV1 {
+    uint32_t version, struct_bytes;
+    int32_t coarse_ncc_mode, fine_ncc_mode;
+    uint64_t coarse_windows, coarse_fp64_pixels, coarse_fp64_scores, copy_threads;
+} FpmCudaKernelMetricsV1;
+FPM_API int fpm_frame_get_cuda_kernel_metrics(fpm_frame_handle* frame,
+    FpmCudaKernelMetricsV1* metrics, size_t metrics_bytes, char* error, size_t error_capacity);
 /* config invert_source must agree with the prepared snapshot. Profile optional:
  * use NULL/0 to disable clocks. Result capacity semantics match coarse_match.
  * Coarse/execution/fine diagnostics are per model; prepare costs are separate
@@ -333,7 +352,12 @@ FPM_API int fpm_coarse_create(fpm_image templ, int min_area,
  * outputs equal the CPU backend's of the same build bit for bit. Coarse
  * optimization ncc_mode 1 keeps canvases in device memory (unfused ablation);
  * fine NCC mode 1 samples every fine pixel in FP64 instead of the guarded Q28
- * fast path; fpm_frame_set_transfer_mode selects how frames transfer and wait.
+ * fast path, and mode 2 produces mode 0's bytes from a cheaper sampling loop.
+ * Coarse ncc_mode 2 samples tiles with the exact Q28 rule and mode 3 adds binary32
+ * screening of the scores (binary64 only for windows that may reach the
+ * threshold); both keep outputs bit-identical. Coarse ncc_mode 4 and fine mode 3
+ * use binary32 sampling and scores: an INEXACT ablation whose outputs differ from
+ * the CPU backend's. fpm_frame_set_transfer_mode selects how frames transfer and wait.
  * gpu_bytes counts device allocations only, not page-locked host staging.
  */
 FPM_API int fpm_coarse_create_backend(fpm_image templ, int min_area, int backend,

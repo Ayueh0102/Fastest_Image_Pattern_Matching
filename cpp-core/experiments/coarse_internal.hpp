@@ -73,6 +73,12 @@ public:
     virtual FpmTransferMetricsV1 transferMetrics() const {
         FpmTransferMetricsV1 value{}; value.version = 1; value.struct_bytes = sizeof(value); return value;
     }
+    virtual void setTransferThreads(int threads) {
+        if (threads != 1) throw std::invalid_argument("transfer threads require CUDA");
+    }
+    virtual FpmCudaKernelMetricsV1 cudaKernelMetrics() const {
+        FpmCudaKernelMetricsV1 value{}; value.version = 1; value.struct_bytes = sizeof(value); return value;
+    }
 };
 std::unique_ptr<Backend> makeMetalBackend();
 std::unique_ptr<Backend> makeCudaBackend();

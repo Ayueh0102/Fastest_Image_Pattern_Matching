@@ -188,6 +188,9 @@ void fine()
             std::to_string(inspected) + " pixels");
         std::cout << "Q28/binary64 disagreements: " << poses.size() << " poses in " << inspected << " pixels\n";
         fineCase(gpu, source, templ, poses, "disagreeing poses");
+        gpu.setFineNccMode(2);
+        fineCase(gpu, source, templ, poses, "disagreeing poses, fine mode 2");
+        gpu.setFineNccMode(0);
     }
     // 2. FP64 sampling of every pixel (fine NCC mode 1) at poses where re-associated
     //    or contracted coordinate arithmetic changes a pixel.
@@ -218,14 +221,23 @@ void fine()
         requests.push_back({{3.5e9, 12.0}, 10});
         requests.push_back({{-4.0e9, -4.0e9}, 0});
         fineCase(gpu, source, templ, requests, "fine trial " + std::to_string(trial));
+        gpu.setFineNccMode(2);
+        fineCase(gpu, source, templ, requests, "fine mode 2 trial " + std::to_string(trial));
+        gpu.setFineNccMode(0);
     }
     // 4. A flat template (every score 1) and a template wider than one 32-row stripe is tall.
     {
         const auto source = texture(400, 120, rng);
         Image flat(17, 9);
         for (int y = 0; y < 9; ++y) std::memset(flat.row(y), 77, 17);
-        fineCase(gpu, source, learnLevel(flat), {{{100.5, 50.25}, 12}, {{3, 4}, 0}}, "flat template");
-        fineCase(gpu, source, learnLevel(texture(300, 70, rng)), {{{150, 60}, 3}, {{140.25, 55.5}, -7}}, "wide template");
+        const auto wide = learnLevel(texture(300, 70, rng));
+        for (int mode : {0, 2}) {
+            gpu.setFineNccMode(mode);
+            const std::string tag = mode ? ", fine mode 2" : "";
+            fineCase(gpu, source, learnLevel(flat), {{{100.5, 50.25}, 12}, {{3, 4}, 0}}, "flat template" + tag);
+            fineCase(gpu, source, wide, {{{150, 60}, 3}, {{140.25, 55.5}, -7}}, "wide template" + tag);
+        }
+        gpu.setFineNccMode(0);
     }
     const auto metrics = gpu.fineMetrics();
     require(metrics.repair_pixels > 0 && metrics.repair_all_maps > 0, "FP64 fallback paths were not exercised");
@@ -267,8 +279,10 @@ void coarse()
     // Scores exactly at the threshold are kept: a flat template scores 1 everywhere,
     // a flat source scores 0 everywhere (zero variance). Their own generator keeps
     // the random trials below unchanged.
+    // Modes 2 and 3 (exact Q28 tiles, binary32 screening) run after 0 and 1 so the
+    // earlier modes keep their data.
     Rng flatRng(99);
-    for (int mode = 0; mode < 2; ++mode) {
+    for (int mode = 0; mode < 4; ++mode) {
         Gpu backend;
         backend.value->setCoarseOptimization(0, mode);
         Image flat(9, 7), flatSource(60, 40);
@@ -278,7 +292,7 @@ void coarse()
         sameCoarse(*backend.value, textured, learnLevel(flat), {0, 30, -90}, 0, 6, 0.3, 1.0, "flat template, threshold 1");
         sameCoarse(*backend.value, flatSource, learnLevel(texture(9, 7, flatRng)), {0, 45}, 120, 6, 0.3, 0.0, "flat source, threshold 0");
     }
-    for (int mode = 0; mode < 2; ++mode) {
+    for (int mode = 0; mode < 4; ++mode) {
         Gpu backend;
         auto& gpu = *backend.value;
         gpu.setCoarseOptimization(0, mode);
@@ -315,6 +329,16 @@ void coarse()
                     require(got[i].peaks[k].x == expected[k].x && got[i].peaks[k].y == expected[k].y &&
                         std::memcmp(&got[i].peaks[k].score, &expected[k].score, sizeof(double)) == 0, what + ": peak differs");
             }
+        }
+        // The FP64 fallback and the binary32 screen were exercised, and the screen drops windows.
+        const auto k = gpu.cudaKernelMetrics();
+        if (mode >= 2) require(k.coarse_fp64_pixels > 0, "coarse mode " + std::to_string(mode) + ": no FP64 tile pixel");
+        if (mode == 3) {
+            require(k.coarse_fp64_scores > 0 && k.coarse_fp64_scores < k.coarse_windows / 2,
+                "coarse mode 3: " + std::to_string(k.coarse_fp64_scores) + " of " + std::to_string(k.coarse_windows) +
+                " windows scored in binary64");
+            std::cout << "coarse mode 3: " << k.coarse_fp64_pixels << " FP64 tile pixels, " << k.coarse_fp64_scores
+                      << " of " << k.coarse_windows << " windows scored in binary64\n";
         }
     }
 }

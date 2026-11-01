@@ -96,6 +96,17 @@ struct Frame {
     void setTransfer(int mode) {
         require(fpm_frame_set_transfer_mode(value, mode, error, sizeof(error)) == FPM_OK, error);
     }
+    void setFineMode(int mode) {
+        require(fpm_frame_set_fine_ncc_mode(value, mode, error, sizeof(error)) == FPM_OK, error);
+    }
+    void setThreads(int threads) {
+        require(fpm_frame_set_transfer_threads(value, threads, error, sizeof(error)) == FPM_OK, error);
+    }
+    FpmCudaKernelMetricsV1 kernel() {
+        FpmCudaKernelMetricsV1 metrics{};
+        require(fpm_frame_get_cuda_kernel_metrics(value, &metrics, sizeof(metrics), error, sizeof(error)) == FPM_OK, error);
+        return metrics;
+    }
     FpmTransferMetricsV1 transfer() {
         FpmTransferMetricsV1 metrics{};
         require(fpm_frame_get_transfer_metrics(value, &metrics, sizeof(metrics), error, sizeof(error)) == FPM_OK, error);
@@ -151,7 +162,7 @@ fpm_config config(int targets, double score, double overlap, double tolerance, i
     return c;
 }
 
-int matchedTotal = 0;
+int matchedTotal = 0, approximateRuns = 0, approximateIdentical = 0;
 void runCase(Case& item, unsigned seed)
 {
     const auto templ = makeTemplate(item.tw, item.th, seed, item.flat);
@@ -190,6 +201,28 @@ void runCase(Case& item, unsigned seed)
             }
         }
     }
+    // Exact kernel modes: coarse NCC 2/3, fine NCC 2, uploaded fine requests
+    // (transfer bit 4) and four copy threads, each prepared twice.
+    struct Variant { int coarse, fine, transfer, threads, batch; };
+    for (const Variant v : {Variant{2, 0, 0, 1, 64}, Variant{3, 2, 0, 1, 64}, Variant{3, 2, 3, 4, 3},
+             Variant{0, 0, 7, 1, 64}, Variant{3, 2, 7, 4, 64}, Variant{3, 2, 1, 4, 0}}) {
+        Frame frame(2, 1, v.batch, v.coarse, v.transfer);
+        if (v.fine) frame.setFineMode(v.fine);
+        if (v.threads != 1) frame.setThreads(v.threads);
+        const std::string tag = name + " coarse " + std::to_string(v.coarse) + " fine " + std::to_string(v.fine) +
+            " transfer " + std::to_string(v.transfer) + " threads " + std::to_string(v.threads) + " batch " + std::to_string(v.batch);
+        for (int repeat = 0; repeat < 2; ++repeat) {
+            frame.prepare(source, {cpuModel.value}, item.config.invert_source);
+            same(expected, frame.match(cpuModel.value, item.config), tag + " repeat " + std::to_string(repeat));
+        }
+    }
+    // The binary32 ablation (coarse 4, fine 3) must run; its outputs may differ.
+    Frame approximate(2, 1, 64, 4, 3);
+    approximate.setFineMode(3);
+    approximate.prepare(source, {cpuModel.value}, item.config.invert_source);
+    const auto approx = approximate.match(cpuModel.value, item.config);
+    approximateRuns += 1; approximateIdentical += approx.size() == expected.size() &&
+        (expected.empty() || std::memcmp(approx.data(), expected.data(), expected.size() * sizeof(fpm_result)) == 0);
 }
 
 // One mode-3 frame (and one mode-1 frame without a fine batch) through a
@@ -270,6 +303,17 @@ void transferMetrics()
             tag + "device times");
         require(frame.lastFine.calls >= 1, tag + "no fine call");
     }
+    // Copy threads, the Q28 coarse tiles and the binary32 screen are visible in the metrics.
+    Frame threaded(2, 1, 64, 3, 3);
+    threaded.setThreads(4);
+    threaded.setFineMode(2);
+    threaded.prepare(source, {model.value}, 0);
+    same(expected, threaded.match(model.value, c), "four copy threads, coarse 3, fine 2");
+    const auto k = threaded.kernel();
+    require(k.version == 1 && k.coarse_ncc_mode == 3 && k.fine_ncc_mode == 2 && k.copy_threads == 4, "kernel metrics header");
+    require(k.coarse_fp64_scores > 0 && k.coarse_fp64_scores < k.coarse_windows / 4,
+        "binary32 screen: " + std::to_string(k.coarse_fp64_scores) + " of " + std::to_string(k.coarse_windows));
+    require(threaded.transfer().upload_chunks == 3, "four copy threads changed the chunks");
 }
 
 void denseMaps()
@@ -320,7 +364,9 @@ void validation()
     FpmCoarseOptimizationConfigV1 optimization{1, sizeof(FpmCoarseOptimizationConfigV1), 1, 0, 0, 0};
     require(fpm_frame_set_coarse_optimization(valid.value, &optimization, sizeof(optimization), nullptr, 0) == FPM_ERROR,
         "CUDA peak mode 1 accepted");
-    require(fpm_frame_set_transfer_mode(valid.value, 4, nullptr, 0) == FPM_ERROR, "CUDA transfer mode 4 accepted");
+    require(fpm_frame_set_transfer_mode(valid.value, 8, nullptr, 0) == FPM_ERROR, "CUDA transfer mode 8 accepted");
+    require(fpm_frame_set_transfer_threads(valid.value, 17, nullptr, 0) == FPM_ERROR, "17 transfer threads accepted");
+    require(fpm_frame_set_fine_ncc_mode(valid.value, 4, nullptr, 0) == FPM_ERROR, "CUDA fine NCC mode 4 accepted");
     Frame cpu(0, 0, 0);
     require(fpm_frame_set_transfer_mode(cpu.value, 1, nullptr, 0) == FPM_ERROR, "CPU transfer mode 1 accepted");
     require(fpm_frame_set_transfer_mode(cpu.value, 0, nullptr, 0) == FPM_OK, "CPU transfer mode 0 rejected");
@@ -383,6 +429,7 @@ int main()
         std::cerr << "FAIL " << e.what() << "\n";
         return 1;
     }
-    std::cout << "CUDA backend bit-identical on " << cases.size() << " scenes, " << matchedTotal << " CPU matches\n";
+    std::cout << "CUDA backend bit-identical on " << cases.size() << " scenes, " << matchedTotal << " CPU matches; "
+              << "binary32 ablation identical on " << approximateIdentical << " of " << approximateRuns << " scenes\n";
     return 0;
 }
