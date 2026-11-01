@@ -1,0 +1,6 @@
+Generating SQLite file C:\r-cuda\gpu3\formal\profile\Src6-subpixel-best.sqlite from C:\r-cuda\gpu3\formal\profile\Src6-subpixel-best.nsys-rep
+Processing [C:\r-cuda\gpu3\formal\profile\Src6-subpixel-best.sqlite] with [C:\Program Files\NVIDIA Corporation\Nsight Systems 2025.6.3\host-windows-x64\reports\cuda_gpu_mem_time_sum.py]... 
+Time (%),Total Time (ns),Count,Avg (ns),Med (ns),Min (ns),Max (ns),StdDev (ns),Operation
+100.0,23407249,792,29554.6,3232.0,256,90752,36516.3,[CUDA memcpy Host-to-Device]
+0.0,1664,3,554.7,512.0,480,672,102.9,[CUDA memset]
+

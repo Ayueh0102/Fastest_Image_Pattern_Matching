@@ -1,0 +1,171 @@
+round 0 done, 361s, mismatches 0, failures 0
+round 1 done, 720s, mismatches 0, failures 0
+{
+ "ratios": {
+  "m3/cpu/exhaustive": {
+   "steady_geomean": 0.059915882066665885,
+   "steady_total": 0.03357872195076719,
+   "cases_faster": 17,
+   "cases": 17
+  },
+  "m3/cpu/fast": {
+   "steady_geomean": 0.07504635756408876,
+   "steady_total": 0.05373418783096577,
+   "cases_faster": 17,
+   "cases": 17
+  },
+  "m3/cpu/subpixel": {
+   "steady_geomean": 0.04604523074181455,
+   "steady_total": 0.016489409509830247,
+   "cases_faster": 17,
+   "cases": 17
+  },
+  "c2/cpu/exhaustive": {
+   "steady_geomean": 0.049509404634501986,
+   "steady_total": 0.027997226891903527,
+   "cases_faster": 17,
+   "cases": 17
+  },
+  "c2/cpu/fast": {
+   "steady_geomean": 0.0600310035057695,
+   "steady_total": 0.04292526147464299,
+   "cases_faster": 17,
+   "cases": 17
+  },
+  "c2/cpu/subpixel": {
+   "steady_geomean": 0.04205824151979203,
+   "steady_total": 0.015687659112103656,
+   "cases_faster": 17,
+   "cases": 17
+  },
+  "c3/cpu/exhaustive": {
+   "steady_geomean": 0.04689562881621563,
+   "steady_total": 0.026897229149210274,
+   "cases_faster": 17,
+   "cases": 17
+  },
+  "c3/cpu/fast": {
+   "steady_geomean": 0.05694258295503553,
+   "steady_total": 0.041187933920464735,
+   "cases_faster": 17,
+   "cases": 17
+  },
+  "c3/cpu/subpixel": {
+   "steady_geomean": 0.041307373747146665,
+   "steady_total": 0.015526691578026504,
+   "cases_faster": 17,
+   "cases": 17
+  },
+  "f2/cpu/exhaustive": {
+   "steady_geomean": 0.05843677258419359,
+   "steady_total": 0.032219607020467285,
+   "cases_faster": 17,
+   "cases": 17
+  },
+  "f2/cpu/fast": {
+   "steady_geomean": 0.07470190193825017,
+   "steady_total": 0.05322889356354108,
+   "cases_faster": 17,
+   "cases": 17
+  },
+  "f2/cpu/subpixel": {
+   "steady_geomean": 0.04315663183508179,
+   "steady_total": 0.014151035593922974,
+   "cases_faster": 17,
+   "cases": 17
+  },
+  "u7/cpu/exhaustive": {
+   "steady_geomean": 0.07322920162495465,
+   "steady_total": 0.03915683780791455,
+   "cases_faster": 17,
+   "cases": 17
+  },
+  "u7/cpu/fast": {
+   "steady_geomean": 0.08936264814166968,
+   "steady_total": 0.06220517369720839,
+   "cases_faster": 16,
+   "cases": 17
+  },
+  "u7/cpu/subpixel": {
+   "steady_geomean": 0.060154856259449496,
+   "steady_total": 0.019154012051894643,
+   "cases_faster": 17,
+   "cases": 17
+  },
+  "t4/cpu/exhaustive": {
+   "steady_geomean": 0.06949165369372413,
+   "steady_total": 0.0376547150609804,
+   "cases_faster": 17,
+   "cases": 17
+  },
+  "t4/cpu/fast": {
+   "steady_geomean": 0.08356166082761163,
+   "steady_total": 0.05824128630699931,
+   "cases_faster": 16,
+   "cases": 17
+  },
+  "t4/cpu/subpixel": {
+   "steady_geomean": 0.050445476598603094,
+   "steady_total": 0.01704726536748236,
+   "cases_faster": 17,
+   "cases": 17
+  },
+  "all3/cpu/exhaustive": {
+   "steady_geomean": 0.05055296391025315,
+   "steady_total": 0.02741235465884458,
+   "cases_faster": 17,
+   "cases": 17
+  },
+  "all3/cpu/fast": {
+   "steady_geomean": 0.06398232725287221,
+   "steady_total": 0.04486296888161448,
+   "cases_faster": 16,
+   "cases": 17
+  },
+  "all3/cpu/subpixel": {
+   "steady_geomean": 0.04242950422116597,
+   "steady_total": 0.013802337347551092,
+   "cases_faster": 17,
+   "cases": 17
+  },
+  "all7/cpu/exhaustive": {
+   "steady_geomean": 0.06300947672732307,
+   "steady_total": 0.03275879244632172,
+   "cases_faster": 16,
+   "cases": 17
+  },
+  "all7/cpu/fast": {
+   "steady_geomean": 0.07767117186659112,
+   "steady_total": 0.05322968349725774,
+   "cases_faster": 16,
+   "cases": 17
+  },
+  "all7/cpu/subpixel": {
+   "steady_geomean": 0.05378527024784061,
+   "steady_total": 0.01610814155917983,
+   "cases_faster": 16,
+   "cases": 17
+  },
+  "fp32/cpu/exhaustive": {
+   "steady_geomean": 0.043118875052438416,
+   "steady_total": 0.023922044790102237,
+   "cases_faster": 17,
+   "cases": 17
+  },
+  "fp32/cpu/fast": {
+   "steady_geomean": 0.053646825092431356,
+   "steady_total": 0.038517957958147726,
+   "cases_faster": 17,
+   "cases": 17
+  },
+  "fp32/cpu/subpixel": {
+   "steady_geomean": 0.03439377761254912,
+   "steady_total": 0.011303404807852649,
+   "cases_faster": 17,
+   "cases": 17
+  }
+ },
+ "mismatches": 0,
+ "failures": 0
+}
+PILOTDONE 

@@ -1,0 +1,9 @@
+Generating SQLite file C:\r-cuda\gpu3\formal\profile\Src9-exhaustive-m3.sqlite from C:\r-cuda\gpu3\formal\profile\Src9-exhaustive-m3.nsys-rep
+Processing [C:\r-cuda\gpu3\formal\profile\Src9-exhaustive-m3.sqlite] with [C:\Program Files\NVIDIA Corporation\Nsight Systems 2025.6.3\host-windows-x64\reports\cuda_gpu_kern_sum.py]... 
+Time (%),Total Time (ns),Instances,Avg (ns),Med (ns),Min (ns),Max (ns),StdDev (ns),Name
+64.9,223649745,8118,27549.9,26912.0,21632,33984,4540.5,"void <unnamed>::fineStripes<(int)0>(const unsigned char *, int, int, const <unnamed>::FineWarp *, const unsigned char *, int, int, int, int, int, unsigned long long *, unsigned int *)"
+19.5,67179374,2706,24826.1,24800.0,24544,25249,141.5,"<unnamed>::coarseFused(const unsigned char *, int, int, const <unnamed>::CoarseJob *, const unsigned char *, int, int, double, double, double, int, unsigned char, <unnamed>::Entry *, unsigned int *)"
+8.8,30401809,8118,3745.0,3904.0,3136,11680,430.3,"void <unnamed>::fineNormalize<(bool)0>(unsigned long long *, int, double, double, double, int, unsigned int *, double *, unsigned int *, unsigned int *, unsigned int, <unnamed>::ScoreTemplate)"
+5.2,17796572,8118,2192.2,1792.0,1568,3424,713.2,"<unnamed>::pyrDownKernel(const unsigned char *, int, int, unsigned char *, int, int)"
+1.6,5543016,2706,2048.4,2048.0,2016,9216,198.2,"void <unnamed>::packEntries<<unnamed>::CoarseJob>(const <unnamed>::Entry *, unsigned int *, const T1 *, <unnamed>::Entry *, unsigned int *, unsigned int *, unsigned int *, unsigned int)"
+

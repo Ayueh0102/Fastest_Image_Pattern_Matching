@@ -341,8 +341,8 @@ int fpm_frame_set_coarse_optimization(fpm_frame_handle* frame,
     try {
         if (!frame || !config || bytes != sizeof(*config) || config->version != 1 ||
             config->struct_bytes != sizeof(*config) || config->reserved0 || config->reserved1 ||
-            config->peak_mode < 0 || config->peak_mode > 2 || config->ncc_mode < 0 || config->ncc_mode > 3)
-            throw std::invalid_argument("valid coarse optimization v1, exact size, peak mode 0..1 and NCC mode 0..3 are required");
+            config->peak_mode < 0 || config->peak_mode > 2 || config->ncc_mode < 0 || config->ncc_mode > 4)
+            throw std::invalid_argument("valid coarse optimization v1, exact size, peak mode 0..2 and NCC mode 0..4 are required");
         if (frame->backend) frame->backend->setCoarseOptimization(config->peak_mode, config->ncc_mode);
         else if (config->peak_mode || config->ncc_mode)
             throw std::invalid_argument("coarse optimization frame requires Metal backend");
@@ -436,7 +436,7 @@ int fpm_frame_set_transfer_mode(fpm_frame_handle* frame, int32_t mode, char* err
 {
     message(error, capacity, "");
     try {
-        if (!frame || mode < 0 || mode > 3) throw std::invalid_argument("valid frame and transfer mode 0..3 required");
+        if (!frame || mode < 0 || mode > 7) throw std::invalid_argument("valid frame and transfer mode 0..7 required");
         if (!frame->backend && mode) throw std::invalid_argument("transfer modes require CUDA");
         frame->ready = false;
         if (frame->backend) frame->backend->invalidateFineSource();
@@ -445,6 +445,33 @@ int fpm_frame_set_transfer_mode(fpm_frame_handle* frame, int32_t mode, char* err
         return FPM_OK;
     } catch (const std::exception& e) { message(error, capacity, e.what()); }
     catch (...) { message(error, capacity, "unknown transfer mode exception"); }
+    return FPM_ERROR;
+}
+int fpm_frame_set_transfer_threads(fpm_frame_handle* frame, int32_t threads, char* error, size_t capacity)
+{
+    message(error, capacity, "");
+    try {
+        if (!frame || threads < 1 || threads > 16) throw std::invalid_argument("valid frame and 1..16 transfer threads required");
+        if (frame->backend) frame->backend->setTransferThreads(threads);
+        else if (threads != 1) throw std::invalid_argument("transfer threads require CUDA");
+        return FPM_OK;
+    } catch (const std::exception& e) { message(error, capacity, e.what()); }
+    catch (...) { message(error, capacity, "unknown transfer threads exception"); }
+    return FPM_ERROR;
+}
+int fpm_frame_get_cuda_kernel_metrics(fpm_frame_handle* frame, FpmCudaKernelMetricsV1* metrics,
+    size_t bytes, char* error, size_t capacity)
+{
+    static_assert(sizeof(FpmCudaKernelMetricsV1) == 48, "CUDA kernel metrics v1 ABI changed");
+    message(error, capacity, "");
+    try {
+        if (!frame || !metrics || bytes != sizeof(*metrics))
+            throw std::invalid_argument("valid frame and exact CUDA kernel metrics size required");
+        FpmCudaKernelMetricsV1 value{}; value.version = 1; value.struct_bytes = sizeof(value);
+        if (frame->backend) value = frame->backend->cudaKernelMetrics();
+        *metrics = value; return FPM_OK;
+    } catch (const std::exception& e) { message(error, capacity, e.what()); }
+    catch (...) { message(error, capacity, "unknown CUDA kernel metrics exception"); }
     return FPM_ERROR;
 }
 int fpm_frame_get_transfer_metrics(fpm_frame_handle* frame, FpmTransferMetricsV1* metrics,

@@ -1,0 +1,293 @@
+{
+ "results": [
+  {
+   "mutant": "baseline cpp-core/experiments/coarse_cuda.cu",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "baseline cpp-core/src/ncc.cpp",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "W1 warp sx re-associated: ax+(c*x-s*y)",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: arithmetic-sensitive poses, FP64 sampling: fine map 0 differs"
+  },
+  {
+   "mutant": "W2 warp sy contracted into an FMA",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: arithmetic-sensitive poses, FP64 sampling: fine map 3 differs"
+  },
+  {
+   "mutant": "W3 warp value not rounded (+0.5 dropped)",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: disagreeing poses: fine map 1 differs"
+  },
+  {
+   "mutant": "W4 warp inside bound w-1 instead of w",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: coarse mode 0 trial 0 angle 0: peak count"
+  },
+  {
+   "mutant": "N1 normalization: no 0.5 cap on the variance guard",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: coarse mode 1 trial 29 angle 26: peak differs"
+  },
+  {
+   "mutant": "N2 normalization: saturation band 1.25 instead of 1.125",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "N3 normalization: s*(s/area) instead of (s*s)/area",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: disagreeing poses: fine map 0 differs"
+  },
+  {
+   "mutant": "C1 fused coarse keeps only scores above the threshold",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: flat template, threshold 1 angle 0: peak count"
+  },
+  {
+   "mutant": "C2 fused coarse tile one row short",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: flat source, threshold 0 angle 0: peak differs"
+  },
+  {
+   "mutant": "C3 compaction lane offset counts its own lane",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: flat template, threshold 1 angle 0: peak differs"
+  },
+  {
+   "mutant": "C4 pack drops the last kept entry",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: flat source, threshold 0 angle 0: peak differs"
+  },
+  {
+   "mutant": "C5 coarse uniform template not detected",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: flat template, threshold 1 angle 0: peak count"
+  },
+  {
+   "mutant": "C6 unfused coarse canvas warp uses border 0",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: flat source, threshold 0 angle 1: peak differs"
+  },
+  {
+   "mutant": "F1 fine guard ignored (Q28 result always kept)",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: disagreeing poses: fine map 0 differs"
+  },
+  {
+   "mutant": "F2 fine repairAll ignored",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "F3 fine FP64 fallback samples a border of 1",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: disagreeing poses: fine map 10 differs"
+  },
+  {
+   "mutant": "F4 fine dot: dx=3 shifted by two bytes",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: disagreeing poses: fine map 0 differs"
+  },
+  {
+   "mutant": "F5 fine row squares not slid",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: disagreeing poses: fine map 0 differs"
+  },
+  {
+   "mutant": "F6 fine stripe one ROI row short",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: disagreeing poses: fine map 0 differs"
+  },
+  {
+   "mutant": "F7 fine window sums skip the last stripe row",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: disagreeing poses: fine map 0 differs"
+  },
+  {
+   "mutant": "F8 fine template padding not zero",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: disagreeing poses: fine map 0 differs"
+  },
+  {
+   "mutant": "P1 pyramid rounding bias 127",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL pyramid: pyramid pixels differ"
+  },
+  {
+   "mutant": "P2 pyramid reflection off by one",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL pyramid: pyramid pixels differ"
+  },
+  {
+   "mutant": "S1 sparse peaks: suppression right edge inclusive",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: flat template, threshold 1 angle 0: peak differs"
+  },
+  {
+   "mutant": "T1 lean coarse counts not cleared",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_backend_test exit 1: FAIL transfer sequence step 4: match 0 differs"
+  },
+  {
+   "mutant": "T2 lean fine statistics not cleared",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_backend_test exit 1: FAIL 320x240 template 40x30 seed 101 transfer 2 batch 64 repeat 0: match count 3 vs 0"
+  },
+  {
+   "mutant": "T3 lean FP64-pixel count not cleared",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_backend_test exit 1: FAIL transfer mode 2: fine counts differ from mode 0"
+  },
+  {
+   "mutant": "T4 lean completion signalled by the first block",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_backend_test exit 1: FAIL 320x240 template 40x30 seed 101 coarse 3 fine 2 transfer 7 threads 4 batch 64 repeat 1: match 0 differs"
+  },
+  {
+   "mutant": "T5 lean upload drops the last row of each chunk",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_backend_test exit 1: FAIL 320x240 template 40x30 seed 118 transfer 1 batch 64 repeat 0: match count 4 vs 5"
+  },
+  {
+   "mutant": "T6 lean copy ignores inversion",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_backend_test exit 1: FAIL 500x400 template 23x57 seed 186 transfer 1 batch 64 repeat 0: match 0 differs"
+  },
+  {
+   "mutant": "T7 lean prepare ignores a change of height",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_backend_test exit 1: FAIL"
+  },
+  {
+   "mutant": "T8 lean prepare never copies levels back for the CPU fine path",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_backend_test exit 1: FAIL 320x240 template 40x30 seed 101 transfer 1 batch 0 repeat 0: match count 3 vs 0"
+  },
+  {
+   "mutant": "T9 fine block loads the first request",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: disagreeing poses: fine map 1 differs"
+  },
+  {
+   "mutant": "T10 mode change keeps the lean counters marked clean",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_backend_test exit 1: FAIL transfer sequence step 8: match count 6 vs 1"
+  },
+  {
+   "mutant": "U1 lean signal without the system fence",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "U2 lean prepare does not wait for the previous upload",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "U3 lean coarse counts not zeroed when allocated",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_backend_test exit 1: FAIL"
+  },
+  {
+   "mutant": "U4 lean fine statistics not zeroed when allocated",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_backend_test exit 1: FAIL 320x240 template 40x30 seed 101 transfer 2 batch 64 repeat 0: match 0 differs"
+  },
+  {
+   "mutant": "K1 Q28 interior path reads past the row end",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: fine mode 2 trial 0: fine map 1 differs"
+  },
+  {
+   "mutant": "K2 Q28 bilinear weights the bottom row by dx",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: disagreeing poses, fine mode 2: fine map 0 differs"
+  },
+  {
+   "mutant": "K3 Q28 sample ignores the guard",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: disagreeing poses, fine mode 2: fine map 0 differs"
+  },
+  {
+   "mutant": "K4 Q28 sample outside the image is 0, not the border",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: flat source, threshold 0 angle 1: peak differs"
+  },
+  {
+   "mutant": "K5 coarse Q28 tile steps 31 columns",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: coarse mode 2 trial 0 angle 0: peak differs"
+  },
+  {
+   "mutant": "K6 screen drops windows up to the threshold plus the margin",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: coarse mode 3 trial 16 angle 3: peak count"
+  },
+  {
+   "mutant": "K7 fine mode 2 steps rows with the cosine twice",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: fine mode 2 trial 0: fine map 0 differs"
+  },
+  {
+   "mutant": "K8 fine mode 2 template padding not zero",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL fine: disagreeing poses, fine mode 2: fine map 0 differs"
+  },
+  {
+   "mutant": "K9 copy thread shares skip their last row",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_backend_test exit 1: FAIL 320x240 template 40x30 seed 101 coarse 3 fine 2 transfer 3 threads 4 batch 3 repeat 0: match 2 differs"
+  },
+  {
+   "mutant": "K10 coarse kernel counters not copied to the host",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: coarse mode 3: 13176767485 of 6946200 windows scored in binary64"
+  },
+  {
+   "mutant": "K11 coarse Q28 uniform template keeps only scores above the threshold",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: flat template, threshold 1 angle 0: peak count"
+  },
+  {
+   "mutant": "K12 coarse Q28 binary64 branch keeps only scores above the threshold",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: flat source, threshold 0 angle 0: peak count"
+  },
+  {
+   "mutant": "K13 screen gives zero-variance windows a nonzero score",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_kernel_test exit 1: FAIL coarse: flat source, threshold 0 angle 0: peak differs"
+  },
+  {
+   "mutant": "U5 screen ignores the zero-variance rule",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "U6 upload queued before the copy threads finish the chunk",
+   "status": "KILLED",
+   "detail": "experiments/fpm_cuda_backend_test exit 1: FAIL 320x240 template 40x30 seed 101 coarse 3 fine 2 transfer 3 threads 4 batch 3 repeat 0: match count 3 vs 0"
+  },
+  {
+   "mutant": "restored cpp-core/experiments/coarse_cuda.cu",
+   "status": "SURVIVED",
+   "detail": ""
+  },
+  {
+   "mutant": "restored cpp-core/src/ncc.cpp",
+   "status": "SURVIVED",
+   "detail": ""
+  }
+ ],
+ "totals": {
+  "KILLED": 48,
+  "SURVIVED": 5
+ }
+}
