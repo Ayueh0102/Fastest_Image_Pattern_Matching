@@ -253,7 +253,7 @@ int fpm_frame_set_fine_ncc_mode(fpm_frame_handle* frame, int32_t mode, char* err
 {
     message(error, capacity, "");
     try {
-        if (!frame || mode < 0 || mode > 4) throw std::invalid_argument("valid frame and fine NCC mode 0..4 required");
+        if (!frame || mode < 0 || mode > 6) throw std::invalid_argument("valid frame and fine NCC mode 0..6 required");
         if (frame->backend) frame->backend->setFineNccMode(mode);
         else if (mode) throw std::invalid_argument("fine NCC reuse requires Metal");
         return FPM_OK;
@@ -341,8 +341,8 @@ int fpm_frame_set_coarse_optimization(fpm_frame_handle* frame,
     try {
         if (!frame || !config || bytes != sizeof(*config) || config->version != 1 ||
             config->struct_bytes != sizeof(*config) || config->reserved0 || config->reserved1 ||
-            config->peak_mode < 0 || config->peak_mode > 2 || config->ncc_mode < 0 || config->ncc_mode > 6)
-            throw std::invalid_argument("valid coarse optimization v1, exact size, peak mode 0..2 and NCC mode 0..6 are required");
+            config->peak_mode < 0 || config->peak_mode > 2 || config->ncc_mode < 0 || config->ncc_mode > 7)
+            throw std::invalid_argument("valid coarse optimization v1, exact size, peak mode 0..2 and NCC mode 0..7 are required");
         if (frame->backend) frame->backend->setCoarseOptimization(config->peak_mode, config->ncc_mode);
         else if (config->peak_mode || config->ncc_mode)
             throw std::invalid_argument("coarse optimization frame requires Metal backend");

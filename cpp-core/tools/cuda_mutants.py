@@ -37,7 +37,7 @@ MUTANTS = [
     ('N3 normalization: s*(s/area) instead of (s*s)/area', CU,
      '__ddiv_rn(__dmul_rn(s, s), area)', '__dmul_rn(s, __ddiv_rn(s, area))', 1, 1),
     ('C1 fused coarse keeps only scores above the threshold', CU,
-     'keep = !(score < threshold);', 'keep = score > threshold;', 1, 8),
+     'keep = !(score < threshold);', 'keep = score > threshold;', 1, 9),
     ('C2 fused coarse tile one row short', CU,
      'const int tileW = TILE_X + tw - 1, tileH = TILE_Y + th - 1, tid',
      'const int tileW = TILE_X + tw - 1, tileH = TILE_Y + th - 2, tid', 1, 2),
@@ -118,17 +118,17 @@ MUTANTS = [
     ('K7 fine mode 2 steps rows with the cosine twice', CU,
      'const long long stepX = 32 * m.c, stepY = 32 * m.s;', 'const long long stepX = 32 * m.c, stepY = 32 * m.c;', 1, 1),
     ('K8 fine mode 2 template padding not zero', CU,
-     'for (int x = lane; x < tpitch; x += 32) out[x] = x < tw ? in[x] : 0;',
-     'for (int x = lane; x < tpitch; x += 32) out[x] = x < tw ? in[x] : 1;', 1, 1),
+     'for (int x = lane; x < tpitch; x += 32) out[x] = y < rows && x < tw ? in[x] : 0;',
+     'for (int x = lane; x < tpitch; x += 32) out[x] = y < rows ? in[x] : 0;', 1, 1),
     ('K9 copy thread shares skip their last row', CU,
      'copyRows(task_, y0 + share * rows / n, y0 + (share + 1) * rows / n);',
      'copyRows(task_, y0 + share * rows / n, y0 + (share + 1) * rows / n - 1);', 1, 1),
     ('K10 coarse kernel counters not copied to the host', CU,
      'if (counter) hostCounts[gridDim.x + threadIdx.x] = counts[gridDim.x + threadIdx.x];', '', 1, 1),
     ('K11 coarse Q28 uniform template keeps only scores above the threshold', CU,
-     'keep = !(score < threshold);', 'keep = score > threshold;', 3, 8),
+     'keep = !(score < threshold);', 'keep = score > threshold;', 3, 9),
     ('K12 coarse Q28 binary64 branch keeps only scores above the threshold', CU,
-     'keep = !(score < threshold);', 'keep = score > threshold;', 6, 8),
+     'keep = !(score < threshold);', 'keep = score > threshold;', 6, 9),
     # Reported, not gated: a degenerate-variance window screened in binary32 needs a
     # near-zero but nonzero variance and a threshold at or below its score; a missing
     # wait for the copy threads is a race.
@@ -166,13 +166,39 @@ MUTANTS = [
     ('L19 screen x weight off by a bit', CU, 'const int dx = int((unsigned(sx) << 4) >> 9),', 'const int dx = int((unsigned(sx) << 4) >> 10),', 1, 1),
     ('L20 screen y multiply not doubled', CU, 'const int value = top + 2 * __mulhi(bottom - top, dy);', 'const int value = top + __mulhi(bottom - top, dy);', 1, 1),
     ('L21 zero-variance window keeps only scores above the threshold', CU, 'keep = !(score < threshold); // zero variance', 'keep = score > threshold; // zero variance', 1, 1),
-    ('L22 window binary64 branch keeps only scores above the threshold', CU, 'keep = !(score < threshold);', 'keep = score > threshold;', 8, 8),
+    ('L22 window binary64 branch keeps only scores above the threshold', CU, 'keep = !(score < threshold);', 'keep = score > threshold;', 9, 9),
     # Reported, not gated: the overflow guard is unreachable while shared memory is far below
     # 66051 pixels' tile; an unclipped tile only reads more; the small-image guard needs a source
     # of one row or column and an out-of-bounds read need not fail.
     ('U7 no uint32 overflow guard', CU, 'u64(tw) * th <= MAX_U32_PIXELS &&\n            windowShared', '\n            windowShared', 1, 1),
     ('U8 window tile not clipped to the map', CU, 'columns = min(job.mapWidth - x0, tileX) + tw - 1;', 'columns = tileX + tw - 1;', 1, 1),
-    ('U9 no small-image guard', CU, 'SAMPLING == 4 && !m.repairAll && sw > 1 && sh > 1', 'SAMPLING == 4 && !m.repairAll', 1, 1),
+    ('U9 no small-image guard', CU, '(SAMPLING == 4 || SAMPLING == 5) && !m.repairAll && sw > 1 && sh > 1', '(SAMPLING == 4 || SAMPLING == 5) && !m.repairAll', 1, 1),
+    # Fine mode 5 (Tensor core products) and its row statistics.
+    ('M1 even windows miss the second row of the pair', CU, 'const unsigned even = c1 + c2, odd = c3 + __shfl_down_sync(0xffffffffu, c0, 1);',
+     'const unsigned even = c1, odd = c3 + __shfl_down_sync(0xffffffffu, c0, 1);', 1, 1),
+    ('M2 odd windows miss the first row of the pair', CU, 'const unsigned even = c1 + c2, odd = c3 + __shfl_down_sync(0xffffffffu, c0, 1);',
+     'const unsigned even = c1 + c2, odd = c3;', 1, 1),
+    ('M3 template row one off', CU, 'const int tr = rho + 1 - group;', 'const int tr = rho - group;', 1, 1),
+    ('M4 rows outside the stripe use its last row', CU, 'tr >= 0 && tr < rows ? tr : rows) * tWords', 'tr >= 0 && tr < rows ? tr : rows - 1) * tWords', 1, 1),
+    ('M5 zero row holds template data', CU, 'out[x] = y < rows && x < tw ? in[x] : 0;', 'out[x] = x < tw ? in[x] : 0;', 1, 1),
+    ('M6 warps repeat pairs', CU, 'rho += 2 * warps) {', 'rho += 2 * warps - 2) {', 1, 1),
+    ('M7 second row of the pair is the first', CU, 'const unsigned* r1Row = r0Row + rowWords;', 'const unsigned* r1Row = r0Row;', 1, 1),
+    ('M8 second row ignores the byte shift', CU, '__funnelshift_r(r1Row[0], r1Row[1], shift)', 'r1Row[0]', 1, 1),
+    ('M9 template columns 16-31 dropped', CU, '__funnelshift_r(r1Row[4], r1Row[5], shift), b[0], b[4]);', '__funnelshift_r(r1Row[4], r1Row[5], shift), b[0], 0u);', 1, 1),
+    ('M10 ROI word offset ignores dx', CU, 'const int offset = group / 4 + inGroup,', 'const int offset = inGroup,', 1, 1),
+    ('M11 warps overwrite each other\'s products', CU, 'const int base = warp * FINE_WINDOWS + group + 2 * inGroup * FINE_SIDE;',
+     'const int base = group + 2 * inGroup * FINE_SIDE;', 1, 1),
+    ('M12 last stage skips a warp', CU, 'for (int w = 0; w < warps; ++w) product +=', 'for (int w = 0; w + 1 < warps; ++w) product +=', 1, 1),
+    ('M13 row statistics skip the first row of each warp', CU, 'for (int rho = SAMPLING >= 5 ? warp : 0; rho < roiRows;', 'for (int rho = SAMPLING >= 5 ? warp + warps : 0; rho < roiRows;', 1, 1),
+    ('M14 template rows not padded to 32 bytes', CU, 'if (tensorWanted) tpitch = (tw + 31) & ~31;', '', 1, 1),
+    ('M15 fine mode 5 runs the binary32 kernel', CU, 'if (tensor && fineMode_ == 6) fineStripes<7>', 'if (tensor) fineStripes<7>', 1, 1),
+    ('M16 no zero row', CU, 'const int templateRows = SAMPLING >= 5 ? rows + 1 : rows;', 'const int templateRows = rows;', 1, 1),
+    ('M17 wide launches keep the narrow products size', CU, '(tensorWanted ? size_t(tpitch) + size_t(tensorThreads / 32)', '(tensorWanted ? size_t(tpitch) + size_t(FINE_THREADS / 32)', 1, 1),
+    # Reported, not gated: without the screen mode 5 is only slower; a shared size short by the
+    # zero row need not fail; the overflow guard is out of reach of what fits shared memory.
+    ('U10 fine mode 5 without the screen', CU, '(SAMPLING == 4 || SAMPLING == 5) && !m.repairAll', 'SAMPLING == 4 && !m.repairAll', 1, 1),
+    ('U11 shared size leaves out the zero row', CU, '(tensorWanted ? size_t(tpitch) + size_t(tensorThreads / 32)', '(tensorWanted ? size_t(tensorThreads / 32)', 1, 1),
+    ('U12 no fine Tensor core overflow guard', CU, 'const bool tensor = tensorWanted && 2 * pairsPerWarp * tw <= MAX_U32_PIXELS;', 'const bool tensor = tensorWanted;', 1, 1),
 ]
 TARGETS = ['fpm_cuda_kernel_test', 'fpm_cuda_backend_test', 'fpm_core_test']
 EXE = '.exe' if sys.platform == 'win32' else ''

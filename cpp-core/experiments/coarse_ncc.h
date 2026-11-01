@@ -354,13 +354,14 @@ FPM_API int fpm_coarse_create(fpm_image templ, int min_area,
  * fine NCC mode 1 samples every fine pixel in FP64 instead of the guarded Q28
  * fast path, mode 2 produces mode 0's bytes from a cheaper sampling loop, and mode 4
  * from a branch-free 32-bit screen that asks the guarded path only when the rounding
- * is not clear. Coarse ncc_mode 2 samples tiles with the exact Q28 rule and mode 3 adds binary32
+ * is not clear; mode 5 is mode 4 with the products by int8 Tensor cores (compute
+ * capability 8.0). Coarse ncc_mode 2 samples tiles with the exact Q28 rule and mode 3 adds binary32
  * screening of the scores (binary64 only for windows that may reach the
  * threshold); both keep outputs bit-identical. Coarse ncc_mode 5 and 6 are mode 3
  * with window products computed in warp-level tiles, by __dp4a and by int8 Tensor
  * cores (mode 6 needs compute capability 8.0), also bit-identical. Coarse ncc_mode 4
- * and fine mode 3 use binary32 sampling and scores: an INEXACT ablation whose outputs
- * differ from the CPU backend's. fpm_frame_set_transfer_mode selects how frames transfer and wait.
+ * and 7 and fine modes 3 and 6 use binary32 sampling and scores (7 and 6 with Tensor
+ * core products): an INEXACT ablation whose outputs differ from the CPU backend's. fpm_frame_set_transfer_mode selects how frames transfer and wait.
  * gpu_bytes counts device allocations only, not page-locked host staging.
  */
 FPM_API int fpm_coarse_create_backend(fpm_image templ, int min_area, int backend,

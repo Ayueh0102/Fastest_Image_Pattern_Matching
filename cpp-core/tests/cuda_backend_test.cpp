@@ -162,7 +162,7 @@ fpm_config config(int targets, double score, double overlap, double tolerance, i
     return c;
 }
 
-int matchedTotal = 0, approximateRuns = 0, approximateIdentical = 0;
+int matchedTotal = 0, approximateRuns = 0, approximateIdentical = 0, tensorRuns = 0, tensorIdentical = 0;
 void runCase(Case& item, unsigned seed)
 {
     const auto templ = makeTemplate(item.tw, item.th, seed, item.flat);
@@ -207,7 +207,8 @@ void runCase(Case& item, unsigned seed)
     for (const Variant v : {Variant{2, 0, 0, 1, 64}, Variant{3, 2, 0, 1, 64}, Variant{3, 2, 3, 4, 3},
              Variant{0, 0, 7, 1, 64}, Variant{3, 2, 7, 4, 64}, Variant{3, 2, 1, 4, 0},
              Variant{5, 0, 0, 1, 64}, Variant{5, 2, 3, 1, 3}, Variant{6, 0, 0, 1, 64}, Variant{6, 2, 3, 1, 64},
-             Variant{6, 2, 3, 4, 3}, Variant{6, 2, 1, 1, 0}, Variant{6, 4, 3, 1, 64}, Variant{3, 4, 0, 1, 3}}) {
+             Variant{6, 2, 3, 4, 3}, Variant{6, 2, 1, 1, 0}, Variant{6, 4, 3, 1, 64}, Variant{3, 4, 0, 1, 3},
+             Variant{6, 5, 3, 1, 64}, Variant{5, 5, 3, 4, 3}, Variant{3, 5, 0, 1, 64}, Variant{6, 5, 1, 1, 3}}) {
         Frame frame(2, 1, v.batch, v.coarse, v.transfer);
         if (v.fine) frame.setFineMode(v.fine);
         if (v.threads != 1) frame.setThreads(v.threads);
@@ -225,6 +226,13 @@ void runCase(Case& item, unsigned seed)
     const auto approx = approximate.match(cpuModel.value, item.config);
     approximateRuns += 1; approximateIdentical += approx.size() == expected.size() &&
         (expected.empty() || std::memcmp(approx.data(), expected.data(), expected.size() * sizeof(fpm_result)) == 0);
+    // So must the same ablation on the Tensor core kernels (coarse 7, fine 6).
+    Frame approximateTensor(2, 1, 64, 7, 3);
+    approximateTensor.setFineMode(6);
+    approximateTensor.prepare(source, {cpuModel.value}, item.config.invert_source);
+    const auto approxTensor = approximateTensor.match(cpuModel.value, item.config);
+    tensorRuns += 1; tensorIdentical += approxTensor.size() == expected.size() &&
+        (expected.empty() || std::memcmp(approxTensor.data(), expected.data(), expected.size() * sizeof(fpm_result)) == 0);
 }
 
 // One mode-3 frame (and one mode-1 frame without a fine batch) through a
@@ -376,12 +384,12 @@ void validation()
     FpmCoarseOptimizationConfigV1 optimization{1, sizeof(FpmCoarseOptimizationConfigV1), 1, 0, 0, 0};
     require(fpm_frame_set_coarse_optimization(valid.value, &optimization, sizeof(optimization), nullptr, 0) == FPM_ERROR,
         "CUDA peak mode 1 accepted");
-    optimization.peak_mode = 0; optimization.ncc_mode = 7;
+    optimization.peak_mode = 0; optimization.ncc_mode = 8;
     require(fpm_frame_set_coarse_optimization(valid.value, &optimization, sizeof(optimization), nullptr, 0) == FPM_ERROR,
-        "CUDA coarse NCC mode 7 accepted");
+        "CUDA coarse NCC mode 8 accepted");
     require(fpm_frame_set_transfer_mode(valid.value, 8, nullptr, 0) == FPM_ERROR, "CUDA transfer mode 8 accepted");
     require(fpm_frame_set_transfer_threads(valid.value, 17, nullptr, 0) == FPM_ERROR, "17 transfer threads accepted");
-    require(fpm_frame_set_fine_ncc_mode(valid.value, 5, nullptr, 0) == FPM_ERROR, "CUDA fine NCC mode 5 accepted");
+    require(fpm_frame_set_fine_ncc_mode(valid.value, 7, nullptr, 0) == FPM_ERROR, "CUDA fine NCC mode 7 accepted");
     Frame cpu(0, 0, 0);
     require(fpm_frame_set_transfer_mode(cpu.value, 1, nullptr, 0) == FPM_ERROR, "CPU transfer mode 1 accepted");
     require(fpm_frame_set_transfer_mode(cpu.value, 0, nullptr, 0) == FPM_OK, "CPU transfer mode 0 rejected");
@@ -445,6 +453,7 @@ int main()
         return 1;
     }
     std::cout << "CUDA backend bit-identical on " << cases.size() << " scenes, " << matchedTotal << " CPU matches; "
-              << "binary32 ablation identical on " << approximateIdentical << " of " << approximateRuns << " scenes\n";
+              << "binary32 ablation identical on " << approximateIdentical << " of " << approximateRuns << " scenes, on the Tensor core kernels "
+              << tensorIdentical << " of " << tensorRuns << "\n";
     return 0;
 }
