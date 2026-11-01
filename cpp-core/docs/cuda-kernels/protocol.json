@@ -1,0 +1,56 @@
+{
+ "registered_before_timing": "2026-11-01T06:01:24Z",
+ "question": "On the RTX PRO 4000, do the new opt-in CUDA kernel modes (coarse ncc_mode 2: exact Q28 tile sampling; ncc_mode 3: plus binary32 screening of the scores with binary64 only near the threshold; fine NCC mode 2: row-wise sampling with stepped Q28 coordinates) keep the outputs bit-identical to the same build's CPU backend and how much do they cut the per-frame time of the 17 fixtures against the previous best CUDA setting (transfer mode 3) of the same build; do the two alternatives tried against the lean-call costs (uploading the fine requests, four source-copy threads) help; and how far do binary32 sampling and scores (an inexact ablation) move the outputs?",
+ "commits": {
+  "base": "8aa1630 (main: CUDA backend and transfer modes)",
+  "after": "c67ef78 (kernel modes, tests and tools)"
+ },
+ "core_unchanged": "git diff 8aa1630 c67ef78 -- cpp-core/src cpp-core/include is empty",
+ "sources": "git archive of c67ef78 (cpp-core without docs for the PC; cpp-core, macos-cli and Test Images for the Mac), unpacked into fresh directories",
+ "pc": {
+  "host": "PTRI-PRO-4000",
+  "cpu": "Intel Core Ultra 9 285K (8 P-cores + 16 E-cores)",
+  "gpu": "NVIDIA RTX PRO 4000 Blackwell, compute capability 12.0, 24 GB, PCIe 5.0 x16, driver 596.71, WDDM, no display attached",
+  "toolchain": "MSVC 19.44, CUDA 13.2 Update 2 (nvcc V13.2.86), CMake, Ninja, Release, CMAKE_CUDA_ARCHITECTURES=120, nvcc -fmad=false -lineinfo, static cudart",
+  "build": "c67ef78 with FPM_BUILD_EXPERIMENTS=ON FPM_WITH_CUDA=ON; every timing and identity arm runs this one build's fpm_frame_bench",
+  "affinity": "drivers start with `start /affinity C03C02` (P-cores 1,10-13,22,23); children inherit it"
+ },
+ "mac": "Apple M4 Pro: research build of c67ef78 (no CUDA) passes ctest",
+ "inputs": "the 17 compare_versions cases as 8-bit PGM (C:\\r51\\bundle\\pgm), checked against the manifest with sha256 3a539fec058b4f42e613c074a8fcb0f697ae2ca671cd76645bc8a23b6cd8e64f before any run",
+ "arms": {
+  "note": "BACKEND,PYRAMID,FINE_BATCH,COARSE_NCC_MODE,TRANSFER,FINE_MODE,THREADS",
+  "cpu": "0,0,0,0: CPU backend (identity and deviation reference)",
+  "m3": "2,1,256,0,3: the previous best CUDA setting (timing baseline)",
+  "c2": "2,1,256,2,3: coarse Q28 tiles",
+  "c3": "2,1,256,3,3: coarse Q28 tiles and binary32 screening",
+  "f2": "2,1,256,0,3,2: fine row-wise sampling",
+  "best": "2,1,256,3,3,2: c3 and f2 together",
+  "u7": "2,1,256,0,7: m3 with the fine requests uploaded instead of read from mapped memory",
+  "t4": "2,1,256,0,3,0,4: m3 with four source-copy threads",
+  "fp32": "2,1,256,4,3,3: binary32 sampling and scores in coarse and fine search (inexact ablation, --inexact)"
+ },
+ "metric": "per-frame time = fpm_frame_prepare + fpm_frame_match (image decoding and frame/pattern creation excluded); steady = median of 5 calls after 500 ms of untimed calls in the same process; cold = the process's first call",
+ "gates": {
+  "ctest": "the PC c67ef78 build passes ctest with experimental_cuda_backend and experimental_cuda_kernels run (not skipped); the Mac c67ef78 research build passes ctest",
+  "identity": "every run of every arm except fp32 (timing rounds and identity-only runs) returns matches bit-identical to the cpu arm of the same round, case and mode; zero mismatches and zero failed runs",
+  "mutants": "cuda_mutants.py on c67ef78: T1-T10 and K1-K13 all KILLED; the 24 earlier mutants give the earlier outcome (22 KILLED, N2 and F2 SURVIVED, argued equivalent in CUDA_BACKEND_zh-TW.md); the unmutated and restored trees pass. U1-U6 are reported, not gated"
+ },
+ "hypotheses": {
+  "H1": "steady geometric mean of best/m3 over the 17 cases is below 0.9 in each mode; predicted from the pilot (c3 0.78/0.76/0.90 and f2 0.98/0.99/0.94): about 0.76/0.76/0.84",
+  "H2": "at least 13 of the 17 cases are faster with best than m3 in each mode (pilot: the small coarse-light cases Src3, Src8 and Src9 were the ones not faster with c3)",
+  "H3": "u7/m3 geometric mean is above 1 in each mode: uploading the fine requests costs more than reading them from mapped memory (pilot 1.22/1.19/1.31)",
+  "H4": "t4/m3 geometric mean is above 1 in each mode: four copy threads are a net loss here (pilot 1.16/1.11/1.10: prepare halves on large images but the following coarse wait grows)",
+  "H5": "fp32 against cpu, every run: every cpu match is found (an fp32 match within 1 px and 1 degree) and fp32 has no other match; over the found pairs the largest differences are below 1e-4 in score, 0.01 px in center and 0.01 degree in angle (pilot: 1086/1086 found, 1.35e-5, 0.0012 px, 0.0015 degree)",
+  "descriptive": "c2 against c3 (sampling versus screening), fp32 speed against best, cold first calls, process peak RSS, retained device bytes and the kernel metrics (FP64 tile pixels, binary64-scored windows) are reported, not gated"
+ },
+ "timing": {
+  "tool": "benchmark_frame_backend.py --rounds 8 --repeat 5 --warmup-ms 500 --inexact fp32 with the nine arms (round 0 kept but left out of the summary; arm order alternates by round; fresh process per run)",
+  "identity_only_run": "benchmark_frame_backend.py --rounds 2 --repeat 1 --warmup-ms 0 with arms cpu, c3_batch8 2,1,8,3,3,2, c3_mode0 2,1,256,3,0,2 (no lean calls), c3_cpu_fine 2,1,0,3,1, f2_threads 2,1,256,0,3,2,4",
+  "summaries": "frame_backend_summary.py --reference m3 (H1-H4) and --reference cpu; frame_output_deviation.py --reference cpu --arm fp32 (H5)",
+  "quiet": "nothing else runs on the PC during the timing run; the poll waiting for it reads one log line at most every 20 minutes; mutants and profiling run afterwards",
+  "no_drops": "no run is dropped or repeated; a failed run is reported as failed"
+ },
+ "decision_rule": "Modes that pass every gate stay as opt-in research options. H1-H5 are reported as measured; a failure is disclosed, not tuned away. Defaults do not change.",
+ "not_formal": "the Nsight Compute profiles of 8aa1630 that chose the targets (ncu1, ncu2), the two-round pilot of ten arms on the development tree (0 mismatches; also the arms all3 and all7, which included t4 and u7), and the mutant pilots are archived as selection evidence only",
+ "profiling": "Nsight Compute of coarseQ28<3> on Src1 and of fineStripes<2> on a large Src6 subpixel launch, and Nsight Systems of m3 and best on Src1, Src6 subpixel and Src9, after the formal runs; their times are not formal"
+}
