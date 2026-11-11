@@ -92,9 +92,9 @@ FineWarp fineWarp(const fpm::detail::WarpMap& map)
     const auto& d = plan.descriptor;
     return {d.anchorX, d.anchorY, d.cosine, d.sine, d.roundingGuard, int(d.repairAll), 0, deviceWarp(map)};
 }
-struct CoarseJob { DeviceWarp warp; int mapWidth, mapHeight; u64 entryOffset; };
+struct CoarseJob { DeviceWarp warp; int mapWidth, mapHeight; u64 entryOffset; unsigned capacity; };
 // Coarse NCC modes 2-4: the canvas map with its Q28 descriptor (q.exact is the map).
-struct CoarseQJob { FineWarp q; int mapWidth, mapHeight; u64 entryOffset; };
+struct CoarseQJob { FineWarp q; int mapWidth, mapHeight; u64 entryOffset; unsigned capacity; };
 struct Entry { int x, y; double score; };
 
 // ---- device arithmetic -----------------------------------------------------
@@ -158,7 +158,7 @@ __device__ __forceinline__ void windowStats(const u8* p, int stride, const u8* t
 }
 
 // Warp-aggregated append of the windows whose scores reach the threshold.
-__device__ __forceinline__ void appendEntry(bool keep, int x, int y, double score, unsigned* count, Entry* entries)
+__device__ __forceinline__ void appendEntry(bool keep, int x, int y, double score, unsigned* count, Entry* entries, unsigned capacity)
 {
     const unsigned mask = __ballot_sync(0xffffffffu, keep);
     if (!mask) return;
@@ -166,7 +166,8 @@ __device__ __forceinline__ void appendEntry(bool keep, int x, int y, double scor
     unsigned base = 0;
     if (lane == leader) base = atomicAdd(count, unsigned(__popc(mask)));
     base = __shfl_sync(0xffffffffu, base, leader);
-    if (keep) entries[base + __popc(mask & ((1u << lane) - 1))] = {x, y, score};
+    const unsigned index = base + __popc(mask & ((1u << lane) - 1));
+    if (keep && index < capacity) entries[index] = {x, y, score};
 }
 
 // ---- kernels ------------------------------------------------------------------
@@ -223,7 +224,7 @@ __global__ void coarseFused(const u8* source, int sw, int sh, const CoarseJob* j
         }
         keep = !(score < threshold);
     }
-    appendEntry(keep, x, y, score, counts + blockIdx.z, entries + job.entryOffset);
+    appendEntry(keep, x, y, score, counts + blockIdx.z, entries + job.entryOffset, job.capacity);
 }
 
 // Unfused coarse search (ablation and large templates): warp every canvas to
@@ -253,7 +254,7 @@ __global__ void coarseFromCanvas(const u8* canvases, const u64* canvasOffsets, c
         }
         keep = !(score < threshold);
     }
-    appendEntry(keep, x, y, score, counts + blockIdx.z, entries + job.entryOffset);
+    appendEntry(keep, x, y, score, counts + blockIdx.z, entries + job.entryOffset, job.capacity);
 }
 
 // Lean calls: the last block of the grid to finish writes `value` to the
@@ -284,7 +285,7 @@ __global__ void packEntries(const Entry* entries, unsigned* counts, const Job* j
     if (threadIdx.x == 0) hostCounts[blockIdx.x] = n;
     const bool counter = blockIdx.x == 0 && threadIdx.x < 2;
     if (counter) hostCounts[gridDim.x + threadIdx.x] = counts[gridDim.x + threadIdx.x];
-    for (unsigned i = threadIdx.x; i < n; i += blockDim.x) hostEntries[offset + i] = entries[offset + i];
+    for (unsigned i = threadIdx.x; i < min(n, jobs[blockIdx.x].capacity); i += blockDim.x) hostEntries[offset + i] = entries[offset + i];
     if (flag) {
         __syncthreads();
         if (threadIdx.x == 0) counts[blockIdx.x] = 0;
@@ -527,7 +528,7 @@ __global__ void coarseQ28(const u8* source, int sw, int sh, const CoarseQJob* jo
             }
         }
     }
-    appendEntry(keep, x, y, score, counts + blockIdx.z, entries + job.entryOffset);
+    appendEntry(keep, x, y, score, counts + blockIdx.z, entries + job.entryOffset, job.capacity);
 }
 
 // Coarse NCC modes 5 and 6: a block of `warps` warps covers 16 * warps x TILE_Y windows
@@ -733,7 +734,7 @@ __global__ void coarseWarpWindows(const u8* source, int sw, int sh, const Coarse
                 keep = !(score < threshold);
             }
         }
-        appendEntry(keep, x, y, score, counts + blockIdx.z, entries + job.entryOffset);
+        appendEntry(keep, x, y, score, counts + blockIdx.z, entries + job.entryOffset, job.capacity);
     }
     if (exact) atomicAdd(counts + jobCount + 1, exact);
 }
@@ -761,7 +762,7 @@ __global__ void coarseWarpWindows(const u8* source, int sw, int sh, const Coarse
 // accumulators of one warp are exact while its windows hold at most 66051 pixels (host
 // check); the last stage adds the warps' totals. 7 is 3 with those products (inexact
 // ablation, mode 6).
-template <int SAMPLING>
+template <int SAMPLING, bool DISTRIBUTED_DP4A = false>
 __global__ void fineStripes(const u8* source, int sw, int sh, const FineWarp* requests, const u8* templ,
     int tw, int th, int stripeRows, int pitch, int tpitch, u64* acc, unsigned* repairedTotal)
 {
@@ -816,7 +817,7 @@ __global__ void fineStripes(const u8* source, int sw, int sh, const FineWarp* re
     if (repaired) atomicAdd(&blockRepaired, repaired);
     __syncthreads();
     u64* out = acc + size_t(blockIdx.y) * FINE_WINDOWS * 3;
-    if (SAMPLING >= 5) {
+    if (SAMPLING >= 5 && !DISTRIBUTED_DP4A) {
         const int group = lane >> 2, inGroup = lane & 3, shift = (group & 3) * 8, words = tpitch / 4;
         const int offset = group / 4 + inGroup, rowWords = pitch / 4, tWords = tpitch / 4;
         const auto* roiWords = reinterpret_cast<const unsigned*>(roi);
@@ -838,13 +839,16 @@ __global__ void fineStripes(const u8* source, int sw, int sh, const FineWarp* re
             products[base] = even;
             if (inGroup < 3) products[base + FINE_SIDE] = odd;
         }
-    } else if (warp < FINE_SIDE) {
+    } else if (DISTRIBUTED_DP4A || warp < FINE_SIDE) {
+        const int dy = warp % FINE_SIDE;
+        const int groups = (warps + FINE_SIDE - 1 - dy) / FINE_SIDE;
+        const int row = DISTRIBUTED_DP4A ? lane * groups + warp / FINE_SIDE : lane;
         unsigned a0 = 0, a1 = 0, a2 = 0, a3 = 0, a4 = 0, a5 = 0, a6 = 0;
-        if (lane < rows) {
-            const auto* rowWords = reinterpret_cast<const unsigned*>(roi + size_t(lane + warp) * pitch);
-            const auto* templateWords = reinterpret_cast<const unsigned*>(t + size_t(lane) * tpitch);
+        if (row < rows) {
+            const auto* rowWords = reinterpret_cast<const unsigned*>(roi + size_t(row + dy) * pitch);
+            const auto* templateWords = reinterpret_cast<const unsigned*>(t + size_t(row) * tpitch);
             unsigned w0 = rowWords[0], w1 = rowWords[1];
-            for (int j = 0, words = tpitch / 4; j < words; ++j) {
+            for (int j = 0, words = DISTRIBUTED_DP4A ? (tw + 3) / 4 : tpitch / 4; j < words; ++j) {
                 const unsigned w2 = rowWords[j + 2], tv = templateWords[j];
                 a0 = __dp4a(w0, tv, a0);
                 a1 = __dp4a(__funnelshift_r(w0, w1, 8), tv, a1);
@@ -859,7 +863,7 @@ __global__ void fineStripes(const u8* source, int sw, int sh, const FineWarp* re
         const unsigned values[FINE_SIDE] = {a0, a1, a2, a3, a4, a5, a6};
         for (int dx = 0; dx < FINE_SIDE; ++dx) {
             const u64 product = warpSum(values[dx]);
-            if (lane == 0) atomicAdd(out + (warp * FINE_SIDE + dx) * 3 + 2, product);
+            if (lane == 0) atomicAdd(out + (dy * FINE_SIDE + dx) * 3 + 2, product);
         }
     }
     if (SAMPLING >= 5 || warp == FINE_SIDE) {
@@ -895,7 +899,7 @@ __global__ void fineStripes(const u8* source, int sw, int sh, const FineWarp* re
             sum += rowStats[((r + dy) * FINE_SIDE + dx) * 2]; square += rowStats[((r + dy) * FINE_SIDE + dx) * 2 + 1];
         }
         atomicAdd(out + threadIdx.x * 3, sum); atomicAdd(out + threadIdx.x * 3 + 1, square);
-        if (SAMPLING >= 5) {
+        if (SAMPLING >= 5 && !DISTRIBUTED_DP4A) {
             u64 product = 0;
             for (int w = 0; w < warps; ++w) product += products[w * FINE_WINDOWS + threadIdx.x];
             atomicAdd(out + threadIdx.x * 3 + 2, product);
@@ -1092,6 +1096,10 @@ public:
         fine.sharedSizeBytes = std::max(fine.sharedSizeBytes, variant.sharedSizeBytes);
         check(cudaFuncGetAttributes(&variant, fineStripes<7>), "fine attributes");
         fine.sharedSizeBytes = std::max(fine.sharedSizeBytes, variant.sharedSizeBytes);
+        check(cudaFuncGetAttributes(&variant, fineStripes<5, true>), "dp4a wide attributes");
+        fine.sharedSizeBytes = std::max(fine.sharedSizeBytes, variant.sharedSizeBytes);
+        check(cudaFuncGetAttributes(&variant, fineStripes<6, true>), "dp4a narrow attributes");
+        fine.sharedSizeBytes = std::max(fine.sharedSizeBytes, variant.sharedSizeBytes);
         fineSharedLimit_ = sharedOptin_ - int(fine.sharedSizeBytes);
         // Prefer stripes small enough for two resident blocks per SM.
         int perSm = 0;
@@ -1104,6 +1112,8 @@ public:
         check(cudaFuncSetAttribute(fineStripes<5>, cudaFuncAttributeMaxDynamicSharedMemorySize, fineSharedLimit_), "fine shared");
         check(cudaFuncSetAttribute(fineStripes<6>, cudaFuncAttributeMaxDynamicSharedMemorySize, fineSharedLimit_), "fine shared");
         check(cudaFuncSetAttribute(fineStripes<7>, cudaFuncAttributeMaxDynamicSharedMemorySize, fineSharedLimit_), "fine shared");
+        check(cudaFuncSetAttribute(fineStripes<5, true>, cudaFuncAttributeMaxDynamicSharedMemorySize, fineSharedLimit_), "dp4a wide shared");
+        check(cudaFuncSetAttribute(fineStripes<6, true>, cudaFuncAttributeMaxDynamicSharedMemorySize, fineSharedLimit_), "dp4a narrow shared");
         check(cudaStreamCreateWithFlags(&stream_, cudaStreamNonBlocking), "stream");
         check(cudaEventCreate(&begin_), "event"); check(cudaEventCreate(&end_), "event");
         check(cudaEventCreateWithFlags(&sourceRead_, cudaEventDisableTiming), "event");
@@ -1134,9 +1144,9 @@ public:
     // products by __dp4a in warp-level tiles, 6 the same with int8 Tensor cores,
     // 7 mode 6 in binary32 only (inexact ablation; outputs of all but 4 and 7 are identical).
     void setCoarseOptimization(int peakMode, int nccMode) override {
-        if (peakMode != 0 || nccMode < 0 || nccMode > 7)
-            throw std::invalid_argument("CUDA coarse optimization takes peak mode 0 and NCC mode 0..7");
-        if (nccMode >= 6 && !tensorCores_) throw std::invalid_argument("CUDA coarse NCC modes 6 and 7 need compute capability 8.0");
+        if (peakMode != 0 || nccMode < 0 || nccMode > 8)
+            throw std::invalid_argument("CUDA coarse optimization takes peak mode 0 and NCC mode 0..8");
+        if (nccMode >= 6 && !tensorCores_) throw std::invalid_argument("CUDA coarse NCC modes 6 through 8 need compute capability 8.0");
         fusedCoarse_ = nccMode != 1;
         coarseMode_ = nccMode;
     }
@@ -1149,8 +1159,8 @@ public:
     // Tensor core (needs compute capability 8.0); 6 mode 3 with those products (inexact
     // ablation).
     void setFineNccMode(int mode) override {
-        if (mode < 0 || mode > 6) throw std::invalid_argument("CUDA fine NCC mode is 0..6");
-        if (mode >= 5 && !tensorCores_) throw std::invalid_argument("CUDA fine NCC modes 5 and 6 need compute capability 8.0");
+        if (mode < 0 || mode > 7) throw std::invalid_argument("CUDA fine NCC mode is 0..7");
+        if (mode >= 5 && !tensorCores_) throw std::invalid_argument("CUDA fine NCC modes 5 through 7 need compute capability 8.0");
         exactFine_ = mode == 1;
         fineMode_ = mode;
     }
@@ -1373,6 +1383,16 @@ public:
     std::vector<CoarseAngle> computeCoarseDevice(fpm::ImageView top, const fpm::TemplateLevel& templ,
         const std::vector<double>& angles, std::uint8_t border, int count, double overlap, double threshold) override
     {
+        return coarseWithCapacity(top, templ, angles, border, count, overlap, threshold,
+            coarseMode_ == 8 ? 1024u : UINT_MAX);
+    }
+
+    // Sparse mode first reserves 1024 entries per angle. Counts still include
+    // every passing window. Replay overflowing angles with the measured capacity.
+    std::vector<CoarseAngle> coarseWithCapacity(fpm::ImageView top, const fpm::TemplateLevel& templ,
+        const std::vector<double>& angles, std::uint8_t border, int count, double overlap,
+        double threshold, unsigned angleCapacity)
+    {
         const Range range("fpm coarse");
         const auto start = Clock::now();
         const int tw = templ.image.width(), th = templ.image.height();
@@ -1382,7 +1402,7 @@ public:
         std::vector<CoarseJob> jobs;
         std::vector<size_t> jobAngle;
         std::vector<u64> canvasOffsets;
-        u64 windows = 0, canvasBytes = 0;
+        u64 windows = 0, entrySlots = 0, canvasBytes = 0;
         int maxMapW = 0, maxMapH = 0, maxCanvasW = 0, maxCanvasH = 0;
         for (size_t i = 0; i < angles.size(); ++i) {
             auto& r = results[i];
@@ -1391,7 +1411,9 @@ public:
             if (map.width < tw || map.height < th) continue;
             checkImage(map.width, map.height);
             const int mw = map.width - tw + 1, mh = map.height - th + 1;
-            jobs.push_back({deviceWarp(map), mw, mh, windows});
+            const auto slots = unsigned(std::min<u64>(u64(mw) * mh, angleCapacity));
+            jobs.push_back({deviceWarp(map), mw, mh, entrySlots, slots});
+            entrySlots += slots;
             jobAngle.push_back(i);
             canvasOffsets.push_back(canvasBytes);
             windows += u64(mw) * mh; canvasBytes += align16(u64(map.width) * map.height);
@@ -1414,7 +1436,7 @@ public:
             qJobs.reserve(jobs.size());
             for (const auto& job : jobs) {
                 const auto& w = job.warp;
-                qJobs.push_back({fineWarp({{w.ax, w.ay}, w.c, w.s, w.width, w.height}), job.mapWidth, job.mapHeight, job.entryOffset});
+                qJobs.push_back({fineWarp({{w.ax, w.ay}, w.c, w.s, w.width, w.height}), job.mapWidth, job.mapHeight, job.entryOffset, job.capacity});
             }
         }
         const ScoreTemplate stats = q28 ? scoreTemplate(templ, threshold, uniform, coarse32) : ScoreTemplate{};
@@ -1448,15 +1470,15 @@ public:
         const size_t countsBytes = align16((jobs.size() + 2) * sizeof(unsigned));
         // Lean calls keep the counts in their own buffer, which every search leaves zero.
         const size_t inlineCounts = leanCalls_ ? 0 : countsBytes;
-        auto* device = static_cast<u8*>(coarseDevice_.reserve(stageBytes + inlineCounts + windows * sizeof(Entry) +
+        auto* device = static_cast<u8*>(coarseDevice_.reserve(stageBytes + inlineCounts + entrySlots * sizeof(Entry) +
             (fused ? 0 : canvasBytes)));
         const auto* dJobs = reinterpret_cast<const CoarseJob*>(device);
         const auto* dOffsets = reinterpret_cast<const u64*>(device + jobsBytes);
         const u8* dTemplate = device + jobsBytes + offsetsBytes;
         auto* dCounts = leanCalls_ ? leanCounts(countsBytes) : reinterpret_cast<unsigned*>(device + stageBytes);
         auto* dEntries = reinterpret_cast<Entry*>(device + stageBytes + inlineCounts);
-        u8* dCanvases = device + stageBytes + inlineCounts + windows * sizeof(Entry);
-        auto* hostOut = static_cast<u8*>(coarseOut_.reserve(countsBytes + windows * sizeof(Entry)));
+        u8* dCanvases = device + stageBytes + inlineCounts + entrySlots * sizeof(Entry);
+        auto* hostOut = static_cast<u8*>(coarseOut_.reserve(countsBytes + entrySlots * sizeof(Entry)));
         auto* mapped = static_cast<u8*>(coarseOut_.device());
         LeanGuard guard(*this);
         const unsigned signal = leanCalls_ ? nextSignal() : 0;
@@ -1473,7 +1495,7 @@ public:
             const auto* dWords = reinterpret_cast<const unsigned*>(dTemplate);
             if (coarseMode_ == 5) coarseWarpWindows<5><<<windowGrid, windowBlock, windowShared, stream_>>>(source, top.width, top.height,
                 dQJobs, dWords, tw, th, templ.mean, templ.norm, threshold, border, stats, dEntries, dCounts, jobCount);
-            else if (coarseMode_ == 6) coarseWarpWindows<6><<<windowGrid, windowBlock, windowShared, stream_>>>(source, top.width, top.height,
+            else if (coarseMode_ == 6 || coarseMode_ == 8) coarseWarpWindows<6><<<windowGrid, windowBlock, windowShared, stream_>>>(source, top.width, top.height,
                 dQJobs, dWords, tw, th, templ.mean, templ.norm, threshold, border, stats, dEntries, dCounts, jobCount);
             else coarseWarpWindows<7><<<windowGrid, windowBlock, windowShared, stream_>>>(source, top.width, top.height,
                 dQJobs, dWords, tw, th, templ.mean, templ.norm, threshold, border, stats, dEntries, dCounts, jobCount);
@@ -1520,7 +1542,12 @@ public:
         kernel_.coarse_fp64_pixels += hostCounts[jobs.size()];
         kernel_.coarse_fp64_scores += hostCounts[jobs.size() + 1];
         kernel_.coarse_windows += windows;
+        std::vector<std::pair<size_t, unsigned>> replay;
         for (size_t j = 0; j < jobs.size(); ++j) {
+            if (hostCounts[j] > jobs[j].capacity) {
+                replay.emplace_back(jobAngle[j], hostCounts[j]);
+                continue;
+            }
             std::vector<fpm::detail::Peak> kept(hostCounts[j]);
             const Entry* e = hostEntries + jobs[j].entryOffset;
             for (unsigned k = 0; k < hostCounts[j]; ++k) kept[k] = {e[k].x, e[k].y, e[k].score};
@@ -1530,6 +1557,11 @@ public:
         metrics_.normalization_ms += elapsed(select);
         metrics_.ncc_ms += elapsed(start);
         metrics_.wall_ms += elapsed(start);
+        // Replays reuse the mapped buffers. Finish reading all parent results first.
+        for (const auto& [index, required] : replay) {
+            auto one = coarseWithCapacity(top, templ, {angles[index]}, border, count, overlap, threshold, required);
+            results[index] = std::move(one.front());
+        }
         return results;
     }
 
@@ -1637,15 +1669,19 @@ public:
         if (!uniform) {
             const dim3 grid((th + stripe - 1) / stripe, unsigned(requests.size()));
             const auto* dWarps = reinterpret_cast<const FineWarp*>(device);
-            if (tensor && fineMode_ == 6) fineStripes<7><<<grid, tensorThreads, sharedFor(stripe), stream_>>>(level, source.width,
+            if (tensor && fineMode_ == 7 && rw >= FINE_SCREEN_MIN_WIDTH) fineStripes<5, true><<<grid, tensorThreads, sharedFor(stripe), stream_>>>(level, source.width,
+                source.height, dWarps, deviceTemplate, tw, th, stripe, pitch, tpitch, acc, repairedCount);
+            else if (tensor && fineMode_ == 7) fineStripes<6, true><<<grid, tensorThreads, sharedFor(stripe), stream_>>>(level, source.width,
+                source.height, dWarps, deviceTemplate, tw, th, stripe, pitch, tpitch, acc, repairedCount);
+            else if (tensor && fineMode_ == 6) fineStripes<7><<<grid, tensorThreads, sharedFor(stripe), stream_>>>(level, source.width,
                 source.height, dWarps, deviceTemplate, tw, th, stripe, pitch, tpitch, acc, repairedCount);
             else if (tensor && rw >= FINE_SCREEN_MIN_WIDTH) fineStripes<5><<<grid, tensorThreads, sharedFor(stripe), stream_>>>(level, source.width,
                 source.height, dWarps, deviceTemplate, tw, th, stripe, pitch, tpitch, acc, repairedCount);
             else if (tensor) fineStripes<6><<<grid, tensorThreads, sharedFor(stripe), stream_>>>(level, source.width,
                 source.height, dWarps, deviceTemplate, tw, th, stripe, pitch, tpitch, acc, repairedCount);
-            else if ((fineMode_ == 4 || fineMode_ == 5) && rw >= FINE_SCREEN_MIN_WIDTH) fineStripes<4><<<grid, FINE_THREADS, sharedFor(stripe), stream_>>>(level, source.width,
+            else if ((fineMode_ == 4 || fineMode_ == 5 || fineMode_ == 7) && rw >= FINE_SCREEN_MIN_WIDTH) fineStripes<4><<<grid, FINE_THREADS, sharedFor(stripe), stream_>>>(level, source.width,
                 source.height, dWarps, deviceTemplate, tw, th, stripe, pitch, tpitch, acc, repairedCount);
-            else if (fineMode_ == 2 || fineMode_ == 4 || fineMode_ == 5) fineStripes<2><<<grid, FINE_THREADS, sharedFor(stripe), stream_>>>(level, source.width,
+            else if (fineMode_ == 2 || fineMode_ == 4 || fineMode_ == 5 || fineMode_ == 7) fineStripes<2><<<grid, FINE_THREADS, sharedFor(stripe), stream_>>>(level, source.width,
                 source.height, dWarps, deviceTemplate, tw, th, stripe, pitch, tpitch, acc, repairedCount);
             else if (fineMode_ == 3 || fineMode_ == 6) fineStripes<3><<<grid, FINE_THREADS, sharedFor(stripe), stream_>>>(level, source.width,
                 source.height, dWarps, deviceTemplate, tw, th, stripe, pitch, tpitch, acc, repairedCount);

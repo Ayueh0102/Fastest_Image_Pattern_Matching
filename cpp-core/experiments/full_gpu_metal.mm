@@ -244,11 +244,12 @@ class MetalFull final:public FullGpuPipeline {
     const void* hostRead(id<MTLBuffer> buffer) {++hostReadsSinceSubmission_;return buffer.contents;}
     Plan plan(const Options& o) {
         Plan p;uint32_t maxTop=0;
-        const uint64_t side=uint64_t(std::sqrt(double(settings_.minReducedArea)));
         for(size_t i=0;i<settings_.scales.size();++i) {
             double scale=settings_.scales[i];if(!std::isfinite(scale)||scale<=0)throw std::invalid_argument("Full GPU scale must be finite and positive");
             if(o.refine && std::abs(std::log(scale))>3.)throw std::invalid_argument("Full GPU refinement requires seed log scale in [-3,3]");
             uint32_t w=dimension(templ_.width()*scale),h=dimension(templ_.height()*scale);
+            const auto minArea=shortSideMinArea(w,h,settings_.minReducedArea,settings_.minTopShortSide);
+            const uint64_t side=uint64_t(std::sqrt(double(minArea)));
             uint64_t area=uint64_t(w)*h;if(area>UINT64_MAX/65025/area)throw std::invalid_argument("Full GPU template centered moments exceed uint64");
             Model m{uint32_t(p.levels.size()),0,0,0,{}};
             do {

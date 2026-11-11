@@ -260,6 +260,8 @@ void fine()
         gpu.setFineNccMode(5);
         fineCase(gpu, source, wide, requests, "wide template, fine mode 5");
         fineCase(gpu, bright, wide, requests, "wide template, other source, fine mode 5");
+        gpu.setFineNccMode(7);
+        fineCase(gpu, source, wide, requests, "distributed dp4a");
         gpu.setFineNccMode(0);
     }
     // 6. Fine mode 5 on template shapes around its 32-column step, its 7 product warps and the
@@ -326,7 +328,7 @@ void coarse()
     // Modes 2 and 3 (exact Q28 tiles, binary32 screening) run after 0 and 1 so the
     // earlier modes keep their data; so do 5 and 6 (warp-level window products).
     Rng flatRng(99);
-    for (int mode : {0, 1, 2, 3, 5, 6}) {
+    for (int mode : {0, 1, 2, 3, 5, 6, 8}) {
         Gpu backend;
         backend.value->setCoarseOptimization(0, mode);
         Image flat(9, 7), flatSource(60, 40);
@@ -336,7 +338,7 @@ void coarse()
         sameCoarse(*backend.value, textured, learnLevel(flat), {0, 30, -90}, 0, 6, 0.3, 1.0, "flat template, threshold 1");
         sameCoarse(*backend.value, flatSource, learnLevel(texture(9, 7, flatRng)), {0, 45}, 120, 6, 0.3, 0.0, "flat source, threshold 0");
     }
-    for (int mode : {0, 1, 2, 3, 5, 6}) {
+    for (int mode : {0, 1, 2, 3, 5, 6, 8}) {
         Gpu backend;
         auto& gpu = *backend.value;
         gpu.setCoarseOptimization(0, mode);
@@ -395,7 +397,7 @@ void coarse()
              Shape{300, 260, 420, 380}}) {
         const auto source = texture(shape.sw, shape.sh, shapeRng);
         const auto templ = learnLevel(texture(shape.tw, shape.th, shapeRng));
-        for (int mode : {5, 6}) {
+        for (int mode : {5, 6, 8}) {
             Gpu backend;
             backend.value->setCoarseOptimization(0, mode);
             const std::string name = "coarse mode " + std::to_string(mode) + " template " + std::to_string(shape.tw) + "x" + std::to_string(shape.th);
@@ -410,7 +412,7 @@ void coarse()
         const auto canvas = rotateCanvas(source.view(), 23, 17, 0.0, 9);
         const auto map = ncc(canvas.image.view(), templ, fpm::Backend::Auto);
         const double best = *std::max_element(map.values.begin(), map.values.end());
-        for (int mode : {0, 2, 3, 5, 6}) {
+        for (int mode : {0, 2, 3, 5, 6, 8}) {
             Gpu backend;
             backend.value->setCoarseOptimization(0, mode);
             sameCoarse(*backend.value, source, templ, {0.0}, 9, 8, 0.5, best, "threshold at a score, coarse mode " + std::to_string(mode));

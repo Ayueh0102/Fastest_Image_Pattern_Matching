@@ -384,12 +384,12 @@ void validation()
     FpmCoarseOptimizationConfigV1 optimization{1, sizeof(FpmCoarseOptimizationConfigV1), 1, 0, 0, 0};
     require(fpm_frame_set_coarse_optimization(valid.value, &optimization, sizeof(optimization), nullptr, 0) == FPM_ERROR,
         "CUDA peak mode 1 accepted");
-    optimization.peak_mode = 0; optimization.ncc_mode = 8;
+    optimization.peak_mode = 0; optimization.ncc_mode = 9;
     require(fpm_frame_set_coarse_optimization(valid.value, &optimization, sizeof(optimization), nullptr, 0) == FPM_ERROR,
-        "CUDA coarse NCC mode 8 accepted");
+        "CUDA coarse NCC mode 9 accepted");
     require(fpm_frame_set_transfer_mode(valid.value, 8, nullptr, 0) == FPM_ERROR, "CUDA transfer mode 8 accepted");
     require(fpm_frame_set_transfer_threads(valid.value, 17, nullptr, 0) == FPM_ERROR, "17 transfer threads accepted");
-    require(fpm_frame_set_fine_ncc_mode(valid.value, 7, nullptr, 0) == FPM_ERROR, "CUDA fine NCC mode 7 accepted");
+    require(fpm_frame_set_fine_ncc_mode(valid.value, 8, nullptr, 0) == FPM_ERROR, "CUDA fine NCC mode 8 accepted");
     Frame cpu(0, 0, 0);
     require(fpm_frame_set_transfer_mode(cpu.value, 1, nullptr, 0) == FPM_ERROR, "CPU transfer mode 1 accepted");
     require(fpm_frame_set_transfer_mode(cpu.value, 0, nullptr, 0) == FPM_OK, "CPU transfer mode 0 rejected");

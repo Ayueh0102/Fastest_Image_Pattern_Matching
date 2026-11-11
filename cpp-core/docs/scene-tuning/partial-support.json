@@ -1,0 +1,332 @@
+{
+  "backend": 1,
+  "identity_ncc": 0.5,
+  "min_region_votes": 2,
+  "rows": [
+    {
+      "name": "development_occlusion",
+      "split": "development",
+      "kind": "occlusion",
+      "metrics": {
+        "full": {
+          "tp": 2,
+          "fp": 1,
+          "fn": 4,
+          "unmatched_truth_indices": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "distractor_hits": 0
+        },
+        "full_plus_votes": {
+          "tp": 6,
+          "fp": 1,
+          "fn": 0,
+          "unmatched_truth_indices": [],
+          "distractor_hits": 0
+        },
+        "with_identity": {
+          "tp": 3,
+          "fp": 0,
+          "fn": 3,
+          "unmatched_truth_indices": [
+            3,
+            4,
+            5
+          ],
+          "distractor_hits": 0
+        }
+      },
+      "region_candidates": 64,
+      "identity_scores": [
+        0.9143505516144067,
+        0.7627896689643201,
+        0.028362033072228586,
+        -0.04440082294178257,
+        0.11354988312489417,
+        -0.0954059416542589,
+        0.8489758614727878
+      ],
+      "full_first_ms": 138.236709,
+      "quadrant_first_ms": [
+        150.659625,
+        153.097917,
+        146.628917,
+        142.554834
+      ],
+      "consensus_verification_ms": 6.612792145460844
+    },
+    {
+      "name": "development_distractors",
+      "split": "development",
+      "kind": "distractors",
+      "metrics": {
+        "full": {
+          "tp": 4,
+          "fp": 4,
+          "fn": 0,
+          "unmatched_truth_indices": [],
+          "distractor_hits": 4
+        },
+        "full_plus_votes": {
+          "tp": 4,
+          "fp": 4,
+          "fn": 0,
+          "unmatched_truth_indices": [],
+          "distractor_hits": 4
+        },
+        "with_identity": {
+          "tp": 4,
+          "fp": 0,
+          "fn": 0,
+          "unmatched_truth_indices": [],
+          "distractor_hits": 0
+        }
+      },
+      "region_candidates": 99,
+      "identity_scores": [
+        0.9127424828162132,
+        0.9055310318701566,
+        0.8959353133538953,
+        0.9101086096648884,
+        -0.9214585102042412,
+        -0.9081353975226122,
+        -0.9175785606897128,
+        -0.90419295092131
+      ],
+      "full_first_ms": 106.48625,
+      "quadrant_first_ms": [
+        204.033375,
+        169.235375,
+        168.566542,
+        157.804709
+      ],
+      "consensus_verification_ms": 1.8129160162061453
+    },
+    {
+      "name": "development_contact",
+      "split": "development",
+      "kind": "contact",
+      "metrics": {
+        "full": {
+          "tp": 5,
+          "fp": 0,
+          "fn": 1,
+          "unmatched_truth_indices": [
+            4
+          ],
+          "distractor_hits": 0
+        },
+        "full_plus_votes": {
+          "tp": 6,
+          "fp": 0,
+          "fn": 0,
+          "unmatched_truth_indices": [],
+          "distractor_hits": 0
+        },
+        "with_identity": {
+          "tp": 6,
+          "fp": 0,
+          "fn": 0,
+          "unmatched_truth_indices": [],
+          "distractor_hits": 0
+        }
+      },
+      "region_candidates": 57,
+      "identity_scores": [
+        0.9144810872810372,
+        0.8981705768319211,
+        0.9014290339290978,
+        0.9033850921299562,
+        0.733108008295242,
+        0.9153808927865903
+      ],
+      "full_first_ms": 88.069375,
+      "quadrant_first_ms": [
+        146.539833,
+        152.197125,
+        152.986417,
+        146.568792
+      ],
+      "consensus_verification_ms": 0.9536670986562967
+    },
+    {
+      "name": "heldout_occlusion",
+      "split": "heldout",
+      "kind": "occlusion",
+      "metrics": {
+        "full": {
+          "tp": 1,
+          "fp": 1,
+          "fn": 5,
+          "unmatched_truth_indices": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "distractor_hits": 0
+        },
+        "full_plus_votes": {
+          "tp": 6,
+          "fp": 13,
+          "fn": 0,
+          "unmatched_truth_indices": [],
+          "distractor_hits": 0
+        },
+        "with_identity": {
+          "tp": 4,
+          "fp": 12,
+          "fn": 2,
+          "unmatched_truth_indices": [
+            4,
+            5
+          ],
+          "distractor_hits": 0
+        }
+      },
+      "region_candidates": 46,
+      "identity_scores": [
+        0.99823728550393,
+        0.9866491626902827,
+        0.9983478680063012,
+        0.01007424366115212,
+        0.712171613228816,
+        0.9979773274525118,
+        0.31977621902725306,
+        0.9846849548644898,
+        0.9859399163672943,
+        0.9850882016650252,
+        0.9853483852962523,
+        0.9852403636492759,
+        0.9856668885680493,
+        0.12152698391153136,
+        0.9826045255315605,
+        0.5146298219831146,
+        0.9845036189034413,
+        0.9813515231047726,
+        0.9850906061772162
+      ],
+      "full_first_ms": 81.227625,
+      "quadrant_first_ms": [
+        166.462875,
+        145.187416,
+        167.132834,
+        227.312417
+      ],
+      "consensus_verification_ms": 1.6900410410016775
+    },
+    {
+      "name": "heldout_distractors",
+      "split": "heldout",
+      "kind": "distractors",
+      "metrics": {
+        "full": {
+          "tp": 4,
+          "fp": 0,
+          "fn": 0,
+          "unmatched_truth_indices": [],
+          "distractor_hits": 0
+        },
+        "full_plus_votes": {
+          "tp": 4,
+          "fp": 12,
+          "fn": 0,
+          "unmatched_truth_indices": [],
+          "distractor_hits": 8
+        },
+        "with_identity": {
+          "tp": 4,
+          "fp": 8,
+          "fn": 0,
+          "unmatched_truth_indices": [],
+          "distractor_hits": 4
+        }
+      },
+      "region_candidates": 66,
+      "identity_scores": [
+        0.998400243401259,
+        0.9983939678871029,
+        0.9983193822495722,
+        0.9983659666839952,
+        -0.9978023775411407,
+        -0.9978289925441806,
+        -0.9979899495143392,
+        -0.9974836596935359,
+        0.9839087240958895,
+        0.9841119999446558,
+        0.9843680195507875,
+        0.9845037376557452,
+        0.9803892642638861,
+        0.9810697053741001,
+        0.9807820709307444,
+        0.9806349609410581
+      ],
+      "full_first_ms": 84.341208,
+      "quadrant_first_ms": [
+        270.52475,
+        284.407708,
+        252.677375,
+        234.263959
+      ],
+      "consensus_verification_ms": 2.143166959285736
+    },
+    {
+      "name": "heldout_contact",
+      "split": "heldout",
+      "kind": "contact",
+      "metrics": {
+        "full": {
+          "tp": 5,
+          "fp": 0,
+          "fn": 1,
+          "unmatched_truth_indices": [
+            4
+          ],
+          "distractor_hits": 0
+        },
+        "full_plus_votes": {
+          "tp": 6,
+          "fp": 7,
+          "fn": 0,
+          "unmatched_truth_indices": [],
+          "distractor_hits": 0
+        },
+        "with_identity": {
+          "tp": 6,
+          "fp": 7,
+          "fn": 0,
+          "unmatched_truth_indices": [],
+          "distractor_hits": 0
+        }
+      },
+      "region_candidates": 59,
+      "identity_scores": [
+        0.9983810248298378,
+        0.998317575017444,
+        0.9984138611436473,
+        0.9983428226614414,
+        0.9976118332823524,
+        0.9983972301716283,
+        0.9840935475471,
+        0.9843941707450644,
+        0.7825477477342552,
+        0.9842229030784913,
+        0.983985836034939,
+        0.9848313769144437,
+        0.9843938183272336
+      ],
+      "full_first_ms": 78.862958,
+      "quadrant_first_ms": [
+        217.263208,
+        243.887625,
+        189.096625,
+        126.287625
+      ],
+      "consensus_verification_ms": 1.6145410481840372
+    }
+  ]
+}

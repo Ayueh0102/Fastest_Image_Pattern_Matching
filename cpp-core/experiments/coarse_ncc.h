@@ -362,7 +362,10 @@ FPM_API int fpm_coarse_create(fpm_image templ, int min_area,
  * cores (mode 6 needs compute capability 8.0), also bit-identical. Coarse ncc_mode 4
  * and 7 and fine modes 3 and 6 use binary32 sampling and scores (7 and 6 with Tensor
  * core products): an INEXACT ablation whose outputs differ from the CPU backend's. fpm_frame_set_transfer_mode selects how frames transfer and wait.
- * gpu_bytes counts device allocations only, not page-locked host staging.
+ * Coarse mode 8 is exact mode 6 with a bounded first output per angle and
+ * exact replay of overflowing angles. Fine mode 7 uses mode 5's block layout,
+ * sharing and guards, with packed integer dp4a products in place of Tensor MMA.
+ * Both comparisons target SM80+. gpu_bytes excludes page-locked host staging.
  */
 FPM_API int fpm_coarse_create_backend(fpm_image templ, int min_area, int backend,
     fpm_coarse_handle** out, FpmCoarseMetrics* metrics, char* error, size_t error_capacity);

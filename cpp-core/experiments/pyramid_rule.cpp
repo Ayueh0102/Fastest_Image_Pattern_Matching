@@ -75,6 +75,22 @@ int minAreaForTop(int width, int height, int top)
     return int(std::max<std::uint64_t>(side * side, 1));
 }
 
+int shortSideMinArea(int width, int height, int minArea, int minShortSide)
+{
+    if (!minShortSide) return minArea;
+    const int originalW = width, originalH = height;
+    const auto side = std::uint64_t(std::sqrt(double(minArea)));
+    auto area = std::uint64_t(width) * height;
+    for (int level = 0; area > side * side; ++level) {
+        width = (width + 1) / 2;
+        height = (height + 1) / 2;
+        if (std::min(width, height) < minShortSide)
+            return minAreaForTop(originalW, originalH, level);
+        area /= 4;
+    }
+    return minArea;
+}
+
 double predictedTopScore(const Pattern& pattern, int level, std::uint8_t background)
 {
     const auto& levels = pattern.levels();

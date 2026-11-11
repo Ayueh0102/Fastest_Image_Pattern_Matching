@@ -28,6 +28,7 @@ constexpr int PYRAMID_RULE_POSES = 8;
 PyramidRuleDecision decidePyramid(ImageView templ, int minReducedArea, double minScore);
 // A minReducedArea for which fpm::Pattern stops exactly at `top` (0..its depth).
 int minAreaForTop(int width, int height, int top);
+int shortSideMinArea(int width, int height, int minArea, int minShortSide);
 // Mean over the eight poses on one background; 0 when the level is uniform.
 double predictedTopScore(const Pattern& pattern, int level, std::uint8_t background);
 } // namespace fpm::research

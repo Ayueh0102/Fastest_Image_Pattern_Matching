@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-2-Clause
 // JSON job runner for the SAME native Session used by the GUI. Qt only decodes
-// images and serializes audit records; all matching is C++/Metal.
+// images and serializes audit records; matching uses the selected native CPU, Metal or CUDA backend.
 #include "research_pipeline.hpp"
 #include "qt_gray_loader.hpp"
 #include "run_resource_probe.hpp"
@@ -18,7 +18,11 @@
 #include <string>
 #include <thread>
 #include <vector>
+#ifdef _WIN32
+#include <psapi.h>
+#else
 #include <sys/resource.h>
+#endif
 #ifdef __APPLE__
 #include <mach/mach.h>
 #endif
@@ -26,6 +30,11 @@ using namespace fpm::research;
 using Clock=std::chrono::steady_clock;
 double ms(Clock::time_point t) { return std::chrono::duration<double,std::milli>(Clock::now()-t).count(); }
 QJsonObject memory() {
+#ifdef _WIN32
+    PROCESS_MEMORY_COUNTERS counters{};
+    if(!GetProcessMemoryInfo(GetCurrentProcess(),&counters,sizeof(counters))) throw std::runtime_error("RSS unavailable");
+    return {{"peak_rss_bytes",double(counters.PeakWorkingSetSize)},{"current_rss_bytes",double(counters.WorkingSetSize)}};
+#else
     rusage usage{};if(getrusage(RUSAGE_SELF,&usage)) throw std::runtime_error("RSS unavailable");
     double peak=usage.ru_maxrss;
 #ifndef __APPLE__
@@ -37,6 +46,7 @@ QJsonObject memory() {
     if(task_info(mach_task_self(),MACH_TASK_BASIC_INFO,reinterpret_cast<task_info_t>(&info),&count)==KERN_SUCCESS) resident=info.resident_size;
 #endif
     return {{"peak_rss_bytes",peak},{"current_rss_bytes",resident}};
+#endif
 }
 QJsonObject resources(const fpm::diagnostics::RunResourceRecord& r) {
     return {{"available",r.available},{"wall_ms",r.wall_ms},
@@ -211,7 +221,7 @@ QJsonObject record(const Result& r,bool outputs) {
 const char* const jobKeys[]={"angle","backend","border_min_inside","candidate_dedup_angle_steps","candidate_dedup_radius",
     "candidate_dedup_top_k","coarse_peak_mode","cpu_threads","fine_angle_reuse","fine_fused",
     "fine_ncc_mode","fine_profiling","full_gpu","full_gpu_fine_mode","full_gpu_peak_batch","full_gpu_peak_mode","full_gpu_profiling",
-    "gray_load_mode","invert_source","limit","min_area","ncc_mode","overlap","overlap_enabled","pose_input_mode",
+    "gray_load_mode","invert_source","limit","min_area","min_top_short_side","ncc_mode","overlap","overlap_enabled","pose_input_mode",
     "pose_resident_mode","pose_storage_mode","proposal_method","proposal_score","pyramid_rule","pyramid_rule_min_score",
     "refine","refinement_backend",
     "repeats","run_resource_diagnostics","scale_support_refine","scales","score","sequence_gap",
@@ -293,6 +303,10 @@ int main(int argc,char** argv) {
         if(j.contains("pyramid_rule") && (!j["pyramid_rule"].isDouble() || (j["pyramid_rule"].toDouble()!=0 && j["pyramid_rule"].toDouble()!=1)))
             throw std::invalid_argument("pyramid_rule must be 0 or 1");
         settings.pyramidRule=j["pyramid_rule"].toInt(0);
+        if(j.contains("min_top_short_side") && (!j["min_top_short_side"].isDouble() ||
+            j["min_top_short_side"].toInt(-1)!=j["min_top_short_side"].toDouble()))
+            throw std::invalid_argument("min_top_short_side must be an integer");
+        settings.minTopShortSide=j["min_top_short_side"].toInt(0);
         if(j.contains("pyramid_rule_min_score")) {
             if(settings.pyramidRule!=1) throw std::invalid_argument("pyramid_rule_min_score requires pyramid_rule 1");
             const double value=j["pyramid_rule_min_score"].toDouble(2);

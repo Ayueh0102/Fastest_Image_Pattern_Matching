@@ -2,6 +2,8 @@
 
 這個版本把比對演算法整理成 **C++17、無第三方依賴的核心函式庫**。GUI、CLI、C ABI 共用同一核心；金字塔、旋轉插值、NCC、SIMD、BlockMax、矩形交集、次像素求解的原始碼都在此目錄。
 
+桌面工具的三種場景設定、CUDA、驗色與校準方法見[實機數據與操作流程](docs/SCENE_TUNING_zh-TW.md)。
+
 完成範圍與待辦見 [專案狀態](docs/PROJECT_STATUS_zh-TW.md)。人工 review 建議先讀 [目前推薦方案](docs/CURRENT_BEST_zh-TW.md)，再看 [歷次實驗總索引與採用／不採用理由](docs/EXPERIMENT_REVIEW_zh-TW.md)。各輪原始報告與失敗紀錄均保留，不把不同輪次的加速比相乘。
 
 - [直接8-bit精修初始化：CPU／Metal首次成本與大圖記憶體比較](docs/POSE_U8_INPUT_zh-TW.md)
@@ -59,7 +61,7 @@ ctest --test-dir build/core -C Release --output-on-failure
 
 x86-64 會在執行期依 CPU 選 SSE2、AVX2 或 AVX-VNNI-INT8 分級，輸出逐位元相同；`-DFPM_X86_MAX_ISA=SSE2|AVX2|VNNI_INT8`（預設 `VNNI_INT8`）可設定上限，見[x86 SIMD 報告](docs/CORE_X86_SIMD_zh-TW.md)。
 
-研究 coarse／frame API 另有 CUDA 後端（backend 2）：`-DFPM_BUILD_EXPERIMENTS=ON -DFPM_WITH_CUDA=ON`，需要 CUDA Toolkit（實測 13.2）與對應的主機編譯器，`CMAKE_CUDA_ARCHITECTURES` 未指定時用本機 GPU。輸出和 CPU 後端逐位元相同，只在 Windows x64 與 RTX PRO 4000 上驗證過，見 [CUDA 後端報告](docs/CUDA_BACKEND_zh-TW.md)。frame 可用 `fpm_frame_set_transfer_mode` 選擇傳輸與等待方式（預設 0；3 在 17 張影像上把每幀時間降到約 0.42 倍），見 [transfer mode 報告](docs/CUDA_TRANSFER_zh-TW.md)。粗搜尋 `ncc_mode` 3 與細搜尋 NCC mode 2 在輸出不變下再把每幀時間降到 transfer mode 3 的約 0.77 倍，見 [kernel 報告](docs/CUDA_KERNELS_zh-TW.md)。粗搜尋 `ncc_mode` 6 與細搜尋 NCC mode 4 在輸出不變下再降到約 0.95 倍；頂層面積下限放大 16 倍、粗搜尋成為主要成本時約 0.22 倍，見 [粗搜尋視窗報告](docs/CUDA_COARSE_WINDOWS_zh-TW.md)。細搜尋 NCC mode 5 再降到約 0.94／0.96／0.88 倍（預設／FastMode／subpixel），輸出不變；全部改 32 位元只再快 4～11%，輸出不再和 CPU 逐位元相同，見 [細搜尋 Tensor core 報告](docs/CUDA_FINE_TENSOR_zh-TW.md)。
+研究 coarse／frame API 另有 CUDA 後端（backend 2）：`-DFPM_BUILD_EXPERIMENTS=ON -DFPM_WITH_CUDA=ON`，需要 CUDA Toolkit（實測 13.2、Jetson 12.6）與對應的主機編譯器，`CMAKE_CUDA_ARCHITECTURES` 未指定時用本機 GPU。輸出和 CPU 後端逐位元相同，已在 Windows x64／RTX PRO 4000 及 Linux arm64／Jetson Orin 上驗證，見 [CUDA 後端報告](docs/CUDA_BACKEND_zh-TW.md)。frame 可用 `fpm_frame_set_transfer_mode` 選擇傳輸與等待方式（預設 0；3 在 17 張影像上把每幀時間降到約 0.42 倍），見 [transfer mode 報告](docs/CUDA_TRANSFER_zh-TW.md)。粗搜尋 `ncc_mode` 3 與細搜尋 NCC mode 2 在輸出不變下再把每幀時間降到 transfer mode 3 的約 0.77 倍，見 [kernel 報告](docs/CUDA_KERNELS_zh-TW.md)。粗搜尋 `ncc_mode` 6 與細搜尋 NCC mode 4 在輸出不變下再降到約 0.95 倍；頂層面積下限放大 16 倍、粗搜尋成為主要成本時約 0.22 倍，見 [粗搜尋視窗報告](docs/CUDA_COARSE_WINDOWS_zh-TW.md)。細搜尋 NCC mode 5 再降到約 0.94／0.96／0.88 倍（預設／FastMode／subpixel），輸出不變；全部改 32 位元只再快 4～11%，輸出不再和 CPU 逐位元相同，見 [細搜尋 Tensor core 報告](docs/CUDA_FINE_TENSOR_zh-TW.md)。
 
 也可從根目錄 CMake 編譯；MSVC 預設同時保留原 MFC 工具，要只編譯新核心請加 `-DFPM_BUILD_MFC=OFF`。
 
@@ -142,7 +144,7 @@ build/portable/fpm_cli --src "Test Images/Src7.bmp" \
 
 旋轉、尺度、FFT、RGB 與 CPU／GPU 分工的數學推導及研究原型，見 [研究文件](docs/RESEARCH_FOURIER_SCALE_RGB_zh-TW.md)。穩定核心仍是固定尺度灰階比對；灰階多尺度＋連續精修研究流程已透過原生 C++ 接入選配 GUI。Fourier 提案與完整 RGB 全圖搜尋尚未接入 GUI。
 
-`codex/ncc-fourier-gpu-experiments` 已提供可實跑的 C++ 多核與 Metal 浮點／RGB 姿態評分器，透過 `FPM_BUILD_EXPERIMENTS=ON` 額外編譯。實測區分常駐資料的評分時間、含 CPU 提案與同步的 ROI 管線時間、初始化與記憶體；[結果](docs/EXPERIMENT_RESULTS_zh-TW.md) 同時保留小批次 GPU 較慢、Fourier 裁切失敗及回退後仍不夠精確的案例。NumPy FFT 仍在 CPU；CUDA 目前只有研究 coarse／frame API 的後端（[報告](docs/CUDA_BACKEND_zh-TW.md)），其餘研究路徑仍是對應設計。
+`codex/ncc-fourier-gpu-experiments` 已提供可實跑的 C++ 多核與 Metal 浮點／RGB 姿態評分器，透過 `FPM_BUILD_EXPERIMENTS=ON` 額外編譯。實測區分常駐資料的評分時間、含 CPU 提案與同步的 ROI 管線時間、初始化與記憶體；[結果](docs/EXPERIMENT_RESULTS_zh-TW.md) 同時保留小批次 GPU 較慢、Fourier 裁切失敗及回退後仍不夠精確的案例。NumPy FFT 仍在 CPU；原生尺度搜尋 Session 與 Qt 工具可使用 CUDA coarse／frame 後端配合 CPU 連續姿態精修。[CUDA 桌面操作與實測](docs/SCENE_TUNING_zh-TW.md)
 
 2026-10-08，Apple Silicon Release；Src7 4024×3036、Dst7 762×521，target=70、score=.5、angle=180、overlap=.2、minArea=256。各模式先暖機一次，再序列量測三次，取比對時間中位數，排除讀圖與模板學習：
 

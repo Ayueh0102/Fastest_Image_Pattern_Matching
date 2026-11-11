@@ -20,7 +20,9 @@ experiment history, including the
 [Metal submission merge experiment](cpp-core/docs/SPARSE_METAL_MERGE_zh-TW.md),
 with time, memory, accuracy, and complete source archives.
 
-The latest [dense RGB scene study](cpp-core/docs/STAGE35_REAL_RGB_zh-TW.md)
+The [desktop workflow and scene tuning guide](cpp-core/docs/SCENE_TUNING_zh-TW.md) covers cropping and straightening a template from a frame, splitting it into tiles, single-image inspection and sampled live detection from a local video or camera. Live input uses Qt Multimedia 6.6 or later. It also includes colour inspection and scene benchmarks.
+
+The [dense RGB scene study](cpp-core/docs/STAGE35_REAL_RGB_zh-TW.md)
 compares 25 scenes across five methods. It documents small-template pyramid
 recall improvements, their runtime cost, and failures on white-balance changes
 and real capsule images. These research options do not change GUI defaults.

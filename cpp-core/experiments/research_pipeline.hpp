@@ -14,8 +14,8 @@ namespace fpm::research {
 // One caller at a time. Session owns image snapshots; updateSource replaces only the source.
 struct Settings {
     bool fullGpu = false; // Experimental complete gray8 Metal data path; no intermediate host decisions.
-    int backend = 1; // Proposal backend: 0 CPU, 1 Metal (explicit failure if unavailable)
-    int refinementBackend = -1; // -1 inherits backend; 0 CPU, 1 Metal. Defaults unchanged.
+    int backend = 1; // Proposal backend: 0 CPU, 1 Metal, 2 CUDA Tensor (SM80+).
+    int refinementBackend = -1; // -1 uses CPU for CUDA, otherwise inherits backend.
     int minReducedArea = 256;
     std::vector<double> scales{1.}; // proposal bank, not final refinement bounds
     int cpuThreads = 8;
@@ -32,6 +32,7 @@ struct Settings {
     // fullGpu or sparseOrientation). 0 keeps the minReducedArea depth.
     int pyramidRule = 0;
     double pyramidRuleMinScore = .5;
+    int minTopShortSide = 0; // Optional short-side floor in pixels, applied to each scaled template.
 };
 struct Options {
     MatchConfig match;

@@ -130,10 +130,17 @@ struct Session::Impl {
     bool poseInvert=false;
     uint64_t sourceGeneration=0;
     std::vector<PyramidRuleDecision> pyramidRule;
-    int refinementBackend() const { return settings.refinementBackend<0?settings.backend:settings.refinementBackend; }
+    int refinementBackend() const {
+        if (settings.refinementBackend >= 0) return settings.refinementBackend;
+        return settings.backend == 2 ? 0 : settings.backend;
+    }
     Impl(ImageView src,ImageView tmp,const Settings& s):source(src),templ(tmp),settings(s) {
-        if(s.backend<0 || s.backend>1 || s.minReducedArea<1 || s.cpuThreads<1 || s.cpuThreads>256 || s.scales.empty() || s.scales.size()>64)
+        if(s.backend<0 || s.backend>2 || s.minReducedArea<1 || s.cpuThreads<1 || s.cpuThreads>256 || s.scales.empty() || s.scales.size()>64)
             throw std::invalid_argument("Invalid backend, reduced area, threads or scale bank");
+        if(s.minTopShortSide<0 || s.minTopShortSide>32768 || (s.minTopShortSide && (s.sparseOrientation || s.pyramidRule)))
+            throw std::invalid_argument("Top short-side floor requires a dense fixed-rule pyramid and 0..32768 pixels");
+        if(s.backend==2 && (s.sparseOrientation || refinementBackend()!=0))
+            throw std::invalid_argument("CUDA search requires dense proposals and CPU pose refinement");
         if(s.refinementBackend< -1 || s.refinementBackend>1)
             throw std::invalid_argument("Invalid refinement backend");
         if(s.residentMode<0 || s.residentMode>2 ||
@@ -164,7 +171,7 @@ struct Session::Impl {
         char error[1024]{};
         for(double scale:s.scales) {
             auto resized=scaledTemplate(templ.view(),scale);fpm_coarse_handle* p=nullptr;FpmCoarseMetrics metrics{};
-            int minArea=s.minReducedArea;
+            int minArea=shortSideMinArea(resized.width(),resized.height(),s.minReducedArea,s.minTopShortSide);
             if(s.pyramidRule) {
                 pyramidRule.push_back(decidePyramid(resized.view(),s.minReducedArea,s.pyramidRuleMinScore));
                 minArea=pyramidRule.back().effectiveMinArea;
@@ -174,8 +181,15 @@ struct Session::Impl {
             patterns.emplace_back(p,fpm_coarse_destroy);
         }
         FpmFrameConfigV1 config{};fpm_frame_default_config(&config);config.backend=s.backend;
-        config.pyramid_mode=s.backend?1:0;config.batch_angles=s.backend?4:1;config.fine_batch_size=s.backend?512:0;
+        config.pyramid_mode=s.backend?1:0;config.batch_angles=s.backend==1?4:1;
+        config.fine_batch_size=s.backend==2?256:(s.backend==1?512:0);
         fpm_frame_handle* f=nullptr;check(fpm_frame_create(&config,sizeof(config),&f,error,sizeof(error)),error);frame.reset(f);
+        if(s.backend==2) {
+            FpmCoarseOptimizationConfigV1 exact{1,sizeof(exact),0,6,0,0};
+            check(fpm_frame_set_coarse_optimization(f,&exact,sizeof(exact),error,sizeof(error)),error);
+            check(fpm_frame_set_fine_ncc_mode(f,5,error,sizeof(error)),error);
+            check(fpm_frame_set_transfer_mode(f,3,error,sizeof(error)),error);
+        }
     }
     double ensurePose(bool invert,uint64_t& temporaryBytes) {
         temporaryBytes=0;
@@ -254,7 +268,10 @@ Result Session::run(const Options& o) {
         r.proposalScales.assign(r.proposals.size(),1.);
         r.prepareMs=r.sparse.sourcePrepareMs;
     } else {
-        if(s.settings.backend) {
+        if(s.settings.backend==2 && (o.nccMode || o.fineNccMode || o.fineFused || o.overlap ||
+            o.fineProfiling || o.fineAngleReuse || o.coarsePeakMode==2))
+            throw std::invalid_argument("CUDA Tensor search has a fixed exact kernel configuration");
+        if(s.settings.backend==1) {
             if (o.coarsePeakMode==2) {
                 FpmCoarseOverlapConfigV1 off{1,sizeof(off),0,0,0,0};
                 check(fpm_frame_set_coarse_overlap(s.frame.get(),&off,sizeof(off),error,sizeof(error)),error);

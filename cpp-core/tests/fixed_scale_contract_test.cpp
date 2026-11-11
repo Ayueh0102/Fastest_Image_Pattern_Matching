@@ -34,9 +34,10 @@ void sameMatches(const std::vector<fpm::Match>& first,
 
 int main(int argc, char** argv) {
     try {
-        if (argc > 2 || (argc == 2 && std::string(argv[1]) != "--metal"))
-            throw std::invalid_argument("Usage: fixed_scale_contract_test [--metal]");
-        const bool metal = argc == 2;
+        const std::string name=argc==2?argv[1]:"--cpu";
+        if(argc>2 || (name!="--cpu" && name!="--metal" && name!="--cuda"))
+            throw std::invalid_argument("Usage: fixed_scale_contract_test [--cpu|--metal|--cuda]");
+        const bool metal=name=="--metal", cuda=name=="--cuda";
         constexpr int width = 128, height = 96;
         constexpr int templateWidth = 32, templateHeight = 24;
         constexpr int pasteX = 43, pasteY = 31;
@@ -66,7 +67,7 @@ int main(int argc, char** argv) {
             "Safe full-resolution threshold unexpectedly reduced template");
 
         fpm::research::Settings settings;
-        settings.backend = metal ? 1 : 0;
+        settings.backend = cuda ? 2 : (metal ? 1 : 0);
         settings.minReducedArea = 784;
         settings.scales = {1.};
         fpm::research::Options options;
@@ -108,7 +109,18 @@ int main(int argc, char** argv) {
             "Repeated ordered scales changed");
         sameMatches(first.matches, second.matches);
         sameMatches(first.proposals, second.proposals);
-        std::cout << (metal ? "Metal" : "CPU")
+        if(cuda) {
+            auto cpuSettings=settings;cpuSettings.backend=0;
+            fpm::research::Session cpu(source.view(),templ.view(),cpuSettings);
+            auto reference=cpu.run(options);
+            sameMatches(reference.matches,first.matches);
+            sameMatches(reference.proposals,first.proposals);
+            std::cout<<"Session CPU "<<reference.totalMs<<" ms, CUDA search + CPU pose "<<second.totalMs<<" ms\n";
+            fpm::Image blank(width,height);
+            session.updateSource(blank.view());
+            require(session.run(options).matches.empty(),"Old target retained after a CUDA source update");
+        }
+        std::cout << (cuda ? "CUDA" : metal ? "Metal" : "CPU")
             << " fixed-scale contract: one level, locked scale, rotation search, "
                "continuous refinement, planted target and exact repeats passed\n";
         return 0;

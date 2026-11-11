@@ -1,0 +1,60 @@
+{
+  "device": "Jetson Orin (SM87)",
+  "cuda": "12.6",
+  "build_type": "Release",
+  "cpu_fp_flag": "-ffp-contract=off",
+  "test_output": {
+    "backend": [
+      "CUDA backend bit-identical on 14 scenes, 185 CPU matches; binary32 ablation identical on 2 of 14 scenes, on the Tensor core kernels 2 of 14"
+    ],
+    "kernels": [
+      "Q28/binary64 disagreements: 24 poses in 20466380 pixels",
+      "arithmetic-sensitive poses: 24 in 89331 pixels",
+      "fine: 1359 maps, 132424 FP64 pixels, 61 FP64 maps",
+      "PASS fine",
+      "coarse mode 3: 23125 FP64 tile pixels, 2673529 of 6946200 windows scored in binary64",
+      "coarse mode 5: 8728 FP64 tile pixels, 1300730 of 5018227 windows scored in binary64",
+      "coarse mode 6: 13003 FP64 tile pixels, 3166902 of 7864537 windows scored in binary64",
+      "coarse mode 8: 23822 FP64 tile pixels, 2602782 of 9043178 windows scored in binary64",
+      "PASS coarse",
+      "PASS dense",
+      "PASS pyramid"
+    ],
+    "session": [
+      "Session CPU 35.6896 ms, CUDA search + CPU pose 0.897113 ms",
+      "CUDA fixed-scale contract: one level, locked scale, rotation search, continuous refinement, planted target and exact repeats passed"
+    ],
+    "window": [
+      "paused",
+      "session.log 0",
+      "standard.log 0",
+      "fine.log 0",
+      "capacity.log 0",
+      "kernels.log 0",
+      "backend.log 0",
+      "restored {'0': 'CONNECTED', '1': 'CONNECTED', '2': 'CONNECTED', '3': 'CONNECTED'} [26.3, 26.4, 26.6, 31.2]"
+    ]
+  },
+  "final_check": {
+    "aoi_state": "IDLE",
+    "camera_states": [
+      "CONNECTED",
+      "CONNECTED",
+      "CONNECTED",
+      "CONNECTED"
+    ],
+    "fps": [
+      27.5,
+      27.7,
+      27.6,
+      27.7
+    ],
+    "recording_active": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "remote_temporary_directory_removed": true
+}

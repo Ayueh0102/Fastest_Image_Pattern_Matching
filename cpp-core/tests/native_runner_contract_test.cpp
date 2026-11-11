@@ -64,7 +64,7 @@ void jobKeys(const QString& runner,const QTemporaryDir& dir) {
         {"full_gpu_fine_mode",0},{"full_gpu_peak_batch",0},{"full_gpu_peak_mode",0},{"full_gpu_profiling",false},{"gray_load_mode","direct_gray8"},
         {"invert_source",false},{"limit",4},{"min_area",256},{"ncc_mode",0},{"overlap",.2},{"overlap_enabled",false},
         {"pose_input_mode",0},{"pose_resident_mode",0},{"pose_storage_mode",0},{"proposal_method","pyramid"},
-        {"proposal_score",.5},{"pyramid_rule",1},{"pyramid_rule_min_score",.5},{"refine",false},{"refinement_backend",-1},{"repeats",1},{"run_resource_diagnostics",false},
+        {"min_top_short_side",0},{"proposal_score",.5},{"pyramid_rule",1},{"pyramid_rule_min_score",.5},{"refine",false},{"refinement_backend",-1},{"repeats",1},{"run_resource_diagnostics",false},
         {"scale_support_refine",false},{"scales",QJsonArray{1.}},{"score",.8},{"sequence_gap","sleep"},
         {"sequence_gap_sleep_ms",5.},{"sequence_mode","reuse"},{"small_template_area",0.},{"soak_seconds",0},
         {"source",missing},{"source_frames",QJsonArray{missing}},{"sparse_angle_step",6.},{"sparse_candidate_limit",256},

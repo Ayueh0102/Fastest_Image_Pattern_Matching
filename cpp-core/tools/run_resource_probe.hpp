@@ -6,7 +6,14 @@
 #include <chrono>
 #include <cstdint>
 #include <limits>
+#if defined(_WIN32)
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#else
 #include <sys/resource.h>
+#endif
 #if defined(__APPLE__)
 #include <mach/mach.h>
 #endif
@@ -48,6 +55,7 @@ struct RunResourceSnapshot {
     std::uint32_t host_idle_ticks = 0;
 };
 
+#if !defined(_WIN32)
 inline bool timevalMicroseconds(const timeval& value, std::int64_t& result)
 {
     if (value.tv_sec < 0 || value.tv_usec < 0 || value.tv_usec >= 1000000)
@@ -57,11 +65,13 @@ inline bool timevalMicroseconds(const timeval& value, std::int64_t& result)
     result = static_cast<std::int64_t>(value.tv_sec) * 1000000 + value.tv_usec;
     return true;
 }
+#endif
 
 inline RunResourceSnapshot captureRunResourceSnapshot()
 {
     RunResourceSnapshot result;
     result.wall = std::chrono::steady_clock::now();
+#if !defined(_WIN32)
     rusage usage{};
     if (getrusage(RUSAGE_SELF, &usage) == 0 &&
         timevalMicroseconds(usage.ru_utime, result.user_us) &&
@@ -72,6 +82,7 @@ inline RunResourceSnapshot captureRunResourceSnapshot()
         result.voluntary_switches = usage.ru_nvcsw;
         result.involuntary_switches = usage.ru_nivcsw;
     }
+#endif
 #if defined(__APPLE__)
     host_cpu_load_info_data_t cpu{};
     mach_msg_type_number_t count = HOST_CPU_LOAD_INFO_COUNT;
